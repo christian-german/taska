@@ -3,11 +3,13 @@ import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable, tap } from 'rxjs';
 import { Label } from '../models';
 import { environment } from '../../../environments/environment';
+import {ConfigService} from './config.service';
 
 @Injectable({ providedIn: 'root' })
 export class LabelService {
   private http = inject(HttpClient);
-  private readonly base = `${environment.apiUrl}/labels`;
+  private config = inject(ConfigService);
+  private readonly base = `${this.config.apiUrl}/labels`;
 
   private labelsSubject = new BehaviorSubject<Label[]>([]);
   labels$ = this.labelsSubject.asObservable();

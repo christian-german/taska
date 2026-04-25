@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/v1/sections")
+@RequestMapping("/sections")
 public class SectionController {
 
     private final SectionService sectionService;

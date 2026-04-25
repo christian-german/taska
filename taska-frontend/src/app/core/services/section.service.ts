@@ -3,11 +3,13 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { Section } from '../models';
 import { environment } from '../../../environments/environment';
+import {ConfigService} from './config.service';
 
 @Injectable({ providedIn: 'root' })
 export class SectionService {
   private http = inject(HttpClient);
-  private readonly base = `${environment.apiUrl}/sections`;
+  private config = inject(ConfigService);
+  private readonly base = `${this.config.apiUrl}/sections`;
 
   getSections(projectId?: string): Observable<Section[]> {
     let params = new HttpParams();

@@ -1,6 +1,7 @@
 services:
   postgres:
     image: postgres:17
+    container_name: taska-db
     environment:
       POSTGRES_DB: taska
       POSTGRES_USER: taska
@@ -11,12 +12,13 @@ services:
       - "5432:5432"
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U taska"]
-      interval: 5s
+      interval: 1s
       timeout: 5s
-      retries: 5
+      retries: 20
 
   backend:
     build: ./taska-backend
+    container_name: taska-backend
     ports:
       - "8080:8080"
     depends_on:
@@ -30,6 +32,9 @@ services:
 
   frontend:
     build: ./taska-frontend
+    container_name: taska-frontend
+    environment:
+      API_URL: http://localhost:8080
     ports:
       - "80:80"
     depends_on:

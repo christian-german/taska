@@ -1,0 +1,52 @@
+services:
+
+  taska-frontend:
+    image: ghcr.io/christian-german/taska/taska-frontend:latest
+    container_name: taska-frontend
+    restart: always
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.taska-frontend.rule=Host(`taska.atlascore.dev`)
+      - traefik.http.routers.taska-frontend.entrypoints=websecure
+      - traefik.http.routers.taska-frontend.tls=true
+      - traefik.http.routers.taska-frontend.middlewares=authentik-auth@docker
+      - traefik.http.services.taska-frontend-svc.loadbalancer.server.port=80
+    environment:
+      API_URL: https://api-taska.atlascore.dev
+    networks:
+      - traefik_network
+
+  taska-backend:
+    image: ghcr.io/christian-german/taska/taska-backend:latest
+    container_name: taska-backend
+    restart: always
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.taska-backend.rule=Host(`api-taska.atlascore.dev`)
+      - traefik.http.routers.taska-backend.entrypoints=websecure
+      - traefik.http.routers.taska-backend.tls=true
+      - traefik.http.routers.taska-backend.middlewares=authentik-auth@docker
+      - traefik.http.services.taska-backend-svc.loadbalancer.server.port=8080
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://taska-db:5432/taska
+    networks:
+      - traefik_network
+      - taska_internal_network
+
+  taska-db:
+    image: postgres:18.1-alpine
+    container_name: taska-db
+    environment:
+      POSTGRES_DB: taska
+      POSTGRES_USER: taska
+      POSTGRES_PASSWORD: taska
+    volumes:
+      - /opt/docker/taska/pg-data:/var/lib/postgresql/data
+    networks:
+      - taska_internal_network
+
+networks:
+  traefik_network:
+    external: true
+  taska_internal_network:
+    internal: true

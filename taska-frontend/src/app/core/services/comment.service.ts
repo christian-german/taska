@@ -3,11 +3,13 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { Comment } from '../models';
 import { environment } from '../../../environments/environment';
+import {ConfigService} from './config.service';
 
 @Injectable({ providedIn: 'root' })
 export class CommentService {
   private http = inject(HttpClient);
-  private readonly base = `${environment.apiUrl}/comments`;
+  private config = inject(ConfigService);
+  private readonly base = `${this.config.apiUrl}/comments`;
 
   getComments(taskId?: string, projectId?: string): Observable<Comment[]> {
     let params = new HttpParams();

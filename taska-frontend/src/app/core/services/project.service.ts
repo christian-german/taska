@@ -3,13 +3,15 @@ import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable, tap } from 'rxjs';
 import { Project, Section, Task } from '../models';
 import { environment } from '../../../environments/environment';
+import {ConfigService} from './config.service';
 
 export interface ReorderItem { id: string; order: number; }
 
 @Injectable({ providedIn: 'root' })
 export class ProjectService {
   private http = inject(HttpClient);
-  private readonly base = `${environment.apiUrl}/projects`;
+  private config = inject(ConfigService);
+  private readonly base = `${this.config.apiUrl}/projects`;
 
   private projectsSubject = new BehaviorSubject<Project[]>([]);
   projects$ = this.projectsSubject.asObservable();

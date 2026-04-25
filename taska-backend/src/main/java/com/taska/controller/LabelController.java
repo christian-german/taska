@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/v1/labels")
+@RequestMapping("/labels")
 public class LabelController {
 
     private final LabelService labelService;

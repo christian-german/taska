@@ -3,6 +3,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { Task } from '../models';
 import { environment } from '../../../environments/environment';
+import {ConfigService} from './config.service';
 
 export interface TaskFilters {
   projectId?: string;
@@ -15,7 +16,8 @@ export interface TaskFilters {
 @Injectable({ providedIn: 'root' })
 export class TaskService {
   private http = inject(HttpClient);
-  private readonly base = `${environment.apiUrl}/tasks`;
+  private config = inject(ConfigService);
+  private readonly base = `${this.config.apiUrl}/tasks`;
 
   getTasks(filters?: TaskFilters): Observable<Task[]> {
     let params = new HttpParams();

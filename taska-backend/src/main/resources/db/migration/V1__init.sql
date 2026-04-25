@@ -67,3 +67,5 @@ CREATE INDEX IF NOT EXISTS idx_tasks_completed   ON tasks(is_completed);
 CREATE INDEX IF NOT EXISTS idx_sections_project  ON sections(project_id);
 CREATE INDEX IF NOT EXISTS idx_comments_task     ON comments(task_id);
 CREATE INDEX IF NOT EXISTS idx_comments_project  ON comments(project_id);
+
+INSERT INTO projects (id, name, color, is_inbox_project) VALUES (gen_random_uuid(), 'Inbox', 'charcoal', TRUE);

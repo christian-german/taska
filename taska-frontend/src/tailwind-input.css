@@ -1,0 +1,24 @@
+@import "tailwindcss";
+
+/* Class-based dark mode (we toggle .dark on <html>) */
+@custom-variant dark (&:where(.dark, .dark *));
+
+@layer utilities {
+  .task-complete-animation {
+    animation: fadeOut 0.3s ease forwards;
+  }
+
+  @keyframes fadeOut {
+    0% { opacity: 1; transform: translateX(0); }
+    100% { opacity: 0; transform: translateX(-10px); }
+  }
+
+  .slide-in-right {
+    animation: slideInRight 0.2s ease-out;
+  }
+
+  @keyframes slideInRight {
+    from { transform: translateX(100%); }
+    to { transform: translateX(0); }
+  }
+}

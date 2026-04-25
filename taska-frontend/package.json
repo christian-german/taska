@@ -1,0 +1,52 @@
+{
+  "name": "taska-frontend",
+  "version": "0.0.0",
+  "scripts": {
+    "ng": "ng",
+    "tailwind:build": "npx @tailwindcss/cli -i src/tailwind-input.css -o src/tailwind-generated.css",
+    "tailwind:watch": "npx @tailwindcss/cli -i src/tailwind-input.css -o src/tailwind-generated.css --watch --poll",
+    "prestart": "npm run tailwind:build",
+    "start": "concurrently \"npm run tailwind:watch\" \"ng serve\"",
+    "prebuild": "npm run tailwind:build",
+    "build": "ng build",
+    "watch": "ng build --watch --configuration development",
+    "test": "ng test"
+  },
+  "prettier": {
+    "printWidth": 100,
+    "singleQuote": true,
+    "overrides": [
+      {
+        "files": "*.html",
+        "options": {
+          "parser": "angular"
+        }
+      }
+    ]
+  },
+  "private": true,
+  "packageManager": "npm@11.8.0",
+  "dependencies": {
+    "@angular/animations": "^21.2.10",
+    "@angular/cdk": "^21.2.8",
+    "@angular/common": "^21.1.0",
+    "@angular/compiler": "^21.1.0",
+    "@angular/core": "^21.1.0",
+    "@angular/forms": "^21.1.0",
+    "@angular/platform-browser": "^21.1.0",
+    "@angular/router": "^21.1.0",
+    "@tailwindcss/vite": "^4.2.4",
+    "rxjs": "~7.8.0",
+    "tailwindcss": "^4.2.4",
+    "tslib": "^2.3.0"
+  },
+  "devDependencies": {
+    "@angular/build": "^21.1.4",
+    "@angular/cli": "^21.1.4",
+    "@angular/compiler-cli": "^21.1.0",
+    "@tailwindcss/cli": "^4.2.4",
+    "@tailwindcss/postcss": "^4.2.4",
+    "concurrently": "^9.2.1",
+    "typescript": "~5.9.2"
+  }
+}

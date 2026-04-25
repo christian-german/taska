@@ -1,0 +1,150 @@
+<!-- Overlay backdrop -->
+<div class="fixed inset-0 z-40" (click)="close.emit()"></div>
+
+<!-- Side panel -->
+<aside class="fixed top-0 right-0 h-full w-96 bg-white dark:bg-gray-900 shadow-2xl z-50 flex flex-col slide-in-right border-l border-gray-200 dark:border-gray-700">
+
+  <!-- Header -->
+  <div class="flex items-center justify-between px-5 py-4 border-b border-gray-100 dark:border-gray-800">
+    <div class="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
+        <path fill-rule="evenodd" d="M6 2a2 2 0 00-2 2v12a2 2 0 002 2h8a2 2 0 002-2V7.414A2 2 0 0015.414 6L12 2.586A2 2 0 0010.586 2H6zm5 6a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V8z" clip-rule="evenodd"/>
+      </svg>
+      {{ getProjectName(task().projectId) }}
+    </div>
+    <button (click)="close.emit()"
+      class="p-1.5 rounded hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors">
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 20 20" fill="currentColor">
+        <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/>
+      </svg>
+    </button>
+  </div>
+
+  <!-- Body -->
+  <div class="flex-1 overflow-y-auto px-5 py-4 space-y-5">
+
+    <!-- Content -->
+    <div>
+      <textarea
+        [ngModel]="editedContent()"
+        (ngModelChange)="editedContent.set($event)"
+        (blur)="saveContent()"
+        rows="2"
+        class="w-full text-base font-medium bg-transparent outline-none resize-none text-gray-900 dark:text-gray-100 placeholder-gray-400"
+        placeholder="Task name"></textarea>
+    </div>
+
+    <!-- Description -->
+    <div>
+      <textarea
+        [ngModel]="editedDescription()"
+        (ngModelChange)="editedDescription.set($event)"
+        (blur)="saveDescription()"
+        rows="3"
+        class="w-full text-sm bg-transparent outline-none resize-none text-gray-600 dark:text-gray-400 placeholder-gray-300 dark:placeholder-gray-600"
+        placeholder="Add a description…"></textarea>
+    </div>
+
+    <!-- Metadata -->
+    <div class="grid grid-cols-2 gap-3 text-sm">
+      <!-- Due date -->
+      <div>
+        <label class="text-xs font-medium text-gray-400 uppercase tracking-wider mb-1 block">Due date</label>
+        <app-due-date-picker [dueDate]="task().dueDate" (dueDateChange)="onDueDateChange($event)" />
+      </div>
+
+      <!-- Priority -->
+      <div>
+        <label class="text-xs font-medium text-gray-400 uppercase tracking-wider mb-1 block">Priority</label>
+        <app-priority-picker [priority]="task().priority" (priorityChange)="onPriorityChange($event)" />
+      </div>
+
+      <!-- Project -->
+      <div class="col-span-2">
+        <label class="text-xs font-medium text-gray-400 uppercase tracking-wider mb-1 block">Project</label>
+        <select
+          [ngModel]="task().projectId"
+          (ngModelChange)="onProjectChange($event)"
+          class="w-full text-sm bg-transparent border border-gray-200 dark:border-gray-700 rounded px-2 py-1 text-gray-700 dark:text-gray-300 outline-none">
+          @for (project of projects(); track project.id) {
+            <option [value]="project.id">{{ project.name }}</option>
+          }
+        </select>
+      </div>
+
+      <!-- Labels -->
+      <div class="col-span-2">
+        <label class="text-xs font-medium text-gray-400 uppercase tracking-wider mb-1 block">Labels</label>
+        <div class="flex flex-wrap gap-1 mb-1">
+          @for (name of task().labels; track name) {
+            <span class="flex items-center gap-1 px-2 py-0.5 rounded-full text-xs text-white"
+              [style.background-color]="getLabelColor(name)">
+              {{ name }}
+              <button (click)="onLabelsChange(task().labels.filter(l => l !== name))"
+                class="hover:opacity-70 transition-opacity leading-none">×</button>
+            </span>
+          }
+        </div>
+        <app-label-picker [selected]="task().labels" (labelsChange)="onLabelsChange($event)" />
+      </div>
+    </div>
+
+    <!-- Subtasks -->
+    <div>
+      <h3 class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">
+        Sub-tasks {{ subtasks().length > 0 ? '(' + subtasks().length + ')' : '' }}
+      </h3>
+      @for (subtask of subtasks(); track subtask.id) {
+        <div class="flex items-start gap-2 py-1">
+          <button (click)="completeSubtask(subtask)"
+            class="mt-0.5 w-4 h-4 rounded-full border-2 border-gray-300 flex-shrink-0 hover:border-green-500 transition-colors">
+          </button>
+          <span class="text-sm text-gray-700 dark:text-gray-300">{{ subtask.content }}</span>
+        </div>
+      }
+      <app-add-task-form [parentId]="task().id" [projectId]="task().projectId" (taskCreated)="onSubtaskCreated($event)" />
+    </div>
+
+    <!-- Comments -->
+    <div>
+      <h3 class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Comments</h3>
+
+      @for (comment of comments(); track comment.id) {
+        <div class="mb-3 group">
+          <div class="flex items-start justify-between gap-2">
+            <p class="text-sm text-gray-700 dark:text-gray-300 flex-1">{{ comment.content }}</p>
+            <button (click)="deleteComment(comment.id)"
+              class="opacity-0 group-hover:opacity-100 text-gray-300 hover:text-red-400 transition-all">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/>
+              </svg>
+            </button>
+          </div>
+          <p class="text-xs text-gray-400 mt-0.5">{{ formatCommentDate(comment.createdAt) }}</p>
+        </div>
+      }
+
+      <!-- Add comment -->
+      <div class="mt-3">
+        <textarea
+          [ngModel]="newComment()"
+          (ngModelChange)="newComment.set($event)"
+          (keydown.ctrl.enter)="addComment()"
+          rows="2"
+          placeholder="Add a comment… (Ctrl+Enter to send)"
+          class="w-full text-sm bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 outline-none resize-none text-gray-700 dark:text-gray-300 placeholder-gray-400 focus:border-blue-400 transition-colors"></textarea>
+        <button (click)="addComment()"
+          [disabled]="!newComment().trim()"
+          class="mt-1 px-3 py-1.5 text-xs bg-blue-500 text-white rounded hover:bg-blue-600 disabled:opacity-40 disabled:cursor-not-allowed transition-colors">
+          Send
+        </button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Footer meta -->
+  <div class="px-5 py-3 border-t border-gray-100 dark:border-gray-800 text-xs text-gray-400">
+    Created {{ formatCommentDate(task().createdAt) }}
+  </div>
+</aside>

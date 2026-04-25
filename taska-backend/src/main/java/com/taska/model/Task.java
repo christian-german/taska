@@ -1,0 +1,107 @@
+package com.taska.model;
+
+import jakarta.persistence.*;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
+
+@Entity
+@Table(name = "tasks")
+public class Task {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
+
+    @Column(nullable = false, length = 1000)
+    private String content;
+
+    @Column(columnDefinition = "TEXT")
+    private String description;
+
+    @Column(name = "project_id")
+    private UUID projectId;
+
+    @Column(name = "section_id")
+    private UUID sectionId;
+
+    @Column(name = "parent_id")
+    private UUID parentId;
+
+    @Column(name = "position", nullable = false)
+    private Integer position = 0;
+
+    @Column(nullable = false)
+    private Integer priority = 1;
+
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "task_labels", joinColumns = @JoinColumn(name = "task_id"))
+    @Column(name = "label")
+    private List<String> labels = new ArrayList<>();
+
+    @Column(name = "is_completed", nullable = false)
+    private Boolean isCompleted = false;
+
+    @Column(name = "due_date")
+    private LocalDate dueDate;
+
+    @Column(name = "due_date_time")
+    private LocalDateTime dueDateTime;
+
+    @Column(name = "is_recurring", nullable = false)
+    private Boolean isRecurring = false;
+
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private Instant createdAt;
+
+    @Column(name = "updated_at", nullable = false)
+    private Instant updatedAt;
+
+    @Column(name = "completed_at")
+    private Instant completedAt;
+
+    @PrePersist
+    protected void onCreate() {
+        createdAt = Instant.now();
+        updatedAt = Instant.now();
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        updatedAt = Instant.now();
+    }
+
+    public UUID getId() { return id; }
+    public void setId(UUID id) { this.id = id; }
+    public String getContent() { return content; }
+    public void setContent(String content) { this.content = content; }
+    public String getDescription() { return description; }
+    public void setDescription(String description) { this.description = description; }
+    public UUID getProjectId() { return projectId; }
+    public void setProjectId(UUID projectId) { this.projectId = projectId; }
+    public UUID getSectionId() { return sectionId; }
+    public void setSectionId(UUID sectionId) { this.sectionId = sectionId; }
+    public UUID getParentId() { return parentId; }
+    public void setParentId(UUID parentId) { this.parentId = parentId; }
+    public Integer getPosition() { return position; }
+    public void setPosition(Integer position) { this.position = position; }
+    public Integer getPriority() { return priority; }
+    public void setPriority(Integer priority) { this.priority = priority; }
+    public List<String> getLabels() { return labels; }
+    public void setLabels(List<String> labels) { this.labels = labels; }
+    public Boolean getIsCompleted() { return isCompleted; }
+    public void setIsCompleted(Boolean isCompleted) { this.isCompleted = isCompleted; }
+    public LocalDate getDueDate() { return dueDate; }
+    public void setDueDate(LocalDate dueDate) { this.dueDate = dueDate; }
+    public LocalDateTime getDueDateTime() { return dueDateTime; }
+    public void setDueDateTime(LocalDateTime dueDateTime) { this.dueDateTime = dueDateTime; }
+    public Boolean getIsRecurring() { return isRecurring; }
+    public void setIsRecurring(Boolean isRecurring) { this.isRecurring = isRecurring; }
+    public Instant getCreatedAt() { return createdAt; }
+    public Instant getUpdatedAt() { return updatedAt; }
+    public Instant getCompletedAt() { return completedAt; }
+    public void setCompletedAt(Instant completedAt) { this.completedAt = completedAt; }
+}

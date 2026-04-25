@@ -1,0 +1,10 @@
+/* Global resets – Tailwind is loaded via tailwind-input.css pre-processed by the CLI */
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, sans-serif;
+}

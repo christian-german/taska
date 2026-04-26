@@ -4,8 +4,9 @@ import { FormsModule } from '@angular/forms';
 import { CdkDragDrop, DragDropModule, moveItemInArray } from '@angular/cdk/drag-drop';
 import { ProjectService, ReorderItem } from '../../core/services/project.service';
 import { LabelService } from '../../core/services/label.service';
+import { FilterService } from '../../core/services/filter.service';
 import { ThemeService } from '../../core/services/theme.service';
-import { getColor, Label, Project, Task } from '../../core/models';
+import { Filter, getColor, Label, Project, Task } from '../../core/models';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ProjectEditModalComponent, ProjectEditResult } from '../../shared/components/project-edit-modal/project-edit-modal.component';
 
@@ -24,16 +25,19 @@ export class SidebarComponent implements OnInit {
 
   private projectService = inject(ProjectService);
   private labelService = inject(LabelService);
+  private filterService = inject(FilterService);
   themeService = inject(ThemeService);
 
   projects = toSignal(this.projectService.projects$, { initialValue: [] as Project[] });
   labels = toSignal(this.labelService.labels$, { initialValue: [] as Label[] });
+  filters = toSignal(this.filterService.filters$, { initialValue: [] as Filter[] });
   inboxProject = computed(() => this.projects().find(p => p.isInboxProject));
 
   favoriteProjects = computed(() =>
     this.projects().filter(p => p.isFavorite && !p.isInboxProject)
   );
   favoriteLabels = computed(() => this.labels().filter(l => l.isFavorite));
+  favoriteFilters = computed(() => this.filters().filter(f => f.isFavorite));
 
   projectTree = computed((): ProjectNode[] => {
     const all = this.projects().filter(p => !p.isInboxProject);
@@ -46,6 +50,7 @@ export class SidebarComponent implements OnInit {
   newProjectColor = signal('charcoal');
   collapsedProjects = signal(new Set<string>());
   editingProject = signal<Project | null>(null);
+  sidebarCollapsed = signal(false);
 
   ngOnInit(): void {}
 

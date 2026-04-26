@@ -44,4 +44,11 @@ public interface TaskRepository extends JpaRepository<Task, UUID> {
 
     @Query("SELECT t FROM Task t WHERE t.isCompleted = false AND t.dueDate IS NOT NULL ORDER BY t.dueDate ASC")
     List<Task> findAllWithDueDateNotCompleted();
+
+    @Query("SELECT t FROM Task t WHERE t.isCompleted = false AND t.dueDate IS NULL ORDER BY t.position ASC")
+    List<Task> findAllWithNoDueDateNotCompleted();
+
+    List<Task> findByProjectIdAndDueDateIsNotNullAndIsCompletedFalseOrderByDueDateAsc(UUID projectId);
+
+    List<Task> findByProjectIdAndDueDateIsNullAndIsCompletedFalseOrderByPositionAsc(UUID projectId);
 }

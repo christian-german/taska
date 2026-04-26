@@ -1,5 +1,15 @@
 export type ViewStyle = 'LIST' | 'BOARD' | 'CALENDAR';
 
+export interface Filter {
+  id: string;
+  name: string;
+  color: string;
+  isFavorite: boolean;
+  order: number;
+  projectId?: string;
+  hasDate?: boolean;
+}
+
 export interface Project {
   id: string;
   name: string;

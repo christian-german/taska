@@ -129,7 +129,8 @@ import { Task, ViewStyle } from '../../core/models';
       <app-task-detail
         [task]="selectedTask()!"
         (close)="selectedTask.set(null)"
-        (taskUpdated)="onTaskUpdated($event)" />
+        (taskUpdated)="onTaskUpdated($event)"
+        (taskDeleted)="onTaskDeleted($event)" />
     }
   `
 })
@@ -199,5 +200,10 @@ export class InboxComponent implements OnInit {
   onTaskUpdated(task: Task): void {
     this.tasks.update(t => t.map(t2 => t2.id === task.id ? task : t2));
     this.selectedTask.set(task);
+  }
+
+  onTaskDeleted(id: string): void {
+    this.tasks.update(t => t.filter(t2 => t2.id !== id));
+    this.selectedTask.set(null);
   }
 }

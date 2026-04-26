@@ -55,9 +55,9 @@ import { ViewStyle } from '../../../core/models';
   `
 })
 export class DisplayPanelComponent {
-  isOpen = input.required<boolean>();
-  viewStyle = input.required<ViewStyle>();
-  showCompleted = input.required<boolean>();
+  isOpen = input<boolean>(false);
+  viewStyle = input<ViewStyle>('LIST');
+  showCompleted = input<boolean>(false);
   viewStyleChange = output<ViewStyle>();
   showCompletedChange = output<boolean>();
   closed = output<void>();

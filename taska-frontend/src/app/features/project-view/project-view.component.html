@@ -211,5 +211,5 @@
 </div>
 
 @if (selectedTask()) {
-  <app-task-detail [task]="selectedTask()!" (close)="selectedTask.set(null)" (taskUpdated)="onTaskUpdated($event)" />
+  <app-task-detail [task]="selectedTask()!" (close)="selectedTask.set(null)" (taskUpdated)="onTaskUpdated($event)" (taskDeleted)="onTaskDeleted($event)" />
 }

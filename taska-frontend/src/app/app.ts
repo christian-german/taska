@@ -6,6 +6,7 @@ import { TaskDetailComponent } from './features/task-detail/task-detail.componen
 import { ThemeService } from './core/services/theme.service';
 import { ProjectService } from './core/services/project.service';
 import { LabelService } from './core/services/label.service';
+import { FilterService } from './core/services/filter.service';
 import { Task } from './core/models';
 
 @Component({
@@ -22,7 +23,8 @@ import { Task } from './core/models';
         <app-task-detail
           [task]="selectedTask()!"
           (close)="selectedTask.set(null)"
-          (taskUpdated)="selectedTask.set($event)" />
+          (taskUpdated)="selectedTask.set($event)"
+          (taskDeleted)="selectedTask.set(null)" />
       }
 
       @if (showQuickAdd()) {
@@ -34,6 +36,7 @@ import { Task } from './core/models';
 export class App implements OnInit {
   private projectService = inject(ProjectService);
   private labelService = inject(LabelService);
+  private filterService = inject(FilterService);
   themeService = inject(ThemeService);
 
   showQuickAdd = signal(false);
@@ -42,6 +45,7 @@ export class App implements OnInit {
   ngOnInit(): void {
     this.projectService.loadProjects().subscribe();
     this.labelService.loadLabels().subscribe();
+    this.filterService.loadFilters().subscribe();
   }
 
   openTaskDetail(task: Task): void {

@@ -26,5 +26,13 @@ export const routes: Routes = [
     path: 'label/:name',
     loadComponent: () => import('./features/label-tasks/label-tasks.component').then(m => m.LabelTasksComponent)
   },
+  {
+    path: 'filters',
+    loadComponent: () => import('./features/filters/filters.component').then(m => m.FiltersComponent)
+  },
+  {
+    path: 'filter/:id',
+    loadComponent: () => import('./features/filter-tasks/filter-tasks.component').then(m => m.FilterTasksComponent)
+  },
   { path: '**', redirectTo: 'inbox' }
 ];

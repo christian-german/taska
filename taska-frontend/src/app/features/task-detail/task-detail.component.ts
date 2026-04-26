@@ -20,6 +20,7 @@ export class TaskDetailComponent implements OnInit, OnChanges {
   task = input.required<Task>();
   close = output<void>();
   taskUpdated = output<Task>();
+  taskDeleted = output<string>();
 
   private taskService = inject(TaskService);
   private commentService = inject(CommentService);
@@ -111,6 +112,12 @@ export class TaskDetailComponent implements OnInit, OnChanges {
   completeSubtask(subtask: Task): void {
     this.taskService.closeTask(subtask.id).subscribe(() => {
       this.subtasks.update(t => t.filter(t2 => t2.id !== subtask.id));
+    });
+  }
+
+  deleteTask(): void {
+    this.taskService.deleteTask(this.task().id).subscribe(() => {
+      this.taskDeleted.emit(this.task().id);
     });
   }
 

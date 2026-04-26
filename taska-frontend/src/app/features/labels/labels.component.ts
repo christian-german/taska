@@ -9,10 +9,10 @@ import { Label, PROJECT_COLORS, getColor } from '../../core/models';
   standalone: true,
   imports: [FormsModule],
   template: `
-    <div class="max-w-2xl mx-auto px-8 py-8">
+    <div class="h-full flex flex-col overflow-hidden">
 
       <!-- Header -->
-      <div class="flex items-center gap-3 mb-8">
+      <div class="px-8 py-5 border-b border-gray-100 dark:border-gray-800 flex items-center gap-3 flex-shrink-0">
         <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-purple-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
             d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/>
@@ -20,6 +20,9 @@ import { Label, PROJECT_COLORS, getColor } from '../../core/models';
         <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Labels</h1>
         <span class="text-sm text-gray-400">{{ labels().length }}</span>
       </div>
+
+      <div class="flex-1 overflow-auto">
+        <div class="max-w-2xl mx-auto px-8 py-6">
 
       <!-- Labels list -->
       <div class="space-y-1 mb-6">
@@ -114,20 +117,36 @@ import { Label, PROJECT_COLORS, getColor } from '../../core/models';
           }
         }
 
-        @if (labels().length === 0 && !showAdd()) {
+        @if (labels().length === 0) {
           <p class="text-sm text-gray-400 dark:text-gray-500 text-center py-8">No labels yet. Create one below.</p>
         }
       </div>
 
-      <!-- Add label form -->
-      @if (showAdd()) {
-        <div class="border border-gray-300 dark:border-gray-600 rounded-xl p-4 bg-white dark:bg-gray-800 shadow-sm">
-          <h3 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">New label</h3>
+      <!-- Add button -->
+      <button (click)="openAdd()"
+        class="flex items-center gap-2 text-sm text-gray-400 hover:text-red-500 transition-colors">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"/>
+        </svg>
+        Add label
+      </button>
+        </div>
+      </div>
+    </div>
 
-          <div class="mb-3">
+    <!-- Create popup -->
+    @if (showAdd()) {
+      <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40"
+        (click)="closeAdd()">
+        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-md p-6 space-y-4"
+          (click)="$event.stopPropagation()">
+
+          <h3 class="text-base font-semibold text-gray-800 dark:text-gray-100">New label</h3>
+
+          <div>
             <label class="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wide">Name</label>
             <input [ngModel]="newName()" (ngModelChange)="newName.set($event)"
-              (keydown.enter)="createLabel()" (keydown.escape)="showAdd.set(false)"
+              (keydown.enter)="createLabel()" (keydown.escape)="closeAdd()"
               placeholder="Label name"
               autofocus
               class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm
@@ -135,7 +154,7 @@ import { Label, PROJECT_COLORS, getColor } from '../../core/models';
                      focus:outline-none focus:ring-2 focus:ring-red-500" />
           </div>
 
-          <div class="mb-3">
+          <div>
             <label class="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wide">Color</label>
             <div class="flex flex-wrap gap-2">
               @for (key of colorKeys; track key) {
@@ -153,7 +172,7 @@ import { Label, PROJECT_COLORS, getColor } from '../../core/models';
             </div>
           </div>
 
-          <div class="flex items-center justify-between mb-4">
+          <div class="flex items-center justify-between">
             <span class="text-sm text-gray-700 dark:text-gray-300">Add to favorites</span>
             <button (click)="newFavorite.set(!newFavorite())"
               [class]="newFavorite() ? 'bg-red-500' : 'bg-gray-200 dark:bg-gray-600'"
@@ -163,28 +182,20 @@ import { Label, PROJECT_COLORS, getColor } from '../../core/models';
             </button>
           </div>
 
-          <div class="flex gap-2">
+          <div class="flex gap-2 pt-1">
             <button (click)="createLabel()"
               [disabled]="!newName().trim()"
-              class="px-4 py-1.5 text-xs font-medium bg-red-500 text-white rounded-lg hover:bg-red-600 disabled:opacity-50 transition-colors">
+              class="px-4 py-1.5 text-xs font-medium bg-red-500 text-white rounded-lg hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
               Create label
             </button>
-            <button (click)="showAdd.set(false)"
+            <button (click)="closeAdd()"
               class="px-4 py-1.5 text-xs text-gray-500 hover:text-gray-700 dark:hover:text-gray-200 transition-colors">
               Cancel
             </button>
           </div>
         </div>
-      } @else {
-        <button (click)="showAdd.set(true)"
-          class="flex items-center gap-2 text-sm text-gray-400 hover:text-red-500 transition-colors">
-          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
-            <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"/>
-          </svg>
-          Add label
-        </button>
-      }
-    </div>
+      </div>
+    }
   `
 })
 export class LabelsComponent implements OnInit {
@@ -207,6 +218,17 @@ export class LabelsComponent implements OnInit {
 
   ngOnInit(): void {}
 
+  openAdd(): void {
+    this.newName.set('');
+    this.newColor.set('charcoal');
+    this.newFavorite.set(false);
+    this.showAdd.set(true);
+  }
+
+  closeAdd(): void {
+    this.showAdd.set(false);
+  }
+
   createLabel(): void {
     const name = this.newName().trim();
     if (!name) return;
@@ -214,12 +236,8 @@ export class LabelsComponent implements OnInit {
       name,
       color: this.newColor(),
       isFavorite: this.newFavorite(),
-    }).subscribe(() => {
-      this.newName.set('');
-      this.newColor.set('charcoal');
-      this.newFavorite.set(false);
-      this.showAdd.set(false);
-    });
+    }).subscribe();
+    this.closeAdd();
   }
 
   startEdit(label: Label): void {

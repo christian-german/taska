@@ -1,3 +1,10 @@
 {
-  "apiUrl": "${API_URL}"
+  "apiUrl": "${API_URL}",
+  "oidc": {
+    "authority": "${OIDC_AUTHORITY}",
+    "clientId": "${OIDC_CLIENT_ID}",
+    "redirectUri": "${OIDC_REDIRECT_URI}",
+    "postLogoutRedirectUri": "${OIDC_POST_LOGOUT_REDIRECT_URI}",
+    "scope": "${OIDC_SCOPE}"
+  }
 }

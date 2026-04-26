@@ -8,6 +8,7 @@ import { ProjectService } from './core/services/project.service';
 import { LabelService } from './core/services/label.service';
 import { FilterService } from './core/services/filter.service';
 import { Task } from './core/models';
+import {OidcSecurityService} from 'angular-auth-oidc-client';
 
 @Component({
   selector: 'app-root',
@@ -34,13 +35,21 @@ import { Task } from './core/models';
   `
 })
 export class App implements OnInit {
+  private oidcSecurityService = inject(OidcSecurityService);
   private projectService = inject(ProjectService);
   private labelService = inject(LabelService);
   private filterService = inject(FilterService);
   themeService = inject(ThemeService);
 
+  isAuthenticated = signal(false);
   showQuickAdd = signal(false);
   selectedTask = signal<Task | null>(null);
+
+  constructor() {
+    this.oidcSecurityService.isAuthenticated$.subscribe(({ isAuthenticated }) => {
+      this.isAuthenticated.set(isAuthenticated);
+    });
+  }
 
   ngOnInit(): void {
     this.projectService.loadProjects().subscribe();
@@ -65,5 +74,9 @@ export class App implements OnInit {
       this.showQuickAdd.set(false);
       this.selectedTask.set(null);
     }
+  }
+  
+  logout() {
+    this.oidcSecurityService.logoff().subscribe();
   }
 }

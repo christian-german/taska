@@ -19,5 +19,61 @@ services:
     ports:
       - "5432:5432"
 
+  authentik-server:
+    image: ghcr.io/goauthentik/server:2026.2.1
+    command: server
+    environment:
+      AUTHENTIK_POSTGRESQL__HOST: db-authentik
+      AUTHENTIK_POSTGRESQL__NAME: authentik
+      AUTHENTIK_POSTGRESQL__USER: authentik
+      AUTHENTIK_POSTGRESQL__PASSWORD: authentik
+      AUTHENTIK_SECRET_KEY: taska-dev-secret-key
+      AUTHENTIK_BOOTSTRAP_PASSWORD: ChangeMe123!
+      AUTHENTIK_BOOTSTRAP_TOKEN: taska-token
+      AUTHENTIK_ERROR_REPORTING__ENABLED: "false"
+    volumes:
+      - ./authentik/blueprints/taska.yaml:/blueprints/custom/taska.yaml
+    ports:
+      - "8000:9000"
+      - "8443:9443"
+    depends_on:
+      db-authentik:
+        condition: service_healthy
+
+  authentik-worker:
+    image: ghcr.io/goauthentik/server:2026.2.1
+    command: worker
+    environment:
+      AUTHENTIK_POSTGRESQL__HOST: db-authentik
+      AUTHENTIK_POSTGRESQL__NAME: authentik
+      AUTHENTIK_POSTGRESQL__USER: authentik
+      AUTHENTIK_POSTGRESQL__PASSWORD: authentik
+      AUTHENTIK_SECRET_KEY: taska-dev-secret-key
+    volumes:
+      - ./authentik/blueprints/taska.yaml:/blueprints/custom/taska.yaml
+    depends_on:
+      db-authentik:
+        condition: service_healthy
+
+  db-authentik:
+    image: postgres:18.1-alpine
+    labels:
+      org.springframework.boot.ignore: true
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -d $${POSTGRES_DB} -U $${POSTGRES_USER}"]
+      start_period: 20s
+      interval: 30s
+      retries: 5
+      timeout: 5s
+    environment:
+      POSTGRES_DB: authentik
+      POSTGRES_USER: authentik
+      POSTGRES_PASSWORD: authentik
+    volumes:
+      - pgdata-authentik:/var/lib/postgresql/data
+    ports:
+      - "5433:5432"
+
 volumes:
   pgdata:
+  pgdata-authentik:

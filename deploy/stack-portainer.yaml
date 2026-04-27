@@ -42,6 +42,12 @@ services:
   taska-db:
     image: postgres:18.1-alpine
     container_name: taska-db
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U taska -d taska" ]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
     environment:
       POSTGRES_DB: taska
       POSTGRES_USER: taska

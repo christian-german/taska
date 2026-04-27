@@ -13,6 +13,11 @@ services:
       - traefik.http.services.taska-frontend-svc.loadbalancer.server.port=80
     environment:
       API_URL: https://api-taska.atlascore.dev
+      OIDC_AUTHORITY: https://authentik.atlascore.dev/application/o/taska
+      OIDC_CLIENT_ID: mE2vXI67I43D8fmclgsjHKwt42W4dkDpXJQUOQEJ
+      OIDC_REDIRECT_URI: https://taska.atlascore.dev/callback
+      OIDC_POST_LOGOUT_REDIRECT_URI: https://taska.atlascore.dev
+      OIDC_SCOPE: openid profile email
     networks:
       - traefik_network
 
@@ -29,6 +34,7 @@ services:
       - traefik.http.services.taska-backend-svc.loadbalancer.server.port=8080
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://taska-db:5432/taska
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER-URI: https://authentik.atlascore.dev/application/o/taska/
     networks:
       - traefik_network
       - taska_internal_network

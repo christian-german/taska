@@ -28,7 +28,6 @@ services:
       AUTHENTIK_POSTGRESQL__USER: authentik
       AUTHENTIK_POSTGRESQL__PASSWORD: authentik
       AUTHENTIK_SECRET_KEY: taska-dev-secret-key
-      AUTHENTIK_BOOTSTRAP_PASSWORD: ChangeMe123!
       AUTHENTIK_BOOTSTRAP_TOKEN: taska-token
       AUTHENTIK_ERROR_REPORTING__ENABLED: "false"
     volumes:

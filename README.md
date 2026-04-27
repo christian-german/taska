@@ -71,3 +71,9 @@ Labels ←→ Tasks (string references)
 
 Inbox project is auto-created on startup (`isInboxProject=true`). Tasks without a
 `projectId` are automatically routed there.
+
+## Authentik
+
+```shell
+docker exec -it taska-backend-authentik-server-1 ak changepassword akadmin
+```

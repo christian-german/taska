@@ -23,6 +23,8 @@ entries:
       invalidation_flow: !Find [authentik_flows.flow, [slug, default-provider-invalidation-flow]]
       client_id: taska-client
       client_type: public
+      allowed_origins:
+        - http://localhost:4200
       redirect_uris:
         - matching_mode: strict
           url: http://localhost:4200/callback

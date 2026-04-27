@@ -4,8 +4,9 @@ import {provideHttpClient, withInterceptors} from '@angular/common/http';
 import {provideAnimationsAsync} from '@angular/platform-browser/animations/async';
 import {routes} from './app.routes';
 import {ConfigService} from './core/services/config.service';
-import {authInterceptor, provideAuth, StsConfigLoader} from 'angular-auth-oidc-client';
+import {authInterceptor, OidcSecurityService, provideAuth, StsConfigLoader} from 'angular-auth-oidc-client';
 import {map} from 'rxjs/operators';
+import {firstValueFrom} from 'rxjs';
 
 export class DynamicConfigLoader implements StsConfigLoader {
 
@@ -47,8 +48,12 @@ export const appConfig: ApplicationConfig = {
     }),
     {
       provide: APP_INITIALIZER,
-      useFactory: (configService: ConfigService) => () => configService.loadConfig(),
-      deps: [ConfigService],
+      useFactory: (configService: ConfigService, oidcSecurityService: OidcSecurityService) => async () => {
+        await configService.loadConfig();
+        // Maintenant la config est dispo, on peut init OIDC
+        await firstValueFrom(oidcSecurityService.checkAuth());
+      },
+      deps: [ConfigService, OidcSecurityService],
       multi: true
     }
   ]

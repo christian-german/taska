@@ -13,12 +13,13 @@
 
     <groupId>com.taska</groupId>
     <artifactId>taska-backend</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>0.0.8</version>
     <name>taska-backend</name>
     <description>Taska – Todoist clone backend</description>
 
     <properties>
         <java.version>25</java.version>
+        <app.version>${project.version}</app.version>
     </properties>
 
     <dependencies>
@@ -74,6 +75,16 @@
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-resources-plugin</artifactId>
+                <configuration>
+                    <delimiters>
+                        <delimiter>@</delimiter>
+                    </delimiters>
+                    <useDefaultDelimiters>false</useDefaultDelimiters>
+                </configuration>
             </plugin>
         </plugins>
     </build>

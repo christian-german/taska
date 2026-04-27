@@ -6,6 +6,7 @@ import { ProjectService, ReorderItem } from '../../core/services/project.service
 import { LabelService } from '../../core/services/label.service';
 import { FilterService } from '../../core/services/filter.service';
 import { ThemeService } from '../../core/services/theme.service';
+import { VersionService } from '../../core/services/version.service';
 import { Filter, getColor, Label, Project, Task } from '../../core/models';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ProjectEditModalComponent, ProjectEditResult } from '../../shared/components/project-edit-modal/project-edit-modal.component';
@@ -27,10 +28,12 @@ export class SidebarComponent implements OnInit {
   private labelService = inject(LabelService);
   private filterService = inject(FilterService);
   themeService = inject(ThemeService);
+  private versionService = inject(VersionService);
 
   projects = toSignal(this.projectService.projects$, { initialValue: [] as Project[] });
   labels = toSignal(this.labelService.labels$, { initialValue: [] as Label[] });
   filters = toSignal(this.filterService.filters$, { initialValue: [] as Filter[] });
+  appVersion = toSignal(this.versionService.getVersion(), { initialValue: '...' });
   inboxProject = computed(() => this.projects().find(p => p.isInboxProject));
 
   favoriteProjects = computed(() =>

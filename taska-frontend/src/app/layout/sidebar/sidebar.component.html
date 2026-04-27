@@ -7,7 +7,10 @@
     [class.justify-between]="!sidebarCollapsed()"
     [class.justify-center]="sidebarCollapsed()">
     @if (!sidebarCollapsed()) {
-      <span class="font-bold text-lg text-red-500">Taska</span>
+      <div class="flex items-baseline gap-2 min-w-0">
+        <span class="font-bold text-lg text-red-500">Taska</span>
+        <span class="text-xs font-medium text-gray-400 dark:text-gray-500">v{{ appVersion() }}</span>
+      </div>
     }
     <div class="flex items-center gap-1">
       <button (click)="sidebarCollapsed.set(!sidebarCollapsed())"

@@ -1,61 +1,56 @@
-import { Component, OnInit, effect, inject, input, signal } from '@angular/core';
-import { TaskItemComponent } from '../../shared/components/task-item/task-item.component';
-import { TaskDetailComponent } from '../task-detail/task-detail.component';
+import { Component, OnInit, computed, effect, inject, input, signal } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { Label, Project, Task, getColor } from '../../core/models';
 import { TaskService } from '../../core/services/task.service';
 import { LabelService } from '../../core/services/label.service';
-import { Task, Label, getColor } from '../../core/models';
-import { toSignal } from '@angular/core/rxjs-interop';
+import { ProjectService } from '../../core/services/project.service';
+import { UiStateService } from '../../core/services/ui-state.service';
+import { TaskListComponent, TaskGroup } from '../../shared/components/task-list/task-list.component';
+import { PageHeaderComponent } from '../../shared/components/page-header/page-header.component';
+import { EmptyStateComponent } from '../../shared/components/atoms/atoms.component';
+import { IconComponent } from '../../shared/components/icon/icon.component';
 
 @Component({
   selector: 'app-label-tasks',
-  standalone: true,
-  imports: [TaskItemComponent, TaskDetailComponent],
+  imports: [TaskListComponent, PageHeaderComponent, EmptyStateComponent, IconComponent],
   template: `
-    <div class="max-w-2xl mx-auto px-8 py-8">
-      <div class="flex items-center gap-3 mb-6">
-        <span class="w-5 h-5 rounded-full flex-shrink-0" [style.background-color]="labelColor()"></span>
-        <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">{{ name() }}</h1>
-        @if (tasks().length > 0) {
-          <span class="text-sm text-gray-400">{{ tasks().length }}</span>
-        }
-      </div>
-
-      <div class="space-y-0.5">
-        @for (task of tasks(); track task.id) {
-          <app-task-item
-            [task]="task"
-            (complete)="completeTask($event)"
-            (taskClicked)="openDetail($event)" />
-        }
-        @if (tasks().length === 0) {
-          <p class="text-sm text-gray-400 dark:text-gray-500 text-center py-8">No tasks with this label</p>
-        }
-      </div>
+    <app-page-header [title]="'#' + name()" [subtitle]="subtitle()" />
+    <div class="scroll" style="flex: 1; overflow-y: auto; padding: 8px 12px 60px;">
+      @if (tasks().length === 0) {
+        <app-empty-state title="aucune tâche avec ce tag" hint="Ajoute #{{ name() }} à une tâche pour la voir ici">
+          <app-icon icon name="tag" [size]="28" color="var(--mute)" />
+        </app-empty-state>
+      } @else {
+        <app-task-list
+          [groups]="groups()"
+          [projects]="projects()"
+          [selectedId]="selectedId()"
+          (toggled)="onToggle($event)"
+          (selectTask)="onSelect($event)"
+          (updated)="onUpdate($event)" />
+      }
     </div>
-
-    @if (selectedTask()) {
-      <app-task-detail
-        [task]="selectedTask()!"
-        (close)="selectedTask.set(null)"
-        (taskUpdated)="onTaskUpdated($event)"
-        (taskDeleted)="onTaskDeleted($event)" />
-    }
-  `
+  `,
 })
 export class LabelTasksComponent implements OnInit {
   name = input<string>('');
 
   private taskService = inject(TaskService);
   private labelService = inject(LabelService);
+  private projectService = inject(ProjectService);
+  private ui = inject(UiStateService);
 
   labels = toSignal(this.labelService.labels$, { initialValue: [] as Label[] });
-  tasks = signal<Task[]>([]);
-  selectedTask = signal<Task | null>(null);
+  projects = toSignal(this.projectService.projects$, { initialValue: [] as Project[] });
 
-  labelColor() {
-    const label = this.labels().find(l => l.name === this.name());
-    return getColor(label?.color ?? 'charcoal');
-  }
+  tasks = signal<Task[]>([]);
+
+  selectedId = computed(() => this.ui.selectedTask()?.id ?? null);
+  subtitle = computed(() => `${this.tasks().length} tâches`);
+
+  groups = computed<TaskGroup[]>(() => [
+    { key: 'tag', label: 'Toutes', tasks: this.tasks() },
+  ]);
 
   constructor() {
     effect(() => {
@@ -70,23 +65,18 @@ export class LabelTasksComponent implements OnInit {
     this.taskService.getTasks({ label }).subscribe(t => this.tasks.set(t));
   }
 
-  completeTask(task: Task): void {
-    this.taskService.closeTask(task.id).subscribe(() => {
-      this.tasks.update(t => t.filter(t2 => t2.id !== task.id));
+  onToggle(t: Task): void {
+    const op = t.isCompleted ? this.taskService.reopenTask(t.id) : this.taskService.closeTask(t.id);
+    op.subscribe(() => this.loadTasks(this.name()));
+  }
+
+  onSelect(t: Task): void {
+    this.ui.openTaskDetail(t);
+  }
+
+  onUpdate(payload: { id: string; patch: Partial<Task> }): void {
+    this.taskService.updateTask(payload.id, payload.patch).subscribe(updated => {
+      this.tasks.update(list => list.map(x => x.id === updated.id ? updated : x));
     });
-  }
-
-  openDetail(task: Task): void {
-    this.selectedTask.set(task);
-  }
-
-  onTaskUpdated(task: Task): void {
-    this.tasks.update(t => t.map(t2 => t2.id === task.id ? task : t2));
-    this.selectedTask.set(task);
-  }
-
-  onTaskDeleted(id: string): void {
-    this.tasks.update(t => t.filter(t2 => t2.id !== id));
-    this.selectedTask.set(null);
   }
 }

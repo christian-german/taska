@@ -17,5 +17,8 @@ public record TaskRequest(
         List<String> labels,
         LocalDate dueDate,
         LocalDateTime dueDateTime,
-        Boolean isRecurring
+        Boolean isRecurring,
+        Integer estimateMinutes,
+        String mentionContext,
+        String recurrenceRule
 ) {}

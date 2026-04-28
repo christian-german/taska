@@ -1,139 +1,134 @@
-import { Component, OnInit, computed, inject, output, signal } from '@angular/core';
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { CdkDragDrop, DragDropModule, moveItemInArray } from '@angular/cdk/drag-drop';
-import { ProjectService, ReorderItem } from '../../core/services/project.service';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { ProjectService } from '../../core/services/project.service';
 import { LabelService } from '../../core/services/label.service';
 import { FilterService } from '../../core/services/filter.service';
+import { TaskService } from '../../core/services/task.service';
 import { ThemeService } from '../../core/services/theme.service';
 import { VersionService } from '../../core/services/version.service';
-import { Filter, getColor, Label, Project, Task } from '../../core/models';
-import { toSignal } from '@angular/core/rxjs-interop';
-import { ProjectEditModalComponent, ProjectEditResult } from '../../shared/components/project-edit-modal/project-edit-modal.component';
+import { UiStateService } from '../../core/services/ui-state.service';
+import { Filter, Label, Project, Task, getColor, isOverdue } from '../../core/models';
+import { IconComponent } from '../../shared/components/icon/icon.component';
+import { ProjectDotComponent, TagChipComponent } from '../../shared/components/atoms/atoms.component';
 
-export interface ProjectNode {
-  project: Project;
-  children: ProjectNode[];
+interface SidebarCount {
+  inbox: number;
+  today: number;
+  week: number;
+  done: number;
+  byProject: Record<string, number>;
 }
 
 @Component({
   selector: 'app-sidebar',
-  imports: [RouterLink, RouterLinkActive, FormsModule, DragDropModule, ProjectEditModalComponent],
-  templateUrl: './sidebar.component.html'
+  imports: [
+    RouterLink,
+    RouterLinkActive,
+    FormsModule,
+    IconComponent,
+    ProjectDotComponent,
+    TagChipComponent,
+  ],
+  templateUrl: './sidebar.component.html',
 })
 export class SidebarComponent implements OnInit {
-  taskDetailRequested = output<Task>();
-
   private projectService = inject(ProjectService);
   private labelService = inject(LabelService);
   private filterService = inject(FilterService);
-  themeService = inject(ThemeService);
+  private taskService = inject(TaskService);
   private versionService = inject(VersionService);
+  private ui = inject(UiStateService);
+  themeService = inject(ThemeService);
 
   projects = toSignal(this.projectService.projects$, { initialValue: [] as Project[] });
   labels = toSignal(this.labelService.labels$, { initialValue: [] as Label[] });
   filters = toSignal(this.filterService.filters$, { initialValue: [] as Filter[] });
   appVersion = toSignal(this.versionService.getVersion(), { initialValue: '...' });
-  inboxProject = computed(() => this.projects().find(p => p.isInboxProject));
-
-  favoriteProjects = computed(() =>
-    this.projects().filter(p => p.isFavorite && !p.isInboxProject)
-  );
-  favoriteLabels = computed(() => this.labels().filter(l => l.isFavorite));
-  favoriteFilters = computed(() => this.filters().filter(f => f.isFavorite));
-
-  projectTree = computed((): ProjectNode[] => {
-    const all = this.projects().filter(p => !p.isInboxProject);
-    const rootProjects = all.filter(p => !p.parentId).sort((a, b) => a.order - b.order);
-    return rootProjects.map(p => this.buildNode(p, all));
-  });
 
   showAddProject = signal(false);
   newProjectName = signal('');
-  newProjectColor = signal('charcoal');
-  collapsedProjects = signal(new Set<string>());
-  editingProject = signal<Project | null>(null);
-  sidebarCollapsed = signal(false);
 
-  ngOnInit(): void {}
+  allTasks = signal<Task[]>([]);
+
+  activeProjects = computed(() =>
+    this.projects()
+      .filter(p => !p.isInboxProject)
+      .sort((a, b) => a.order - b.order)
+  );
+
+  counts = computed<SidebarCount>(() => {
+    const tasks = this.allTasks();
+    const todayStr = new Date().toISOString().split('T')[0];
+    const inWeek = (s?: string) => {
+      if (!s) return false;
+      const d = new Date(s + 'T00:00:00').getTime();
+      const now = Date.now();
+      return d >= now - 86400000 && d <= now + 7 * 86400000;
+    };
+
+    const inboxId = this.projects().find(p => p.isInboxProject)?.id;
+    const inbox = tasks.filter(t => !t.isCompleted && t.projectId === inboxId).length;
+    const today = tasks.filter(t =>
+      !t.isCompleted &&
+      t.dueDate &&
+      (t.dueDate <= todayStr || isOverdue(t))
+    ).length;
+    const week = tasks.filter(t => !t.isCompleted && inWeek(t.dueDate)).length;
+    const done = tasks.filter(t => t.isCompleted).length;
+
+    const byProject: Record<string, number> = {};
+    this.projects().forEach(p => {
+      byProject[p.id] = tasks.filter(t => t.projectId === p.id && !t.isCompleted).length;
+    });
+
+    return { inbox, today, week, done, byProject };
+  });
+
+  viewItems = computed(() => {
+    const c = this.counts();
+    return [
+      { id: 'inbox', label: 'Inbox', icon: 'inbox', route: '/inbox', count: c.inbox },
+      { id: 'today', label: "Aujourd'hui", icon: 'star', route: '/today', count: c.today },
+      { id: 'week', label: 'Semaine', icon: 'calendar', route: '/week', count: c.week },
+      { id: 'done', label: 'Terminées', icon: 'check', route: '/done', count: 0 },
+    ];
+  });
+
+  ngOnInit(): void {
+    this.refreshAllTasks();
+  }
+
+  private refreshAllTasks(): void {
+    this.taskService.getTasks({ showCompleted: true }).subscribe(t => this.allTasks.set(t));
+  }
 
   getColor = getColor;
 
-  private buildNode(project: Project, all: Project[]): ProjectNode {
-    const children = all
-      .filter(p => p.parentId === project.id)
-      .sort((a, b) => a.order - b.order)
-      .map(p => this.buildNode(p, all));
-    return { project, children };
-  }
-
-  isCollapsed(id: string): boolean {
-    return this.collapsedProjects().has(id);
-  }
-
-  toggleCollapse(id: string): void {
-    this.collapsedProjects.update(set => {
-      const next = new Set(set);
-      next.has(id) ? next.delete(id) : next.add(id);
-      return next;
-    });
-  }
-
-  openEdit(project: Project, e: Event): void {
-    e.preventDefault();
-    e.stopPropagation();
-    this.editingProject.set(project);
-  }
-
-  onEditSaved(result: ProjectEditResult): void {
-    const project = this.editingProject();
-    if (!project) return;
-    this.projectService.updateProject(project.id, {
-      name: result.name,
-      color: result.color,
-      parentId: result.parentId,
-      clearParent: result.clearParent,
-      isFavorite: result.isFavorite,
-    } as any).subscribe(() => {
-      this.projectService.loadProjects().subscribe();
-    });
-    this.editingProject.set(null);
-  }
-
-  onEditDeleted(): void {
-    const project = this.editingProject();
-    if (!project) return;
-    this.projectService.deleteProject(project.id).subscribe();
-    this.editingProject.set(null);
+  openSearch(): void {
+    this.ui.showPalette.set(true);
   }
 
   createProject(): void {
     const name = this.newProjectName().trim();
     if (!name) return;
-    this.projectService.createProject({ name, color: this.newProjectColor() }).subscribe(() => {
+    this.projectService.createProject({ name, color: 'charcoal' }).subscribe(() => {
       this.newProjectName.set('');
       this.showAddProject.set(false);
     });
   }
 
-  cancelAdd(): void {
+  cancelAddProject(): void {
     this.showAddProject.set(false);
     this.newProjectName.set('');
   }
 
-  onRootDrop(event: CdkDragDrop<ProjectNode[]>): void {
-    const nodes = [...this.projectTree()];
-    moveItemInArray(nodes, event.previousIndex, event.currentIndex);
-    const items: ReorderItem[] = nodes.map((n, i) => ({ id: n.project.id, order: i }));
-    this.projectService.reorderProjects(items).subscribe();
+  userName(): string {
+    return 'Marc';
   }
 
-  onChildDrop(event: CdkDragDrop<ProjectNode[]>, parentId: string): void {
-    const parentNode = this.projectTree().find(n => n.project.id === parentId);
-    if (!parentNode) return;
-    const children = [...parentNode.children];
-    moveItemInArray(children, event.previousIndex, event.currentIndex);
-    const items: ReorderItem[] = children.map((n, i) => ({ id: n.project.id, order: i }));
-    this.projectService.reorderProjects(items).subscribe();
+  userInitial(): string {
+    return this.userName().charAt(0).toUpperCase();
   }
 }

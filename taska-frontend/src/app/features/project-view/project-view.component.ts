@@ -1,21 +1,47 @@
-import { Component, OnInit, inject, input, signal, computed, effect } from '@angular/core';
-import { CdkDragDrop, moveItemInArray, DragDropModule } from '@angular/cdk/drag-drop';
-import { FormsModule } from '@angular/forms';
+import { Component, OnInit, computed, effect, inject, input, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { TaskItemComponent } from '../../shared/components/task-item/task-item.component';
-import { AddTaskFormComponent } from '../../shared/components/add-task-form/add-task-form.component';
-import { TaskDetailComponent } from '../task-detail/task-detail.component';
-import { DisplayPanelComponent } from '../../shared/components/display-panel/display-panel.component';
-import { CalendarViewComponent } from '../../shared/components/calendar-view/calendar-view.component';
+import { Project, Section, Task, getColor } from '../../core/models';
 import { ProjectService } from '../../core/services/project.service';
 import { SectionService } from '../../core/services/section.service';
 import { TaskService } from '../../core/services/task.service';
-import { Project, Section, Task, ViewStyle, getColor } from '../../core/models';
+import { UiStateService } from '../../core/services/ui-state.service';
+import { TaskListComponent, TaskGroup } from '../../shared/components/task-list/task-list.component';
+import { PageHeaderComponent } from '../../shared/components/page-header/page-header.component';
+import { EmptyStateComponent } from '../../shared/components/atoms/atoms.component';
+import { IconComponent } from '../../shared/components/icon/icon.component';
 
 @Component({
   selector: 'app-project-view',
-  imports: [FormsModule, DragDropModule, TaskItemComponent, AddTaskFormComponent, TaskDetailComponent, DisplayPanelComponent, CalendarViewComponent],
-  templateUrl: './project-view.component.html'
+  imports: [TaskListComponent, PageHeaderComponent, EmptyStateComponent, IconComponent],
+  template: `
+    @if (project(); as proj) {
+      <app-page-header [title]="proj.name" [subtitle]="subtitle()">
+        <div hero>
+          <div style="margin-top: 12px;">
+            <div class="progress" style="max-width: 280px;">
+              <div [style.width.%]="percent()" [style.background]="projectColor()"></div>
+            </div>
+          </div>
+        </div>
+      </app-page-header>
+
+      <div class="scroll" style="flex: 1; overflow-y: auto; padding: 8px 12px 60px;">
+        @if (allItems().length === 0) {
+          <app-empty-state title="aucune tâche pour ce projet" hint="Ajoute la première avec ⌘N">
+            <app-icon icon name="folder" [size]="28" color="var(--mute)" />
+          </app-empty-state>
+        } @else {
+          <app-task-list
+            [groups]="groups()"
+            [projects]="allProjects()"
+            [selectedId]="selectedId()"
+            (toggled)="onToggle($event)"
+            (selectTask)="onSelect($event)"
+            (updated)="onUpdate($event)" />
+        }
+      </div>
+    }
+  `,
 })
 export class ProjectViewComponent implements OnInit {
   id = input<string>('');
@@ -23,25 +49,40 @@ export class ProjectViewComponent implements OnInit {
   private projectService = inject(ProjectService);
   private sectionService = inject(SectionService);
   private taskService = inject(TaskService);
+  private ui = inject(UiStateService);
 
-  private allProjects = toSignal(this.projectService.projects$, { initialValue: [] as Project[] });
+  allProjects = toSignal(this.projectService.projects$, { initialValue: [] as Project[] });
   project = computed(() => this.allProjects().find(p => p.id === this.id()) ?? null);
 
   sections = signal<Section[]>([]);
-  tasks = signal<Task[]>([]);
-  selectedTask = signal<Task | null>(null);
-  viewStyle = signal<ViewStyle>('LIST');
-  showCompleted = signal(false);
-  showDisplayPanel = signal(false);
-  showAddSection = signal(false);
-  newSectionName = signal('');
-  collapsedSections = new Set<string>();
-  getColor = getColor;
+  allItems = signal<Task[]>([]);
 
-  activeTasks = computed(() => this.tasks().filter(t => !t.isCompleted));
-  completedTasks = computed(() => this.tasks().filter(t => t.isCompleted));
-  unassignedTasks = computed(() => this.activeTasks().filter(t => !t.sectionId));
-  sectionListIds = computed(() => ['no-section', ...this.sections().map(s => s.id)]);
+  selectedId = computed(() => this.ui.selectedTask()?.id ?? null);
+
+  todoTasks = computed(() => this.allItems().filter(t => !t.isCompleted && !this.isInProgress(t)));
+  doingTasks = computed(() => this.allItems().filter(t => !t.isCompleted && this.isInProgress(t)));
+  doneTasks = computed(() => this.allItems().filter(t => t.isCompleted));
+
+  groups = computed<TaskGroup[]>(() => {
+    const groups: TaskGroup[] = [{ key: 'todo', label: 'à faire', tasks: this.sortTasks(this.todoTasks()) }];
+    if (this.doingTasks().length) {
+      groups.push({ key: 'doing', label: 'en cours', tasks: this.doingTasks() });
+    }
+    groups.push({ key: 'done', label: 'terminées', tasks: this.doneTasks() });
+    return groups;
+  });
+
+  percent = computed(() => {
+    const all = this.allItems();
+    return all.length ? Math.round((this.doneTasks().length / all.length) * 100) : 0;
+  });
+
+  subtitle = computed(() => {
+    const total = this.allItems().length;
+    return `${total} tâches · ${this.doneTasks().length} terminées · ${this.percent()}%`;
+  });
+
+  projectColor = computed(() => getColor(this.project()?.color ?? 'charcoal'));
 
   private lastLoadedId = '';
 
@@ -50,125 +91,45 @@ export class ProjectViewComponent implements OnInit {
       const id = this.id();
       if (!id || id === this.lastLoadedId) return;
       this.lastLoadedId = id;
-      const proj = this.project();
-      if (proj) this.viewStyle.set(proj.viewStyle ?? 'LIST');
       this.load(id);
-    }, { allowSignalWrites: true });
+    });
   }
 
   ngOnInit(): void {}
 
   private load(id: string): void {
     this.projectService.getProjectSections(id).subscribe(s => this.sections.set(s));
-    this.loadTasks(id);
+    this.taskService.getTasks({ projectId: id, showCompleted: true }).subscribe(t => this.allItems.set(t));
   }
 
-  private loadTasks(id: string): void {
-    this.taskService.getTasks({ projectId: id, showCompleted: this.showCompleted() }).subscribe(t => this.tasks.set(t));
-  }
-
-  getTasksForSection(sectionId: string): Task[] {
-    return this.activeTasks().filter(t => t.sectionId === sectionId);
-  }
-
-  isSectionCollapsed(sectionId: string): boolean {
-    return this.collapsedSections.has(sectionId);
-  }
-
-  toggleSection(sectionId: string): void {
-    if (this.collapsedSections.has(sectionId)) {
-      this.collapsedSections.delete(sectionId);
-    } else {
-      this.collapsedSections.add(sectionId);
-    }
-  }
-
-  setViewStyle(style: ViewStyle): void {
-    this.viewStyle.set(style);
-    const proj = this.project();
-    if (proj) {
-      this.projectService.updateProject(proj.id, {
-        viewStyle: style,
-        parentId: proj.parentId,
-      } as any).subscribe();
-    }
-  }
-
-  setShowCompleted(value: boolean): void {
-    this.showCompleted.set(value);
-    if (this.id()) this.loadTasks(this.id());
-  }
-
-  toggleDisplayPanel(e: Event): void {
-    e.stopPropagation();
-    this.showDisplayPanel.set(!this.showDisplayPanel());
-  }
-
-  onTaskCreated(task: Task): void {
-    this.tasks.update(t => [...t, task]);
-  }
-
-  completeTask(task: Task): void {
-    this.taskService.closeTask(task.id).subscribe(updated => {
-      if (this.showCompleted()) {
-        this.tasks.update(t => t.map(t2 => t2.id === task.id ? updated : t2));
-      } else {
-        this.tasks.update(t => t.filter(t2 => t2.id !== task.id));
-      }
+  onToggle(t: Task): void {
+    const op = t.isCompleted ? this.taskService.reopenTask(t.id) : this.taskService.closeTask(t.id);
+    op.subscribe(updated => {
+      this.allItems.update(list => list.map(x => x.id === updated.id ? updated : x));
     });
   }
 
-  reopenTask(task: Task): void {
-    this.taskService.reopenTask(task.id).subscribe(updated => {
-      this.tasks.update(t => t.map(t2 => t2.id === task.id ? updated : t2));
+  onSelect(t: Task): void {
+    this.ui.openTaskDetail(t);
+  }
+
+  onUpdate(payload: { id: string; patch: Partial<Task> }): void {
+    this.taskService.updateTask(payload.id, payload.patch).subscribe(updated => {
+      this.allItems.update(list => list.map(x => x.id === updated.id ? updated : x));
     });
   }
 
-  openDetail(task: Task): void {
-    this.selectedTask.set(task);
+  private isInProgress(t: Task): boolean {
+    // Approximation: a parent task with at least one closed subtask is "in progress"
+    const subs = this.allItems().filter(x => x.parentId === t.id);
+    return subs.length > 0 && subs.some(s => s.isCompleted);
   }
 
-  onTaskUpdated(task: Task): void {
-    this.tasks.update(t => t.map(t2 => t2.id === task.id ? task : t2));
-    this.selectedTask.set(task);
-  }
-
-  onTaskDeleted(id: string): void {
-    this.tasks.update(t => t.filter(t2 => t2.id !== id));
-    this.selectedTask.set(null);
-  }
-
-  createSection(): void {
-    const name = this.newSectionName().trim();
-    if (!name || !this.project()) return;
-    this.sectionService.createSection({ name, projectId: this.project()!.id, order: this.sections().length }).subscribe(s => {
-      this.sections.update(sections => [...sections, s]);
-      this.newSectionName.set('');
-      this.showAddSection.set(false);
+  private sortTasks(arr: Task[]): Task[] {
+    return [...arr].sort((a, b) => {
+      if (a.priority !== b.priority) return b.priority - a.priority;
+      if (a.dueDate && b.dueDate) return a.dueDate.localeCompare(b.dueDate);
+      return 0;
     });
-  }
-
-  cancelAddSection(): void {
-    this.showAddSection.set(false);
-    this.newSectionName.set('');
-  }
-
-  onTaskDrop(event: CdkDragDrop<Task[]>, sectionId?: string): void {
-    const tasks = sectionId
-      ? this.getTasksForSection(sectionId)
-      : this.unassignedTasks();
-    const mutable = [...tasks];
-    moveItemInArray(mutable, event.previousIndex, event.currentIndex);
-    mutable.forEach((t, i) => {
-      this.taskService.updateTask(t.id, { order: i, sectionId: sectionId ?? undefined }).subscribe();
-    });
-    this.tasks.update(all => {
-      const otherTasks = all.filter(t => sectionId ? t.sectionId !== sectionId : t.sectionId !== undefined);
-      return [...otherTasks, ...mutable];
-    });
-  }
-
-  getProjectColor(): string {
-    return getColor(this.project()?.color ?? 'charcoal');
   }
 }

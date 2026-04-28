@@ -54,6 +54,15 @@ public class Task {
     @Column(name = "is_recurring", nullable = false)
     private Boolean isRecurring = false;
 
+    @Column(name = "estimate_minutes")
+    private Integer estimateMinutes;
+
+    @Column(name = "mention_context", length = 100)
+    private String mentionContext;
+
+    @Column(name = "recurrence_rule", length = 100)
+    private String recurrenceRule;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
 
@@ -100,6 +109,12 @@ public class Task {
     public void setDueDateTime(LocalDateTime dueDateTime) { this.dueDateTime = dueDateTime; }
     public Boolean getIsRecurring() { return isRecurring; }
     public void setIsRecurring(Boolean isRecurring) { this.isRecurring = isRecurring; }
+    public Integer getEstimateMinutes() { return estimateMinutes; }
+    public void setEstimateMinutes(Integer estimateMinutes) { this.estimateMinutes = estimateMinutes; }
+    public String getMentionContext() { return mentionContext; }
+    public void setMentionContext(String mentionContext) { this.mentionContext = mentionContext; }
+    public String getRecurrenceRule() { return recurrenceRule; }
+    public void setRecurrenceRule(String recurrenceRule) { this.recurrenceRule = recurrenceRule; }
     public Instant getCreatedAt() { return createdAt; }
     public Instant getUpdatedAt() { return updatedAt; }
     public Instant getCompletedAt() { return completedAt; }

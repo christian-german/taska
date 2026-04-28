@@ -1,157 +1,177 @@
-<!-- Overlay backdrop -->
-<div class="fixed inset-0 z-40" (click)="close.emit()"></div>
-
-<!-- Side panel -->
-<aside class="fixed top-0 right-0 h-full w-96 bg-white dark:bg-gray-900 shadow-2xl z-50 flex flex-col slide-in-right border-l border-gray-200 dark:border-gray-700">
-
-  <!-- Header -->
-  <div class="flex items-center justify-between px-5 py-4 border-b border-gray-100 dark:border-gray-800">
-    <div class="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
-      <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
-        <path fill-rule="evenodd" d="M6 2a2 2 0 00-2 2v12a2 2 0 002 2h8a2 2 0 002-2V7.414A2 2 0 0015.414 6L12 2.586A2 2 0 0010.586 2H6zm5 6a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V8z" clip-rule="evenodd"/>
-      </svg>
-      {{ getProjectName(task().projectId) }}
-    </div>
-    <button (click)="close.emit()"
-      class="p-1.5 rounded hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors">
-      <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 20 20" fill="currentColor">
-        <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/>
-      </svg>
+<aside class="detail-panel scroll" style="position: relative;">
+  <div style="padding: 12px 16px; display: flex; align-items: center; justify-content: space-between;
+              border-bottom: 1px solid var(--line);">
+    <button class="btn btn-ghost" (click)="onClose()">
+      <app-icon name="arrow-left" [size]="14" /> Retour
     </button>
+    <div style="display: flex; gap: 4px;">
+      <button class="btn btn-ghost btn-icon" (click)="deleteTask()" title="Supprimer">
+        <app-icon name="trash" [size]="14" />
+      </button>
+      <button class="btn btn-ghost btn-icon" (click)="onClose()" title="Fermer">
+        <app-icon name="x" [size]="14" />
+      </button>
+    </div>
   </div>
 
-  <!-- Body -->
-  <div class="flex-1 overflow-y-auto px-5 py-4 space-y-5">
-
-    <!-- Content -->
-    <div>
-      <textarea
-        [ngModel]="editedContent()"
-        (ngModelChange)="editedContent.set($event)"
-        (blur)="saveContent()"
-        rows="2"
-        class="w-full text-base font-medium bg-transparent outline-none resize-none text-gray-900 dark:text-gray-100 placeholder-gray-400"
-        placeholder="Task name"></textarea>
+  <div style="padding: 20px 22px;">
+    <div style="display: flex; gap: 12px; align-items: flex-start;">
+      <app-checkbox
+        [checked]="task().isCompleted"
+        [priority]="task().priority"
+        [size]="22"
+        (toggled)="toggleComplete()" />
+      <input class="inline-edit script"
+             style="font-size: 26px; line-height: 1.1;"
+             [ngModel]="editedContent()"
+             (ngModelChange)="editedContent.set($event)"
+             (blur)="saveContent()"
+             (keydown.enter)="$event.preventDefault(); saveContent()" />
     </div>
 
-    <!-- Description -->
-    <div>
-      <textarea
-        [ngModel]="editedDescription()"
-        (ngModelChange)="editedDescription.set($event)"
-        (blur)="saveDescription()"
-        rows="3"
-        class="w-full text-sm bg-transparent outline-none resize-none text-gray-600 dark:text-gray-400 placeholder-gray-300 dark:placeholder-gray-600"
-        placeholder="Add a description…"></textarea>
-    </div>
-
-    <!-- Metadata -->
-    <div class="grid grid-cols-2 gap-3 text-sm">
-      <!-- Due date -->
-      <div>
-        <label class="text-xs font-medium text-gray-400 uppercase tracking-wider mb-1 block">Due date</label>
-        <app-due-date-picker [dueDate]="task().dueDate" (dueDateChange)="onDueDateChange($event)" />
-      </div>
-
-      <!-- Priority -->
-      <div>
-        <label class="text-xs font-medium text-gray-400 uppercase tracking-wider mb-1 block">Priority</label>
-        <app-priority-picker [priority]="task().priority" (priorityChange)="onPriorityChange($event)" />
-      </div>
-
-      <!-- Project -->
-      <div class="col-span-2">
-        <label class="text-xs font-medium text-gray-400 uppercase tracking-wider mb-1 block">Project</label>
-        <select
-          [ngModel]="task().projectId"
-          (ngModelChange)="onProjectChange($event)"
-          class="w-full text-sm bg-transparent border border-gray-200 dark:border-gray-700 rounded px-2 py-1 text-gray-700 dark:text-gray-300 outline-none">
-          @for (project of projects(); track project.id) {
-            <option [value]="project.id">{{ project.name }}</option>
+    <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; align-items: center; position: relative;">
+      <button class="btn btn-ghost" (click)="toggleProjectMenu($event)" style="padding: 4px 8px;">
+        @if (currentProject(); as p) {
+          <span style="display: inline-flex; align-items: center; gap: 5px; font-size: 13px;">
+            <app-icon name="folder" [size]="13" [color]="getColor(p.color)" />
+            <span style="font-family: Caveat; font-size: 17px;">{{ p.name }}</span>
+          </span>
+        } @else {
+          <span class="mono" style="color: var(--mute); font-size: 12px;">Inbox</span>
+        }
+      </button>
+      @if (showProjectMenu()) {
+        <div style="position: absolute; top: 100%; left: 0; background: var(--bg);
+                    border: 1px solid var(--line); border-radius: 8px;
+                    box-shadow: var(--shadow-soft); z-index: 5; padding: 4px 0; min-width: 160px;">
+          @for (p of projects(); track p.id) {
+            <div style="padding: 6px 14px; cursor: pointer; display: flex;
+                        align-items: center; gap: 8px; font-size: 13px;"
+                 (mousedown)="setProject(p.id)">
+              <app-project-dot [color]="getColor(p.color)" />
+              {{ p.name }}
+            </div>
           }
-        </select>
-      </div>
-
-      <!-- Labels -->
-      <div class="col-span-2">
-        <label class="text-xs font-medium text-gray-400 uppercase tracking-wider mb-1 block">Labels</label>
-        <div class="flex flex-wrap gap-1 mb-1">
-          @for (name of task().labels; track name) {
-            <span class="flex items-center gap-1 px-2 py-0.5 rounded-full text-xs text-white"
-              [style.background-color]="getLabelColor(name)">
-              {{ name }}
-              <button (click)="onLabelsChange(task().labels.filter(l => l !== name))"
-                class="hover:opacity-70 transition-opacity leading-none">×</button>
-            </span>
-          }
-        </div>
-        <app-label-picker [selected]="task().labels" (labelsChange)="onLabelsChange($event)" />
-      </div>
-    </div>
-
-    <!-- Subtasks -->
-    <div>
-      <h3 class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">
-        Sub-tasks {{ subtasks().length > 0 ? '(' + subtasks().length + ')' : '' }}
-      </h3>
-      @for (subtask of subtasks(); track subtask.id) {
-        <div class="flex items-start gap-2 py-1">
-          <button (click)="completeSubtask(subtask)"
-            class="mt-0.5 w-4 h-4 rounded-full border-2 border-gray-300 flex-shrink-0 hover:border-green-500 transition-colors">
-          </button>
-          <span class="text-sm text-gray-700 dark:text-gray-300">{{ subtask.content }}</span>
-        </div>
-      }
-      <app-add-task-form [parentId]="task().id" [projectId]="task().projectId" (taskCreated)="onSubtaskCreated($event)" />
-    </div>
-
-    <!-- Comments -->
-    <div>
-      <h3 class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Comments</h3>
-
-      @for (comment of comments(); track comment.id) {
-        <div class="mb-3 group">
-          <div class="flex items-start justify-between gap-2">
-            <p class="text-sm text-gray-700 dark:text-gray-300 flex-1">{{ comment.content }}</p>
-            <button (click)="deleteComment(comment.id)"
-              class="opacity-0 group-hover:opacity-100 text-gray-300 hover:text-red-400 transition-all">
-              <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor">
-                <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/>
-              </svg>
-            </button>
-          </div>
-          <p class="text-xs text-gray-400 mt-0.5">{{ formatCommentDate(comment.createdAt) }}</p>
         </div>
       }
 
-      <!-- Add comment -->
-      <div class="mt-3">
-        <textarea
-          [ngModel]="newComment()"
-          (ngModelChange)="newComment.set($event)"
-          (keydown.ctrl.enter)="addComment()"
-          rows="2"
-          placeholder="Add a comment… (Ctrl+Enter to send)"
-          class="w-full text-sm bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 outline-none resize-none text-gray-700 dark:text-gray-300 placeholder-gray-400 focus:border-blue-400 transition-colors"></textarea>
-        <button (click)="addComment()"
-          [disabled]="!newComment().trim()"
-          class="mt-1 px-3 py-1.5 text-xs bg-blue-500 text-white rounded hover:bg-blue-600 disabled:opacity-40 disabled:cursor-not-allowed transition-colors">
-          Send
+      <button class="btn btn-ghost" (click)="cyclePriority()" style="padding: 4px 8px;">
+        <app-priority-flag [priority]="task().priority" />
+        <span class="mono" style="font-size: 11px; color: var(--mute);">{{ priorityLabel() }}</span>
+      </button>
+
+      @for (lab of task().labels; track lab) {
+        <app-tag-chip [name]="lab" [color]="labelColor(lab)" />
+      }
+    </div>
+
+    @if (dueDate(); as due) {
+      <div style="margin-top: 14px; display: flex; align-items: center; gap: 8px;">
+        <app-icon name="calendar" [size]="14" color="var(--orange)" />
+        <span class="mono" style="font-size: 12px; color: var(--ink-2);">
+          {{ dueLabel() }}
+        </span>
+        <button class="btn btn-ghost btn-icon" (click)="clearDate()" title="Retirer">
+          <app-icon name="x" [size]="12" />
         </button>
       </div>
+    } @else {
+      <div style="margin-top: 14px; display: flex; gap: 4px; flex-wrap: wrap;">
+        <button class="btn btn-ghost" (click)="setQuickDate('today')"
+                style="padding: 4px 8px; font-size: 12px;">
+          <app-icon name="calendar" [size]="13" /> Aujourd'hui
+        </button>
+        <button class="btn btn-ghost" (click)="setQuickDate('tomorrow')"
+                style="padding: 4px 8px; font-size: 12px;">Demain</button>
+        <button class="btn btn-ghost" (click)="setQuickDate('week')"
+                style="padding: 4px 8px; font-size: 12px;">+1 sem.</button>
+      </div>
+    }
+
+    <hr class="dash-hr" style="margin: 18px 0;" />
+
+    <div>
+      <div class="mono" style="font-size: 10.5px; letter-spacing: .1em; text-transform: uppercase;
+                                color: var(--mute); margin-bottom: 6px;">Notes</div>
+      <textarea class="inline-edit"
+                placeholder="Ajouter des notes…"
+                style="width: 100%; min-height: 60px; resize: vertical; font-size: 13px; line-height: 1.5;"
+                [ngModel]="editedDescription()"
+                (ngModelChange)="editedDescription.set($event)"
+                (blur)="saveDescription()"></textarea>
     </div>
 
-  </div>
+    <hr class="dash-hr" style="margin: 18px 0;" />
 
-  <!-- Footer meta -->
-  <div class="px-5 py-3 border-t border-gray-100 dark:border-gray-800 flex items-center justify-between">
-    <span class="text-xs text-gray-400">Created {{ formatCommentDate(task().createdAt) }}</span>
-    <button (click)="deleteTask()"
-      class="flex items-center gap-1 text-xs text-gray-400 hover:text-red-500 transition-colors px-2 py-1 rounded hover:bg-red-50 dark:hover:bg-red-900/20">
-      <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor">
-        <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"/>
-      </svg>
-      Delete task
-    </button>
+    <div>
+      <div class="mono"
+           style="font-size: 10.5px; letter-spacing: .1em; text-transform: uppercase;
+                  color: var(--mute); margin-bottom: 6px;">
+        Sous-tâches
+        @if (subtasks().length > 0) {
+          <span style="color: var(--ink-2); margin-left: 6px;">({{ completedSubs() }}/{{ subtasks().length }})</span>
+        }
+      </div>
+      @if (subtasks().length > 0) {
+        <div class="progress" style="margin-bottom: 10px;">
+          <div [style.width.%]="(completedSubs() / subtasks().length) * 100"></div>
+        </div>
+      }
+      @for (s of subtasks(); track s.id) {
+        <div style="display: flex; align-items: center; gap: 10px; padding: 6px 0;
+                    border-bottom: 1px dashed var(--line);">
+          <app-checkbox
+            [checked]="s.isCompleted"
+            [priority]="s.priority"
+            [size]="16"
+            (toggled)="toggleSubtask(s)" />
+          <span [style.font-size.px]="14"
+                style="font-family: Caveat;"
+                [style.color]="s.isCompleted ? 'var(--mute)' : 'var(--ink)'"
+                [style.text-decoration]="s.isCompleted ? 'line-through' : 'none'">
+            {{ s.content }}
+          </span>
+        </div>
+      }
+      <input class="inline-edit"
+             placeholder="+ ajouter une sous-tâche"
+             style="margin-top: 8px; font-size: 13px; color: var(--mute);"
+             [ngModel]="newSubtaskContent()"
+             (ngModelChange)="newSubtaskContent.set($event)"
+             (keydown.enter)="addSubtask(); $event.preventDefault()" />
+    </div>
+
+    <hr class="dash-hr" style="margin: 18px 0;" />
+
+    <div>
+      <div class="mono"
+           style="font-size: 10.5px; letter-spacing: .1em; text-transform: uppercase;
+                  color: var(--mute); margin-bottom: 6px;">
+        Commentaires
+      </div>
+      @for (c of comments(); track c.id) {
+        <div style="padding: 8px 10px; background: var(--bg-2); border-radius: 6px; margin-bottom: 6px;">
+          <div style="font-size: 13px; color: var(--ink);">{{ c.content }}</div>
+          <div class="mono" style="font-size: 10.5px; color: var(--mute); margin-top: 2px;">{{ formatCommentDate(c.createdAt) }}</div>
+        </div>
+      }
+      <textarea class="inline-edit"
+                placeholder="Ajouter un commentaire… (Ctrl+Entrée pour publier)"
+                style="width: 100%; min-height: 36px; font-size: 13px; resize: vertical;
+                       border: 1px solid var(--line); border-radius: 6px; padding: 6px 8px;
+                       margin-top: 6px;"
+                [ngModel]="newComment()"
+                (ngModelChange)="newComment.set($event)"
+                (keydown.control.enter)="addComment(); $event.preventDefault()"></textarea>
+    </div>
+
+    <hr class="dash-hr" style="margin: 18px 0;" />
+
+    <div class="mono" style="font-size: 10.5px; color: var(--mute);">
+      créée {{ formatShort(task().createdAt) }}
+      @if (task().completedAt) {
+        · terminée {{ formatShort(task().completedAt!) }}
+      }
+    </div>
   </div>
 </aside>

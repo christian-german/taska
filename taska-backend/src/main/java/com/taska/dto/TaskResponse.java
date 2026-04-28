@@ -20,6 +20,9 @@ public record TaskResponse(
         LocalDate dueDate,
         LocalDateTime dueDateTime,
         Boolean isRecurring,
+        Integer estimateMinutes,
+        String mentionContext,
+        String recurrenceRule,
         Instant createdAt,
         Instant updatedAt,
         Instant completedAt

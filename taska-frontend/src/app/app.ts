@@ -1,49 +1,60 @@
-import { Component, HostListener, OnInit, inject, signal } from '@angular/core';
-import { RouterOutlet } from '@angular/router';
+import { Component, HostListener, OnInit, computed, inject, signal } from '@angular/core';
+import { Router, RouterOutlet } from '@angular/router';
+import { OidcSecurityService } from 'angular-auth-oidc-client';
 import { SidebarComponent } from './layout/sidebar/sidebar.component';
 import { QuickAddComponent } from './shared/components/quick-add/quick-add.component';
 import { TaskDetailComponent } from './features/task-detail/task-detail.component';
-import { ThemeService } from './core/services/theme.service';
+import { CommandPaletteComponent } from './shared/components/command-palette/command-palette.component';
+import { ShortcutsModalComponent } from './shared/components/shortcuts-modal/shortcuts-modal.component';
 import { ProjectService } from './core/services/project.service';
 import { LabelService } from './core/services/label.service';
 import { FilterService } from './core/services/filter.service';
-import { Task } from './core/models';
-import {OidcSecurityService} from 'angular-auth-oidc-client';
+import { UiStateService } from './core/services/ui-state.service';
+import { ThemeService } from './core/services/theme.service';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, SidebarComponent, QuickAddComponent, TaskDetailComponent],
+  imports: [RouterOutlet, SidebarComponent, QuickAddComponent, TaskDetailComponent, CommandPaletteComponent, ShortcutsModalComponent],
   template: `
-    <div class="h-screen flex overflow-hidden bg-white text-gray-900 dark:bg-gray-900 dark:text-gray-100">
-      <app-sidebar class="flex-shrink-0" (taskDetailRequested)="openTaskDetail($event)" />
-      <main class="flex-1 overflow-auto relative">
+    <div class="app" [class.has-detail]="hasDetail()">
+      <app-sidebar />
+
+      <main class="scroll" style="overflow-y: auto; display: flex; flex-direction: column;">
         <router-outlet />
       </main>
 
-      @if (selectedTask()) {
+      @if (ui.selectedTask(); as task) {
         <app-task-detail
-          [task]="selectedTask()!"
-          (close)="selectedTask.set(null)"
-          (taskUpdated)="selectedTask.set($event)"
-          (taskDeleted)="selectedTask.set(null)" />
-      }
-
-      @if (showQuickAdd()) {
-        <app-quick-add (close)="showQuickAdd.set(false)" />
+          [task]="task"
+          (close)="ui.closeTaskDetail()"
+          (taskUpdated)="onTaskUpdated($event)"
+          (taskDeleted)="ui.closeTaskDetail()" />
       }
     </div>
-  `
+
+    @if (ui.showQuickAdd()) {
+      <app-quick-add (close)="ui.showQuickAdd.set(false)" />
+    }
+    @if (ui.showPalette()) {
+      <app-command-palette (close)="ui.showPalette.set(false)" />
+    }
+    @if (ui.showHelp()) {
+      <app-shortcuts-modal (close)="ui.showHelp.set(false)" />
+    }
+  `,
 })
 export class App implements OnInit {
   private oidcSecurityService = inject(OidcSecurityService);
   private projectService = inject(ProjectService);
   private labelService = inject(LabelService);
   private filterService = inject(FilterService);
-  themeService = inject(ThemeService);
+  private router = inject(Router);
+  protected ui = inject(UiStateService);
+  protected themeService = inject(ThemeService);
 
   isAuthenticated = signal(false);
-  showQuickAdd = signal(false);
-  selectedTask = signal<Task | null>(null);
+
+  hasDetail = computed(() => this.ui.selectedTask() !== null);
 
   constructor() {
     this.oidcSecurityService.isAuthenticated$.subscribe(({ isAuthenticated }) => {
@@ -57,26 +68,63 @@ export class App implements OnInit {
     this.filterService.loadFilters().subscribe();
   }
 
-  openTaskDetail(task: Task): void {
-    this.selectedTask.set(task);
+  onTaskUpdated(task: any): void {
+    this.ui.selectedTask.set(task);
   }
+
+  // Buffered key sequence for "g + t / g + i / g + w / g + s"
+  private gBuffer = '';
+  private gBufferTime = 0;
 
   @HostListener('document:keydown', ['$event'])
   onKeydown(event: KeyboardEvent): void {
     const target = event.target as HTMLElement;
-    const isInput = target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable;
+    const isInput =
+      target?.tagName === 'INPUT' ||
+      target?.tagName === 'TEXTAREA' ||
+      target?.isContentEditable;
 
-    if (event.key === 'q' && !event.ctrlKey && !event.metaKey && !isInput) {
+    // Cmd/Ctrl shortcuts work even in inputs
+    if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') {
       event.preventDefault();
-      this.showQuickAdd.set(true);
+      this.ui.showPalette.set(true);
+      return;
     }
+    if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'n') {
+      event.preventDefault();
+      this.ui.openQuickAdd();
+      return;
+    }
+
     if (event.key === 'Escape') {
-      this.showQuickAdd.set(false);
-      this.selectedTask.set(null);
+      this.ui.closeAll();
+      return;
     }
+
+    if (isInput) return;
+
+    if (event.key === 'q' && !event.metaKey && !event.ctrlKey) {
+      event.preventDefault();
+      this.ui.openQuickAdd();
+      return;
+    }
+    if (event.key === '?') {
+      this.ui.showHelp.set(true);
+      return;
+    }
+
+    // g + key sequences
+    if (Date.now() - this.gBufferTime > 1000) this.gBuffer = '';
+    this.gBuffer += event.key.toLowerCase();
+    this.gBufferTime = Date.now();
+    if (this.gBuffer.endsWith('gt')) { this.router.navigateByUrl('/today'); this.gBuffer = ''; return; }
+    if (this.gBuffer.endsWith('gi')) { this.router.navigateByUrl('/inbox'); this.gBuffer = ''; return; }
+    if (this.gBuffer.endsWith('gw')) { this.router.navigateByUrl('/week'); this.gBuffer = ''; return; }
+    if (this.gBuffer.endsWith('gs')) { this.router.navigateByUrl('/stats'); this.gBuffer = ''; return; }
+    if (this.gBuffer.endsWith('gd')) { this.router.navigateByUrl('/done'); this.gBuffer = ''; return; }
   }
-  
-  logout() {
+
+  logout(): void {
     this.oidcSecurityService.logoff().subscribe();
   }
 }

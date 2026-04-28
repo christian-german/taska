@@ -86,6 +86,9 @@ public class TaskService {
         t.setDueDate(req.dueDate());
         t.setDueDateTime(req.dueDateTime());
         t.setIsRecurring(req.isRecurring() != null ? req.isRecurring() : false);
+        t.setEstimateMinutes(req.estimateMinutes());
+        t.setMentionContext(req.mentionContext());
+        t.setRecurrenceRule(req.recurrenceRule());
 
         UUID projectId = req.projectId();
         if (projectId == null && req.parentId() == null) {
@@ -111,6 +114,9 @@ public class TaskService {
         if (req.dueDate() != null) t.setDueDate(req.dueDate());
         if (req.dueDateTime() != null) t.setDueDateTime(req.dueDateTime());
         if (req.isRecurring() != null) t.setIsRecurring(req.isRecurring());
+        if (req.estimateMinutes() != null) t.setEstimateMinutes(req.estimateMinutes());
+        if (req.mentionContext() != null) t.setMentionContext(req.mentionContext());
+        if (req.recurrenceRule() != null) t.setRecurrenceRule(req.recurrenceRule());
         return toResponse(taskRepo.save(t));
     }
 
@@ -146,6 +152,8 @@ public class TaskService {
         return new TaskResponse(t.getId(), t.getContent(), t.getDescription(), t.getProjectId(),
                 t.getSectionId(), t.getParentId(), t.getPosition(), t.getPriority(),
                 t.getLabels(), t.getIsCompleted(), t.getDueDate(), t.getDueDateTime(),
-                t.getIsRecurring(), t.getCreatedAt(), t.getUpdatedAt(), t.getCompletedAt());
+                t.getIsRecurring(), t.getEstimateMinutes(), t.getMentionContext(),
+                t.getRecurrenceRule(),
+                t.getCreatedAt(), t.getUpdatedAt(), t.getCompletedAt());
     }
 }

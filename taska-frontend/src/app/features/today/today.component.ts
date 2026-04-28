@@ -1,107 +1,170 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
-import { TaskItemComponent } from '../../shared/components/task-item/task-item.component';
-import { AddTaskFormComponent } from '../../shared/components/add-task-form/add-task-form.component';
-import { TaskDetailComponent } from '../task-detail/task-detail.component';
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
+import {
+  Project,
+  Task,
+  fmtDateLong,
+  fmtEstimate,
+  isOverdue,
+  sameDay,
+  startOfDay,
+} from '../../core/models';
 import { TaskService } from '../../core/services/task.service';
-import { Task } from '../../core/models';
+import { ProjectService } from '../../core/services/project.service';
+import { UiStateService } from '../../core/services/ui-state.service';
+import { TaskListComponent, TaskGroup } from '../../shared/components/task-list/task-list.component';
+import { PageHeaderComponent } from '../../shared/components/page-header/page-header.component';
+import { EmptyStateComponent } from '../../shared/components/atoms/atoms.component';
+import { IconComponent } from '../../shared/components/icon/icon.component';
 
 @Component({
   selector: 'app-today',
-  imports: [TaskItemComponent, AddTaskFormComponent, TaskDetailComponent],
+  imports: [TaskListComponent, PageHeaderComponent, EmptyStateComponent, IconComponent],
   template: `
-    <div class="h-full flex flex-col overflow-hidden">
-
-      <!-- Header -->
-      <div class="px-8 py-5 border-b border-gray-100 dark:border-gray-800 flex items-center gap-3 flex-shrink-0">
-        <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-green-500 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
-          <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd"/>
-        </svg>
-        <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Today</h1>
-        <span class="text-sm text-gray-400">{{ todayDate() }}</span>
-      </div>
-
-      <!-- Content -->
-      <div class="flex-1 overflow-auto">
-        <div class="max-w-2xl mx-auto px-8 py-6">
-
-          @if (overdueTasks().length > 0) {
-            <div class="mb-6">
-              <h2 class="text-sm font-semibold text-red-500 mb-2 flex items-center gap-1">
-                <span>Overdue</span>
-                <span class="text-xs font-normal">{{ overdueTasks().length }}</span>
-              </h2>
-              @for (task of overdueTasks(); track task.id) {
-                <app-task-item [task]="task" (complete)="completeTask($event)" (taskClicked)="openDetail($event)" />
-              }
-            </div>
-          }
-
-          <div>
-            @for (task of todayTasks(); track task.id) {
-              <app-task-item [task]="task" (complete)="completeTask($event)" (taskClicked)="openDetail($event)" />
-            }
-            @if (todayTasks().length === 0 && overdueTasks().length === 0) {
-              <div class="text-center py-12">
-                <p class="text-lg text-gray-400 dark:text-gray-500">Nothing due today</p>
-                <p class="text-sm text-gray-300 dark:text-gray-600 mt-1">Enjoy your free time!</p>
-              </div>
-            }
-            <app-add-task-form [initialDueDate]="todayStr" (taskCreated)="onTaskCreated($event)" />
+    <app-page-header [title]="'Aujourd\\'hui'" [subtitle]="subtitle()">
+      <div banner>
+        @if (aiSummary()) {
+          <div style="margin-top: 14px; padding: 10px 14px; background: rgba(255, 216, 77, 0.18);
+                      border-radius: 10px; display: flex; align-items: flex-start; gap: 10px;">
+            <app-icon name="sparkle" [size]="14" color="#A6800E" />
+            <span style="font-size: 13.5px; line-height: 1.45; color: #5D4500;">{{ aiSummary() }}</span>
           </div>
-
-        </div>
+        }
       </div>
-    </div>
+    </app-page-header>
 
-    @if (selectedTask()) {
-      <app-task-detail [task]="selectedTask()!" (close)="selectedTask.set(null)" (taskUpdated)="onTaskUpdated($event)" (taskDeleted)="onTaskDeleted($event)" />
-    }
-  `
+    <div class="scroll" style="flex: 1; overflow-y: auto; padding: 8px 12px 60px;">
+      @if (isEmpty()) {
+        <app-empty-state title="rien à faire ici" hint="Profite ✨">
+          <app-icon icon name="sparkle" [size]="28" color="var(--mute)" />
+        </app-empty-state>
+      } @else {
+        <app-task-list
+          [groups]="groups()"
+          [projects]="projects()"
+          [selectedId]="selectedId()"
+          [suggestedIds]="suggestedIds()"
+          (toggled)="onToggle($event)"
+          (selectTask)="onSelect($event)"
+          (updated)="onUpdate($event)" />
+      }
+    </div>
+  `,
 })
 export class TodayComponent implements OnInit {
   private taskService = inject(TaskService);
+  private projectService = inject(ProjectService);
+  private ui = inject(UiStateService);
 
-  allTasks = signal<Task[]>([]);
-  selectedTask = signal<Task | null>(null);
+  tasks = signal<Task[]>([]);
+  projects = toSignal(this.projectService.projects$, { initialValue: [] as Project[] });
+  aiSummary = signal<string>("Concentre-toi sur l'essentiel d'abord — le reste suivra.");
 
-  todayStr = new Date().toISOString().split('T')[0];
+  selectedId = computed(() => this.ui.selectedTask()?.id ?? null);
 
-  todayDate() {
-    return new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
-  }
+  groups = computed<TaskGroup[]>(() => {
+    const today = new Date();
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
 
-  todayTasks() { return this.allTasks().filter(t => t.dueDate === this.todayStr); }
-  overdueTasks() {
-    return this.allTasks().filter(t => t.dueDate && t.dueDate < this.todayStr);
-  }
+    const tasks = this.tasks();
+    const overdue = tasks.filter(t => isOverdue(t));
+    const todayDue = tasks.filter(t => t.dueDate && sameDay(new Date(t.dueDate + 'T00:00:00'), today));
+    const tomorrowDue = tasks.filter(t =>
+      !t.isCompleted &&
+      t.dueDate &&
+      sameDay(new Date(t.dueDate + 'T00:00:00'), tomorrow)
+    );
+
+    const groups: TaskGroup[] = [];
+    if (overdue.length) {
+      groups.push({
+        key: 'overdue',
+        label: 'En retard',
+        tone: 'overdue',
+        icon: 'alarm',
+        tasks: this.sortTasks(overdue),
+      });
+    }
+    groups.push({
+      key: 'today',
+      label: "Aujourd'hui",
+      tasks: this.sortTasks(todayDue),
+      empty: 'rien de prévu aujourd\'hui',
+    });
+    groups.push({
+      key: 'tomorrow',
+      label: 'Demain',
+      tasks: this.sortTasks(tomorrowDue),
+      empty: 'rien de prévu demain',
+    });
+    return groups;
+  });
+
+  suggestedIds = computed(() => {
+    const today = new Date();
+    const candidates = this.tasks()
+      .filter(t => !t.isCompleted && t.dueDate && sameDay(new Date(t.dueDate + 'T00:00:00'), today))
+      .sort((a, b) =>
+        (b.priority - a.priority) || ((b.estimateMinutes || 0) - (a.estimateMinutes || 0))
+      );
+    return new Set(candidates.slice(0, 2).map(t => t.id));
+  });
+
+  subtitle = computed(() => {
+    const today = new Date();
+    const todayDue = this.tasks().filter(t => t.dueDate && sameDay(new Date(t.dueDate + 'T00:00:00'), today));
+    const overdue = this.tasks().filter(t => isOverdue(t));
+    const totalEst = todayDue.filter(t => !t.isCompleted).reduce((a, b) => a + (b.estimateMinutes || 0), 0);
+    let s = `${fmtDateLong(today)} · ${todayDue.filter(t => !t.isCompleted).length} tâches`;
+    if (totalEst) s += ` · ~${fmtEstimate(totalEst)} estimées`;
+    if (overdue.length) s += ` · ${overdue.length} en retard`;
+    return s;
+  });
+
+  isEmpty = computed(() => this.groups().every(g => g.tasks.length === 0));
 
   ngOnInit(): void {
-    this.taskService.getTasks({ filter: 'today' }).subscribe(tasks => {
-      this.taskService.getTasks({ filter: 'overdue' }).subscribe(overdue => {
-        this.allTasks.set([...overdue, ...tasks]);
-      });
+    this.refresh();
+  }
+
+  private refresh(): void {
+    this.taskService.getTasks({ showCompleted: false }).subscribe(tasks => {
+      const today = new Date();
+      const tomorrow = new Date(today);
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      this.tasks.set(tasks.filter(t =>
+        !!t.dueDate && (
+          isOverdue(t) ||
+          sameDay(new Date(t.dueDate + 'T00:00:00'), today) ||
+          sameDay(new Date(t.dueDate + 'T00:00:00'), tomorrow)
+        )
+      ));
     });
   }
 
-  onTaskCreated(task: Task): void {
-    this.allTasks.update(t => [...t, task]);
+  onToggle(t: Task): void {
+    const op = t.isCompleted ? this.taskService.reopenTask(t.id) : this.taskService.closeTask(t.id);
+    op.subscribe(() => this.refresh());
   }
 
-  completeTask(task: Task): void {
-    this.taskService.closeTask(task.id).subscribe(() => {
-      this.allTasks.update(t => t.filter(t2 => t2.id !== task.id));
+  onSelect(t: Task): void {
+    this.ui.openTaskDetail(t);
+  }
+
+  onUpdate(payload: { id: string; patch: Partial<Task> }): void {
+    this.taskService.updateTask(payload.id, payload.patch).subscribe(updated => {
+      this.tasks.update(list => list.map(x => x.id === updated.id ? updated : x));
     });
   }
 
-  openDetail(task: Task): void { this.selectedTask.set(task); }
-
-  onTaskUpdated(task: Task): void {
-    this.allTasks.update(t => t.map(t2 => t2.id === task.id ? task : t2));
-    this.selectedTask.set(task);
-  }
-
-  onTaskDeleted(id: string): void {
-    this.allTasks.update(t => t.filter(t2 => t2.id !== id));
-    this.selectedTask.set(null);
+  private sortTasks(arr: Task[]): Task[] {
+    return [...arr].sort((a, b) => {
+      if (a.isCompleted !== b.isCompleted) return a.isCompleted ? 1 : -1;
+      // Higher internal priority = higher importance, so descending
+      if (a.priority !== b.priority) return b.priority - a.priority;
+      if (a.dueDate && b.dueDate) return a.dueDate.localeCompare(b.dueDate);
+      return 0;
+    });
   }
 }

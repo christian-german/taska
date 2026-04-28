@@ -1,104 +1,209 @@
-import { Component, OnInit, ViewChild, inject, output, signal } from '@angular/core';
-import { SmartTaskInputComponent, SmartParsed } from '../smart-task-input/smart-task-input.component';
+import { Component, ElementRef, OnInit, ViewChild, computed, inject, output, signal } from '@angular/core';
+import { FormsModule } from '@angular/forms';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { TaskService } from '../../../core/services/task.service';
 import { ProjectService } from '../../../core/services/project.service';
-import { Project } from '../../../core/models';
+import { NlParserService, NlParsed } from '../../../core/services/nl-parser.service';
+import {
+  Project,
+  fmtRel,
+  fmtTime,
+  fmtEstimate,
+  hexToRgba,
+} from '../../../core/models';
+import { IconComponent } from '../icon/icon.component';
+
+interface DetectedChip {
+  k: string;
+  v: string;
+  color: string;
+}
 
 @Component({
   selector: 'app-quick-add',
-  imports: [SmartTaskInputComponent],
+  imports: [FormsModule, IconComponent],
   template: `
-    <!-- Backdrop -->
-    <div class="fixed inset-0 bg-black/40 z-50 flex items-start justify-center pt-32" (click)="close.emit()">
-      <!-- Modal -->
-      <div class="bg-white dark:bg-gray-900 rounded-xl shadow-2xl w-full max-w-lg border border-gray-200 dark:border-gray-700"
-        (click)="$event.stopPropagation()">
+    <div class="modal-veil" (click)="close.emit()">
+      <div class="modal" (click)="$event.stopPropagation()">
+        <div style="padding: 20px 22px 12px;">
+          <div class="script" style="font-size: 22px; color: var(--mute); margin-bottom: 10px;">
+            nouvelle tâche
+          </div>
 
-        <div class="p-4 pb-3">
-          <app-smart-task-input #smartInput
-            placeholder="Add a task… type # for project, @ for label, p1-p4 for priority"
-            (parsedChange)="parsed.set($event)"
-            (enter)="submit()"
-            (escape)="close.emit()" />
+          <div style="position: relative;">
+            <!-- Visible highlight layer -->
+            <div aria-hidden="true"
+                 style="position: absolute; inset: 0; padding: 10px 12px;
+                        font-family: 'Caveat', cursive; font-size: 22px; line-height: 32px;
+                        color: var(--ink); white-space: pre-wrap; word-break: break-word; pointer-events: none;">
+              @if (input(); as txt) {
+                @for (seg of segments(); track $index) {
+                  <span [class]="segClass(seg.type)">{{ seg.text }}</span>
+                }
+              } @else {
+                <span style="color: var(--mute);">Finir slide deck Q2 demain 14h #boulot !!</span>
+              }
+            </div>
+            <input #inputEl
+                   [ngModel]="input()"
+                   (ngModelChange)="input.set($event)"
+                   (keydown.enter)="$event.preventDefault(); submit()"
+                   (keydown.escape)="close.emit()"
+                   style="width: 100%; padding: 10px 12px;
+                          font-family: 'Caveat', cursive; font-size: 22px; line-height: 32px;
+                          background: transparent; border: 0; outline: none;
+                          color: transparent; caret-color: var(--ink);
+                          position: relative; z-index: 2;" />
+          </div>
 
-          <!-- Parsed tokens preview -->
-          @if (parsed().projectName || parsed().labels.length || parsed().dueDate || parsed().priority > 1) {
-            <div class="flex flex-wrap gap-2 mt-3">
-              @if (parsed().projectName) {
-                <span class="text-xs px-2 py-0.5 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-full">
-                  #{{ parsed().projectName }}
-                </span>
-              }
-              @for (label of parsed().labels; track label) {
-                <span class="text-xs px-2 py-0.5 bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 rounded-full">
-                  &#64;{{ label }}
-                </span>
-              }
-              @if (parsed().dueDate) {
-                <span class="text-xs px-2 py-0.5 bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 rounded-full">
-                  {{ formatDate(parsed().dueDate!) }}
-                </span>
-              }
-              @if (parsed().priority > 1) {
-                <span class="text-xs px-2 py-0.5 bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 rounded-full">
-                  P{{ parsed().priority }}
+          @if (detected().length > 0) {
+            <div style="margin-top: 14px; display: flex; flex-wrap: wrap; gap: 6px;
+                        align-items: center; font-size: 12px;">
+              <span class="mono" style="color: var(--mute); font-size: 11px;">→ détecté:</span>
+              @for (d of detected(); track d.k) {
+                <span class="chip"
+                      [style.background]="rgba(d.color, 0.15)"
+                      [style.color]="d.color"
+                      style="font-size: 11.5px;">
+                  {{ d.v }}
                 </span>
               }
             </div>
           }
+
+          <hr class="dash-hr" style="margin: 18px 0 12px;" />
+
+          <div style="display: flex; flex-direction: column; gap: 8px; color: var(--ink-2);">
+            <div style="display: flex; align-items: center; gap: 10px; font-size: 13px;">
+              <app-icon name="calendar" [size]="14" color="#FF8A3D" />
+              <span>{{ dateRowLabel() }}</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 10px; font-size: 13px;">
+              <app-icon name="folder" [size]="14" color="#3AA3FF" />
+              <span>{{ projectRowLabel() }}</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 10px; font-size: 13px;">
+              <app-icon name="grid" [size]="14" color="#FF5E7D" />
+              <span>{{ tagRowLabel() }}</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 10px; font-size: 13px;">
+              <app-icon name="clock" [size]="14" color="#7AD36B" />
+              <span>{{ estimateRowLabel() }}</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 10px; font-size: 13px;">
+              <app-icon name="repeat" [size]="14" color="#3AA3FF" />
+              <span>{{ recurrenceRowLabel() }}</span>
+            </div>
+          </div>
         </div>
 
-        <div class="px-4 pb-4 flex items-center gap-2 border-t border-gray-100 dark:border-gray-800 pt-3">
-          <div class="flex-1"></div>
-          <button (click)="close.emit()"
-            class="px-3 py-1.5 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors">
-            Cancel
+        <div style="padding: 12px 22px; border-top: 1px solid var(--line);
+                    display: flex; justify-content: space-between; align-items: center;">
+          <button class="btn btn-ghost" (click)="close.emit()">
+            annuler <span class="kbd" style="margin-left: 4px;">esc</span>
           </button>
-          <button (click)="submit()"
-            [disabled]="!parsed().content.trim()"
-            class="px-4 py-1.5 text-sm font-medium bg-red-500 text-white rounded-lg hover:bg-red-600 disabled:opacity-40 disabled:cursor-not-allowed transition-colors">
-            Add task
+          <button class="btn btn-primary" (click)="submit()" [disabled]="!parsed().title">
+            + ajouter
+            <span class="kbd"
+                  style="margin-left: 6px; background: rgba(255,255,255,0.15);
+                         color: rgba(255,255,255,0.85); border: 0;">↵</span>
           </button>
         </div>
       </div>
     </div>
-  `
+  `,
 })
 export class QuickAddComponent implements OnInit {
   close = output<void>();
 
-  @ViewChild('smartInput') smartInput!: SmartTaskInputComponent;
+  @ViewChild('inputEl') inputEl?: ElementRef<HTMLInputElement>;
 
   private taskService = inject(TaskService);
   private projectService = inject(ProjectService);
+  private parser = inject(NlParserService);
 
-  projects = signal<Project[]>([]);
-  parsed = signal<SmartParsed>({ content: '', priority: 1, labels: [] });
+  private projects = toSignal(this.projectService.projects$, { initialValue: [] as Project[] });
+
+  input = signal('');
+  parsed = computed<NlParsed>(() => this.parser.parse(this.input()));
+  segments = computed(() => this.parser.segments(this.input(), this.parsed()));
+
+  detected = computed<DetectedChip[]>(() => {
+    const p = this.parsed();
+    const list: DetectedChip[] = [];
+    const dateTok = p.tokens.find(t => t.type === 'date');
+    if (dateTok) list.push({ k: 'date', v: dateTok.text, color: '#FF8A3D' });
+    if (p.hasTime) {
+      const tt = p.tokens.find(t => t.type === 'time');
+      if (tt) list.push({ k: 'time', v: tt.text, color: '#FF8A3D' });
+    }
+    if (p.tags.length) list.push({ k: 'tags', v: p.tags.map(t => '#' + t).join(' '), color: '#3AA3FF' });
+    if (p.context) list.push({ k: 'ctx', v: '@' + p.context, color: '#FF5E7D' });
+    if (p.priority) {
+      const display = (5 - p.priority);
+      list.push({ k: 'prio', v: 'P' + display, color: '#E5484D' });
+    }
+    if (p.estimateMinutes) list.push({ k: 'est', v: fmtEstimate(p.estimateMinutes), color: '#7AD36B' });
+    if (p.recurrence) list.push({ k: 'recur', v: p.recurrence, color: '#3AA3FF' });
+    return list;
+  });
 
   ngOnInit(): void {
-    this.projectService.projects$.subscribe(p => this.projects.set(p));
+    setTimeout(() => this.inputEl?.nativeElement.focus(), 0);
   }
 
-  formatDate(iso: string): string {
-    const d = new Date(iso + 'T00:00:00');
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const tomorrow = new Date(today);
-    tomorrow.setDate(today.getDate() + 1);
-    if (d.getTime() === today.getTime()) return 'Today';
-    if (d.getTime() === tomorrow.getTime()) return 'Tomorrow';
-    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  segClass(type: string | null): string {
+    if (!type) return '';
+    return 'nl-token nl-' + type;
+  }
+
+  rgba = (hex: string, a: number) => hexToRgba(hex, a);
+
+  dateRowLabel(): string {
+    const p = this.parsed();
+    if (!p.dueAt) return 'pas de date';
+    const d = new Date(p.dueAt);
+    return fmtRel(d) + (p.hasTime ? ' · ' + fmtTime(d) : '');
+  }
+
+  projectRowLabel(): string {
+    const p = this.parsed();
+    return p.projectName || 'Inbox';
+  }
+
+  tagRowLabel(): string {
+    const p = this.parsed();
+    const tags = p.tags.length ? p.tags.map(t => '#' + t).join(' ') : 'pas de tag';
+    const ctx = p.context ? '  @' + p.context : '';
+    return tags + ctx;
+  }
+
+  estimateRowLabel(): string {
+    const p = this.parsed();
+    if (!p.estimateMinutes) return "pas d'estimation";
+    return fmtEstimate(p.estimateMinutes) + ' estimées';
+  }
+
+  recurrenceRowLabel(): string {
+    const p = this.parsed();
+    return p.recurrence || 'ne se répète pas';
   }
 
   submit(): void {
     const p = this.parsed();
-    if (!p.content.trim()) return;
+    if (!p.title) return;
+    const inboxId = this.projects().find(pr => pr.isInboxProject)?.id;
     this.taskService.createTask({
-      content: p.content,
-      projectId: p.projectId,
-      labels: p.labels,
-      priority: p.priority,
+      content: p.title,
+      projectId: inboxId,
+      labels: p.tags,
+      priority: p.priority ?? 1,
       dueDate: p.dueDate,
-    }).subscribe(() => this.close.emit());
+      dueDateTime: p.dueDateTime,
+      mentionContext: p.context,
+      estimateMinutes: p.estimateMinutes,
+      recurrenceRule: p.recurrence,
+      isRecurring: !!p.recurrence,
+    } as any).subscribe(() => this.close.emit());
   }
 }

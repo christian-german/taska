@@ -1,6 +1,6 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { Project, Task } from '../../core/models';
+import { Project, Task, daysDiff, fmtDateShort, sameDay, startOfDay } from '../../core/models';
 import { TaskService } from '../../core/services/task.service';
 import { ProjectService } from '../../core/services/project.service';
 import { UiStateService } from '../../core/services/ui-state.service';
@@ -9,16 +9,18 @@ import { PageHeaderComponent } from '../../shared/components/page-header/page-he
 import { EmptyStateComponent } from '../../shared/components/atoms/atoms.component';
 import { IconComponent } from '../../shared/components/icon/icon.component';
 
+const FR_DAYS = ['dimanche', 'lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi'];
+
 @Component({
-  selector: 'app-inbox',
+  selector: 'app-week',
   imports: [TaskListComponent, PageHeaderComponent, EmptyStateComponent, IconComponent],
   template: `
-    <app-page-header [title]="'Inbox'" [subtitle]="subtitle()" />
+    <app-page-header [title]="'Cette semaine'" [subtitle]="subtitle()" />
 
     <div class="scroll" style="flex: 1; overflow-y: auto; padding: 8px 12px 60px;">
-      @if (tasks().length === 0) {
-        <app-empty-state title="rien dans la boîte" hint="Capture une idée avec ⌘N">
-          <app-icon icon name="inbox" [size]="28" color="var(--mute)" />
+      @if (isEmpty()) {
+        <app-empty-state title="rien à faire cette semaine" hint="Profite ✨">
+          <app-icon icon name="calendar" [size]="28" color="var(--mute)" />
         </app-empty-state>
       } @else {
         <app-task-list
@@ -32,7 +34,7 @@ import { IconComponent } from '../../shared/components/icon/icon.component';
     </div>
   `,
 })
-export class InboxComponent implements OnInit {
+export class WeekComponent implements OnInit {
   private taskService = inject(TaskService);
   private projectService = inject(ProjectService);
   private ui = inject(UiStateService);
@@ -41,24 +43,42 @@ export class InboxComponent implements OnInit {
   projects = toSignal(this.projectService.projects$, { initialValue: [] as Project[] });
 
   selectedId = computed(() => this.ui.selectedTask()?.id ?? null);
-  subtitle = computed(() => `${this.tasks().length} tâches non triées`);
 
-  groups = computed<TaskGroup[]>(() => [
-    { key: 'inbox', label: 'À traiter', tasks: this.tasks() },
-  ]);
+  groups = computed<TaskGroup[]>(() => {
+    const today = new Date();
+    const days: TaskGroup[] = [];
+    for (let i = 0; i < 7; i++) {
+      const d = new Date(today);
+      d.setDate(d.getDate() + i);
+      const label = i === 0 ? "Aujourd'hui"
+                  : i === 1 ? 'Demain'
+                  : `${FR_DAYS[d.getDay()]} ${d.getDate()}`;
+      days.push({ key: 'd' + i, label, tasks: [] });
+    }
+    for (const t of this.tasks()) {
+      if (!t.dueDate || t.isCompleted) continue;
+      const due = new Date(t.dueDate + 'T00:00:00');
+      const diff = daysDiff(today, due);
+      if (diff >= 0 && diff < 7) days[diff].tasks.push(t);
+    }
+    return days;
+  });
+
+  subtitle = computed(() => {
+    const today = new Date();
+    const end = new Date(today);
+    end.setDate(end.getDate() + 7);
+    return `du ${fmtDateShort(today)} au ${fmtDateShort(end)}`;
+  });
+
+  isEmpty = computed(() => this.groups().every(g => g.tasks.length === 0));
 
   ngOnInit(): void {
     this.refresh();
   }
 
   private refresh(): void {
-    this.projectService.projects$.subscribe(projects => {
-      const inbox = projects.find(p => p.isInboxProject);
-      if (!inbox) return;
-      this.taskService.getTasks({ projectId: inbox.id, showCompleted: false }).subscribe(t => {
-        this.tasks.set(t);
-      });
-    });
+    this.taskService.getTasks({ showCompleted: false }).subscribe(t => this.tasks.set(t));
   }
 
   onToggle(t: Task): void {

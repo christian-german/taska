@@ -9,106 +9,44 @@
     </div>
   </div>
 
-  <div style="padding: 0 14px 8px;">
-    <button (click)="openSearch()"
-            style="width: 100%; display: flex; align-items: center; gap: 8px; padding: 7px 10px;
-                   border-radius: 8px; background: var(--bg); border: 1px solid var(--line);
-                   color: var(--mute); cursor: pointer; font-size: 13px;">
-      <app-icon name="search" [size]="14" />
-      <span style="flex: 1; text-align: left;">Rechercher</span>
-      <span class="kbd">⌘K</span>
-    </button>
-  </div>
-
-  <div class="sb-section">
-    <div class="h">Vues</div>
-    @for (it of viewItems(); track it.id) {
-      <a [routerLink]="it.route" routerLinkActive="active" class="sb-item">
-        <span class="ic"><app-icon [name]="it.icon" [size]="15" /></span>
-        <span>{{ it.label }}</span>
-        @if (it.count > 0) { <span class="count">{{ it.count }}</span> }
-      </a>
-    }
-  </div>
-
-  <div class="sb-section">
-    <div class="h" style="display: flex; align-items: center; justify-content: space-between;">
-      <span>Projets</span>
-      <button (click)="showAddProject.set(!showAddProject())"
-              style="background: transparent; border: 0; color: var(--mute); cursor: pointer; padding: 0;">
-        <app-icon name="plus" [size]="13" />
-      </button>
-    </div>
-
-    @for (p of activeProjects(); track p.id) {
-      <a [routerLink]="['/project', p.id]" routerLinkActive="active" class="sb-item">
-        <span style="width: 16px; display: flex; justify-content: center;">
-          <app-project-dot [color]="getColor(p.color)" />
-        </span>
-        <span style="flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ p.name }}</span>
-        @if (counts().byProject[p.id] > 0) {
-          <span class="count">{{ counts().byProject[p.id] }}</span>
-        }
-      </a>
-    }
-
-    @if (showAddProject()) {
-      <div style="padding: 6px 10px;">
-        <input
-          [ngModel]="newProjectName()"
-          (ngModelChange)="newProjectName.set($event)"
-          (keydown.enter)="createProject()"
-          (keydown.escape)="cancelAddProject()"
-          placeholder="Nom du projet"
-          autofocus
-          style="width: 100%; background: var(--bg); border: 1px solid var(--line); padding: 5px 8px;
-                 border-radius: 6px; font-size: 13px; outline: none; color: var(--ink);" />
-      </div>
-    }
-  </div>
-
-  @if (labels().length > 0) {
-    <div class="sb-section">
-      <div class="h">Tags</div>
-      <div style="display: flex; flex-wrap: wrap; gap: 4px; padding: 4px 10px;">
-        @for (l of labels(); track l.id) {
-          <a [routerLink]="['/label', l.name]" style="cursor: pointer; text-decoration: none;">
-            <app-tag-chip [name]="l.name" [color]="getColor(l.color)" />
-          </a>
-        }
-      </div>
-    </div>
-  }
-
-  @if (filters().length > 0) {
-    <div class="sb-section">
-      <div class="h">Filtres</div>
-      @for (f of filters(); track f.id) {
-        <a [routerLink]="['/filter', f.id]" routerLinkActive="active" class="sb-item">
-          <span class="ic"><app-icon name="filter" [size]="14" /></span>
-          <span>{{ f.name }}</span>
-        </a>
-      }
-    </div>
-  }
-
-  <div style="flex: 1;"></div>
-
-  <div style="padding: 12px; border-top: 1px solid var(--line);
-              display: flex; align-items: center; gap: 10px;">
-    <div style="width: 30px; height: 30px; border-radius: 50%; background: var(--orange); color: #fff;
-                display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 13px;">
-      {{ userInitial() }}
-    </div>
-    <div style="flex: 1; min-width: 0;">
-      <div style="font-size: 12.5px; font-weight: 500;">{{ userName() }}</div>
-      <div class="mono" style="font-size: 10.5px; color: var(--mute);">v{{ appVersion() }}</div>
-    </div>
-    <button class="btn btn-ghost btn-icon" (click)="themeService.toggle()" [title]="'Thème'">
-      <app-icon [name]="themeService.isDark() ? 'sun' : 'moon'" [size]="14" />
-    </button>
-    <a class="btn btn-ghost btn-icon" routerLink="/stats" routerLinkActive="active" title="Stats">
-      <app-icon name="chart" [size]="14" />
+  <div class="sb-group">
+    <a routerLink="/today" routerLinkActive="active" class="sb-link">
+      <span class="dot dot-today"></span>
+      <span>Today</span>
     </a>
+    <a routerLink="/upcoming" routerLinkActive="active" class="sb-link">
+      <span class="dot dot-upcoming"></span>
+      <span>Upcoming</span>
+    </a>
+    <a routerLink="/filters" routerLinkActive="active" class="sb-link">
+      <span class="dot dot-filters"></span>
+      <span>Filters</span>
+    </a>
+    <a routerLink="/labels" routerLinkActive="active" class="sb-link">
+      <span class="dot dot-labels"></span>
+      <span>Labels</span>
+    </a>
+  </div>
+
+  <div class="sb-sep"></div>
+
+  <div class="sb-subhead">Projects</div>
+  <div class="sb-group">
+    @for (project of projects(); track project.id) {
+      @if (!project.parentId && !project.isInboxProject) {
+        <div class="project-wrap">
+          <a [routerLink]="['/project', project.id]" routerLinkActive="active" class="sb-link">
+            <span class="dot" [style.background]="getColor(project.color)"></span>
+            <span>{{ project.name }}</span>
+          </a>
+          @for (child of getChildren(project.id); track child.id) {
+            <a [routerLink]="['/project', child.id]" routerLinkActive="active" class="sb-link child-link">
+              <span class="dot child-dot" [style.background]="getColor(child.color)"></span>
+              <span>{{ child.name }}</span>
+            </a>
+          }
+        </div>
+      }
+    }
   </div>
 </aside>

@@ -16,6 +16,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 @Service
 @Transactional(readOnly = true)
@@ -76,7 +77,7 @@ public class StatsService {
                 .mapToInt(t -> t.getEstimateMinutes() == null ? 0 : t.getEstimateMinutes())
                 .sum();
 
-        Map<java.util.UUID, long[]> byProject = new HashMap<>();
+        Map<UUID, long[]> byProject = new HashMap<>();
         for (Task t : taskRepo.findAll()) {
             if (t.getProjectId() == null) continue;
             long[] arr = byProject.computeIfAbsent(t.getProjectId(), k -> new long[2]);

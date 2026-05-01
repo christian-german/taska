@@ -1,6 +1,7 @@
 package com.taska.domain.filter;
 
 import com.taska.domain.task.TaskDto;
+import com.taska.domain.task.TaskMapper;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -15,26 +16,28 @@ import java.util.UUID;
 public class FilterController {
 
     private final FilterService filterService;
+    private final FilterMapper filterMapper;
+    private final TaskMapper taskMapper;
 
     @GetMapping
     public List<FilterDto> getAll() {
-        return filterService.findAll();
+        return filterService.findAll().stream().map(filterMapper::toDto).toList();
     }
 
     @GetMapping("/{id}")
     public FilterDto getById(@PathVariable UUID id) {
-        return filterService.findById(id);
+        return filterMapper.toDto(filterService.findById(id));
     }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public FilterDto create(@Valid @RequestBody FilterRequest req) {
-        return filterService.create(req);
+        return filterMapper.toDto(filterService.create(req));
     }
 
     @PutMapping("/{id}")
     public FilterDto update(@PathVariable UUID id, @RequestBody FilterRequest req) {
-        return filterService.update(id, req);
+        return filterMapper.toDto(filterService.update(id, req));
     }
 
     @DeleteMapping("/{id}")
@@ -45,6 +48,6 @@ public class FilterController {
 
     @GetMapping("/{id}/tasks")
     public List<TaskDto> getTasks(@PathVariable UUID id) {
-        return filterService.getFilterTasks(id);
+        return filterService.getFilterTasks(id).stream().map(taskMapper::toDto).toList();
     }
 }

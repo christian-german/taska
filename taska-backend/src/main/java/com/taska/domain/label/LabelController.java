@@ -14,26 +14,27 @@ import java.util.UUID;
 public class LabelController {
 
     private final LabelService labelService;
+    private final LabelMapper labelMapper;
 
     @GetMapping
     public List<LabelDto> getAll() {
-        return labelService.findAll();
+        return labelService.findAll().stream().map(labelMapper::toDto).toList();
     }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public LabelDto create(@Valid @RequestBody LabelRequest req) {
-        return labelService.create(req);
+        return labelMapper.toDto(labelService.create(req));
     }
 
     @GetMapping("/{id}")
     public LabelDto getById(@PathVariable UUID id) {
-        return labelService.findById(id);
+        return labelMapper.toDto(labelService.findById(id));
     }
 
     @PutMapping("/{id}")
     public LabelDto update(@PathVariable UUID id, @RequestBody LabelRequest req) {
-        return labelService.update(id, req);
+        return labelMapper.toDto(labelService.update(id, req));
     }
 
     @DeleteMapping("/{id}")

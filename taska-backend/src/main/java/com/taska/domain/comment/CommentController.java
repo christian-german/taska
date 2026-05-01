@@ -14,21 +14,22 @@ import java.util.UUID;
 public class CommentController {
 
     private final CommentService commentService;
+    private final CommentMapper commentMapper;
 
     @GetMapping
     public List<CommentDto> getAll(@RequestParam(required = false) UUID task_id, @RequestParam(required = false) UUID project_id) {
-        return commentService.findAll(task_id, project_id);
+        return commentService.findAll(task_id, project_id).stream().map(commentMapper::toDto).toList();
     }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public CommentDto create(@Valid @RequestBody CommentRequest req) {
-        return commentService.create(req);
+        return commentMapper.toDto(commentService.create(req));
     }
 
     @PutMapping("/{id}")
     public CommentDto update(@PathVariable UUID id, @RequestBody CommentRequest req) {
-        return commentService.update(id, req);
+        return commentMapper.toDto(commentService.update(id, req));
     }
 
     @DeleteMapping("/{id}")

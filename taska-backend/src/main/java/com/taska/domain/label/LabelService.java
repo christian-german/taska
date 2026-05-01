@@ -16,31 +16,31 @@ public class LabelService {
     private final LabelRepository labelRepo;
 
     @Transactional(readOnly = true)
-    public List<LabelDto> findAll() {
-        return labelRepo.findAllByOrderByPositionAsc().stream().map(this::toResponse).toList();
+    public List<Label> findAll() {
+        return labelRepo.findAllByOrderByPositionAsc();
     }
 
     @Transactional(readOnly = true)
-    public LabelDto findById(UUID id) {
-        return toResponse(getOrThrow(id));
+    public Label findById(UUID id) {
+        return getOrThrow(id);
     }
 
-    public LabelDto create(LabelRequest req) {
+    public Label create(LabelRequest req) {
         Label l = new Label();
         l.setName(req.name());
         l.setColor(req.color() != null ? req.color() : "charcoal");
         l.setPosition(req.order() != null ? req.order() : 0);
         l.setIsFavorite(req.isFavorite() != null ? req.isFavorite() : false);
-        return toResponse(labelRepo.save(l));
+        return labelRepo.save(l);
     }
 
-    public LabelDto update(UUID id, LabelRequest req) {
+    public Label update(UUID id, LabelRequest req) {
         Label l = getOrThrow(id);
         if (req.name() != null) l.setName(req.name());
         if (req.color() != null) l.setColor(req.color());
         if (req.order() != null) l.setPosition(req.order());
         if (req.isFavorite() != null) l.setIsFavorite(req.isFavorite());
-        return toResponse(labelRepo.save(l));
+        return labelRepo.save(l);
     }
 
     public void delete(UUID id) {
@@ -50,9 +50,5 @@ public class LabelService {
     private Label getOrThrow(UUID id) {
         return labelRepo.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Label not found: " + id));
-    }
-
-    public LabelDto toResponse(Label l) {
-        return new LabelDto(l.getId(), l.getName(), l.getColor(), l.getPosition(), l.getIsFavorite());
     }
 }

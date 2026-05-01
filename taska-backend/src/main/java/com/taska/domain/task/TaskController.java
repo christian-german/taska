@@ -14,6 +14,7 @@ import java.util.UUID;
 public class TaskController {
 
     private final TaskService taskService;
+    private final TaskMapper taskMapper;
 
     @GetMapping
     public List<TaskDto> getAll(
@@ -22,23 +23,24 @@ public class TaskController {
             @RequestParam(required = false) String label,
             @RequestParam(required = false) String filter,
             @RequestParam(required = false, defaultValue = "false") boolean show_completed) {
-        return taskService.findAll(project_id, section_id, label, filter, show_completed);
+        return taskService.findAll(project_id, section_id, label, filter, show_completed)
+                .stream().map(taskMapper::toDto).toList();
     }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public TaskDto create(@Valid @RequestBody TaskRequest req) {
-        return taskService.create(req);
+        return taskMapper.toDto(taskService.create(req));
     }
 
     @GetMapping("/{id}")
     public TaskDto getById(@PathVariable UUID id) {
-        return taskService.findById(id);
+        return taskMapper.toDto(taskService.findById(id));
     }
 
     @PutMapping("/{id}")
     public TaskDto update(@PathVariable UUID id, @RequestBody TaskRequest req) {
-        return taskService.update(id, req);
+        return taskMapper.toDto(taskService.update(id, req));
     }
 
     @DeleteMapping("/{id}")
@@ -49,16 +51,16 @@ public class TaskController {
 
     @PostMapping("/{id}/close")
     public TaskDto close(@PathVariable UUID id) {
-        return taskService.close(id);
+        return taskMapper.toDto(taskService.close(id));
     }
 
     @PostMapping("/{id}/reopen")
     public TaskDto reopen(@PathVariable UUID id) {
-        return taskService.reopen(id);
+        return taskMapper.toDto(taskService.reopen(id));
     }
 
     @GetMapping("/{id}/subtasks")
     public List<TaskDto> getSubtasks(@PathVariable UUID id) {
-        return taskService.getSubtasks(id);
+        return taskService.getSubtasks(id).stream().map(taskMapper::toDto).toList();
     }
 }

@@ -21,53 +21,44 @@ public class TaskService {
     private final ProjectRepository projectRepo;
 
     @Transactional(readOnly = true)
-    public List<TaskDto> findAll(UUID projectId, UUID sectionId, String label, String filter, boolean showCompleted) {
+    public List<Task> findAll(UUID projectId, UUID sectionId, String label, String filter, boolean showCompleted) {
         if (filter != null) {
             LocalDate today = LocalDate.now();
             return switch (filter) {
-                case "today" -> taskRepo.findByDueDateAndIsCompletedFalseOrderByPositionAsc(today)
-                        .stream().map(this::toResponse).toList();
-                case "overdue" -> taskRepo.findByDueDateBeforeAndIsCompletedFalseOrderByDueDateAsc(today)
-                        .stream().map(this::toResponse).toList();
+                case "today" -> taskRepo.findByDueDateAndIsCompletedFalseOrderByPositionAsc(today);
+                case "overdue" -> taskRepo.findByDueDateBeforeAndIsCompletedFalseOrderByDueDateAsc(today);
                 case "upcoming" -> taskRepo.findByDueDateBetweenAndIsCompletedFalseOrderByDueDateAsc(
-                        today.plusDays(1), today.plusDays(14))
-                        .stream().map(this::toResponse).toList();
-                default -> taskRepo.findAll().stream().map(this::toResponse).toList();
+                        today.plusDays(1), today.plusDays(14));
+                default -> taskRepo.findAll();
             };
         }
         if (label != null) {
-            var tasks = showCompleted
-                    ? taskRepo.findByLabel(label)
-                    : taskRepo.findByLabelAndIsCompletedFalse(label);
-            return tasks.stream().map(this::toResponse).toList();
+            return showCompleted ? taskRepo.findByLabel(label) : taskRepo.findByLabelAndIsCompletedFalse(label);
         }
         if (projectId != null && sectionId != null) {
-            var tasks = showCompleted
+            return showCompleted
                     ? taskRepo.findByProjectIdAndSectionIdOrderByPositionAsc(projectId, sectionId)
                     : taskRepo.findByProjectIdAndSectionIdAndIsCompletedFalseOrderByPositionAsc(projectId, sectionId);
-            return tasks.stream().map(this::toResponse).toList();
         }
         if (projectId != null) {
-            var tasks = showCompleted
+            return showCompleted
                     ? taskRepo.findByProjectIdOrderByPositionAsc(projectId)
                     : taskRepo.findByProjectIdAndIsCompletedFalseOrderByPositionAsc(projectId);
-            return tasks.stream().map(this::toResponse).toList();
         }
         if (sectionId != null) {
-            var tasks = showCompleted
+            return showCompleted
                     ? taskRepo.findBySectionIdOrderByPositionAsc(sectionId)
                     : taskRepo.findBySectionIdAndIsCompletedFalseOrderByPositionAsc(sectionId);
-            return tasks.stream().map(this::toResponse).toList();
         }
-        return taskRepo.findAll().stream().map(this::toResponse).toList();
+        return taskRepo.findAll();
     }
 
     @Transactional(readOnly = true)
-    public TaskDto findById(UUID id) {
-        return toResponse(getOrThrow(id));
+    public Task findById(UUID id) {
+        return getOrThrow(id);
     }
 
-    public TaskDto create(TaskRequest req) {
+    public Task create(TaskRequest req) {
         Task t = new Task();
         t.setContent(req.content());
         t.setDescription(req.description());
@@ -91,10 +82,10 @@ public class TaskService {
         }
         t.setProjectId(projectId);
 
-        return toResponse(taskRepo.save(t));
+        return taskRepo.save(t);
     }
 
-    public TaskDto update(UUID id, TaskRequest req) {
+    public Task update(UUID id, TaskRequest req) {
         Task t = getOrThrow(id);
         if (req.content() != null) t.setContent(req.content());
         if (req.description() != null) t.setDescription(req.description());
@@ -110,43 +101,34 @@ public class TaskService {
         if (req.estimateMinutes() != null) t.setEstimateMinutes(req.estimateMinutes());
         if (req.mentionContext() != null) t.setMentionContext(req.mentionContext());
         if (req.recurrenceRule() != null) t.setRecurrenceRule(req.recurrenceRule());
-        return toResponse(taskRepo.save(t));
+        return taskRepo.save(t);
     }
 
     public void delete(UUID id) {
         taskRepo.delete(getOrThrow(id));
     }
 
-    public TaskDto close(UUID id) {
+    public Task close(UUID id) {
         Task t = getOrThrow(id);
         t.setIsCompleted(true);
         t.setCompletedAt(Instant.now());
-        return toResponse(taskRepo.save(t));
+        return taskRepo.save(t);
     }
 
-    public TaskDto reopen(UUID id) {
+    public Task reopen(UUID id) {
         Task t = getOrThrow(id);
         t.setIsCompleted(false);
         t.setCompletedAt(null);
-        return toResponse(taskRepo.save(t));
+        return taskRepo.save(t);
     }
 
     @Transactional(readOnly = true)
-    public List<TaskDto> getSubtasks(UUID parentId) {
-        return taskRepo.findByParentIdOrderByPositionAsc(parentId).stream().map(this::toResponse).toList();
+    public List<Task> getSubtasks(UUID parentId) {
+        return taskRepo.findByParentIdOrderByPositionAsc(parentId);
     }
 
-    private Task getOrThrow(UUID id) {
+    Task getOrThrow(UUID id) {
         return taskRepo.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Task not found: " + id));
-    }
-
-    public TaskDto toResponse(Task t) {
-        return new TaskDto(t.getId(), t.getContent(), t.getDescription(), t.getProjectId(),
-                t.getSectionId(), t.getParentId(), t.getPosition(), t.getPriority(),
-                t.getLabels(), t.getIsCompleted(), t.getDueDate(), t.getDueDateTime(),
-                t.getIsRecurring(), t.getEstimateMinutes(), t.getMentionContext(),
-                t.getRecurrenceRule(),
-                t.getCreatedAt(), t.getUpdatedAt(), t.getCompletedAt());
     }
 }

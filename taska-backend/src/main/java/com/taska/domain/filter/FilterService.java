@@ -1,8 +1,7 @@
 package com.taska.domain.filter;
 
+import com.taska.domain.task.Task;
 import com.taska.domain.task.TaskRepository;
-import com.taska.domain.task.TaskDto;
-import com.taska.domain.task.TaskService;
 import com.taska.exception.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -18,19 +17,18 @@ public class FilterService {
 
     private final FilterRepository filterRepo;
     private final TaskRepository taskRepo;
-    private final TaskService taskService;
 
     @Transactional(readOnly = true)
-    public List<FilterDto> findAll() {
-        return filterRepo.findAllByOrderByPositionAsc().stream().map(this::toResponse).toList();
+    public List<Filter> findAll() {
+        return filterRepo.findAllByOrderByPositionAsc();
     }
 
     @Transactional(readOnly = true)
-    public FilterDto findById(UUID id) {
-        return toResponse(getOrThrow(id));
+    public Filter findById(UUID id) {
+        return getOrThrow(id);
     }
 
-    public FilterDto create(FilterRequest req) {
+    public Filter create(FilterRequest req) {
         Filter f = new Filter();
         f.setName(req.name());
         f.setColor(req.color() != null ? req.color() : "charcoal");
@@ -38,10 +36,10 @@ public class FilterService {
         f.setIsFavorite(req.isFavorite() != null ? req.isFavorite() : false);
         f.setProjectId(req.projectId());
         f.setHasDate(req.hasDate());
-        return toResponse(filterRepo.save(f));
+        return filterRepo.save(f);
     }
 
-    public FilterDto update(UUID id, FilterRequest req) {
+    public Filter update(UUID id, FilterRequest req) {
         Filter f = getOrThrow(id);
         if (req.name() != null) f.setName(req.name());
         if (req.color() != null) f.setColor(req.color());
@@ -50,7 +48,7 @@ public class FilterService {
         if (Boolean.TRUE.equals(req.clearProject())) f.setProjectId(null);
         else if (req.projectId() != null) f.setProjectId(req.projectId());
         if (req.hasDate() != null) f.setHasDate(req.hasDate());
-        return toResponse(filterRepo.save(f));
+        return filterRepo.save(f);
     }
 
     public void delete(UUID id) {
@@ -58,42 +56,29 @@ public class FilterService {
     }
 
     @Transactional(readOnly = true)
-    public List<TaskDto> getFilterTasks(UUID filterId) {
+    public List<Task> getFilterTasks(UUID filterId) {
         Filter f = getOrThrow(filterId);
         UUID projectId = f.getProjectId();
         Boolean hasDate = f.getHasDate();
 
         if (projectId != null && hasDate != null) {
-            var tasks = hasDate
+            return hasDate
                     ? taskRepo.findByProjectIdAndDueDateIsNotNullAndIsCompletedFalseOrderByDueDateAsc(projectId)
                     : taskRepo.findByProjectIdAndDueDateIsNullAndIsCompletedFalseOrderByPositionAsc(projectId);
-            return tasks.stream().map(taskService::toResponse).toList();
         }
         if (projectId != null) {
-            return taskRepo.findByProjectIdAndIsCompletedFalseOrderByPositionAsc(projectId)
-                    .stream().map(taskService::toResponse).toList();
+            return taskRepo.findByProjectIdAndIsCompletedFalseOrderByPositionAsc(projectId);
         }
         if (hasDate != null) {
-            var tasks = hasDate
+            return hasDate
                     ? taskRepo.findAllWithDueDateNotCompleted()
                     : taskRepo.findAllWithNoDueDateNotCompleted();
-            return tasks.stream().map(taskService::toResponse).toList();
         }
-        return taskRepo.findAll().stream()
-                .filter(t -> !t.getIsCompleted())
-                .map(taskService::toResponse).toList();
+        return taskRepo.findAll().stream().filter(t -> !t.getIsCompleted()).toList();
     }
 
     private Filter getOrThrow(UUID id) {
         return filterRepo.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Filter not found: " + id));
-    }
-
-    public FilterDto toResponse(Filter f) {
-        return new FilterDto(
-                f.getId(), f.getName(), f.getColor(),
-                f.getPosition(), f.getIsFavorite(),
-                f.getProjectId(), f.getHasDate()
-        );
     }
 }

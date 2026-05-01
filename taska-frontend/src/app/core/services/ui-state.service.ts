@@ -1,4 +1,5 @@
 import { Injectable, signal } from '@angular/core';
+import { Subject } from 'rxjs';
 import { Task } from '../models';
 
 @Injectable({ providedIn: 'root' })
@@ -7,6 +8,9 @@ export class UiStateService {
   showPalette = signal(false);
   showHelp = signal(false);
   selectedTask = signal<Task | null>(null);
+
+  readonly taskUpdated$ = new Subject<Task>();
+  readonly taskDeleted$ = new Subject<string>();
 
   openTaskDetail(task: Task): void {
     this.selectedTask.set(task);

@@ -1,5 +1,5 @@
 import { Component, OnInit, computed, effect, inject, input, signal } from '@angular/core';
-import { toSignal } from '@angular/core/rxjs-interop';
+import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { Project, Section, Task, getColor } from '../../core/models';
 import { ProjectService } from '../../core/services/project.service';
 import { SectionService } from '../../core/services/section.service';
@@ -92,6 +92,19 @@ export class ProjectViewComponent implements OnInit {
       if (!id || id === this.lastLoadedId) return;
       this.lastLoadedId = id;
       this.load(id);
+    });
+    this.ui.taskDeleted$.pipe(takeUntilDestroyed()).subscribe(id => {
+      this.allItems.update(list => list.filter(t => t.id !== id));
+    });
+    this.ui.taskUpdated$.pipe(takeUntilDestroyed()).subscribe(task => {
+      this.allItems.update(list => {
+        const inList = list.some(t => t.id === task.id);
+        const belongs = task.projectId === this.id();
+        if (inList && belongs) return list.map(t => t.id === task.id ? task : t);
+        if (inList && !belongs) return list.filter(t => t.id !== task.id);
+        if (!inList && belongs) return [...list, task];
+        return list;
+      });
     });
   }
 

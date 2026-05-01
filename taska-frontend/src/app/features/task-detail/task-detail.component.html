@@ -1,6 +1,7 @@
-<aside class="detail-panel scroll" style="position: relative;">
+<aside class="detail-panel" (click)="closeMenus(); $event.stopPropagation()"
+      style="position: relative; height: 100%; display: flex; flex-direction: column; overflow: hidden;">
   <div style="padding: 12px 16px; display: flex; align-items: center; justify-content: space-between;
-              border-bottom: 1px solid var(--line);">
+              border-bottom: 1px solid var(--line); flex-shrink: 0;">
     <button class="btn btn-ghost" (click)="onClose()">
       <app-icon name="arrow-left" [size]="14" /> Retour
     </button>
@@ -14,6 +15,7 @@
     </div>
   </div>
 
+  <div class="scroll" style="flex: 1; overflow-y: auto; min-height: 0;">
   <div style="padding: 20px 22px;">
     <div style="display: flex; gap: 12px; align-items: flex-start;">
       <app-checkbox
@@ -41,7 +43,8 @@
         }
       </button>
       @if (showProjectMenu()) {
-        <div style="position: absolute; top: 100%; left: 0; background: var(--bg);
+        <div (click)="$event.stopPropagation()"
+             style="position: absolute; top: 100%; left: 0; background: var(--bg);
                     border: 1px solid var(--line); border-radius: 8px;
                     box-shadow: var(--shadow-soft); z-index: 5; padding: 4px 0; min-width: 160px;">
           @for (p of projects(); track p.id) {
@@ -55,10 +58,28 @@
         </div>
       }
 
-      <button class="btn btn-ghost" (click)="cyclePriority()" style="padding: 4px 8px;">
-        <app-priority-flag [priority]="task().priority" />
-        <span class="mono" style="font-size: 11px; color: var(--mute);">{{ priorityLabel() }}</span>
-      </button>
+      <div style="position: relative;">
+        <button class="btn btn-ghost" (click)="togglePriorityMenu($event)" style="padding: 4px 8px;">
+          <app-priority-flag [priority]="task().priority" />
+          <span class="mono" style="font-size: 11px; color: var(--mute);">{{ priorityLabel() }}</span>
+        </button>
+        @if (showPriorityMenu()) {
+          <div (click)="$event.stopPropagation()"
+               style="position: absolute; top: 100%; left: 0; background: var(--bg);
+                      border: 1px solid var(--line); border-radius: 8px;
+                      box-shadow: var(--shadow-soft); z-index: 5; padding: 4px 0; min-width: 140px;">
+            @for (p of priorities; track p.value) {
+              <div style="padding: 7px 14px; cursor: pointer; display: flex; align-items: center;
+                          gap: 8px; font-size: 13px;"
+                   [style.background]="task().priority === p.value ? 'var(--bg-3)' : ''"
+                   (mousedown)="setPriority(p.value)">
+                <app-priority-flag [priority]="p.value" [size]="13" />
+                <span class="mono" style="font-size: 12px;">{{ p.label }}</span>
+              </div>
+            }
+          </div>
+        }
+      </div>
 
       @for (lab of task().labels; track lab) {
         <app-tag-chip [name]="lab" [color]="labelColor(lab)" />
@@ -68,15 +89,26 @@
     @if (dueDate(); as due) {
       <div style="margin-top: 14px; display: flex; align-items: center; gap: 8px;">
         <app-icon name="calendar" [size]="14" color="var(--orange)" />
-        <span class="mono" style="font-size: 12px; color: var(--ink-2);">
-          {{ dueLabel() }}
-        </span>
+        @if (showDatePicker()) {
+          <input type="date"
+                 class="inline-edit mono"
+                 [value]="dueDateIso()"
+                 (change)="onDateChange($event)"
+                 (blur)="showDatePicker.set(false)"
+                 autofocus
+                 style="font-size: 12px; width: auto; cursor: pointer;" />
+        } @else {
+          <span class="mono" style="font-size: 12px; color: var(--ink-2); cursor: pointer;"
+                (click)="showDatePicker.set(true)">
+            {{ dueLabel() }}
+          </span>
+        }
         <button class="btn btn-ghost btn-icon" (click)="clearDate()" title="Retirer">
           <app-icon name="x" [size]="12" />
         </button>
       </div>
     } @else {
-      <div style="margin-top: 14px; display: flex; gap: 4px; flex-wrap: wrap;">
+      <div style="margin-top: 14px; display: flex; gap: 4px; flex-wrap: wrap; align-items: center;">
         <button class="btn btn-ghost" (click)="setQuickDate('today')"
                 style="padding: 4px 8px; font-size: 12px;">
           <app-icon name="calendar" [size]="13" /> Aujourd'hui
@@ -85,6 +117,18 @@
                 style="padding: 4px 8px; font-size: 12px;">Demain</button>
         <button class="btn btn-ghost" (click)="setQuickDate('week')"
                 style="padding: 4px 8px; font-size: 12px;">+1 sem.</button>
+        @if (showDatePicker()) {
+          <input type="date"
+                 class="inline-edit mono"
+                 (change)="onDateChange($event)"
+                 (blur)="showDatePicker.set(false)"
+                 autofocus
+                 style="font-size: 12px; width: auto; cursor: pointer;" />
+        } @else {
+          <button class="btn btn-ghost btn-icon" (click)="showDatePicker.set(true)" title="Choisir une date">
+            <app-icon name="calendar" [size]="13" />
+          </button>
+        }
       </div>
     }
 
@@ -174,4 +218,13 @@
       }
     </div>
   </div>
+  </div><!-- end scrollable -->
 </aside>
+
+@if (showDeleteConfirm()) {
+  <app-confirm-dialog
+    title="Supprimer cette tâche ?"
+    message="Cette action est définitive et ne peut pas être annulée."
+    (confirmed)="confirmDelete()"
+    (cancelled)="showDeleteConfirm.set(false)" />
+}

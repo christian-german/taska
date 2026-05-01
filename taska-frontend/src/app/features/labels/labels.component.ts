@@ -5,11 +5,19 @@ import { LabelService } from '../../core/services/label.service';
 import { Label, PROJECT_COLORS, getColor } from '../../core/models';
 import { IconComponent } from '../../shared/components/icon/icon.component';
 import { ProjectDotComponent } from '../../shared/components/atoms/atoms.component';
+import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/confirm-dialog.component';
 
 @Component({
   selector: 'app-labels',
-  imports: [FormsModule, IconComponent, ProjectDotComponent],
+  imports: [FormsModule, IconComponent, ProjectDotComponent, ConfirmDialogComponent],
   template: `
+    @if (deletingLabel()) {
+      <app-confirm-dialog
+        [title]="'Supprimer le tag « ' + deletingLabel()!.name + ' » ?'"
+        message="Les tâches associées à ce tag ne seront pas supprimées."
+        (confirmed)="confirmDeleteLabel()"
+        (cancelled)="deletingLabel.set(null)" />
+    }
     <div style="padding: 32px 28px;">
       <div style="display: flex; align-items: baseline; gap: 14px;">
         <h1 class="script" style="font-size: 38px; margin: 0; line-height: 1;">Tags</h1>
@@ -95,6 +103,7 @@ export class LabelsComponent implements OnInit {
   readonly getColor = getColor;
 
   showAdd = signal(false);
+  deletingLabel = signal<Label | null>(null);
   newName = signal('');
   newColor = signal('charcoal');
 
@@ -139,7 +148,13 @@ export class LabelsComponent implements OnInit {
   }
 
   deleteLabel(l: Label): void {
-    if (!confirm(`Supprimer le tag "${l.name}" ?`)) return;
+    this.deletingLabel.set(l);
+  }
+
+  confirmDeleteLabel(): void {
+    const l = this.deletingLabel();
+    if (!l) return;
+    this.deletingLabel.set(null);
     this.labelService.deleteLabel(l.id).subscribe();
   }
 }

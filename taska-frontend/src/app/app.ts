@@ -19,7 +19,7 @@ import { ThemeService } from './core/services/theme.service';
     <div class="app" [class.has-detail]="hasDetail()">
       <app-sidebar />
 
-      <main class="scroll" style="overflow-y: auto; display: flex; flex-direction: column;">
+      <main class="scroll" (click)="ui.closeTaskDetail()" style="overflow-y: auto; display: flex; flex-direction: column;">
         <router-outlet />
       </main>
 
@@ -28,7 +28,7 @@ import { ThemeService } from './core/services/theme.service';
           [task]="task"
           (close)="ui.closeTaskDetail()"
           (taskUpdated)="onTaskUpdated($event)"
-          (taskDeleted)="ui.closeTaskDetail()" />
+          (taskDeleted)="onTaskDeleted($event)" />
       }
     </div>
 
@@ -70,6 +70,12 @@ export class App implements OnInit {
 
   onTaskUpdated(task: any): void {
     this.ui.selectedTask.set(task);
+    this.ui.taskUpdated$.next(task);
+  }
+
+  onTaskDeleted(id: string): void {
+    this.ui.closeTaskDetail();
+    this.ui.taskDeleted$.next(id);
   }
 
   // Buffered key sequence for "g + t / g + i / g + w / g + s"

@@ -19,6 +19,7 @@ import { CommentService } from '../../core/services/comment.service';
 import { ProjectService } from '../../core/services/project.service';
 import { LabelService } from '../../core/services/label.service';
 import { IconComponent } from '../../shared/components/icon/icon.component';
+import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/confirm-dialog.component';
 import {
   CheckboxComponent,
   PriorityFlagComponent,
@@ -31,6 +32,7 @@ import {
   imports: [
     FormsModule,
     IconComponent,
+    ConfirmDialogComponent,
     CheckboxComponent,
     PriorityFlagComponent,
     ProjectDotComponent,
@@ -56,6 +58,16 @@ export class TaskDetailComponent implements OnChanges {
   newSubtaskContent = signal('');
   newComment = signal('');
   showProjectMenu = signal(false);
+  showPriorityMenu = signal(false);
+  showDatePicker = signal(false);
+  showDeleteConfirm = signal(false);
+
+  readonly priorities: { value: 1 | 2 | 3 | 4; label: string }[] = [
+    { value: 4, label: PRIORITY_LABELS[4] },
+    { value: 3, label: PRIORITY_LABELS[3] },
+    { value: 2, label: PRIORITY_LABELS[2] },
+    { value: 1, label: PRIORITY_LABELS[1] },
+  ];
 
   subtasks = signal<Task[]>([]);
   comments = signal<Comment[]>([]);
@@ -83,10 +95,13 @@ export class TaskDetailComponent implements OnChanges {
     return `${PRIORITY_LABELS[p] ?? ''}`;
   });
 
+  dueDateIso = computed(() => this.task().dueDate ?? '');
+
   ngOnChanges(): void {
     const t = this.task();
     this.editedContent.set(t.content);
     this.editedDescription.set(t.description ?? '');
+    this.showDatePicker.set(false);
     this.loadSubtasks();
     this.loadComments();
   }
@@ -125,9 +140,19 @@ export class TaskDetailComponent implements OnChanges {
     }
   }
 
-  cyclePriority(): void {
-    const next = (this.task().priority % 4 + 1) as 1 | 2 | 3 | 4;
-    this.save({ priority: next });
+  closeMenus(): void {
+    this.showProjectMenu.set(false);
+    this.showPriorityMenu.set(false);
+  }
+
+  togglePriorityMenu(e: Event): void {
+    e.stopPropagation();
+    this.showPriorityMenu.set(!this.showPriorityMenu());
+  }
+
+  setPriority(priority: 1 | 2 | 3 | 4): void {
+    this.showPriorityMenu.set(false);
+    this.save({ priority });
   }
 
   toggleProjectMenu(e: Event): void {
@@ -150,7 +175,13 @@ export class TaskDetailComponent implements OnChanges {
 
   clearDate(): void {
     this.taskService.updateTask(this.task().id, { dueDate: null as any, dueDateTime: null as any })
-      .subscribe(t => this.taskUpdated.emit(t));
+      .subscribe(t => this.taskUpdated.emit({ ...t, dueDate: undefined, dueDateTime: undefined }));
+  }
+
+  onDateChange(event: Event): void {
+    const value = (event.target as HTMLInputElement).value;
+    this.showDatePicker.set(false);
+    if (value) this.save({ dueDate: value, dueDateTime: undefined });
   }
 
   toggleSubtask(s: Task): void {
@@ -185,7 +216,11 @@ export class TaskDetailComponent implements OnChanges {
   }
 
   deleteTask(): void {
-    if (!confirm('Supprimer cette tâche ?')) return;
+    this.showDeleteConfirm.set(true);
+  }
+
+  confirmDelete(): void {
+    this.showDeleteConfirm.set(false);
     this.taskService.deleteTask(this.task().id).subscribe(() => {
       this.taskDeleted.emit(this.task().id);
     });

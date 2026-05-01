@@ -2,6 +2,8 @@ import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { toSignal } from '@angular/core/rxjs-interop';
+import { map } from 'rxjs';
+import { OidcSecurityService } from 'angular-auth-oidc-client';
 import { ProjectService } from '../../core/services/project.service';
 import { LabelService } from '../../core/services/label.service';
 import { FilterService } from '../../core/services/filter.service';
@@ -34,6 +36,7 @@ interface SidebarCount {
   templateUrl: './sidebar.component.html',
 })
 export class SidebarComponent implements OnInit {
+  private oidcSecurityService = inject(OidcSecurityService);
   private projectService = inject(ProjectService);
   private labelService = inject(LabelService);
   private filterService = inject(FilterService);
@@ -41,6 +44,11 @@ export class SidebarComponent implements OnInit {
   private versionService = inject(VersionService);
   private ui = inject(UiStateService);
   themeService = inject(ThemeService);
+
+  private userData = toSignal(
+    this.oidcSecurityService.userData$.pipe(map(({ userData }) => userData)),
+    { initialValue: null as any }
+  );
 
   projects = toSignal(this.projectService.projects$, { initialValue: [] as Project[] });
   labels = toSignal(this.labelService.labels$, { initialValue: [] as Label[] });
@@ -124,11 +132,10 @@ export class SidebarComponent implements OnInit {
     this.newProjectName.set('');
   }
 
-  userName(): string {
-    return 'Marc';
-  }
+  userName = computed(() => {
+    const d = this.userData();
+    return d?.name ?? d?.given_name ?? d?.preferred_username ?? d?.email ?? '?';
+  });
 
-  userInitial(): string {
-    return this.userName().charAt(0).toUpperCase();
-  }
+  userInitial = computed(() => this.userName().charAt(0).toUpperCase());
 }

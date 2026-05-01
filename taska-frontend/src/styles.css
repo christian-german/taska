@@ -242,7 +242,6 @@ input, textarea { font-family: inherit; color: inherit; }
   background: var(--bg);
   border-left: 1px solid var(--line);
   animation: slide-in 0.22s ease;
-  overflow-y: auto;
 }
 @keyframes slide-in {
   from { transform: translateX(20px); opacity: 0; }

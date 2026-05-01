@@ -27,7 +27,7 @@ import { CheckboxComponent, PriorityFlagComponent, ProjectDotComponent, TagChipC
          [class.done]="task().isCompleted"
          [class.completing]="completing()"
          [attr.data-task-id]="task().id"
-         (click)="onSelect()">
+         (click)="onSelect(); $event.stopPropagation()">
       <app-checkbox
         [checked]="task().isCompleted"
         [priority]="task().priority"
@@ -48,7 +48,7 @@ import { CheckboxComponent, PriorityFlagComponent, ProjectDotComponent, TagChipC
                    (click)="$event.stopPropagation()" />
           } @else {
             <span class="title script"
-                  style="font-size: 17px; line-height: 1.2; cursor: text;"
+                  style="font-size: 17px; line-height: 1.2; cursor: pointer;"
                   (dblclick)="startEdit($event)">{{ task().content }}</span>
           }
           @if (suggested()) {

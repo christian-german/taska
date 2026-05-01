@@ -1,4 +1,5 @@
-import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { Component, DestroyRef, OnInit, computed, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { Project, Task } from '../../core/models';
 import { TaskService } from '../../core/services/task.service';
@@ -36,6 +37,7 @@ export class InboxComponent implements OnInit {
   private taskService = inject(TaskService);
   private projectService = inject(ProjectService);
   private ui = inject(UiStateService);
+  private destroyRef = inject(DestroyRef);
 
   tasks = signal<Task[]>([]);
   projects = toSignal(this.projectService.projects$, { initialValue: [] as Project[] });
@@ -49,6 +51,20 @@ export class InboxComponent implements OnInit {
 
   ngOnInit(): void {
     this.refresh();
+    this.ui.taskDeleted$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(id => {
+      this.tasks.update(list => list.filter(t => t.id !== id));
+    });
+    this.ui.taskUpdated$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(task => {
+      this.tasks.update(list => {
+        const inboxId = this.projects().find(p => p.isInboxProject)?.id;
+        const inList = list.some(t => t.id === task.id);
+        const belongs = task.projectId === inboxId;
+        if (inList && belongs) return list.map(t => t.id === task.id ? task : t);
+        if (inList && !belongs) return list.filter(t => t.id !== task.id);
+        if (!inList && belongs) return [...list, task];
+        return list;
+      });
+    });
   }
 
   private refresh(): void {

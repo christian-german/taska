@@ -1,5 +1,5 @@
-import { Component, OnInit, computed, inject, signal } from '@angular/core';
-import { toSignal } from '@angular/core/rxjs-interop';
+import { Component, DestroyRef, OnInit, computed, inject, signal } from '@angular/core';
+import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { Project, Task, daysDiff, fmtDateShort, sameDay, startOfDay } from '../../core/models';
 import { TaskService } from '../../core/services/task.service';
 import { ProjectService } from '../../core/services/project.service';
@@ -38,6 +38,7 @@ export class WeekComponent implements OnInit {
   private taskService = inject(TaskService);
   private projectService = inject(ProjectService);
   private ui = inject(UiStateService);
+  private destroyRef = inject(DestroyRef);
 
   tasks = signal<Task[]>([]);
   projects = toSignal(this.projectService.projects$, { initialValue: [] as Project[] });
@@ -75,6 +76,21 @@ export class WeekComponent implements OnInit {
 
   ngOnInit(): void {
     this.refresh();
+    this.ui.taskDeleted$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(id => {
+      this.tasks.update(list => list.filter(t => t.id !== id));
+    });
+    this.ui.taskUpdated$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(task => {
+      this.tasks.update(list => {
+        const today = new Date();
+        const diff = task.dueDate ? daysDiff(today, new Date(task.dueDate + 'T00:00:00')) : -1;
+        const qualifies = !task.isCompleted && diff >= 0 && diff < 7;
+        const inList = list.some(t => t.id === task.id);
+        if (inList && qualifies) return list.map(t => t.id === task.id ? task : t);
+        if (inList && !qualifies) return list.filter(t => t.id !== task.id);
+        if (!inList && qualifies) return [...list, task];
+        return list;
+      });
+    });
   }
 
   private refresh(): void {

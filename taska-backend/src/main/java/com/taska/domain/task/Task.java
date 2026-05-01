@@ -1,6 +1,9 @@
 package com.taska.domain.task;
 
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
+
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -10,6 +13,8 @@ import java.util.UUID;
 
 @Entity
 @Table(name = "tasks")
+@Getter
+@Setter
 public class Task {
 
     @Id
@@ -82,41 +87,4 @@ public class Task {
     protected void onUpdate() {
         updatedAt = Instant.now();
     }
-
-    public UUID getId() { return id; }
-    public void setId(UUID id) { this.id = id; }
-    public String getContent() { return content; }
-    public void setContent(String content) { this.content = content; }
-    public String getDescription() { return description; }
-    public void setDescription(String description) { this.description = description; }
-    public UUID getProjectId() { return projectId; }
-    public void setProjectId(UUID projectId) { this.projectId = projectId; }
-    public UUID getSectionId() { return sectionId; }
-    public void setSectionId(UUID sectionId) { this.sectionId = sectionId; }
-    public UUID getParentId() { return parentId; }
-    public void setParentId(UUID parentId) { this.parentId = parentId; }
-    public Integer getPosition() { return position; }
-    public void setPosition(Integer position) { this.position = position; }
-    public Integer getPriority() { return priority; }
-    public void setPriority(Integer priority) { this.priority = priority; }
-    public List<String> getLabels() { return labels; }
-    public void setLabels(List<String> labels) { this.labels = labels; }
-    public Boolean getIsCompleted() { return isCompleted; }
-    public void setIsCompleted(Boolean isCompleted) { this.isCompleted = isCompleted; }
-    public LocalDate getDueDate() { return dueDate; }
-    public void setDueDate(LocalDate dueDate) { this.dueDate = dueDate; }
-    public LocalDateTime getDueDateTime() { return dueDateTime; }
-    public void setDueDateTime(LocalDateTime dueDateTime) { this.dueDateTime = dueDateTime; }
-    public Boolean getIsRecurring() { return isRecurring; }
-    public void setIsRecurring(Boolean isRecurring) { this.isRecurring = isRecurring; }
-    public Integer getEstimateMinutes() { return estimateMinutes; }
-    public void setEstimateMinutes(Integer estimateMinutes) { this.estimateMinutes = estimateMinutes; }
-    public String getMentionContext() { return mentionContext; }
-    public void setMentionContext(String mentionContext) { this.mentionContext = mentionContext; }
-    public String getRecurrenceRule() { return recurrenceRule; }
-    public void setRecurrenceRule(String recurrenceRule) { this.recurrenceRule = recurrenceRule; }
-    public Instant getCreatedAt() { return createdAt; }
-    public Instant getUpdatedAt() { return updatedAt; }
-    public Instant getCompletedAt() { return completedAt; }
-    public void setCompletedAt(Instant completedAt) { this.completedAt = completedAt; }
 }

@@ -1,10 +1,15 @@
 package com.taska.domain.filter;
 
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
+
 import java.util.UUID;
 
 @Entity
 @Table(name = "filters")
+@Getter
+@Setter
 public class Filter {
 
     @Id
@@ -28,19 +33,4 @@ public class Filter {
 
     @Column(name = "has_date")
     private Boolean hasDate;
-
-    public UUID getId() { return id; }
-    public void setId(UUID id) { this.id = id; }
-    public String getName() { return name; }
-    public void setName(String name) { this.name = name; }
-    public String getColor() { return color; }
-    public void setColor(String color) { this.color = color; }
-    public Integer getPosition() { return position; }
-    public void setPosition(Integer position) { this.position = position; }
-    public Boolean getIsFavorite() { return isFavorite; }
-    public void setIsFavorite(Boolean isFavorite) { this.isFavorite = isFavorite; }
-    public UUID getProjectId() { return projectId; }
-    public void setProjectId(UUID projectId) { this.projectId = projectId; }
-    public Boolean getHasDate() { return hasDate; }
-    public void setHasDate(Boolean hasDate) { this.hasDate = hasDate; }
 }

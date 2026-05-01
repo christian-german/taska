@@ -1,11 +1,16 @@
 package com.taska.domain.comment;
 
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
+
 import java.time.Instant;
 import java.util.UUID;
 
 @Entity
 @Table(name = "comments")
+@Getter
+@Setter
 public class Comment {
 
     @Id
@@ -28,14 +33,4 @@ public class Comment {
     protected void onCreate() {
         createdAt = Instant.now();
     }
-
-    public UUID getId() { return id; }
-    public void setId(UUID id) { this.id = id; }
-    public UUID getTaskId() { return taskId; }
-    public void setTaskId(UUID taskId) { this.taskId = taskId; }
-    public UUID getProjectId() { return projectId; }
-    public void setProjectId(UUID projectId) { this.projectId = projectId; }
-    public String getContent() { return content; }
-    public void setContent(String content) { this.content = content; }
-    public Instant getCreatedAt() { return createdAt; }
 }

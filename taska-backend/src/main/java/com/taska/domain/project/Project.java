@@ -1,11 +1,16 @@
 package com.taska.domain.project;
 
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
+
 import java.time.Instant;
 import java.util.UUID;
 
 @Entity
 @Table(name = "projects")
+@Getter
+@Setter
 public class Project {
 
     @Id
@@ -50,23 +55,4 @@ public class Project {
     protected void onUpdate() {
         updatedAt = Instant.now();
     }
-
-    public UUID getId() { return id; }
-    public void setId(UUID id) { this.id = id; }
-    public String getName() { return name; }
-    public void setName(String name) { this.name = name; }
-    public String getColor() { return color; }
-    public void setColor(String color) { this.color = color; }
-    public UUID getParentId() { return parentId; }
-    public void setParentId(UUID parentId) { this.parentId = parentId; }
-    public Integer getPosition() { return position; }
-    public void setPosition(Integer position) { this.position = position; }
-    public Boolean getIsFavorite() { return isFavorite; }
-    public void setIsFavorite(Boolean isFavorite) { this.isFavorite = isFavorite; }
-    public ViewStyle getViewStyle() { return viewStyle; }
-    public void setViewStyle(ViewStyle viewStyle) { this.viewStyle = viewStyle; }
-    public Boolean getIsInboxProject() { return isInboxProject; }
-    public void setIsInboxProject(Boolean isInboxProject) { this.isInboxProject = isInboxProject; }
-    public Instant getCreatedAt() { return createdAt; }
-    public Instant getUpdatedAt() { return updatedAt; }
 }

@@ -1,10 +1,15 @@
 package com.taska.domain.label;
 
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
+
 import java.util.UUID;
 
 @Entity
 @Table(name = "labels")
+@Getter
+@Setter
 public class Label {
 
     @Id
@@ -22,15 +27,4 @@ public class Label {
 
     @Column(name = "is_favorite", nullable = false)
     private Boolean isFavorite = false;
-
-    public UUID getId() { return id; }
-    public void setId(UUID id) { this.id = id; }
-    public String getName() { return name; }
-    public void setName(String name) { this.name = name; }
-    public String getColor() { return color; }
-    public void setColor(String color) { this.color = color; }
-    public Integer getPosition() { return position; }
-    public void setPosition(Integer position) { this.position = position; }
-    public Boolean getIsFavorite() { return isFavorite; }
-    public void setIsFavorite(Boolean isFavorite) { this.isFavorite = isFavorite; }
 }

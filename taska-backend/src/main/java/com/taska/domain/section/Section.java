@@ -1,11 +1,16 @@
 package com.taska.domain.section;
 
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
+
 import java.time.Instant;
 import java.util.UUID;
 
 @Entity
 @Table(name = "sections")
+@Getter
+@Setter
 public class Section {
 
     @Id
@@ -28,14 +33,4 @@ public class Section {
     protected void onCreate() {
         createdAt = Instant.now();
     }
-
-    public UUID getId() { return id; }
-    public void setId(UUID id) { this.id = id; }
-    public String getName() { return name; }
-    public void setName(String name) { this.name = name; }
-    public UUID getProjectId() { return projectId; }
-    public void setProjectId(UUID projectId) { this.projectId = projectId; }
-    public Integer getPosition() { return position; }
-    public void setPosition(Integer position) { this.position = position; }
-    public Instant getCreatedAt() { return createdAt; }
 }

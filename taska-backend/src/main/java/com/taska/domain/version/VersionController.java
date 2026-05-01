@@ -1,21 +1,24 @@
 package com.taska.domain.version;
 
-import java.util.Map;
-
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.Map;
+
 @RestController
-@RequestMapping("/public")
+@RequestMapping("/version")
 public class VersionController {
 
-    @Value("${app.version:unknown}")
-    private String appVersion;
+    private static final String VERSION;
 
-    @GetMapping("/version")
+    static {
+        String appVersion = System.getenv("APP_VERSION");
+        VERSION = (appVersion != null && !appVersion.isBlank()) ? appVersion : "develop";
+    }
+
+    @GetMapping
     public Map<String, String> version() {
-        return Map.of("version", appVersion);
+        return Map.of("version", VERSION);
     }
 }

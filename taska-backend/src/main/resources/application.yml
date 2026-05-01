@@ -1,6 +1,3 @@
-app:
-  version: '@app.version@'
-
 spring:
   application:
     name: taska-backend

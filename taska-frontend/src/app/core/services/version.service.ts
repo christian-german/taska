@@ -12,7 +12,7 @@ export class VersionService {
   private configService = inject(ConfigService);
 
   private version$ = this.http
-    .get<{ version: string }>(`${this.configService.apiUrl}/public/version`)
+    .get<{ version: string }>(`${this.configService.apiUrl}/version`)
     .pipe(
       map(response => response.version),
       catchError(() => of('unknown')),

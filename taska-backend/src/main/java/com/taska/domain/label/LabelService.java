@@ -1,6 +1,7 @@
 package com.taska.domain.label;
 
 import com.taska.exception.ResourceNotFoundException;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -9,25 +10,22 @@ import java.util.UUID;
 
 @Service
 @Transactional
+@RequiredArgsConstructor
 public class LabelService {
 
     private final LabelRepository labelRepo;
 
-    public LabelService(LabelRepository labelRepo) {
-        this.labelRepo = labelRepo;
-    }
-
     @Transactional(readOnly = true)
-    public List<LabelResponse> findAll() {
+    public List<LabelDto> findAll() {
         return labelRepo.findAllByOrderByPositionAsc().stream().map(this::toResponse).toList();
     }
 
     @Transactional(readOnly = true)
-    public LabelResponse findById(UUID id) {
+    public LabelDto findById(UUID id) {
         return toResponse(getOrThrow(id));
     }
 
-    public LabelResponse create(LabelRequest req) {
+    public LabelDto create(LabelRequest req) {
         Label l = new Label();
         l.setName(req.name());
         l.setColor(req.color() != null ? req.color() : "charcoal");
@@ -36,7 +34,7 @@ public class LabelService {
         return toResponse(labelRepo.save(l));
     }
 
-    public LabelResponse update(UUID id, LabelRequest req) {
+    public LabelDto update(UUID id, LabelRequest req) {
         Label l = getOrThrow(id);
         if (req.name() != null) l.setName(req.name());
         if (req.color() != null) l.setColor(req.color());
@@ -54,7 +52,7 @@ public class LabelService {
                 .orElseThrow(() -> new ResourceNotFoundException("Label not found: " + id));
     }
 
-    public LabelResponse toResponse(Label l) {
-        return new LabelResponse(l.getId(), l.getName(), l.getColor(), l.getPosition(), l.getIsFavorite());
+    public LabelDto toResponse(Label l) {
+        return new LabelDto(l.getId(), l.getName(), l.getColor(), l.getPosition(), l.getIsFavorite());
     }
 }

@@ -4,6 +4,7 @@ import com.taska.domain.project.Project;
 import com.taska.domain.project.ProjectRepository;
 import com.taska.domain.task.Task;
 import com.taska.domain.task.TaskRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,17 +19,13 @@ import java.util.Map;
 
 @Service
 @Transactional(readOnly = true)
+@RequiredArgsConstructor
 public class StatsService {
 
     private final TaskRepository taskRepo;
     private final ProjectRepository projectRepo;
 
-    public StatsService(TaskRepository taskRepo, ProjectRepository projectRepo) {
-        this.taskRepo = taskRepo;
-        this.projectRepo = projectRepo;
-    }
-
-    public StatsResponse compute() {
+    public StatsDto compute() {
         ZoneId zone = ZoneId.systemDefault();
         LocalDate today = LocalDate.now(zone);
 
@@ -46,11 +43,11 @@ public class StatsService {
             doneByDay.merge(d, 1L, Long::sum);
         }
 
-        List<StatsResponse.DailyCount> last14 = new ArrayList<>();
+        List<StatsDto.DailyCount> last14 = new ArrayList<>();
         DateTimeFormatter iso = DateTimeFormatter.ISO_LOCAL_DATE;
         for (int i = 13; i >= 0; i--) {
             LocalDate d = today.minusDays(i);
-            last14.add(new StatsResponse.DailyCount(d.format(iso), doneByDay.getOrDefault(d, 0L)));
+            last14.add(new StatsDto.DailyCount(d.format(iso), doneByDay.getOrDefault(d, 0L)));
         }
 
         long completedThisWeek = 0;
@@ -87,14 +84,14 @@ public class StatsService {
             if (Boolean.TRUE.equals(t.getIsCompleted())) arr[1]++;
         }
 
-        List<StatsResponse.ProjectStat> projectStats = new ArrayList<>();
+        List<StatsDto.ProjectStat> projectStats = new ArrayList<>();
         for (Project p : projectRepo.findAll()) {
             long[] arr = byProject.get(p.getId());
             if (arr == null || arr[0] == 0) continue;
-            projectStats.add(new StatsResponse.ProjectStat(p.getId(), p.getName(), p.getColor(), arr[0], arr[1]));
+            projectStats.add(new StatsDto.ProjectStat(p.getId(), p.getName(), p.getColor(), arr[0], arr[1]));
         }
 
-        return new StatsResponse(completed, active, overdue, streak, completedThisWeek,
+        return new StatsDto(completed, active, overdue, streak, completedThisWeek,
                 remainingMinutes, last14, projectStats);
     }
 }

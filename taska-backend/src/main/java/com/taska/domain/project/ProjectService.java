@@ -1,12 +1,13 @@
 package com.taska.domain.project;
 
 import com.taska.domain.section.SectionRepository;
-import com.taska.domain.section.SectionResponse;
+import com.taska.domain.section.SectionDto;
 import com.taska.domain.section.SectionService;
 import com.taska.domain.task.TaskRepository;
-import com.taska.domain.task.TaskResponse;
+import com.taska.domain.task.TaskDto;
 import com.taska.domain.task.TaskService;
 import com.taska.exception.ResourceNotFoundException;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -15,6 +16,7 @@ import java.util.UUID;
 
 @Service
 @Transactional
+@RequiredArgsConstructor
 public class ProjectService {
 
     private final ProjectRepository projectRepo;
@@ -23,26 +25,17 @@ public class ProjectService {
     private final SectionService sectionService;
     private final TaskService taskService;
 
-    public ProjectService(ProjectRepository projectRepo, SectionRepository sectionRepo,
-                          TaskRepository taskRepo, SectionService sectionService, TaskService taskService) {
-        this.projectRepo = projectRepo;
-        this.sectionRepo = sectionRepo;
-        this.taskRepo = taskRepo;
-        this.sectionService = sectionService;
-        this.taskService = taskService;
-    }
-
     @Transactional(readOnly = true)
-    public List<ProjectResponse> findAll() {
+    public List<ProjectDto> findAll() {
         return projectRepo.findAllByOrderByPositionAsc().stream().map(this::toResponse).toList();
     }
 
     @Transactional(readOnly = true)
-    public ProjectResponse findById(UUID id) {
+    public ProjectDto findById(UUID id) {
         return toResponse(getOrThrow(id));
     }
 
-    public ProjectResponse create(ProjectRequest req) {
+    public ProjectDto create(ProjectRequest req) {
         Project p = new Project();
         p.setName(req.name());
         p.setColor(req.color() != null ? req.color() : "charcoal");
@@ -53,7 +46,7 @@ public class ProjectService {
         return toResponse(projectRepo.save(p));
     }
 
-    public ProjectResponse update(UUID id, ProjectRequest req) {
+    public ProjectDto update(UUID id, ProjectRequest req) {
         Project p = getOrThrow(id);
         if (req.name() != null) p.setName(req.name());
         if (req.color() != null) p.setColor(req.color());
@@ -86,14 +79,14 @@ public class ProjectService {
     }
 
     @Transactional(readOnly = true)
-    public List<TaskResponse> getProjectTasks(UUID id) {
+    public List<TaskDto> getProjectTasks(UUID id) {
         getOrThrow(id);
         return taskRepo.findByProjectIdAndIsCompletedFalseOrderByPositionAsc(id)
                 .stream().map(taskService::toResponse).toList();
     }
 
     @Transactional(readOnly = true)
-    public List<SectionResponse> getProjectSections(UUID id) {
+    public List<SectionDto> getProjectSections(UUID id) {
         getOrThrow(id);
         return sectionRepo.findByProjectIdOrderByPositionAsc(id)
                 .stream().map(sectionService::toResponse).toList();
@@ -104,8 +97,8 @@ public class ProjectService {
                 .orElseThrow(() -> new ResourceNotFoundException("Project not found: " + id));
     }
 
-    public ProjectResponse toResponse(Project p) {
-        return new ProjectResponse(p.getId(), p.getName(), p.getColor(), p.getParentId(),
+    public ProjectDto toResponse(Project p) {
+        return new ProjectDto(p.getId(), p.getName(), p.getColor(), p.getParentId(),
                 p.getPosition(), p.getIsFavorite(), p.getViewStyle(), p.getIsInboxProject(),
                 p.getCreatedAt(), p.getUpdatedAt());
     }

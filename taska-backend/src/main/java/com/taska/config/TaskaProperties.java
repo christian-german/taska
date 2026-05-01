@@ -17,7 +17,7 @@ public class TaskaProperties {
     @Setter
     public static class JwtIssuerValidator {
         /**
-         * Indique si la validation de l'émetteur (issuer) du JWT doit être désactivée.
+         * Indicates whether JWT issuer validation should be disabled.
          */
         private boolean disable = false;
     }

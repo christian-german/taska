@@ -1,9 +1,10 @@
 package com.taska.domain.filter;
 
 import com.taska.domain.task.TaskRepository;
-import com.taska.domain.task.TaskResponse;
+import com.taska.domain.task.TaskDto;
 import com.taska.domain.task.TaskService;
 import com.taska.exception.ResourceNotFoundException;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -12,29 +13,24 @@ import java.util.UUID;
 
 @Service
 @Transactional
+@RequiredArgsConstructor
 public class FilterService {
 
     private final FilterRepository filterRepo;
     private final TaskRepository taskRepo;
     private final TaskService taskService;
 
-    public FilterService(FilterRepository filterRepo, TaskRepository taskRepo, TaskService taskService) {
-        this.filterRepo = filterRepo;
-        this.taskRepo = taskRepo;
-        this.taskService = taskService;
-    }
-
     @Transactional(readOnly = true)
-    public List<FilterResponse> findAll() {
+    public List<FilterDto> findAll() {
         return filterRepo.findAllByOrderByPositionAsc().stream().map(this::toResponse).toList();
     }
 
     @Transactional(readOnly = true)
-    public FilterResponse findById(UUID id) {
+    public FilterDto findById(UUID id) {
         return toResponse(getOrThrow(id));
     }
 
-    public FilterResponse create(FilterRequest req) {
+    public FilterDto create(FilterRequest req) {
         Filter f = new Filter();
         f.setName(req.name());
         f.setColor(req.color() != null ? req.color() : "charcoal");
@@ -45,7 +41,7 @@ public class FilterService {
         return toResponse(filterRepo.save(f));
     }
 
-    public FilterResponse update(UUID id, FilterRequest req) {
+    public FilterDto update(UUID id, FilterRequest req) {
         Filter f = getOrThrow(id);
         if (req.name() != null) f.setName(req.name());
         if (req.color() != null) f.setColor(req.color());
@@ -62,7 +58,7 @@ public class FilterService {
     }
 
     @Transactional(readOnly = true)
-    public List<TaskResponse> getFilterTasks(UUID filterId) {
+    public List<TaskDto> getFilterTasks(UUID filterId) {
         Filter f = getOrThrow(filterId);
         UUID projectId = f.getProjectId();
         Boolean hasDate = f.getHasDate();
@@ -93,8 +89,8 @@ public class FilterService {
                 .orElseThrow(() -> new ResourceNotFoundException("Filter not found: " + id));
     }
 
-    public FilterResponse toResponse(Filter f) {
-        return new FilterResponse(
+    public FilterDto toResponse(Filter f) {
+        return new FilterDto(
                 f.getId(), f.getName(), f.getColor(),
                 f.getPosition(), f.getIsFavorite(),
                 f.getProjectId(), f.getHasDate()

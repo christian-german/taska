@@ -1,6 +1,7 @@
 package com.taska.domain.task;
 
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
@@ -9,16 +10,13 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/tasks")
+@RequiredArgsConstructor
 public class TaskController {
 
     private final TaskService taskService;
 
-    public TaskController(TaskService taskService) {
-        this.taskService = taskService;
-    }
-
     @GetMapping
-    public List<TaskResponse> getAll(
+    public List<TaskDto> getAll(
             @RequestParam(required = false) UUID project_id,
             @RequestParam(required = false) UUID section_id,
             @RequestParam(required = false) String label,
@@ -29,17 +27,17 @@ public class TaskController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public TaskResponse create(@Valid @RequestBody TaskRequest req) {
+    public TaskDto create(@Valid @RequestBody TaskRequest req) {
         return taskService.create(req);
     }
 
     @GetMapping("/{id}")
-    public TaskResponse getById(@PathVariable UUID id) {
+    public TaskDto getById(@PathVariable UUID id) {
         return taskService.findById(id);
     }
 
     @PutMapping("/{id}")
-    public TaskResponse update(@PathVariable UUID id, @RequestBody TaskRequest req) {
+    public TaskDto update(@PathVariable UUID id, @RequestBody TaskRequest req) {
         return taskService.update(id, req);
     }
 
@@ -50,17 +48,17 @@ public class TaskController {
     }
 
     @PostMapping("/{id}/close")
-    public TaskResponse close(@PathVariable UUID id) {
+    public TaskDto close(@PathVariable UUID id) {
         return taskService.close(id);
     }
 
     @PostMapping("/{id}/reopen")
-    public TaskResponse reopen(@PathVariable UUID id) {
+    public TaskDto reopen(@PathVariable UUID id) {
         return taskService.reopen(id);
     }
 
     @GetMapping("/{id}/subtasks")
-    public List<TaskResponse> getSubtasks(@PathVariable UUID id) {
+    public List<TaskDto> getSubtasks(@PathVariable UUID id) {
         return taskService.getSubtasks(id);
     }
 }

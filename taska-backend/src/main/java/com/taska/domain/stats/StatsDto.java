@@ -3,7 +3,7 @@ package com.taska.domain.stats;
 import java.util.List;
 import java.util.UUID;
 
-public record StatsResponse(
+public record StatsDto(
         long totalCompleted,
         long totalActive,
         long overdue,

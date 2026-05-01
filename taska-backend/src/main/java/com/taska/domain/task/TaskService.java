@@ -2,6 +2,7 @@ package com.taska.domain.task;
 
 import com.taska.domain.project.ProjectRepository;
 import com.taska.exception.ResourceNotFoundException;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -13,18 +14,14 @@ import java.util.UUID;
 
 @Service
 @Transactional
+@RequiredArgsConstructor
 public class TaskService {
 
     private final TaskRepository taskRepo;
     private final ProjectRepository projectRepo;
 
-    public TaskService(TaskRepository taskRepo, ProjectRepository projectRepo) {
-        this.taskRepo = taskRepo;
-        this.projectRepo = projectRepo;
-    }
-
     @Transactional(readOnly = true)
-    public List<TaskResponse> findAll(UUID projectId, UUID sectionId, String label, String filter, boolean showCompleted) {
+    public List<TaskDto> findAll(UUID projectId, UUID sectionId, String label, String filter, boolean showCompleted) {
         if (filter != null) {
             LocalDate today = LocalDate.now();
             return switch (filter) {
@@ -66,11 +63,11 @@ public class TaskService {
     }
 
     @Transactional(readOnly = true)
-    public TaskResponse findById(UUID id) {
+    public TaskDto findById(UUID id) {
         return toResponse(getOrThrow(id));
     }
 
-    public TaskResponse create(TaskRequest req) {
+    public TaskDto create(TaskRequest req) {
         Task t = new Task();
         t.setContent(req.content());
         t.setDescription(req.description());
@@ -97,7 +94,7 @@ public class TaskService {
         return toResponse(taskRepo.save(t));
     }
 
-    public TaskResponse update(UUID id, TaskRequest req) {
+    public TaskDto update(UUID id, TaskRequest req) {
         Task t = getOrThrow(id);
         if (req.content() != null) t.setContent(req.content());
         if (req.description() != null) t.setDescription(req.description());
@@ -120,14 +117,14 @@ public class TaskService {
         taskRepo.delete(getOrThrow(id));
     }
 
-    public TaskResponse close(UUID id) {
+    public TaskDto close(UUID id) {
         Task t = getOrThrow(id);
         t.setIsCompleted(true);
         t.setCompletedAt(Instant.now());
         return toResponse(taskRepo.save(t));
     }
 
-    public TaskResponse reopen(UUID id) {
+    public TaskDto reopen(UUID id) {
         Task t = getOrThrow(id);
         t.setIsCompleted(false);
         t.setCompletedAt(null);
@@ -135,7 +132,7 @@ public class TaskService {
     }
 
     @Transactional(readOnly = true)
-    public List<TaskResponse> getSubtasks(UUID parentId) {
+    public List<TaskDto> getSubtasks(UUID parentId) {
         return taskRepo.findByParentIdOrderByPositionAsc(parentId).stream().map(this::toResponse).toList();
     }
 
@@ -144,8 +141,8 @@ public class TaskService {
                 .orElseThrow(() -> new ResourceNotFoundException("Task not found: " + id));
     }
 
-    public TaskResponse toResponse(Task t) {
-        return new TaskResponse(t.getId(), t.getContent(), t.getDescription(), t.getProjectId(),
+    public TaskDto toResponse(Task t) {
+        return new TaskDto(t.getId(), t.getContent(), t.getDescription(), t.getProjectId(),
                 t.getSectionId(), t.getParentId(), t.getPosition(), t.getPriority(),
                 t.getLabels(), t.getIsCompleted(), t.getDueDate(), t.getDueDateTime(),
                 t.getIsRecurring(), t.getEstimateMinutes(), t.getMentionContext(),

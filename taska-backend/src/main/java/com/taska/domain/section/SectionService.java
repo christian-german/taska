@@ -1,6 +1,7 @@
 package com.taska.domain.section;
 
 import com.taska.exception.ResourceNotFoundException;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -9,16 +10,13 @@ import java.util.UUID;
 
 @Service
 @Transactional
+@RequiredArgsConstructor
 public class SectionService {
 
     private final SectionRepository sectionRepo;
 
-    public SectionService(SectionRepository sectionRepo) {
-        this.sectionRepo = sectionRepo;
-    }
-
     @Transactional(readOnly = true)
-    public List<SectionResponse> findAll(UUID projectId) {
+    public List<SectionDto> findAll(UUID projectId) {
         if (projectId != null) {
             return sectionRepo.findByProjectIdOrderByPositionAsc(projectId).stream().map(this::toResponse).toList();
         }
@@ -26,11 +24,11 @@ public class SectionService {
     }
 
     @Transactional(readOnly = true)
-    public SectionResponse findById(UUID id) {
+    public SectionDto findById(UUID id) {
         return toResponse(getOrThrow(id));
     }
 
-    public SectionResponse create(SectionRequest req) {
+    public SectionDto create(SectionRequest req) {
         Section s = new Section();
         s.setName(req.name());
         s.setProjectId(req.projectId());
@@ -38,7 +36,7 @@ public class SectionService {
         return toResponse(sectionRepo.save(s));
     }
 
-    public SectionResponse update(UUID id, SectionRequest req) {
+    public SectionDto update(UUID id, SectionRequest req) {
         Section s = getOrThrow(id);
         if (req.name() != null) s.setName(req.name());
         if (req.order() != null) s.setPosition(req.order());
@@ -54,7 +52,7 @@ public class SectionService {
                 .orElseThrow(() -> new ResourceNotFoundException("Section not found: " + id));
     }
 
-    public SectionResponse toResponse(Section s) {
-        return new SectionResponse(s.getId(), s.getName(), s.getProjectId(), s.getPosition(), s.getCreatedAt());
+    public SectionDto toResponse(Section s) {
+        return new SectionDto(s.getId(), s.getName(), s.getProjectId(), s.getPosition(), s.getCreatedAt());
     }
 }

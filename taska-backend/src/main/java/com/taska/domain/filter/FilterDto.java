@@ -2,7 +2,7 @@ package com.taska.domain.filter;
 
 import java.util.UUID;
 
-public record FilterResponse(
+public record FilterDto(
         UUID id,
         String name,
         String color,

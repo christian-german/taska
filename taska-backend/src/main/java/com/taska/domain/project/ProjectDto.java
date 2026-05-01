@@ -3,7 +3,7 @@ package com.taska.domain.project;
 import java.time.Instant;
 import java.util.UUID;
 
-public record ProjectResponse(
+public record ProjectDto(
         UUID id,
         String name,
         String color,

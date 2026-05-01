@@ -3,7 +3,7 @@ package com.taska.domain.comment;
 import java.time.Instant;
 import java.util.UUID;
 
-public record CommentResponse(
+public record CommentDto(
         UUID id,
         UUID taskId,
         UUID projectId,

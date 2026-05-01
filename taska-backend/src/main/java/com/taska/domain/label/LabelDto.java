@@ -2,7 +2,7 @@ package com.taska.domain.label;
 
 import java.util.UUID;
 
-public record LabelResponse(
+public record LabelDto(
         UUID id,
         String name,
         String color,

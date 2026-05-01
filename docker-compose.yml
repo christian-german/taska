@@ -1,44 +1,111 @@
 services:
-  postgres:
-    image: postgres:17
-    container_name: taska-db
+
+  taska-db:
+    image: postgres:18.1-alpine
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -d $${POSTGRES_DB} -U $${POSTGRES_USER}" ]
+      start_period: 1s
+      interval: 5s
+      retries: 50
+      timeout: 5s
     environment:
       POSTGRES_DB: taska
       POSTGRES_USER: taska
       POSTGRES_PASSWORD: taska
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - pgdata:/var/lib/postgresql/data
     ports:
       - "5432:5432"
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U taska"]
-      interval: 1s
-      timeout: 5s
-      retries: 20
 
-  backend:
-    build: ./taska-backend
+  taska-backend:
+#    build: ./taska-backend
+    image : ghcr.io/christian-german/taska/taska-backend:0.0.16
     container_name: taska-backend
     ports:
       - "8080:8080"
-    depends_on:
-      postgres:
-        condition: service_healthy
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/taska
+      SPRING_DATASOURCE_URL: jdbc:postgresql://taska-db:5432/taska
       SPRING_DATASOURCE_USERNAME: taska
       SPRING_DATASOURCE_PASSWORD: taska
-      SPRING_PROFILES_ACTIVE: prod
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER-URI: http://authentik-server:9000/application/o/taska/
+      TASKA_JWTISSUERVALIDATOR_DISABLE: true
+    depends_on:
+      taska-db:
+        condition: service_healthy
+      authentik-server:
+        condition: service_healthy
 
-  frontend:
-    build: ./taska-frontend
+  taska-frontend:
+#    build: ./taska-frontend
+    image : ghcr.io/christian-german/taska/taska-frontend:0.0.16
     container_name: taska-frontend
-    environment:
-      API_URL: http://localhost:8080
     ports:
       - "80:80"
+    environment:
+      API_URL: http://localhost:8080
+      OIDC_AUTHORITY: http://localhost:8000/application/o/taska
+      OIDC_CLIENT_ID: taska-client
+      OIDC_REDIRECT_URI: http://localhost/callback
+      OIDC_POST_LOGOUT_REDIRECT_URI: http://localhost
+      OIDC_SCOPE: openid profile email
     depends_on:
-      - backend
+      authentik-server:
+        condition: service_healthy
+
+  authentik-server:
+    image: ghcr.io/goauthentik/server:2026.2.1
+    command: server
+    environment:
+      AUTHENTIK_POSTGRESQL__HOST: db-authentik
+      AUTHENTIK_POSTGRESQL__NAME: authentik
+      AUTHENTIK_POSTGRESQL__USER: authentik
+      AUTHENTIK_POSTGRESQL__PASSWORD: authentik
+      AUTHENTIK_SECRET_KEY: taska-dev-secret-key
+      AUTHENTIK_BOOTSTRAP_TOKEN: taska-token
+      AUTHENTIK_ERROR_REPORTING__ENABLED: "false"
+    volumes:
+      - ./taska-backend/authentik/blueprints/taska.yaml:/blueprints/custom/taska.yaml
+    ports:
+      - "8000:9000"
+      - "8443:9443"
+    depends_on:
+      db-authentik:
+        condition: service_healthy
+
+  authentik-worker:
+    image: ghcr.io/goauthentik/server:2026.2.1
+    command: worker
+    environment:
+      AUTHENTIK_POSTGRESQL__HOST: db-authentik
+      AUTHENTIK_POSTGRESQL__NAME: authentik
+      AUTHENTIK_POSTGRESQL__USER: authentik
+      AUTHENTIK_POSTGRESQL__PASSWORD: authentik
+      AUTHENTIK_SECRET_KEY: taska-dev-secret-key
+    volumes:
+      - ./taska-backend/authentik/blueprints/taska.yaml:/blueprints/custom/taska.yaml
+    depends_on:
+      db-authentik:
+        condition: service_healthy
+
+  db-authentik:
+    image: postgres:18.1-alpine
+    labels:
+      org.springframework.boot.ignore: true
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -d $${POSTGRES_DB} -U $${POSTGRES_USER}"]
+      start_period: 1s
+      interval: 5s
+      retries: 50
+      timeout: 5s
+    environment:
+      POSTGRES_DB: authentik
+      POSTGRES_USER: authentik
+      POSTGRES_PASSWORD: authentik
+    volumes:
+      - pgdata-authentik:/var/lib/postgresql/data
+    ports:
+      - "5433:5432"
 
 volumes:
-  postgres_data:
+  pgdata:
+  pgdata-authentik:

@@ -1,4 +1,4 @@
-import { Component, OnInit, computed, effect, inject, input, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, computed, effect, inject, input, signal } from '@angular/core';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { Project, Section, Task, getColor } from '../../core/models';
 import { ProjectService } from '../../core/services/project.service';
@@ -13,6 +13,7 @@ import { IconComponent } from '../../shared/components/icon/icon.component';
 @Component({
   selector: 'app-project-view',
   imports: [TaskListComponent, PageHeaderComponent, EmptyStateComponent, IconComponent],
+  changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @if (project(); as proj) {
       <app-page-header [title]="proj.name" [subtitle]="subtitle()">
@@ -92,6 +93,11 @@ export class ProjectViewComponent implements OnInit {
       if (!id || id === this.lastLoadedId) return;
       this.lastLoadedId = id;
       this.load(id);
+    });
+    this.ui.taskCreated$.pipe(takeUntilDestroyed()).subscribe(task => {
+      if (task.projectId === this.id()) {
+        this.allItems.update(list => [...list, task]);
+      }
     });
     this.ui.taskDeleted$.pipe(takeUntilDestroyed()).subscribe(id => {
       this.allItems.update(list => list.filter(t => t.id !== id));

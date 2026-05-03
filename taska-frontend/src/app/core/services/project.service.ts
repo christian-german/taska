@@ -1,8 +1,7 @@
-import { Injectable, inject } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { BehaviorSubject, Observable, tap } from 'rxjs';
-import { Project, Section, Task } from '../models';
-import { environment } from '../../../environments/environment';
+import {inject, Injectable} from '@angular/core';
+import {HttpClient} from '@angular/common/http';
+import {BehaviorSubject, Observable, tap} from 'rxjs';
+import {Project, Section, Task} from '../models';
 import {ConfigService} from './config.service';
 
 export interface ReorderItem { id: string; order: number; }

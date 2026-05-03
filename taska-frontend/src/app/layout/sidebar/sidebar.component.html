@@ -35,42 +35,84 @@
   <div class="sb-section">
     <div class="h" style="display: flex; align-items: center; justify-content: space-between;">
       <span>Projets</span>
-      <button (click)="showAddProject.set(!showAddProject())"
+      <button (click)="openCreateProject()"
               style="background: transparent; border: 0; color: var(--mute); cursor: pointer; padding: 0;">
         <app-icon name="plus" [size]="13" />
       </button>
     </div>
 
-    @for (p of activeProjects(); track p.id) {
-      <a [routerLink]="['/project', p.id]" routerLinkActive="active" class="sb-item">
-        <span style="width: 16px; display: flex; justify-content: center;">
-          <app-project-dot [color]="getColor(p.color)" />
-        </span>
-        <span style="flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ p.name }}</span>
-        @if (counts().byProject[p.id] > 0) {
-          <span class="count">{{ counts().byProject[p.id] }}</span>
-        }
-      </a>
+    @if (activeMenuId()) {
+      <div style="position: fixed; inset: 0; z-index: 19;" (click)="activeMenuId.set(null)"></div>
     }
 
-    @if (showAddProject()) {
-      <div style="padding: 6px 10px;">
-        <input
-          [ngModel]="newProjectName()"
-          (ngModelChange)="newProjectName.set($event)"
-          (keydown.enter)="createProject()"
-          (keydown.escape)="cancelAddProject()"
-          placeholder="Nom du projet"
-          autofocus
-          style="width: 100%; background: var(--bg); border: 1px solid var(--line); padding: 5px 8px;
-                 border-radius: 6px; font-size: 13px; outline: none; color: var(--ink);" />
+    @for (node of projectTree(); track node.project.id) {
+      <div style="position: relative;"
+           (mouseenter)="hoveredProjectId.set(node.project.id)"
+           (mouseleave)="onProjectLeave(node.project.id)">
+        <a [routerLink]="['/project', node.project.id]" routerLinkActive="active" class="sb-item">
+          @if (node.depth > 0) {
+            <span [style.width.px]="node.depth * 14" style="flex-shrink: 0;"></span>
+          }
+          <span style="width: 16px; display: flex; justify-content: center; flex-shrink: 0;">
+            <app-project-dot [color]="getColor(node.project.color)" />
+          </span>
+          <span style="flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+            {{ node.project.name }}
+          </span>
+          @if (hoveredProjectId() === node.project.id || activeMenuId() === node.project.id) {
+            @if (node.hasChildren) {
+              <button (click)="toggleCollapse(node.project.id, $event)"
+                      style="background: transparent; border: 0; cursor: pointer; padding: 0 1px;
+                             color: var(--mute); display: flex; align-items: center; border-radius: 3px;"
+                      [title]="collapsedProjectIds().has(node.project.id) ? 'Déplier' : 'Replier'">
+                <app-icon [name]="collapsedProjectIds().has(node.project.id) ? 'chevron-right' : 'chevron-down'" [size]="12" />
+              </button>
+            }
+            <button (click)="toggleProjectMenu(node.project.id, $event)"
+                    style="background: transparent; border: 0; cursor: pointer; padding: 0 2px;
+                           color: var(--mute); font-size: 14px; line-height: 1; border-radius: 4px;
+                           display: flex; align-items: center;">
+              ···
+            </button>
+          } @else if (counts().byProject[node.project.id] > 0) {
+            <span class="count">{{ counts().byProject[node.project.id] }}</span>
+          }
+        </a>
+        @if (activeMenuId() === node.project.id) {
+          <div style="position: absolute; top: calc(100% + 2px); left: 8px; z-index: 20;
+                      background: var(--bg); border: 1px solid var(--line); border-radius: 8px;
+                      box-shadow: var(--shadow-soft); padding: 4px 0; min-width: 170px;"
+               (click)="$event.stopPropagation()">
+            <button style="width: 100%; display: flex; align-items: center; gap: 8px; padding: 7px 12px;
+                           background: transparent; border: 0; cursor: pointer; font-size: 13px;
+                           color: var(--ink); text-align: left;"
+                    (click)="openEditProject(node.project, $event)">
+              <app-icon name="edit" [size]="13" color="var(--mute)" /> Éditer
+            </button>
+            <button style="width: 100%; display: flex; align-items: center; gap: 8px; padding: 7px 12px;
+                           background: transparent; border: 0; cursor: pointer; font-size: 13px;
+                           color: var(--ink); text-align: left;"
+                    (click)="openImportCsv(node.project.id, $event)">
+              <app-icon name="upload" [size]="13" color="var(--mute)" /> Importer CSV
+            </button>
+            <div style="height: 1px; background: var(--line); margin: 3px 0;"></div>
+            <button style="width: 100%; display: flex; align-items: center; gap: 8px; padding: 7px 12px;
+                           background: transparent; border: 0; cursor: pointer; font-size: 13px;
+                           color: var(--p1); text-align: left;"
+                    (click)="requestDeleteProject(node.project, $event)">
+              <app-icon name="trash" [size]="13" /> Supprimer
+            </button>
+          </div>
+        }
       </div>
     }
+
   </div>
 
-  @if (labels().length > 0) {
-    <div class="sb-section">
-      <div class="h">Tags</div>
+  <div class="sb-section">
+    <div class="h">
+      <a routerLink="/labels" routerLinkActive="active" style="text-decoration: none; color: inherit;">Tags</a>
+    </div>
       <div style="display: flex; flex-wrap: wrap; gap: 4px; padding: 4px 10px;">
         @for (l of labels(); track l.id) {
           <a [routerLink]="['/label', l.name]" style="cursor: pointer; text-decoration: none;">
@@ -78,33 +120,72 @@
           </a>
         }
       </div>
-    </div>
-  }
+  </div>
 
-  @if (filters().length > 0) {
-    <div class="sb-section">
-      <div class="h">Filtres</div>
+  <div class="sb-section">
+    <div class="h">
+      <a routerLink="/filters" routerLinkActive="active" style="text-decoration: none; color: inherit;">Filtres</a>
+    </div>
+    @if (filters().length > 0) {
       @for (f of filters(); track f.id) {
         <a [routerLink]="['/filter', f.id]" routerLinkActive="active" class="sb-item">
           <span class="ic"><app-icon name="filter" [size]="14" /></span>
           <span>{{ f.name }}</span>
         </a>
       }
-    </div>
-  }
+    }
+  </div>
 
   </div><!-- end scrollable -->
 
-  <div style="padding: 12px; border-top: 1px solid var(--line);
+  @if (showProjectModal()) {
+    <app-add-project-modal [project]="editingProject()" (close)="showProjectModal.set(false)" />
+  }
+
+  @if (importProjectId()) {
+    <app-csv-import-modal [projectId]="importProjectId()!" (close)="importProjectId.set(null)" />
+  }
+
+  @if (deletingProject()) {
+    <app-confirm-dialog
+      [title]="'Supprimer « ' + deletingProject()!.name + ' » ?'"
+      message="Le projet et toutes ses tâches seront supprimés définitivement."
+      (confirmed)="confirmDeleteProject()"
+      (cancelled)="deletingProject.set(null)" />
+  }
+
+  <div style="position: relative; padding: 12px; border-top: 1px solid var(--line);
               display: flex; align-items: center; gap: 10px;">
-    <div style="width: 30px; height: 30px; border-radius: 50%; background: var(--orange); color: #fff;
-                display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 13px;">
-      {{ userInitial() }}
-    </div>
-    <div style="flex: 1; min-width: 0;">
-      <div style="font-size: 12.5px; font-weight: 500;">{{ userName() }}</div>
-      <div class="mono" style="font-size: 10.5px; color: var(--mute);">{{ appVersion() }}</div>
-    </div>
+
+    @if (showUserMenu()) {
+      <div style="position: fixed; inset: 0; z-index: 10;" (click)="showUserMenu.set(false)"></div>
+      <div style="position: absolute; bottom: calc(100% + 4px); left: 12px; right: 12px; z-index: 11;
+                  background: var(--card); border: 1px solid var(--line); border-radius: 8px;
+                  padding: 4px 0; box-shadow: 0 4px 16px rgba(0,0,0,.12);">
+        <button (click)="logout()"
+                style="width: 100%; display: flex; align-items: center; gap: 8px; padding: 8px 12px;
+                       background: transparent; border: 0; cursor: pointer; font-size: 13px;
+                       color: var(--red, #e53e3e); text-align: left;">
+          <app-icon name="arrow-left" [size]="14" />
+          <span>Se déconnecter</span>
+        </button>
+      </div>
+    }
+
+    <button (click)="showUserMenu.set(!showUserMenu())"
+            style="display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0;
+                   background: transparent; border: 0; padding: 0; cursor: pointer; text-align: left;">
+      <div style="width: 30px; height: 30px; border-radius: 50%; background: var(--orange); color: #fff;
+                  flex-shrink: 0; display: flex; align-items: center; justify-content: center;
+                  font-weight: 600; font-size: 13px;">
+        {{ userInitial() }}
+      </div>
+      <div style="flex: 1; min-width: 0;">
+        <div style="font-size: 12.5px; font-weight: 500; color: var(--ink);">{{ userName() }}</div>
+        <div class="mono" style="font-size: 10.5px; color: var(--mute);">{{ appVersion() }}</div>
+      </div>
+    </button>
+
     <button class="btn btn-ghost btn-icon" (click)="themeService.toggle()" [title]="'Thème'">
       <app-icon [name]="themeService.isDark() ? 'sun' : 'moon'" [size]="14" />
     </button>

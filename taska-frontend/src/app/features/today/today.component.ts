@@ -1,4 +1,4 @@
-import { Component, DestroyRef, OnInit, computed, inject, signal } from '@angular/core';
+import {Component, DestroyRef, OnInit, computed, inject, signal, ChangeDetectionStrategy} from '@angular/core';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import {
   Project,
@@ -20,6 +20,7 @@ import { IconComponent } from '../../shared/components/icon/icon.component';
 @Component({
   selector: 'app-today',
   imports: [TaskListComponent, PageHeaderComponent, EmptyStateComponent, IconComponent],
+  changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <app-page-header [title]="'Aujourd\\'hui'" [subtitle]="subtitle()">
       <div banner>
@@ -127,6 +128,17 @@ export class TodayComponent implements OnInit {
 
   ngOnInit(): void {
     this.refresh();
+    this.ui.taskCreated$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(task => {
+      const today = new Date();
+      const tomorrow = new Date(today);
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      const qualifies = !task.isCompleted && !!task.dueDate && (
+        isOverdue(task) ||
+        sameDay(new Date(task.dueDate + 'T00:00:00'), today) ||
+        sameDay(new Date(task.dueDate + 'T00:00:00'), tomorrow)
+      );
+      if (qualifies) this.tasks.update(list => [...list, task]);
+    });
     this.ui.taskDeleted$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(id => {
       this.tasks.update(list => list.filter(t => t.id !== id));
     });

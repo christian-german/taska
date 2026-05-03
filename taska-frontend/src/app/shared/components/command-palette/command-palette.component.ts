@@ -1,4 +1,4 @@
-import { Component, ElementRef, OnInit, ViewChild, computed, inject, output, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, ElementRef, OnInit, ViewChild, computed, inject, output, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
@@ -22,6 +22,7 @@ interface PaletteItem {
 @Component({
   selector: 'app-command-palette',
   imports: [FormsModule, IconComponent, ProjectDotComponent],
+  changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="modal-veil" (click)="close.emit()">
       <div class="modal" (click)="$event.stopPropagation()" style="width: min(560px, 92vw);">
@@ -147,7 +148,10 @@ export class CommandPaletteComponent implements OnInit {
   createTask(): void {
     const q = this.query().trim();
     if (!q) return;
-    this.taskService.createTask({ content: q, priority: 1, labels: [] }).subscribe(() => this.close.emit());
+    this.taskService.createTask({ content: q, priority: 1, labels: [] }).subscribe(created => {
+      this.ui.taskCreated$.next(created);
+      this.close.emit();
+    });
   }
 
   onKey(event: KeyboardEvent): void {

@@ -1,4 +1,4 @@
-import { Component, OnChanges, computed, inject, input, output, signal } from '@angular/core';
+import {Component, OnChanges, computed, inject, input, output, signal, ChangeDetectionStrategy} from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { toSignal } from '@angular/core/rxjs-interop';
 import {
@@ -7,13 +7,37 @@ import {
   PRIORITY_LABELS,
   Project,
   Task,
-  fmtDateLong,
   fmtDateShort,
+  fmtEstimate,
+  fmtRel,
   fmtTime,
   getColor,
   getTaskDueDateTime,
+
   taskHasTime,
 } from '../../core/models';
+
+const FR_MONTHS = [
+  'janvier', 'février', 'mars', 'avril', 'mai', 'juin',
+  'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre',
+];
+
+interface CalCell { date: string; day: number; inMonth: boolean; isToday: boolean; }
+function pad(n: number): string { return n.toString().padStart(2, '0'); }
+
+const ESTIMATE_PRESETS = [
+  { minutes: 15, label: '15 min' }, { minutes: 30, label: '30 min' },
+  { minutes: 45, label: '45 min' }, { minutes: 60, label: '1h' },
+  { minutes: 90, label: '1h30' },  { minutes: 120, label: '2h' },
+  { minutes: 180, label: '3h' },   { minutes: 240, label: '4h' },
+];
+
+const RECURRENCE_OPTIONS = [
+  { value: '', label: 'Ne se répète pas' },
+  { value: 'daily', label: 'Quotidien' },
+  { value: 'weekly', label: 'Hebdomadaire' },
+  { value: 'monthly', label: 'Mensuel' },
+] as const;
 import { TaskService } from '../../core/services/task.service';
 import { CommentService } from '../../core/services/comment.service';
 import { ProjectService } from '../../core/services/project.service';
@@ -27,6 +51,8 @@ import {
   TagChipComponent,
 } from '../../shared/components/atoms/atoms.component';
 
+type DetailPicker = 'date' | 'tags' | 'estimate' | 'recurrence' | null;
+
 @Component({
   selector: 'app-task-detail',
   imports: [
@@ -38,6 +64,7 @@ import {
     ProjectDotComponent,
     TagChipComponent,
   ],
+  changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './task-detail.component.html',
 })
 export class TaskDetailComponent implements OnChanges {
@@ -59,8 +86,11 @@ export class TaskDetailComponent implements OnChanges {
   newComment = signal('');
   showProjectMenu = signal(false);
   showPriorityMenu = signal(false);
-  showDatePicker = signal(false);
   showDeleteConfirm = signal(false);
+  activeDetailPicker = signal<DetailPicker>(null);
+  calYear = signal(new Date().getFullYear());
+  calMonth = signal(new Date().getMonth());
+  tagSearch = signal('');
 
   readonly priorities: { value: 1 | 2 | 3 | 4; label: string }[] = [
     { value: 4, label: PRIORITY_LABELS[4] },
@@ -79,29 +109,71 @@ export class TaskDetailComponent implements OnChanges {
   );
   dueDate = computed(() => getTaskDueDateTime(this.task()));
 
-  dueLabel = computed(() => {
-    const d = this.dueDate();
-    if (!d) return '';
-    const t = this.task();
-    const time = taskHasTime(t) ? ' · ' + fmtTime(d) : '';
-    return fmtDateLong(d) + time +
-           (t.estimateMinutes ? ` → +${t.estimateMinutes}min` : '');
-  });
-
   completedSubs = computed(() => this.subtasks().filter(s => s.isCompleted).length);
 
-  priorityLabel = computed(() => {
-    const p = this.task().priority;
-    return `${PRIORITY_LABELS[p] ?? ''}`;
+  priorityLabel = computed(() => PRIORITY_LABELS[this.task().priority] ?? '');
+
+  calMonthLabel = computed(() =>
+    `${FR_MONTHS[this.calMonth()]} ${this.calYear()}`
+  );
+
+  calendarDays = computed<CalCell[]>(() => {
+    const y = this.calYear(), m = this.calMonth();
+    const today = new Date();
+    const firstDow = new Date(y, m, 1).getDay();
+    const offset = (firstDow + 6) % 7;
+    const daysInMonth = new Date(y, m + 1, 0).getDate();
+    const cells: CalCell[] = [];
+    for (let i = 0; i < offset; i++) {
+      const d = new Date(y, m, 1 - offset + i);
+      cells.push({ date: `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`, day: d.getDate(), inMonth: false, isToday: false });
+    }
+    for (let d = 1; d <= daysInMonth; d++) {
+      const dt = new Date(y, m, d);
+      cells.push({ date: `${y}-${pad(m+1)}-${pad(d)}`, day: d, inMonth: true, isToday: dt.toDateString() === today.toDateString() });
+    }
+    while (cells.length < 42) {
+      const d = new Date(y, m + 1, cells.length - offset - daysInMonth + 1);
+      cells.push({ date: `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`, day: d.getDate(), inMonth: false, isToday: false });
+    }
+    return cells;
   });
 
-  dueDateIso = computed(() => this.task().dueDate ?? '');
+  filteredLabels = computed(() => {
+    const q = this.tagSearch().toLowerCase();
+    return q ? this.allLabels().filter(l => l.name.toLowerCase().includes(q)) : this.allLabels();
+  });
+
+  hasExactLabelMatch = computed(() =>
+    this.allLabels().some(l => l.name.toLowerCase() === this.tagSearch().toLowerCase().trim())
+  );
+
+  dateRowLabel = computed(() => {
+    const d = this.dueDate();
+    if (!d) return 'Ajouter une date';
+    return fmtRel(d) + (taskHasTime(this.task()) ? ' · ' + fmtTime(d) : '');
+  });
+
+  estimateRowLabel = computed(() => {
+    const m = this.task().estimateMinutes;
+    return m ? fmtEstimate(m) : 'Estimer';
+  });
+
+  recurrenceRowLabel = computed(() => {
+    const r = this.task().recurrenceRule;
+    if (!r) return 'Ne se répète pas';
+    return RECURRENCE_OPTIONS.find(o => (o.value as string) === r)?.label ?? r;
+  });
 
   ngOnChanges(): void {
     const t = this.task();
     this.editedContent.set(t.content);
     this.editedDescription.set(t.description ?? '');
-    this.showDatePicker.set(false);
+    this.activeDetailPicker.set(null);
+    const now = new Date();
+    const d = this.dueDate();
+    this.calYear.set(d ? d.getFullYear() : now.getFullYear());
+    this.calMonth.set(d ? d.getMonth() : now.getMonth());
     this.loadSubtasks();
     this.loadComments();
   }
@@ -115,10 +187,16 @@ export class TaskDetailComponent implements OnChanges {
   }
 
   getColor = getColor;
+  ESTIMATE_PRESETS = ESTIMATE_PRESETS;
+  RECURRENCE_OPTIONS = RECURRENCE_OPTIONS;
 
   labelColor(name: string): string {
     const l = this.allLabels().find(x => x.name === name);
     return getColor(l?.color ?? 'charcoal');
+  }
+
+  hasLabel(name: string): boolean {
+    return this.task().labels.includes(name);
   }
 
   saveContent(): void {
@@ -143,11 +221,13 @@ export class TaskDetailComponent implements OnChanges {
   closeMenus(): void {
     this.showProjectMenu.set(false);
     this.showPriorityMenu.set(false);
+    this.activeDetailPicker.set(null);
   }
 
   togglePriorityMenu(e: Event): void {
     e.stopPropagation();
     this.showPriorityMenu.set(!this.showPriorityMenu());
+    this.activeDetailPicker.set(null);
   }
 
   setPriority(priority: 1 | 2 | 3 | 4): void {
@@ -158,6 +238,7 @@ export class TaskDetailComponent implements OnChanges {
   toggleProjectMenu(e: Event): void {
     e.stopPropagation();
     this.showProjectMenu.set(!this.showProjectMenu());
+    this.activeDetailPicker.set(null);
   }
 
   setProject(projectId: string): void {
@@ -165,23 +246,64 @@ export class TaskDetailComponent implements OnChanges {
     this.save({ projectId });
   }
 
-  setQuickDate(kind: 'today' | 'tomorrow' | 'week'): void {
-    const d = new Date();
-    if (kind === 'tomorrow') d.setDate(d.getDate() + 1);
-    if (kind === 'week') d.setDate(d.getDate() + 7);
-    const iso = `${d.getFullYear()}-${(d.getMonth() + 1).toString().padStart(2, '0')}-${d.getDate().toString().padStart(2, '0')}`;
-    this.save({ dueDate: iso });
+  openPicker(name: DetailPicker, e: Event): void {
+    e.stopPropagation();
+    this.showProjectMenu.set(false);
+    this.showPriorityMenu.set(false);
+    this.activeDetailPicker.set(this.activeDetailPicker() === name ? null : name);
+    if (name === 'tags') this.tagSearch.set('');
   }
 
-  clearDate(): void {
+  prevMonth(e: Event): void {
+    e.stopPropagation();
+    let m = this.calMonth() - 1, y = this.calYear();
+    if (m < 0) { m = 11; y--; }
+    this.calMonth.set(m); this.calYear.set(y);
+  }
+
+  nextMonth(e: Event): void {
+    e.stopPropagation();
+    let m = this.calMonth() + 1, y = this.calYear();
+    if (m > 11) { m = 0; y++; }
+    this.calMonth.set(m); this.calYear.set(y);
+  }
+
+  selectDate(cell: CalCell, e: Event): void {
+    e.stopPropagation();
+    this.activeDetailPicker.set(null);
+    this.save({ dueDate: cell.date, dueDateTime: undefined });
+  }
+
+  clearDate(e: Event): void {
+    e.stopPropagation();
+    this.activeDetailPicker.set(null);
     this.taskService.updateTask(this.task().id, { dueDate: null as any, dueDateTime: null as any })
       .subscribe(t => this.taskUpdated.emit({ ...t, dueDate: undefined, dueDateTime: undefined }));
   }
 
-  onDateChange(event: Event): void {
-    const value = (event.target as HTMLInputElement).value;
-    this.showDatePicker.set(false);
-    if (value) this.save({ dueDate: value, dueDateTime: undefined });
+  toggleTag(name: string, e: Event): void {
+    e.stopPropagation();
+    const labels = this.task().labels.includes(name)
+      ? this.task().labels.filter(l => l !== name)
+      : [...this.task().labels, name];
+    this.save({ labels });
+  }
+
+  selectEstimate(minutes: number, e: Event): void {
+    e.stopPropagation();
+    this.activeDetailPicker.set(null);
+    this.save({ estimateMinutes: minutes });
+  }
+
+  clearEstimate(e: Event): void {
+    e.stopPropagation();
+    this.save({ estimateMinutes: undefined });
+  }
+
+  selectRecurrence(value: string, e: Event): void {
+    e.stopPropagation();
+    this.activeDetailPicker.set(null);
+    this.save({ recurrenceRule: value || (null as any) });
   }
 
   toggleSubtask(s: Task): void {

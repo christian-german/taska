@@ -1,4 +1,4 @@
-import { Component, DestroyRef, OnInit, computed, inject, signal } from '@angular/core';
+import {Component, DestroyRef, OnInit, computed, inject, signal, ChangeDetectionStrategy} from '@angular/core';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { Project, Task, daysDiff, fmtDateShort, sameDay, startOfDay } from '../../core/models';
 import { TaskService } from '../../core/services/task.service';
@@ -14,6 +14,7 @@ const FR_DAYS = ['dimanche', 'lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 
 @Component({
   selector: 'app-week',
   imports: [TaskListComponent, PageHeaderComponent, EmptyStateComponent, IconComponent],
+  changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <app-page-header [title]="'Cette semaine'" [subtitle]="subtitle()" />
 
@@ -76,6 +77,12 @@ export class WeekComponent implements OnInit {
 
   ngOnInit(): void {
     this.refresh();
+    this.ui.taskCreated$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(task => {
+      const diff = task.dueDate ? daysDiff(new Date(), new Date(task.dueDate + 'T00:00:00')) : -1;
+      if (!task.isCompleted && diff >= 0 && diff < 7) {
+        this.tasks.update(list => [...list, task]);
+      }
+    });
     this.ui.taskDeleted$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(id => {
       this.tasks.update(list => list.filter(t => t.id !== id));
     });

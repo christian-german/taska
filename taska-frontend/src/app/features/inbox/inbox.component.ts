@@ -1,4 +1,4 @@
-import { Component, DestroyRef, OnInit, computed, inject, signal } from '@angular/core';
+import {ChangeDetectionStrategy, Component, DestroyRef, OnInit, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { Project, Task } from '../../core/models';
@@ -13,6 +13,7 @@ import { IconComponent } from '../../shared/components/icon/icon.component';
 @Component({
   selector: 'app-inbox',
   imports: [TaskListComponent, PageHeaderComponent, EmptyStateComponent, IconComponent],
+  changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <app-page-header [title]="'Inbox'" [subtitle]="subtitle()" />
 
@@ -51,6 +52,12 @@ export class InboxComponent implements OnInit {
 
   ngOnInit(): void {
     this.refresh();
+    this.ui.taskCreated$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(task => {
+      const inboxId = this.projects().find(p => p.isInboxProject)?.id;
+      if (!task.isCompleted && task.projectId === inboxId) {
+        this.tasks.update(list => [...list, task]);
+      }
+    });
     this.ui.taskDeleted$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(id => {
       this.tasks.update(list => list.filter(t => t.id !== id));
     });

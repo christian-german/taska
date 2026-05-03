@@ -1,20 +1,20 @@
-import { Component, HostListener, OnInit, computed, inject, signal } from '@angular/core';
-import { Router, RouterOutlet } from '@angular/router';
-import { OidcSecurityService } from 'angular-auth-oidc-client';
-import { SidebarComponent } from './layout/sidebar/sidebar.component';
-import { QuickAddComponent } from './shared/components/quick-add/quick-add.component';
-import { TaskDetailComponent } from './features/task-detail/task-detail.component';
-import { CommandPaletteComponent } from './shared/components/command-palette/command-palette.component';
-import { ShortcutsModalComponent } from './shared/components/shortcuts-modal/shortcuts-modal.component';
-import { ProjectService } from './core/services/project.service';
-import { LabelService } from './core/services/label.service';
-import { FilterService } from './core/services/filter.service';
-import { UiStateService } from './core/services/ui-state.service';
-import { ThemeService } from './core/services/theme.service';
+import {ChangeDetectionStrategy, Component, computed, HostListener, inject, OnInit} from '@angular/core';
+import {Router, RouterOutlet} from '@angular/router';
+import {SidebarComponent} from './layout/sidebar/sidebar.component';
+import {QuickAddComponent} from './shared/components/quick-add/quick-add.component';
+import {TaskDetailComponent} from './features/task-detail/task-detail.component';
+import {CommandPaletteComponent} from './shared/components/command-palette/command-palette.component';
+import {ShortcutsModalComponent} from './shared/components/shortcuts-modal/shortcuts-modal.component';
+import {ProjectService} from './core/services/project.service';
+import {LabelService} from './core/services/label.service';
+import {FilterService} from './core/services/filter.service';
+import {UiStateService} from './core/services/ui-state.service';
+import {Task} from './core/models';
 
 @Component({
   selector: 'app-root',
   imports: [RouterOutlet, SidebarComponent, QuickAddComponent, TaskDetailComponent, CommandPaletteComponent, ShortcutsModalComponent],
+  changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="app" [class.has-detail]="hasDetail()">
       <app-sidebar />
@@ -43,24 +43,14 @@ import { ThemeService } from './core/services/theme.service';
     }
   `,
 })
-export class App implements OnInit {
-  private oidcSecurityService = inject(OidcSecurityService);
+export class AppComponent implements OnInit {
   private projectService = inject(ProjectService);
   private labelService = inject(LabelService);
   private filterService = inject(FilterService);
   private router = inject(Router);
   protected ui = inject(UiStateService);
-  protected themeService = inject(ThemeService);
-
-  isAuthenticated = signal(false);
 
   hasDetail = computed(() => this.ui.selectedTask() !== null);
-
-  constructor() {
-    this.oidcSecurityService.isAuthenticated$.subscribe(({ isAuthenticated }) => {
-      this.isAuthenticated.set(isAuthenticated);
-    });
-  }
 
   ngOnInit(): void {
     this.projectService.loadProjects().subscribe();
@@ -68,7 +58,7 @@ export class App implements OnInit {
     this.filterService.loadFilters().subscribe();
   }
 
-  onTaskUpdated(task: any): void {
+  onTaskUpdated(task: Task): void {
     this.ui.selectedTask.set(task);
     this.ui.taskUpdated$.next(task);
   }
@@ -128,9 +118,5 @@ export class App implements OnInit {
     if (this.gBuffer.endsWith('gw')) { this.router.navigateByUrl('/week'); this.gBuffer = ''; return; }
     if (this.gBuffer.endsWith('gs')) { this.router.navigateByUrl('/stats'); this.gBuffer = ''; return; }
     if (this.gBuffer.endsWith('gd')) { this.router.navigateByUrl('/done'); this.gBuffer = ''; return; }
-  }
-
-  logout(): void {
-    this.oidcSecurityService.logoff().subscribe();
   }
 }

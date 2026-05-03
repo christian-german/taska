@@ -1,4 +1,4 @@
-import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } from '@angular/core';
 import { StatsOverview, fmtEstimate, getColor, hexToRgba } from '../../core/models';
 import { StatsService } from '../../core/services/stats.service';
 import { ProjectDotComponent } from '../../shared/components/atoms/atoms.component';
@@ -6,6 +6,7 @@ import { ProjectDotComponent } from '../../shared/components/atoms/atoms.compone
 @Component({
   selector: 'app-stats',
   imports: [ProjectDotComponent],
+  changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @if (data(); as s) {
       <div class="scroll" style="flex: 1; overflow-y: auto; padding: 32px 40px;">

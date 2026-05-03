@@ -1,4 +1,15 @@
-import { Component, ElementRef, ViewChild, computed, effect, inject, input, output, signal } from '@angular/core';
+import {
+  Component,
+  ElementRef,
+  ViewChild,
+  computed,
+  effect,
+  inject,
+  input,
+  output,
+  signal,
+  ChangeDetectionStrategy
+} from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { toSignal } from '@angular/core/rxjs-interop';
 import {
@@ -21,6 +32,7 @@ import { CheckboxComponent, PriorityFlagComponent, ProjectDotComponent, TagChipC
 @Component({
   selector: 'app-task-row',
   imports: [FormsModule, IconComponent, CheckboxComponent, PriorityFlagComponent, ProjectDotComponent, TagChipComponent],
+  changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="row"
          [class.selected]="selected()"

@@ -1,8 +1,9 @@
-import { Component, computed, input, output, signal } from '@angular/core';
+import {ChangeDetectionStrategy, Component, computed, input, output, signal} from '@angular/core';
 import { displayPriority, hexToRgba } from '../../../core/models';
 
 @Component({
   selector: 'app-checkbox',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <span class="cb"
           [class.checked]="checked()"
@@ -42,6 +43,7 @@ export class CheckboxComponent {
 
 @Component({
   selector: 'app-priority-flag',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @if (display() && display() < 4) {
       <span [style.color]="color()" [style.display]="'inline-flex'" [style.align-items]="'center'" [title]="'P' + display()">
@@ -67,6 +69,7 @@ export class PriorityFlagComponent {
 
 @Component({
   selector: 'app-project-dot',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   template: `<span class="dot" [style.background]="color()" [style.width.px]="size()" [style.height.px]="size()"></span>`,
 })
 export class ProjectDotComponent {
@@ -76,6 +79,7 @@ export class ProjectDotComponent {
 
 @Component({
   selector: 'app-tag-chip',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   template: `<span class="chip tag" [style.background]="bg()" [style.color]="color()">{{ prefix() }}{{ name() }}</span>`,
 })
 export class TagChipComponent {
@@ -89,6 +93,7 @@ export class TagChipComponent {
 @Component({
   selector: 'app-empty-state',
   imports: [],
+  changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="empty">
       <div [style.width.px]="64" [style.height.px]="64" [style.border-radius.px]="16" [style.background]="'var(--bg-2)'"

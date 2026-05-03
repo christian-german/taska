@@ -17,7 +17,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class TaskService {
 
-    private final TaskRepository taskRepo;
+    private final TaskRepository taskRepository;
     private final ProjectRepository projectRepo;
 
     @Transactional(readOnly = true)
@@ -25,32 +25,32 @@ public class TaskService {
         if (filter != null) {
             LocalDate today = LocalDate.now();
             return switch (filter) {
-                case "today" -> taskRepo.findByDueDateAndIsCompletedFalseOrderByPositionAsc(today);
-                case "overdue" -> taskRepo.findByDueDateBeforeAndIsCompletedFalseOrderByDueDateAsc(today);
-                case "upcoming" -> taskRepo.findByDueDateBetweenAndIsCompletedFalseOrderByDueDateAsc(
+                case "today" -> taskRepository.findByDueDateAndIsCompletedFalseOrderByPositionAsc(today);
+                case "overdue" -> taskRepository.findByDueDateBeforeAndIsCompletedFalseOrderByDueDateAsc(today);
+                case "upcoming" -> taskRepository.findByDueDateBetweenAndIsCompletedFalseOrderByDueDateAsc(
                         today.plusDays(1), today.plusDays(14));
-                default -> taskRepo.findAll();
+                default -> taskRepository.findAll();
             };
         }
         if (label != null) {
-            return showCompleted ? taskRepo.findByLabel(label) : taskRepo.findByLabelAndIsCompletedFalse(label);
+            return showCompleted ? taskRepository.findByLabel(label) : taskRepository.findByLabelAndIsCompletedFalse(label);
         }
         if (projectId != null && sectionId != null) {
             return showCompleted
-                    ? taskRepo.findByProjectIdAndSectionIdOrderByPositionAsc(projectId, sectionId)
-                    : taskRepo.findByProjectIdAndSectionIdAndIsCompletedFalseOrderByPositionAsc(projectId, sectionId);
+                    ? taskRepository.findByProjectIdAndSectionIdOrderByPositionAsc(projectId, sectionId)
+                    : taskRepository.findByProjectIdAndSectionIdAndIsCompletedFalseOrderByPositionAsc(projectId, sectionId);
         }
         if (projectId != null) {
             return showCompleted
-                    ? taskRepo.findByProjectIdOrderByPositionAsc(projectId)
-                    : taskRepo.findByProjectIdAndIsCompletedFalseOrderByPositionAsc(projectId);
+                    ? taskRepository.findByProjectIdOrderByPositionAsc(projectId)
+                    : taskRepository.findByProjectIdAndIsCompletedFalseOrderByPositionAsc(projectId);
         }
         if (sectionId != null) {
             return showCompleted
-                    ? taskRepo.findBySectionIdOrderByPositionAsc(sectionId)
-                    : taskRepo.findBySectionIdAndIsCompletedFalseOrderByPositionAsc(sectionId);
+                    ? taskRepository.findBySectionIdOrderByPositionAsc(sectionId)
+                    : taskRepository.findBySectionIdAndIsCompletedFalseOrderByPositionAsc(sectionId);
         }
-        return taskRepo.findAll();
+        return taskRepository.findAll();
     }
 
     @Transactional(readOnly = true)
@@ -82,53 +82,53 @@ public class TaskService {
         }
         t.setProjectId(projectId);
 
-        return taskRepo.save(t);
+        return taskRepository.save(t);
     }
 
-    public Task update(UUID id, TaskRequest req) {
-        Task t = getOrThrow(id);
-        if (req.content() != null) t.setContent(req.content());
-        if (req.description() != null) t.setDescription(req.description());
-        if (req.projectId() != null) t.setProjectId(req.projectId());
-        if (req.sectionId() != null) t.setSectionId(req.sectionId());
-        if (req.parentId() != null) t.setParentId(req.parentId());
-        if (req.order() != null) t.setPosition(req.order());
-        if (req.priority() != null) t.setPriority(req.priority());
-        if (req.labels() != null) t.setLabels(req.labels());
-        if (req.dueDate() != null) t.setDueDate(req.dueDate());
-        if (req.dueDateTime() != null) t.setDueDateTime(req.dueDateTime());
-        if (req.isRecurring() != null) t.setIsRecurring(req.isRecurring());
-        if (req.estimateMinutes() != null) t.setEstimateMinutes(req.estimateMinutes());
-        if (req.mentionContext() != null) t.setMentionContext(req.mentionContext());
-        if (req.recurrenceRule() != null) t.setRecurrenceRule(req.recurrenceRule());
-        return taskRepo.save(t);
+    public Task update(UUID id, TaskRequest taskRequest) {
+        Task task = getOrThrow(id);
+        if (taskRequest.content() != null) task.setContent(taskRequest.content());
+        if (taskRequest.description() != null) task.setDescription(taskRequest.description());
+        if (taskRequest.projectId() != null) task.setProjectId(taskRequest.projectId());
+        if (taskRequest.sectionId() != null) task.setSectionId(taskRequest.sectionId());
+        if (taskRequest.parentId() != null) task.setParentId(taskRequest.parentId());
+        if (taskRequest.order() != null) task.setPosition(taskRequest.order());
+        if (taskRequest.priority() != null) task.setPriority(taskRequest.priority());
+        if (taskRequest.labels() != null) task.setLabels(taskRequest.labels());
+        if (taskRequest.dueDate() != null) task.setDueDate(taskRequest.dueDate());
+        if (taskRequest.dueDateTime() != null) task.setDueDateTime(taskRequest.dueDateTime());
+        if (taskRequest.isRecurring() != null) task.setIsRecurring(taskRequest.isRecurring());
+        if (taskRequest.estimateMinutes() != null) task.setEstimateMinutes(taskRequest.estimateMinutes());
+        if (taskRequest.mentionContext() != null) task.setMentionContext(taskRequest.mentionContext());
+        if (taskRequest.recurrenceRule() != null) task.setRecurrenceRule(taskRequest.recurrenceRule());
+        return taskRepository.save(task);
     }
 
-    public void delete(UUID id) {
-        taskRepo.delete(getOrThrow(id));
+    public void delete(UUID taskId) {
+        taskRepository.delete(getOrThrow(taskId));
     }
 
-    public Task close(UUID id) {
-        Task t = getOrThrow(id);
-        t.setIsCompleted(true);
-        t.setCompletedAt(Instant.now());
-        return taskRepo.save(t);
+    public Task close(UUID taskId) {
+        Task task = getOrThrow(taskId);
+        task.setIsCompleted(true);
+        task.setCompletedAt(Instant.now());
+        return taskRepository.save(task);
     }
 
-    public Task reopen(UUID id) {
-        Task t = getOrThrow(id);
-        t.setIsCompleted(false);
-        t.setCompletedAt(null);
-        return taskRepo.save(t);
+    public Task reopen(UUID taskId) {
+        Task task = getOrThrow(taskId);
+        task.setIsCompleted(false);
+        task.setCompletedAt(null);
+        return taskRepository.save(task);
     }
 
     @Transactional(readOnly = true)
-    public List<Task> getSubtasks(UUID parentId) {
-        return taskRepo.findByParentIdOrderByPositionAsc(parentId);
+    public List<Task> getSubtasks(UUID parentTaskId) {
+        return taskRepository.findByParentIdOrderByPositionAsc(parentTaskId);
     }
 
-    Task getOrThrow(UUID id) {
-        return taskRepo.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Task not found: " + id));
+    Task getOrThrow(UUID taskId) {
+        return taskRepository.findById(taskId)
+                .orElseThrow(() -> new ResourceNotFoundException("Task not found: " + taskId));
     }
 }

@@ -1,4 +1,4 @@
-import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { Project, Task } from '../../core/models';
 import { TaskService } from '../../core/services/task.service';
@@ -12,6 +12,7 @@ import { IconComponent } from '../../shared/components/icon/icon.component';
 @Component({
   selector: 'app-done',
   imports: [TaskListComponent, PageHeaderComponent, EmptyStateComponent, IconComponent],
+  changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <app-page-header [title]="'Terminées'" [subtitle]="subtitle()" />
 

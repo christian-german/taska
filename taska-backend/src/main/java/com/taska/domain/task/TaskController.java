@@ -29,8 +29,8 @@ public class TaskController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public TaskDto create(@Valid @RequestBody TaskRequest req) {
-        return taskMapper.toDto(taskService.create(req));
+    public TaskDto create(@Valid @RequestBody TaskRequest taskRequest) {
+        return taskMapper.toDto(taskService.create(taskRequest));
     }
 
     @GetMapping("/{id}")
@@ -39,28 +39,28 @@ public class TaskController {
     }
 
     @PutMapping("/{id}")
-    public TaskDto update(@PathVariable UUID id, @RequestBody TaskRequest req) {
-        return taskMapper.toDto(taskService.update(id, req));
+    public TaskDto update(@PathVariable UUID id, @RequestBody TaskRequest taskRequest) {
+        return taskMapper.toDto(taskService.update(id, taskRequest));
     }
 
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/{taskId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void delete(@PathVariable UUID id) {
-        taskService.delete(id);
+    public void delete(@PathVariable UUID taskId) {
+        taskService.delete(taskId);
     }
 
-    @PostMapping("/{id}/close")
-    public TaskDto close(@PathVariable UUID id) {
-        return taskMapper.toDto(taskService.close(id));
+    @PostMapping("/{taskId}/close")
+    public TaskDto close(@PathVariable UUID taskId) {
+        return taskMapper.toDto(taskService.close(taskId));
     }
 
-    @PostMapping("/{id}/reopen")
-    public TaskDto reopen(@PathVariable UUID id) {
-        return taskMapper.toDto(taskService.reopen(id));
+    @PostMapping("/{taskId}/reopen")
+    public TaskDto reopen(@PathVariable UUID taskId) {
+        return taskMapper.toDto(taskService.reopen(taskId));
     }
 
-    @GetMapping("/{id}/subtasks")
-    public List<TaskDto> getSubtasks(@PathVariable UUID id) {
-        return taskService.getSubtasks(id).stream().map(taskMapper::toDto).toList();
+    @GetMapping("/{taskId}/subtasks")
+    public List<TaskDto> getSubtasks(@PathVariable UUID taskId) {
+        return taskService.getSubtasks(taskId).stream().map(taskMapper::toDto).toList();
     }
 }

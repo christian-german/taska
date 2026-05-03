@@ -1,10 +1,11 @@
-import { Component, inject, input, output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, input, output } from '@angular/core';
 import { UiStateService } from '../../../core/services/ui-state.service';
 import { IconComponent } from '../icon/icon.component';
 
 @Component({
   selector: 'app-page-header',
   imports: [IconComponent],
+  changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <header style="padding: 28px 28px 12px; border-bottom: 1px solid var(--line);">
       <div style="display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap;">

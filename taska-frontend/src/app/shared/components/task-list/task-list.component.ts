@@ -1,4 +1,4 @@
-import { Component, computed, input, output } from '@angular/core';
+import {ChangeDetectionStrategy, Component, computed, input, output} from '@angular/core';
 import { Project, Task, getColor } from '../../../core/models';
 import { TaskRowComponent } from '../task-row/task-row.component';
 import { IconComponent } from '../icon/icon.component';
@@ -16,6 +16,7 @@ export interface TaskGroup {
 @Component({
   selector: 'app-task-list',
   imports: [TaskRowComponent, IconComponent],
+  changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div>
       @for (group of groups(); track group.key) {

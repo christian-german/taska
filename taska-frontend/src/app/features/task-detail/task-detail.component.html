@@ -81,56 +81,192 @@
         }
       </div>
 
-      @for (lab of task().labels; track lab) {
-        <app-tag-chip [name]="lab" [color]="labelColor(lab)" />
-      }
     </div>
 
-    @if (dueDate(); as due) {
-      <div style="margin-top: 14px; display: flex; align-items: center; gap: 8px;">
-        <app-icon name="calendar" [size]="14" color="var(--orange)" />
-        @if (showDatePicker()) {
-          <input type="date"
-                 class="inline-edit mono"
-                 [value]="dueDateIso()"
-                 (change)="onDateChange($event)"
-                 (blur)="showDatePicker.set(false)"
-                 autofocus
-                 style="font-size: 12px; width: auto; cursor: pointer;" />
-        } @else {
-          <span class="mono" style="font-size: 12px; color: var(--ink-2); cursor: pointer;"
-                (click)="showDatePicker.set(true)">
-            {{ dueLabel() }}
+    <!-- Property rows -->
+    <div style="margin-top: 12px; display: flex; flex-direction: column; gap: 2px;">
+
+      <!-- Date row -->
+      <div style="position: relative;">
+        <button class="btn btn-ghost"
+                style="width: 100%; display: flex; align-items: center; gap: 8px; padding: 7px 8px; border-radius: 6px; text-align: left;"
+                (click)="openPicker('date', $event)">
+          <app-icon name="calendar" [size]="14" [color]="dueDate() ? 'var(--orange)' : 'var(--mute)'" />
+          <span class="mono" style="font-size: 12px; flex: 1;"
+                [style.color]="dueDate() ? 'var(--orange)' : 'var(--mute)'">
+            {{ dateRowLabel() }}
           </span>
-        }
-        <button class="btn btn-ghost btn-icon" (click)="clearDate()" title="Retirer">
-          <app-icon name="x" [size]="12" />
+          @if (dueDate()) {
+            <span style="display: flex; align-items: center; padding: 2px; border-radius: 4px; color: var(--mute);"
+                  (click)="clearDate($event)">
+              <app-icon name="x" [size]="11" />
+            </span>
+          }
         </button>
-      </div>
-    } @else {
-      <div style="margin-top: 14px; display: flex; gap: 4px; flex-wrap: wrap; align-items: center;">
-        <button class="btn btn-ghost" (click)="setQuickDate('today')"
-                style="padding: 4px 8px; font-size: 12px;">
-          <app-icon name="calendar" [size]="13" /> Aujourd'hui
-        </button>
-        <button class="btn btn-ghost" (click)="setQuickDate('tomorrow')"
-                style="padding: 4px 8px; font-size: 12px;">Demain</button>
-        <button class="btn btn-ghost" (click)="setQuickDate('week')"
-                style="padding: 4px 8px; font-size: 12px;">+1 sem.</button>
-        @if (showDatePicker()) {
-          <input type="date"
-                 class="inline-edit mono"
-                 (change)="onDateChange($event)"
-                 (blur)="showDatePicker.set(false)"
-                 autofocus
-                 style="font-size: 12px; width: auto; cursor: pointer;" />
-        } @else {
-          <button class="btn btn-ghost btn-icon" (click)="showDatePicker.set(true)" title="Choisir une date">
-            <app-icon name="calendar" [size]="13" />
-          </button>
+        @if (activeDetailPicker() === 'date') {
+          <div (click)="$event.stopPropagation()"
+               style="position: absolute; top: calc(100% + 4px); left: 0; z-index: 20;
+                      background: var(--bg); border: 1px solid var(--line);
+                      border-radius: 10px; box-shadow: var(--shadow-soft); padding: 12px; min-width: 260px;">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;">
+              <button class="btn btn-ghost btn-icon" (click)="prevMonth($event)">
+                <app-icon name="chevron-left" [size]="13" />
+              </button>
+              <span class="mono" style="font-size: 12px; font-weight: 600; text-transform: capitalize;">
+                {{ calMonthLabel() }}
+              </span>
+              <button class="btn btn-ghost btn-icon" (click)="nextMonth($event)">
+                <app-icon name="chevron-right" [size]="13" />
+              </button>
+            </div>
+            <div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; margin-bottom: 4px;">
+              @for (d of ['L','M','M','J','V','S','D']; track $index) {
+                <div class="mono" style="text-align: center; font-size: 10px; color: var(--mute); padding: 2px 0;">{{ d }}</div>
+              }
+            </div>
+            <div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px;">
+              @for (cell of calendarDays(); track cell.date) {
+                <button
+                  style="aspect-ratio: 1; border-radius: 5px; border: none; cursor: pointer;
+                         font-size: 12px; font-family: inherit; transition: background .1s;"
+                  [style.opacity]="cell.inMonth ? '1' : '0.3'"
+                  [style.background]="task().dueDate === cell.date ? 'var(--accent)' : cell.isToday ? 'var(--bg-3)' : 'transparent'"
+                  [style.color]="task().dueDate === cell.date ? '#fff' : 'var(--ink)'"
+                  [style.font-weight]="cell.isToday ? '700' : '400'"
+                  (click)="selectDate(cell, $event)">
+                  {{ cell.day }}
+                </button>
+              }
+            </div>
+          </div>
         }
       </div>
-    }
+
+      <!-- Tags row -->
+      <div style="position: relative;">
+        <button class="btn btn-ghost"
+                style="width: 100%; display: flex; align-items: center; gap: 8px; padding: 7px 8px; border-radius: 6px; text-align: left;"
+                (click)="openPicker('tags', $event)">
+          <app-icon name="tag" [size]="14" color="var(--mute)" />
+          @if (task().labels.length) {
+            <div style="display: flex; flex-wrap: wrap; gap: 4px; flex: 1;">
+              @for (lab of task().labels; track lab) {
+                <app-tag-chip [name]="lab" [color]="labelColor(lab)" />
+              }
+            </div>
+          } @else {
+            <span class="mono" style="font-size: 12px; color: var(--mute); flex: 1;">Ajouter des tags</span>
+          }
+        </button>
+        @if (activeDetailPicker() === 'tags') {
+          <div (click)="$event.stopPropagation()"
+               style="position: absolute; top: calc(100% + 4px); left: 0; z-index: 20;
+                      background: var(--bg); border: 1px solid var(--line);
+                      border-radius: 10px; box-shadow: var(--shadow-soft); padding: 10px; min-width: 220px;">
+            <input class="inline-edit mono"
+                   placeholder="Rechercher…"
+                   style="width: 100%; font-size: 12px; margin-bottom: 8px; padding: 5px 8px;
+                          border: 1px solid var(--line); border-radius: 6px; background: var(--bg-2);"
+                   [ngModel]="tagSearch()"
+                   (ngModelChange)="tagSearch.set($event)"
+                   (click)="$event.stopPropagation()" />
+            <div style="max-height: 180px; overflow-y: auto;">
+              @for (lab of filteredLabels(); track lab.id) {
+                <div style="display: flex; align-items: center; gap: 8px; padding: 6px 8px;
+                            border-radius: 6px; cursor: pointer;"
+                     [style.background]="hasLabel(lab.name) ? 'var(--bg-3)' : 'transparent'"
+                     (click)="toggleTag(lab.name, $event)">
+                  <span style="width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0;"
+                        [style.background]="getColor(lab.color)"></span>
+                  <span style="font-size: 13px; flex: 1;">{{ lab.name }}</span>
+                  @if (hasLabel(lab.name)) {
+                    <app-icon name="check" [size]="12" color="var(--accent)" />
+                  }
+                </div>
+              }
+              @if (filteredLabels().length === 0) {
+                <div style="padding: 8px; color: var(--mute); font-size: 12px; text-align: center;">
+                  Aucun tag
+                </div>
+              }
+            </div>
+          </div>
+        }
+      </div>
+
+      <!-- Estimate row -->
+      <div style="position: relative;">
+        <button class="btn btn-ghost"
+                style="width: 100%; display: flex; align-items: center; gap: 8px; padding: 7px 8px; border-radius: 6px; text-align: left;"
+                (click)="openPicker('estimate', $event)">
+          <app-icon name="clock" [size]="14" [color]="task().estimateMinutes ? 'var(--ink-2)' : 'var(--mute)'" />
+          <span class="mono" style="font-size: 12px; flex: 1;"
+                [style.color]="task().estimateMinutes ? 'var(--ink-2)' : 'var(--mute)'">
+            {{ estimateRowLabel() }}
+          </span>
+          @if (task().estimateMinutes) {
+            <span style="display: flex; align-items: center; padding: 2px; border-radius: 4px; color: var(--mute);"
+                  (click)="clearEstimate($event)">
+              <app-icon name="x" [size]="11" />
+            </span>
+          }
+        </button>
+        @if (activeDetailPicker() === 'estimate') {
+          <div (click)="$event.stopPropagation()"
+               style="position: absolute; top: calc(100% + 4px); left: 0; z-index: 20;
+                      background: var(--bg); border: 1px solid var(--line);
+                      border-radius: 10px; box-shadow: var(--shadow-soft); padding: 10px; min-width: 200px;">
+            <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px;">
+              @for (preset of ESTIMATE_PRESETS; track preset.minutes) {
+                <button
+                  style="padding: 7px 4px; border-radius: 6px; border: 1px solid var(--line);
+                         cursor: pointer; font-family: inherit; font-size: 12px; transition: background .1s;"
+                  [style.background]="task().estimateMinutes === preset.minutes ? 'var(--accent)' : 'var(--bg-2)'"
+                  [style.color]="task().estimateMinutes === preset.minutes ? '#fff' : 'var(--ink)'"
+                  [style.border-color]="task().estimateMinutes === preset.minutes ? 'var(--accent)' : 'var(--line)'"
+                  (click)="selectEstimate(preset.minutes, $event)">
+                  {{ preset.label }}
+                </button>
+              }
+            </div>
+          </div>
+        }
+      </div>
+
+      <!-- Recurrence row -->
+      <div style="position: relative;">
+        <button class="btn btn-ghost"
+                style="width: 100%; display: flex; align-items: center; gap: 8px; padding: 7px 8px; border-radius: 6px; text-align: left;"
+                (click)="openPicker('recurrence', $event)">
+          <app-icon name="repeat" [size]="14" [color]="task().recurrenceRule ? 'var(--ink-2)' : 'var(--mute)'" />
+          <span class="mono" style="font-size: 12px; flex: 1;"
+                [style.color]="task().recurrenceRule ? 'var(--ink-2)' : 'var(--mute)'">
+            {{ recurrenceRowLabel() }}
+          </span>
+        </button>
+        @if (activeDetailPicker() === 'recurrence') {
+          <div (click)="$event.stopPropagation()"
+               style="position: absolute; top: calc(100% + 4px); left: 0; z-index: 20;
+                      background: var(--bg); border: 1px solid var(--line);
+                      border-radius: 10px; box-shadow: var(--shadow-soft); padding: 4px; min-width: 180px;">
+            @for (opt of RECURRENCE_OPTIONS; track opt.value) {
+              <div style="padding: 8px 12px; border-radius: 6px; cursor: pointer; font-size: 13px;
+                          display: flex; align-items: center; gap: 8px;"
+                   [style.background]="(task().recurrenceRule ?? '') === opt.value ? 'var(--bg-3)' : 'transparent'"
+                   (click)="selectRecurrence(opt.value, $event)">
+                @if ((task().recurrenceRule ?? '') === opt.value) {
+                  <app-icon name="check" [size]="12" color="var(--accent)" />
+                } @else {
+                  <span style="width: 12px;"></span>
+                }
+                {{ opt.label }}
+              </div>
+            }
+          </div>
+        }
+      </div>
+
+    </div>
 
     <hr class="dash-hr" style="margin: 18px 0;" />
 

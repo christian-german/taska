@@ -1,7 +1,8 @@
-import { Component, input, output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
 
 @Component({
   selector: 'app-confirm-dialog',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="modal-veil" (click)="cancelled.emit()">
       <div class="modal" (click)="$event.stopPropagation()"

@@ -36,11 +36,6 @@ export const routes: Routes = [
     pathMatch: 'full',
   },
   {
-    path: 'projects',
-    canActivate: [AutoLoginPartialRoutesGuard],
-    loadComponent: () => import('./features/projects-list/projects-list.component').then(m => m.ProjectsListComponent),
-  },
-  {
     path: 'project/:id',
     canActivate: [AutoLoginPartialRoutesGuard],
     loadComponent: () => import('./features/project-view/project-view.component').then(m => m.ProjectViewComponent),

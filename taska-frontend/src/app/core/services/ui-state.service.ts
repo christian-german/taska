@@ -9,6 +9,7 @@ export class UiStateService {
   showHelp = signal(false);
   selectedTask = signal<Task | null>(null);
 
+  readonly taskCreated$ = new Subject<Task>();
   readonly taskUpdated$ = new Subject<Task>();
   readonly taskDeleted$ = new Subject<string>();
 

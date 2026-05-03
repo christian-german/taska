@@ -1,4 +1,4 @@
-import { Component, output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, output } from '@angular/core';
 
 interface Group {
   h: string;
@@ -7,6 +7,7 @@ interface Group {
 
 @Component({
   selector: 'app-shortcuts-modal',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="modal-veil" (click)="close.emit()">
       <div class="modal" (click)="$event.stopPropagation()" style="padding: 22px 26px;">

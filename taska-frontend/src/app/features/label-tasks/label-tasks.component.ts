@@ -1,4 +1,4 @@
-import { Component, OnInit, computed, effect, inject, input, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, computed, effect, inject, input, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { Label, Project, Task, getColor } from '../../core/models';
 import { TaskService } from '../../core/services/task.service';
@@ -13,6 +13,7 @@ import { IconComponent } from '../../shared/components/icon/icon.component';
 @Component({
   selector: 'app-label-tasks',
   imports: [TaskListComponent, PageHeaderComponent, EmptyStateComponent, IconComponent],
+  changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <app-page-header [title]="'#' + name()" [subtitle]="subtitle()" />
     <div class="scroll" style="flex: 1; overflow-y: auto; padding: 8px 12px 60px;">

@@ -43,6 +43,7 @@
           "options": {
             "browser": "src/main.ts",
             "tsConfig": "tsconfig.app.json",
+            "baseHref": "./",
             "assets": [
               {
                 "glob": "**/*",
@@ -88,10 +89,7 @@
               "buildTarget": "taska-frontend:build:development"
             }
           },
-          "defaultConfiguration": "development",
-          "options": {
-            "proxyConfig": "proxy.conf.json"
-          }
+          "defaultConfiguration": "development"
         }
       }
     }

@@ -2,18 +2,17 @@ import {inject, Injectable} from '@angular/core';
 import {HttpClient, HttpParams} from '@angular/common/http';
 import {Observable} from 'rxjs';
 import {Section} from '../models';
-import {ConfigService} from './config.service';
+import {environment} from '../../../environments/environment';
 
-@Injectable({ providedIn: 'root' })
+@Injectable({providedIn: 'root'})
 export class SectionService {
   private http = inject(HttpClient);
-  private config = inject(ConfigService);
-  private readonly base = `${this.config.apiUrl}/sections`;
+  private readonly base = `${environment.apiUrl}/sections`;
 
   getSections(projectId?: string): Observable<Section[]> {
     let params = new HttpParams();
     if (projectId) params = params.set('project_id', projectId);
-    return this.http.get<Section[]>(this.base, { params });
+    return this.http.get<Section[]>(this.base, {params});
   }
 
   createSection(data: Partial<Section>): Observable<Section> {

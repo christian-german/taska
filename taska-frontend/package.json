@@ -1,6 +1,7 @@
 {
   "name": "taska-frontend",
-  "version": "0.0.0",
+  "version": "0.0.1",
+  "main": "electron/main.js",
   "scripts": {
     "ng": "ng",
     "tailwind:build": "npx @tailwindcss/cli -i src/tailwind-input.css -o src/tailwind-generated.css",
@@ -10,7 +11,27 @@
     "prebuild": "npm run tailwind:build",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
-    "test": "ng test"
+    "test": "ng test",
+    "build:dev":  "ng build && electron-builder --win",
+    "build:prod": "ng build --configuration=production && electron-builder --win"
+  },
+  "build": {
+    "appId": "com.taska.app",
+    "productName": "Taska",
+    "directories": {
+      "output": "dist-electron",
+      "app": "."
+    },
+    "files": [
+      "electron/**/*",
+      "dist/taska-frontend/browser/**/*",
+      "package.json",
+      "!node_modules/**/*"
+    ],
+    "win": {
+      "target": "portable",
+      "icon": "electron/icon.png"
+    }
   },
   "prettier": {
     "printWidth": 100,
@@ -48,6 +69,9 @@
     "@tailwindcss/cli": "^4.2.4",
     "@tailwindcss/postcss": "^4.2.4",
     "concurrently": "^9.2.1",
+    "electron": "^41.5.0",
+    "electron-builder": "^26.8.1",
+    "sharp": "^0.34.5",
     "typescript": "~5.9.2"
   }
 }

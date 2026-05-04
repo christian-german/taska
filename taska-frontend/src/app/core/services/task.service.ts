@@ -2,7 +2,7 @@ import {inject, Injectable} from '@angular/core';
 import {HttpClient, HttpParams} from '@angular/common/http';
 import {Observable} from 'rxjs';
 import {Task} from '../models';
-import {ConfigService} from './config.service';
+import {environment} from '../../../environments/environment';
 
 export interface TaskFilters {
   projectId?: string;
@@ -12,11 +12,10 @@ export interface TaskFilters {
   showCompleted?: boolean;
 }
 
-@Injectable({ providedIn: 'root' })
+@Injectable({providedIn: 'root'})
 export class TaskService {
   private http = inject(HttpClient);
-  private config = inject(ConfigService);
-  private readonly base = `${this.config.apiUrl}/tasks`;
+  private readonly base = `${environment.apiUrl}/tasks`;
 
   getTasks(filters?: TaskFilters): Observable<Task[]> {
     let params = new HttpParams();
@@ -25,7 +24,7 @@ export class TaskService {
     if (filters?.label) params = params.set('label', filters.label);
     if (filters?.filter) params = params.set('filter', filters.filter);
     if (filters?.showCompleted) params = params.set('show_completed', 'true');
-    return this.http.get<Task[]>(this.base, { params });
+    return this.http.get<Task[]>(this.base, {params});
   }
 
   getTask(id: string): Observable<Task> {

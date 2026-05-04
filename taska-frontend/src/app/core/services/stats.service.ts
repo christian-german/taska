@@ -1,14 +1,13 @@
-import { Injectable, inject } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
-import { ConfigService } from './config.service';
-import { StatsOverview } from '../models';
+import {inject, Injectable} from '@angular/core';
+import {HttpClient} from '@angular/common/http';
+import {Observable} from 'rxjs';
+import {StatsOverview} from '../models';
+import {environment} from '../../../environments/environment';
 
-@Injectable({ providedIn: 'root' })
+@Injectable({providedIn: 'root'})
 export class StatsService {
   private http = inject(HttpClient);
-  private config = inject(ConfigService);
-  private readonly base = `${this.config.apiUrl}/stats`;
+  private readonly base = `${environment.apiUrl}/stats`;
 
   getOverview(): Observable<StatsOverview> {
     return this.http.get<StatsOverview>(`${this.base}/overview`);

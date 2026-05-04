@@ -1,14 +1,13 @@
-import { Injectable, inject } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { BehaviorSubject, Observable, tap } from 'rxjs';
-import { Filter, Task } from '../models';
-import { ConfigService } from './config.service';
+import {inject, Injectable} from '@angular/core';
+import {HttpClient} from '@angular/common/http';
+import {BehaviorSubject, Observable, tap} from 'rxjs';
+import {Filter, Task} from '../models';
+import {environment} from '../../../environments/environment';
 
 @Injectable({ providedIn: 'root' })
 export class FilterService {
   private http = inject(HttpClient);
-  private config = inject(ConfigService);
-  private readonly base = `${this.config.apiUrl}/filters`;
+  private readonly base = `${environment.apiUrl}/filters`;
 
   private filtersSubject = new BehaviorSubject<Filter[]>([]);
   filters$ = this.filtersSubject.asObservable();

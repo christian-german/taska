@@ -3,34 +3,12 @@ import {provideRouter, withComponentInputBinding} from '@angular/router';
 import {provideHttpClient, withInterceptors} from '@angular/common/http';
 import {provideAnimationsAsync} from '@angular/platform-browser/animations/async';
 import {routes} from './app.routes';
-import {ConfigService} from './core/services/config.service';
-import {authInterceptor, OidcSecurityService, provideAuth, StsConfigLoader} from 'angular-auth-oidc-client';
-import {map} from 'rxjs/operators';
-import {firstValueFrom} from 'rxjs';
+import {authInterceptor, LogLevel, OidcSecurityService, provideAuth} from 'angular-auth-oidc-client';
+import {environment} from '../environments/environment';
+import {take} from 'rxjs';
 
-export class DynamicConfigLoader implements StsConfigLoader {
-
-  constructor(private configService: ConfigService) {}
-
-  loadConfigs() {
-    return this.configService.configObservable.pipe(
-      map((config) => {
-        const authority = config.oidc.authority;
-
-        return [{
-          authority: authority,
-          redirectUrl: config.oidc.redirectUri,
-          postLogoutRedirectUri: config.oidc.postLogoutRedirectUri,
-          clientId: config.oidc.clientId,
-          scope: config.oidc.scope,
-          responseType: 'code',
-          silentRenew: true,
-          useRefreshToken: true,
-          secureRoutes: [config.apiUrl],
-        }];
-      })
-    );
-  }
+function initializeAuth(oidc: OidcSecurityService) {
+  return () => oidc.checkAuth().pipe(take(1));
 }
 
 export const appConfig: ApplicationConfig = {
@@ -40,21 +18,25 @@ export const appConfig: ApplicationConfig = {
     provideHttpClient(withInterceptors([authInterceptor()])),
     provideAnimationsAsync(),
     provideAuth({
-      loader: {
-        provide: StsConfigLoader,
-        useFactory: (configService: ConfigService) => new DynamicConfigLoader(configService),
-        deps: [ConfigService],
-      },
-    }),
+        config: {
+          authority: environment.oidc.authority,
+          redirectUrl: environment.oidc.redirectUri,
+          postLogoutRedirectUri: environment.oidc.postLogoutRedirectUri,
+          clientId: environment.oidc.clientId,
+          scope: environment.oidc.scope,
+          responseType: 'code',
+          silentRenew: true,
+          useRefreshToken: true,
+          logLevel: LogLevel.Debug,
+          secureRoutes: [environment.apiUrl],
+        }
+      }
+    ),
     {
       provide: APP_INITIALIZER,
-      useFactory: (configService: ConfigService, oidcSecurityService: OidcSecurityService) => async () => {
-        await configService.loadConfig();
-        // Maintenant la config est dispo, on peut init OIDC
-        await firstValueFrom(oidcSecurityService.checkAuth());
-      },
-      deps: [ConfigService, OidcSecurityService],
-      multi: true
+      useFactory: initializeAuth,
+      deps: [OidcSecurityService],
+      multi: true,
     }
   ]
 };

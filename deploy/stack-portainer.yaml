@@ -9,7 +9,6 @@ services:
       - traefik.http.routers.taska-frontend.rule=Host(`taska.atlascore.dev`)
       - traefik.http.routers.taska-frontend.entrypoints=websecure
       - traefik.http.routers.taska-frontend.tls=true
-      - traefik.http.routers.taska-frontend.middlewares=authentik-auth@docker
       - traefik.http.services.taska-frontend-svc.loadbalancer.server.port=80
     networks:
       - traefik_network
@@ -23,7 +22,6 @@ services:
       - traefik.http.routers.taska-backend.rule=Host(`api-taska.atlascore.dev`)
       - traefik.http.routers.taska-backend.entrypoints=websecure
       - traefik.http.routers.taska-backend.tls=true
-      - traefik.http.routers.taska-backend.middlewares=authentik-auth@docker
       - traefik.http.services.taska-backend-svc.loadbalancer.server.port=8080
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://taska-db:5432/taska

@@ -1,11 +1,11 @@
 export const environment = {
   production: true,
-  apiUrl: "http://localhost:8080",
+  apiUrl: "https://api-taska.atlascore.dev",
   oidc: {
-    authority: "http://localhost:8000/application/o/taska",
-    "clientId": "taska-client",
-    "redirectUri": "http://localhost:4200/callback",
-    "postLogoutRedirectUri": "http://localhost:4200",
-    "scope": "openid email profile"
+    authority: "https://authentik.atlascore.dev/application/o/taska",
+    "clientId": "mE2vXI67I43D8fmclgsjHKwt42W4dkDpXJQUOQEJ",
+    "redirectUri": "https://taska.atlascore.dev/callback",
+    "postLogoutRedirectUri": "https://taska.atlascore.dev",
+    "scope": "openid profile email"
   }
 };

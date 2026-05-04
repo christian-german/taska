@@ -10,10 +10,11 @@
     "start": "concurrently \"npm run tailwind:watch\" \"ng serve\"",
     "prebuild": "npm run tailwind:build",
     "build": "ng build",
+    "build:prod": "ng build --configuration=production",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
-    "build:dev":  "ng build && electron-builder --win",
-    "build:prod": "ng build --configuration=production && electron-builder --win"
+    "build:electron:dev":  "ng build && electron-builder --win",
+    "build:electron:prod": "ng build --configuration=production && electron-builder --win"
   },
   "build": {
     "appId": "com.taska.app",

@@ -1,0 +1,128 @@
+const { app, BrowserWindow, shell } = require('electron');
+const path = require('path');
+const http = require('http');
+const fs = require('fs');
+
+const DEV_URL = 'http://localhost:4200';
+const SERVE_PORT = 4200;
+
+let mainWindow = null;
+let server = null;
+
+// MIME types for static file serving
+const MIME = {
+  '.html': 'text/html; charset=utf-8',
+  '.js':   'application/javascript',
+  '.mjs':  'application/javascript',
+  '.css':  'text/css',
+  '.json': 'application/json',
+  '.ico':  'image/x-icon',
+  '.png':  'image/png',
+  '.svg':  'image/svg+xml',
+  '.woff': 'font/woff',
+  '.woff2':'font/woff2',
+  '.ttf':  'font/ttf',
+};
+
+function resolveDistDir() {
+  if (app.isPackaged) {
+    return path.join(process.resourcesPath, 'app', 'dist', 'taska-frontend', 'browser');
+  }
+  return path.join(app.getAppPath(), 'dist', 'taska-frontend', 'browser');
+}
+
+function resolveConfigPath() {
+  if (app.isPackaged) {
+    // config.json is placed as an extraResource at the root of resources/
+    return path.join(process.resourcesPath, 'config.json');
+  }
+  return path.join(app.getAppPath(), 'public', 'config.json');
+}
+
+function startLocalServer() {
+  const distDir = resolveDistDir();
+  const configPath = resolveConfigPath();
+
+  server = http.createServer((req, res) => {
+    // Strip query string
+    let urlPath = req.url.split('?')[0];
+
+    // Serve config.json from the user-editable location
+    if (urlPath === '/config.json') {
+      try {
+        const data = fs.readFileSync(configPath);
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(data);
+      } catch {
+        res.writeHead(404);
+        res.end('config.json not found');
+      }
+      return;
+    }
+
+    const filePath = path.join(distDir, urlPath);
+
+    // Check if file exists
+    if (fs.existsSync(filePath) && fs.statSync(filePath).isFile()) {
+      const ext = path.extname(filePath);
+      const mime = MIME[ext] || 'application/octet-stream';
+      res.writeHead(200, { 'Content-Type': mime });
+      fs.createReadStream(filePath).pipe(res);
+    } else {
+      // SPA fallback — serve index.html
+      const indexPath = path.join(distDir, 'index.html');
+      res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
+      fs.createReadStream(indexPath).pipe(res);
+    }
+  });
+
+  server.listen(SERVE_PORT);
+}
+
+function createWindow() {
+  mainWindow = new BrowserWindow({
+    width: 1280,
+    height: 800,
+    minWidth: 800,
+    minHeight: 600,
+    webPreferences: {
+      preload: path.join(__dirname, 'preload.js'),
+      contextIsolation: true,
+      nodeIntegration: false,
+    },
+    title: 'Taska',
+    show: false,
+  });
+
+  mainWindow.once('ready-to-show', () => mainWindow.show());
+
+  // Open external links in the default browser
+  mainWindow.webContents.setWindowOpenHandler(({ url }) => {
+    shell.openExternal(url);
+    return { action: 'deny' };
+  });
+
+  if (app.isPackaged) {
+    mainWindow.loadURL(`http://localhost:${SERVE_PORT}`);
+  } else {
+    // Dev mode: Angular dev server must already be running on 4200
+    mainWindow.loadURL(DEV_URL);
+    mainWindow.webContents.openDevTools();
+  }
+}
+
+app.whenReady().then(() => {
+  if (app.isPackaged) {
+    startLocalServer();
+  }
+  createWindow();
+
+  app.on('activate', () => {
+    if (BrowserWindow.getAllWindows().length === 0) createWindow();
+  });
+});
+
+app.on('window-all-closed', () => {
+  if (server) server.close();
+  if (process.platform !== 'darwin') app.quit();
+});

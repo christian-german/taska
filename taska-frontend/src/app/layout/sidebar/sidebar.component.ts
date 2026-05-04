@@ -145,6 +145,7 @@ export class SidebarComponent implements OnInit {
       { id: 'today', label: "Aujourd'hui", icon: 'star', route: '/today', count: c.today },
       { id: 'week', label: 'Semaine', icon: 'calendar', route: '/week', count: c.week },
       { id: 'done', label: 'Terminées', icon: 'check', route: '/done', count: 0 },
+      { id: 'time', label: 'Time tracker', icon: 'clock', route: '/time', count: 0 },
     ];
   });
 

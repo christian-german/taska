@@ -60,5 +60,10 @@ export const routes: Routes = [
     canActivate: [AutoLoginPartialRoutesGuard],
     loadComponent: () => import('./features/filter-tasks/filter-tasks.component').then(m => m.FilterTasksComponent),
   },
+  {
+    path: 'time',
+    canActivate: [AutoLoginPartialRoutesGuard],
+    loadComponent: () => import('./features/time-tracker/time-tracker.component').then(m => m.TimeTrackerComponent),
+  },
   { path: '**', redirectTo: '' },
 ];

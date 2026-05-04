@@ -1,5 +1,20 @@
 export type ViewStyle = 'LIST' | 'BOARD' | 'CALENDAR';
 
+export interface TimeEntry {
+  id: string;
+  startAt: string;    // "2024-05-03T10:00:00" (LocalDateTime, no tz)
+  endAt: string;      // "2024-05-03T11:30:00"
+  projectId: string;
+  description: string;
+  notes?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export function timeEntryDuration(e: TimeEntry): number {
+  return Math.round((new Date(e.endAt).getTime() - new Date(e.startAt).getTime()) / 60000);
+}
+
 export interface Filter {
   id: string;
   name: string;

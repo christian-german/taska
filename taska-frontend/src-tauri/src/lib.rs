@@ -1,6 +1,7 @@
 use tauri::Manager;
 use tauri_plugin_log::{Target, TargetKind};
 use log;
+use serde_json;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {

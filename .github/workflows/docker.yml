@@ -55,3 +55,40 @@ jobs:
             VERSION=${{ steps.meta.outputs.version }}
           cache-from: type=gha,scope=${{ matrix.image }}
           cache-to: type=gha,mode=max,scope=${{ matrix.image }}
+
+  build-tauri:
+    runs-on: windows-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: taska-frontend/package-lock.json
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - uses: swatinem/rust-cache@v2
+        with:
+          workdir: taska-frontend/src-tauri
+
+      - name: Install dependencies
+        working-directory: taska-frontend
+        run: npm ci
+
+      - name: Build Tauri
+        working-directory: taska-frontend
+        run: npm run build:tauri
+
+      - name: Upload installer
+        uses: actions/upload-artifact@v4
+        with:
+          name: taska-windows-${{ github.ref_name }}
+          path: |
+            taska-frontend/src-tauri/target/release/bundle/msi/*.msi
+            taska-frontend/src-tauri/target/release/bundle/nsis/*.exe
+          retention-days: 30

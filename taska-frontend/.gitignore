@@ -3,6 +3,8 @@
 # Compiled output
 /dist
 /dist-electron
+/src-tauri/target
+/src-tauri/gen
 /tmp
 /out-tsc
 /bazel-out

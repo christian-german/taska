@@ -10,6 +10,7 @@ import {LabelService} from './core/services/label.service';
 import {FilterService} from './core/services/filter.service';
 import {UiStateService} from './core/services/ui-state.service';
 import {Task} from './core/models';
+import {sendNotification} from '@tauri-apps/plugin-notification';
 
 @Component({
   selector: 'app-root',
@@ -56,6 +57,11 @@ export class AppComponent implements OnInit {
     this.projectService.loadProjects().subscribe();
     this.labelService.loadLabels().subscribe();
     this.filterService.loadFilters().subscribe();
+
+    sendNotification({
+      title: 'Taska',
+      body: 'Ta tâche est terminée !'
+    });
   }
 
   onTaskUpdated(task: Task): void {

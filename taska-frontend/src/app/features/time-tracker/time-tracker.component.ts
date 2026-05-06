@@ -17,6 +17,7 @@ import { FormsModule } from '@angular/forms';
 import { fromEvent, interval } from 'rxjs';
 import {
   Project,
+  Task,
   TimeEntry,
   fmtEstimate,
   getColor,
@@ -24,6 +25,7 @@ import {
   timeEntryDuration,
 } from '../../core/models';
 import { ProjectService } from '../../core/services/project.service';
+import { TaskService } from '../../core/services/task.service';
 import { TimeEntryService } from '../../core/services/time-entry.service';
 import { IconComponent } from '../../shared/components/icon/icon.component';
 import { ProjectDotComponent } from '../../shared/components/atoms/atoms.component';
@@ -34,6 +36,12 @@ const PX_H   = 60; // pixels per hour → 1 px = 1 min
 const HOURS  = Array.from({ length: 24 }, (_, i) => i);
 const DRAG_THRESHOLD = 5; // px movement to switch from click-pending to actual drag
 
+const SHADED_ZONES = [
+  { topPx:  1 * PX_H, heightPx:  7 * PX_H },  // 1h–8h
+  { topPx: 12 * PX_H, heightPx:  2 * PX_H },  // 12h–14h
+  { topPx: 19 * PX_H, heightPx:  5 * PX_H },  // 19h–24h
+];
+
 const FR_DAYS_SH   = ['dim.','lun.','mar.','mer.','jeu.','ven.','sam.'];
 const FR_MONTHS    = ['janvier','février','mars','avril','mai','juin',
                       'juillet','août','septembre','octobre','novembre','décembre'];
@@ -42,7 +50,12 @@ const FR_MONTHS_SH = ['janv.','févr.','mars','avr.','mai','juin',
 
 // ── helpers ───────────────────────────────────────────────────────────────────
 
-function isoDate(d: Date): string { return d.toISOString().split('T')[0]; }
+function isoDate(d: Date): string {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+}
 
 function getMonday(d: Date): Date {
   const date = new Date(d);
@@ -78,19 +91,17 @@ interface CreateDragState {
   date: string;
 }
 
-/** Interaction on an existing entry (move or resize). */
+/** Interaction on an existing entry or task (move or resize). */
 interface EntryInteraction {
   mode: 'pending' | 'move' | 'resize-top' | 'resize-bottom';
-  entry: TimeEntry;
-  // pointer position at mousedown (viewport px)
+  entry?: TimeEntry;
+  task?: Task;
   startX: number;
   startY: number;
-  // derived from entry times at drag start
   origStartMin: number;
   origEndMin: number;
   origDate: string;
   origColIndex: number;
-  // current state (updated on mousemove)
   curStartMin: number;
   curEndMin: number;
   curDate: string;
@@ -104,6 +115,23 @@ interface GhostEntryInfo {
   colIndex: number;
   color: string;
   label: string;
+}
+
+interface EntryWithLayout {
+  entry: TimeEntry;
+  lane: number;
+  totalLanes: number;
+}
+
+interface GridItem {
+  kind: 'entry' | 'task';
+  id: string;
+  startMin: number;
+  endMin: number;
+  entry?: TimeEntry;
+  task?: Task;
+  lane: number;
+  totalLanes: number;
 }
 
 interface DayInfo {
@@ -120,9 +148,10 @@ interface DayInfo {
   selector: 'app-time-tracker',
   imports: [FormsModule, IconComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
+  host: { style: 'display:flex; flex-direction:column; flex:1; min-height:0; overflow:hidden;' },
   template: `
 <!-- ── outer shell ── -->
-<div style="display:flex; flex-direction:column; height:100%; overflow:hidden; background:var(--bg);">
+<div style="display:flex; flex-direction:column; flex:1; min-height:0; overflow:hidden; background:var(--bg);">
 
   <!-- control bar -->
   <div style="display:flex; align-items:center; gap:12px; padding:14px 20px 10px;
@@ -220,6 +249,14 @@ interface DayInfo {
              [style.background]="day.isToday ? 'rgba(255,138,61,.03)' : 'transparent'"
              (mousedown)="onColDown($event, ci, day.iso)">
 
+          <!-- shaded off-hours zones -->
+          @for (zone of SHADED_ZONES; track zone.topPx) {
+            <div style="position:absolute; left:0; right:0; pointer-events:none; z-index:0;
+                        background:rgba(0,0,0,0.08);"
+                 [style.top.px]="zone.topPx"
+                 [style.height.px]="zone.heightPx"></div>
+          }
+
           <!-- hour / half-hour grid lines -->
           @for (h of HOURS; track h) {
             <div style="position:absolute; left:0; right:0; pointer-events:none;"
@@ -232,44 +269,56 @@ interface DayInfo {
             }
           }
 
-          <!-- existing entries -->
-          @for (e of entriesForDay(day.iso); track e.id) {
-            <div style="position:absolute; left:2px; right:2px; border-radius:5px; overflow:visible;
+          <!-- entries + tasks -->
+          @for (item of gridItemsForDay(day.iso); track item.id) {
+            <div style="position:absolute; border-radius:5px; overflow:visible;
                         font-size:11px; color:#fff; z-index:1; box-sizing:border-box;
                         transition:opacity .1s;"
-                 [style.top.px]="entryTop(e)"
-                 [style.height.px]="entryHeightPx(e)"
-                 [style.background]="entryBg(e)"
-                 [style.opacity]="isBeingDragged(e) ? '0.25' : '1'"
+                 [style.top.px]="item.startMin"
+                 [style.height.px]="itemHeight(item)"
+                 [style.left]="entryLeft(item)"
+                 [style.right]="entryRight(item)"
+                 [style.width]="entryWidth(item)"
+                 [style.background]="itemBg(item)"
+                 [style.border-left]="item.kind === 'task' ? ('3px solid ' + itemAccent(item)) : 'none'"
+                 [style.opacity]="isBeingDragged(item.id) ? '0.25' : '1'"
                  [style.cursor]="activeDragCursor()"
-                 [title]="e.description"
-                 (mousedown)="onEntryDown($event, e, ci, day.iso)">
+                 [title]="item.kind === 'entry' ? item.entry!.description : item.task!.content"
+                 (mousedown)="onItemDown($event, item, ci, day.iso)">
 
               <!-- top resize handle -->
-              @if (entryHeightPx(e) >= 18) {
+              @if (itemHeight(item) >= 18) {
                 <div style="position:absolute; top:0; left:0; right:0; height:5px;
                             cursor:ns-resize; z-index:3;"
-                     (mousedown)="$event.stopPropagation(); onResizeDown($event, e, ci, day.iso, 'resize-top')"></div>
+                     (mousedown)="$event.stopPropagation(); onItemResizeDown($event, item, ci, day.iso, 'resize-top')"></div>
               }
 
               <!-- content -->
               <div style="padding:4px 6px; overflow:hidden; height:100%; box-sizing:border-box;"
-                   [style.padding-top.px]="entryHeightPx(e) >= 18 ? 7 : 3">
+                   [style.padding-top.px]="itemHeight(item) >= 18 ? 7 : 3">
                 <div style="font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; line-height:1.3;">
-                  {{ e.description || projectName(e.projectId) }}
+                  @if (item.kind === 'task') { ☐ }
+                  {{ item.kind === 'entry'
+                      ? (item.entry!.description || projectName(item.entry!.projectId))
+                      : item.task!.content }}
                 </div>
-                @if (entryHeightPx(e) >= 36) {
+                @if (itemHeight(item) >= 36) {
                   <div style="font-size:10px; opacity:.85; white-space:nowrap; overflow:hidden; line-height:1.2;">
-                    {{ entryTimeRange(e) }} · {{ fmtEst(timeEntryDuration(e)) }}
+                    @if (item.kind === 'entry') {
+                      {{ entryTimeRange(item.entry!) }} · {{ fmtEst(timeEntryDuration(item.entry!)) }}
+                    } @else {
+                      {{ taskTimeRange(item.task!) }}
+                      @if (item.task!.estimateMinutes) { · {{ fmtEst(item.task!.estimateMinutes) }} }
+                    }
                   </div>
                 }
               </div>
 
               <!-- bottom resize handle -->
-              @if (entryHeightPx(e) >= 18) {
+              @if (itemHeight(item) >= 18) {
                 <div style="position:absolute; bottom:0; left:0; right:0; height:5px;
                             cursor:ns-resize; z-index:3;"
-                     (mousedown)="$event.stopPropagation(); onResizeDown($event, e, ci, day.iso, 'resize-bottom')"></div>
+                     (mousedown)="$event.stopPropagation(); onItemResizeDown($event, item, ci, day.iso, 'resize-bottom')"></div>
               }
             </div>
           }
@@ -420,10 +469,35 @@ interface DayInfo {
     </div>
   </div>
 }
+
+<!-- ── task popup ── -->
+@if (taskPopup(); as popup) {
+  <div style="position:fixed; inset:0; z-index:199;" (click)="taskPopup.set(null)"></div>
+  <div style="position:fixed; z-index:200; background:var(--bg); border:1px solid var(--line);
+              border-radius:12px; padding:18px 20px 16px; box-shadow:0 8px 28px rgba(0,0,0,.18);
+              min-width:240px; max-width:320px;"
+       [style.left.px]="popup.x + 10"
+       [style.top.px]="popup.y + 10"
+       (click)="$event.stopPropagation()">
+    <div style="font-weight:600; font-size:14px; color:var(--ink); margin-bottom:4px; line-height:1.4;">
+      {{ popup.task.content }}
+    </div>
+    <div class="mono" style="font-size:11px; color:var(--mute); margin-bottom:14px;">
+      {{ projectName(popup.task.projectId ?? '') }} · {{ taskTimeRange(popup.task) }}
+    </div>
+    <div style="display:flex; gap:8px; justify-content:flex-end;">
+      <button class="btn btn-ghost" style="font-size:12px;" (click)="taskPopup.set(null)">Fermer</button>
+      <button class="btn btn-primary" style="font-size:12px;" (click)="convertTaskToEntry(popup.task)">
+        ✓ Pointer
+      </button>
+    </div>
+  </div>
+}
   `,
 })
 export class TimeTrackerComponent implements OnInit, AfterViewInit {
   private projectService   = inject(ProjectService);
+  private taskService      = inject(TaskService);
   private timeEntryService = inject(TimeEntryService);
   private destroyRef       = inject(DestroyRef);
 
@@ -431,8 +505,9 @@ export class TimeTrackerComponent implements OnInit, AfterViewInit {
   @ViewChild('gridInner')  gridInnerRef?:  ElementRef<HTMLElement>;
 
   // ── constants exposed to template ──
-  readonly HOURS      = HOURS;
-  readonly PX_H       = PX_H;
+  readonly HOURS        = HOURS;
+  readonly PX_H         = PX_H;
+  readonly SHADED_ZONES = SHADED_ZONES;
   readonly minToHHMM  = minToHHMM;
   readonly VIEW_MODES = [
     { id: 'week' as const, label: 'Semaine' },
@@ -449,13 +524,17 @@ export class TimeTrackerComponent implements OnInit, AfterViewInit {
   refDate       = signal<Date>(new Date());
   projectFilter = signal<string | null>(null);
   entries       = signal<TimeEntry[]>([]);
+  tasks         = signal<Task[]>([]);
   nowMin        = signal(this.currentMin());
 
   // drag to create
   createDrag = signal<CreateDragState | null>(null);
 
-  // move / resize existing entries
+  // move / resize existing entries or tasks
   entryInteraction = signal<EntryInteraction | null>(null);
+
+  // task popup (shown on click without drag)
+  taskPopup = signal<{ task: Task; x: number; y: number } | null>(null);
 
   // modal
   showModal        = signal(false);
@@ -513,20 +592,17 @@ export class TimeTrackerComponent implements OnInit, AfterViewInit {
     this.entries().reduce((sum, e) => sum + timeEntryDuration(e), 0)
   );
 
-  // Ghost for existing entry being moved/resized
+  // Ghost for existing entry/task being moved/resized
   ghostEntry = computed<GhostEntryInfo | null>(() => {
     const ia = this.entryInteraction();
     if (!ia || ia.mode === 'pending') return null;
-    const proj  = this.allProjects().find(p => p.id === ia.entry.projectId);
-    const color = proj ? hexToRgba(getColor(proj.color), 0.88) : 'rgba(128,128,128,.88)';
-    return {
-      id: ia.entry.id,
-      startMin: ia.curStartMin,
-      endMin: ia.curEndMin,
-      colIndex: ia.curColIndex,
-      color,
-      label: ia.entry.description || proj?.name || '',
-    };
+    const projectId = ia.entry?.projectId ?? ia.task?.projectId;
+    const proj      = this.allProjects().find(p => p.id === projectId);
+    const alpha     = ia.task ? 0.55 : 0.88;
+    const color     = proj ? hexToRgba(getColor(proj.color), alpha) : 'rgba(128,128,128,.88)';
+    const id        = ia.entry?.id ?? ia.task!.id;
+    const label     = ia.entry?.description || ia.task?.content || proj?.name || '';
+    return { id, startMin: ia.curStartMin, endMin: ia.curEndMin, colIndex: ia.curColIndex, color, label };
   });
 
   // Ghost for create-by-drag
@@ -580,7 +656,6 @@ export class TimeTrackerComponent implements OnInit, AfterViewInit {
   // ── lifecycle ──
 
   constructor() {
-    // Reload when period or filter changes
     effect(() => {
       const days = this.viewDays();
       const pid  = this.projectFilter();
@@ -589,6 +664,15 @@ export class TimeTrackerComponent implements OnInit, AfterViewInit {
         const end   = days[days.length - 1].iso + 'T23:59:59';
         this.timeEntryService.getEntries({ start, end, projectId: pid ?? undefined })
           .subscribe(es => this.entries.set(es));
+        this.taskService.getTasks().subscribe(all => {
+          this.tasks.set(all.filter(t =>
+            !t.isCompleted &&
+            !!t.dueDateTime &&
+            t.dueDateTime >= days[0].iso &&
+            t.dueDateTime <= days[days.length - 1].iso + 'T23:59:59' &&
+            (!pid || t.projectId === pid)
+          ));
+        });
       });
     });
   }
@@ -606,8 +690,13 @@ export class TimeTrackerComponent implements OnInit, AfterViewInit {
   }
 
   ngAfterViewInit(): void {
-    const target = Math.max(0, this.nowMin() - 120);
-    this.gridScrollRef?.nativeElement.scrollTo({ top: target, behavior: 'instant' });
+    setTimeout(() => {
+      const el = this.gridScrollRef?.nativeElement;
+      if (!el) return;
+      const rangeCenter = (9 + 19) / 2 * PX_H;
+      const scrollTop   = Math.max(0, rangeCenter - el.clientHeight / 2);
+      el.scrollTo({ top: scrollTop, behavior: 'instant' });
+    });
   }
 
   // ── navigation ──
@@ -642,42 +731,44 @@ export class TimeTrackerComponent implements OnInit, AfterViewInit {
     this.openCreate(d.date, lo, hi);
   }
 
-  // ── entry interaction (move / resize) ──
+  // ── item interaction (move / resize) — handles both entries and tasks ──
 
-  onEntryDown(event: MouseEvent, entry: TimeEntry, colIndex: number, date: string): void {
+  onItemDown(event: MouseEvent, item: GridItem, colIndex: number, date: string): void {
     event.stopPropagation();
     event.preventDefault();
     this.entryInteraction.set({
       mode: 'pending',
-      entry,
+      entry: item.entry,
+      task:  item.task,
       startX: event.clientX,
       startY: event.clientY,
-      origStartMin: dtToMin(entry.startAt),
-      origEndMin:   dtToMin(entry.endAt),
+      origStartMin: item.startMin,
+      origEndMin:   item.endMin,
       origDate:     date,
       origColIndex: colIndex,
-      curStartMin:  dtToMin(entry.startAt),
-      curEndMin:    dtToMin(entry.endAt),
+      curStartMin:  item.startMin,
+      curEndMin:    item.endMin,
       curDate:      date,
       curColIndex:  colIndex,
     });
   }
 
-  onResizeDown(event: MouseEvent, entry: TimeEntry, colIndex: number, date: string,
-               mode: 'resize-top' | 'resize-bottom'): void {
+  onItemResizeDown(event: MouseEvent, item: GridItem, colIndex: number, date: string,
+                   mode: 'resize-top' | 'resize-bottom'): void {
     event.stopPropagation();
     event.preventDefault();
     this.entryInteraction.set({
       mode,
-      entry,
+      entry: item.entry,
+      task:  item.task,
       startX: event.clientX,
       startY: event.clientY,
-      origStartMin: dtToMin(entry.startAt),
-      origEndMin:   dtToMin(entry.endAt),
+      origStartMin: item.startMin,
+      origEndMin:   item.endMin,
       origDate:     date,
       origColIndex: colIndex,
-      curStartMin:  dtToMin(entry.startAt),
-      curEndMin:    dtToMin(entry.endAt),
+      curStartMin:  item.startMin,
+      curEndMin:    item.endMin,
       curDate:      date,
       curColIndex:  colIndex,
     });
@@ -689,22 +780,33 @@ export class TimeTrackerComponent implements OnInit, AfterViewInit {
     if (!ia) return;
 
     if (ia.mode === 'pending') {
-      // No drag occurred → open edit modal
-      this.openEdit(ia.entry);
+      if (ia.task) {
+        this.taskPopup.set({ task: ia.task, x: ia.startX, y: ia.startY });
+      } else {
+        this.openEdit(ia.entry!);
+      }
       return;
     }
 
-    // Drag occurred → save new times
+    if (ia.task) {
+      const dueDateTime     = `${ia.curDate}T${minToHHMM(ia.curStartMin)}:00`;
+      const estimateMinutes = ia.curEndMin - ia.curStartMin;
+      const optimistic: Task = { ...ia.task, dueDateTime, estimateMinutes };
+      this.tasks.update(list => list.map(t => t.id === ia.task!.id ? optimistic : t));
+      this.taskService.updateTask(ia.task.id, { dueDateTime, estimateMinutes }).subscribe({
+        next:  saved => this.tasks.update(list => list.map(t => t.id === saved.id ? saved : t)),
+        error: ()    => this.tasks.update(list => list.map(t => t.id === ia.task!.id ? ia.task! : t)),
+      });
+      return;
+    }
+
     const startAt = `${ia.curDate}T${minToHHMM(ia.curStartMin)}:00`;
     const endAt   = `${ia.curDate}T${minToHHMM(ia.curEndMin)}:00`;
-
-    // Optimistic update
-    const optimistic: TimeEntry = { ...ia.entry, startAt, endAt };
-    this.entries.update(list => list.map(e => e.id === ia.entry.id ? optimistic : e));
-
-    this.timeEntryService.updateEntry(ia.entry.id, { startAt, endAt }).subscribe({
-      next:  saved  => this.entries.update(list => list.map(e => e.id === saved.id ? saved : e)),
-      error: ()     => this.entries.update(list => list.map(e => e.id === ia.entry.id ? ia.entry : e)),
+    const optimistic: TimeEntry = { ...ia.entry!, startAt, endAt };
+    this.entries.update(list => list.map(e => e.id === ia.entry!.id ? optimistic : e));
+    this.timeEntryService.updateEntry(ia.entry!.id, { startAt, endAt }).subscribe({
+      next:  saved => this.entries.update(list => list.map(e => e.id === saved.id ? saved : e)),
+      error: ()    => this.entries.update(list => list.map(e => e.id === ia.entry!.id ? ia.entry! : e)),
     });
   }
 
@@ -844,23 +946,118 @@ export class TimeTrackerComponent implements OnInit, AfterViewInit {
     });
   }
 
-  // ── entry display helpers ──
+  // ── unified grid layout (entries + tasks) ──
 
-  entriesForDay(iso: string): TimeEntry[] {
-    return this.entries().filter(e => e.startAt.startsWith(iso));
+  gridItemsForDay(iso: string): GridItem[] {
+    const entries = this.entries().filter(e => e.startAt.startsWith(iso));
+    const tasks   = this.tasks().filter(t => t.dueDateTime?.startsWith(iso));
+
+    const raw: Omit<GridItem, 'lane' | 'totalLanes'>[] = [
+      ...entries.map(e => ({
+        kind: 'entry' as const,
+        id: e.id,
+        startMin: dtToMin(e.startAt),
+        endMin: Math.max(dtToMin(e.startAt) + 1, dtToMin(e.endAt)),
+        entry: e,
+      })),
+      ...tasks.map(t => {
+        const startMin = dtToMin(t.dueDateTime!);
+        return {
+          kind: 'task' as const,
+          id: t.id,
+          startMin,
+          endMin: startMin + (t.estimateMinutes ?? 30),
+          task: t,
+        };
+      }),
+    ];
+
+    if (raw.length === 0) return [];
+
+    const sorted = [...raw].sort((a, b) => a.startMin - b.startMin);
+    const laneEnds: number[] = [];
+    const lanes = new Map<string, number>();
+
+    for (const item of sorted) {
+      let lane = laneEnds.findIndex(t => t <= item.startMin);
+      if (lane === -1) { lane = laneEnds.length; laneEnds.push(item.endMin); }
+      else laneEnds[lane] = item.endMin;
+      lanes.set(item.id, lane);
+    }
+
+    return sorted.map(item => {
+      const lane = lanes.get(item.id)!;
+      let maxLane = lane;
+      for (const [otherId, otherLane] of lanes) {
+        const other = sorted.find(s => s.id === otherId)!;
+        if (other.startMin < item.endMin && other.endMin > item.startMin) {
+          maxLane = Math.max(maxLane, otherLane);
+        }
+      }
+      return { ...item, lane, totalLanes: maxLane + 1 };
+    });
   }
 
-  isBeingDragged(e: TimeEntry): boolean {
+  entryLeft(l: { lane: number; totalLanes: number }): string {
+    if (l.totalLanes === 1) return '2px';
+    return `calc(${(l.lane / l.totalLanes * 100).toFixed(2)}% + 2px)`;
+  }
+
+  entryRight(l: { lane: number; totalLanes: number }): string {
+    return l.totalLanes === 1 ? '10%' : 'auto';
+  }
+
+  entryWidth(l: { lane: number; totalLanes: number }): string {
+    if (l.totalLanes === 1) return 'auto';
+    return `calc(${(100 / l.totalLanes).toFixed(2)}% - 4px)`;
+  }
+
+  itemHeight(item: { startMin: number; endMin: number }): number {
+    return Math.max(15, item.endMin - item.startMin);
+  }
+
+  itemBg(item: GridItem): string {
+    const projectId = item.entry?.projectId ?? item.task?.projectId;
+    const color = getColor(this.allProjects().find(p => p.id === projectId)?.color ?? 'charcoal');
+    return hexToRgba(color, item.kind === 'task' ? 0.45 : 0.85);
+  }
+
+  itemAccent(item: GridItem): string {
+    const color = getColor(this.allProjects().find(p => p.id === item.task?.projectId)?.color ?? 'charcoal');
+    return hexToRgba(color, 0.8);
+  }
+
+  isBeingDragged(id: string): boolean {
     const ia = this.entryInteraction();
-    return !!ia && ia.mode !== 'pending' && ia.entry.id === e.id;
+    if (!ia || ia.mode === 'pending') return false;
+    return ia.entry?.id === id || ia.task?.id === id;
   }
 
-  entryTop(e: TimeEntry):      number { const d = new Date(e.startAt); return d.getHours() * 60 + d.getMinutes(); }
-  entryHeightPx(e: TimeEntry): number { return Math.max(15, timeEntryDuration(e)); }
+  // ── task popup ──
 
-  entryBg(e: TimeEntry): string {
-    const color = getColor(this.allProjects().find(p => p.id === e.projectId)?.color ?? 'charcoal');
-    return hexToRgba(color, 0.85);
+  convertTaskToEntry(task: Task): void {
+    this.taskPopup.set(null);
+    if (!task.dueDateTime || !task.projectId) return;
+    const startAt     = task.dueDateTime;
+    const startMin    = dtToMin(startAt);
+    const endMin      = startMin + (task.estimateMinutes ?? 30);
+    const endAt       = `${startAt.slice(0, 11)}${minToHHMM(endMin)}:00`;
+
+    this.tasks.update(list => list.filter(t => t.id !== task.id));
+    this.timeEntryService.createEntry({
+      startAt, endAt,
+      projectId:   task.projectId,
+      description: task.content,
+      notes:       task.description ?? undefined,
+    }).subscribe(entry => this.entries.update(list => [...list, entry]));
+    this.taskService.closeTask(task.id).subscribe();
+  }
+
+  taskTimeRange(task: Task): string {
+    if (!task.dueDateTime) return '';
+    const startMin = dtToMin(task.dueDateTime);
+    const endMin   = startMin + (task.estimateMinutes ?? 30);
+    return `${minToHHMM(startMin)}–${minToHHMM(endMin)}`;
   }
 
   entryTimeRange(e: TimeEntry): string {

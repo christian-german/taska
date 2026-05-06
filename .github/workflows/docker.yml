@@ -89,6 +89,6 @@ jobs:
         with:
           name: taska-windows-${{ github.ref_name }}
           path: |
-            taska-frontend/src-tauri/target/release/bundle/msi/*.msi
-            taska-frontend/src-tauri/target/release/bundle/nsis/*.exe
+            taska-frontend/src-tauri/target/x86_64-pc-windows-msvc/release/bundle/msi/*.msi
+            taska-frontend/src-tauri/target/x86_64-pc-windows-msvc/release/bundle/nsis/*.exe
           retention-days: 30

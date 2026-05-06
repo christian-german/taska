@@ -11,6 +11,7 @@ import {FilterService} from './core/services/filter.service';
 import {UiStateService} from './core/services/ui-state.service';
 import {Task} from './core/models';
 import {sendNotification} from '@tauri-apps/plugin-notification';
+import {attachConsole} from '@tauri-apps/plugin-log';
 
 @Component({
   selector: 'app-root',
@@ -18,10 +19,11 @@ import {sendNotification} from '@tauri-apps/plugin-notification';
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="app" [class.has-detail]="hasDetail()">
-      <app-sidebar />
+      <app-sidebar/>
 
-      <main class="scroll" (click)="ui.closeTaskDetail()" style="overflow-y: auto; display: flex; flex-direction: column;">
-        <router-outlet />
+      <main class="scroll" (click)="ui.closeTaskDetail()"
+            style="overflow-y: auto; display: flex; flex-direction: column;">
+        <router-outlet/>
       </main>
 
       @if (ui.selectedTask(); as task) {
@@ -29,22 +31,23 @@ import {sendNotification} from '@tauri-apps/plugin-notification';
           [task]="task"
           (close)="ui.closeTaskDetail()"
           (taskUpdated)="onTaskUpdated($event)"
-          (taskDeleted)="onTaskDeleted($event)" />
+          (taskDeleted)="onTaskDeleted($event)"/>
       }
     </div>
 
     @if (ui.showQuickAdd()) {
-      <app-quick-add (close)="ui.showQuickAdd.set(false)" />
+      <app-quick-add (close)="ui.showQuickAdd.set(false)"/>
     }
     @if (ui.showPalette()) {
-      <app-command-palette (close)="ui.showPalette.set(false)" />
+      <app-command-palette (close)="ui.showPalette.set(false)"/>
     }
     @if (ui.showHelp()) {
-      <app-shortcuts-modal (close)="ui.showHelp.set(false)" />
+      <app-shortcuts-modal (close)="ui.showHelp.set(false)"/>
     }
   `,
 })
 export class AppComponent implements OnInit {
+  private detachConsole?: () => void;
   private projectService = inject(ProjectService);
   private labelService = inject(LabelService);
   private filterService = inject(FilterService);
@@ -54,6 +57,10 @@ export class AppComponent implements OnInit {
   hasDetail = computed(() => this.ui.selectedTask() !== null);
 
   ngOnInit(): void {
+    attachConsole().then(detach => {
+      this.detachConsole = detach;
+    });
+
     this.projectService.loadProjects().subscribe();
     this.labelService.loadLabels().subscribe();
     this.filterService.loadFilters().subscribe();
@@ -62,6 +69,10 @@ export class AppComponent implements OnInit {
       title: 'Taska',
       body: 'Ta tâche est terminée !'
     });
+  }
+
+  ngOnDestroy() {
+    this.detachConsole?.();
   }
 
   onTaskUpdated(task: Task): void {
@@ -119,10 +130,30 @@ export class AppComponent implements OnInit {
     if (Date.now() - this.gBufferTime > 1000) this.gBuffer = '';
     this.gBuffer += event.key.toLowerCase();
     this.gBufferTime = Date.now();
-    if (this.gBuffer.endsWith('gt')) { this.router.navigateByUrl('/today'); this.gBuffer = ''; return; }
-    if (this.gBuffer.endsWith('gi')) { this.router.navigateByUrl('/inbox'); this.gBuffer = ''; return; }
-    if (this.gBuffer.endsWith('gw')) { this.router.navigateByUrl('/week'); this.gBuffer = ''; return; }
-    if (this.gBuffer.endsWith('gs')) { this.router.navigateByUrl('/stats'); this.gBuffer = ''; return; }
-    if (this.gBuffer.endsWith('gd')) { this.router.navigateByUrl('/done'); this.gBuffer = ''; return; }
+    if (this.gBuffer.endsWith('gt')) {
+      this.router.navigateByUrl('/today');
+      this.gBuffer = '';
+      return;
+    }
+    if (this.gBuffer.endsWith('gi')) {
+      this.router.navigateByUrl('/inbox');
+      this.gBuffer = '';
+      return;
+    }
+    if (this.gBuffer.endsWith('gw')) {
+      this.router.navigateByUrl('/week');
+      this.gBuffer = '';
+      return;
+    }
+    if (this.gBuffer.endsWith('gs')) {
+      this.router.navigateByUrl('/stats');
+      this.gBuffer = '';
+      return;
+    }
+    if (this.gBuffer.endsWith('gd')) {
+      this.router.navigateByUrl('/done');
+      this.gBuffer = '';
+      return;
+    }
   }
 }

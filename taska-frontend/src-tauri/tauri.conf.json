@@ -31,5 +31,10 @@
     "security": {
       "csp": null
     }
+  },
+  "plugins": {
+    "deep-link": {
+      "schemes": ["tauri"]
+    }
   }
 }

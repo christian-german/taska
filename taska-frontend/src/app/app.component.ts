@@ -12,6 +12,7 @@ import {UiStateService} from './core/services/ui-state.service';
 import {Task} from './core/models';
 import {sendNotification} from '@tauri-apps/plugin-notification';
 import {attachConsole} from '@tauri-apps/plugin-log';
+import {onOpenUrl} from '@tauri-apps/plugin-deep-link';
 
 @Component({
   selector: 'app-root',
@@ -57,6 +58,16 @@ export class AppComponent implements OnInit {
   hasDetail = computed(() => this.ui.selectedTask() !== null);
 
   ngOnInit(): void {
+
+    // Gestion des callbacks pour le scheme "tauri://"
+    onOpenUrl((urls) => {
+      const callbackUrl = urls[0];
+      if (callbackUrl.includes('code=')) {
+        const queryString = callbackUrl.split('?')[1];
+        this.router.navigateByUrl(`/callback?${queryString}`);
+      }
+    }).then();
+
     attachConsole().then(detach => {
       this.detachConsole = detach;
     });

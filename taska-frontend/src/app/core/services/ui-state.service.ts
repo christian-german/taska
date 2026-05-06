@@ -8,6 +8,7 @@ export class UiStateService {
   showPalette = signal(false);
   showHelp = signal(false);
   selectedTask = signal<Task | null>(null);
+  defaultProjectId = signal<string | null>(null);
 
   readonly taskCreated$ = new Subject<Task>();
   readonly taskUpdated$ = new Subject<Task>();
@@ -21,7 +22,8 @@ export class UiStateService {
     this.selectedTask.set(null);
   }
 
-  openQuickAdd(): void {
+  openQuickAdd(projectId?: string): void {
+    this.defaultProjectId.set(projectId ?? null);
     this.showQuickAdd.set(true);
   }
 

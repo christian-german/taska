@@ -16,7 +16,7 @@ import { IconComponent } from '../../shared/components/icon/icon.component';
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @if (project(); as proj) {
-      <app-page-header [title]="proj.name" [subtitle]="subtitle()">
+      <app-page-header [title]="proj.name" [subtitle]="subtitle()" [projectId]="proj.id">
         <div hero>
           <div style="margin-top: 12px;">
             <div class="progress" style="max-width: 280px;">

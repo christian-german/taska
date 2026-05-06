@@ -130,11 +130,30 @@
                   style="aspect-ratio: 1; border-radius: 5px; border: none; cursor: pointer;
                          font-size: 12px; font-family: inherit; transition: background .1s;"
                   [style.opacity]="cell.inMonth ? '1' : '0.3'"
-                  [style.background]="task().dueDate === cell.date ? 'var(--accent)' : cell.isToday ? 'var(--bg-3)' : 'transparent'"
-                  [style.color]="task().dueDate === cell.date ? '#fff' : 'var(--ink)'"
+                  [style.background]="isDateSelected(cell.date) ? 'var(--orange)' : cell.isToday ? 'var(--bg-3)' : 'transparent'"
+                  [style.color]="isDateSelected(cell.date) ? '#fff' : 'var(--ink)'"
                   [style.font-weight]="cell.isToday ? '700' : '400'"
                   (click)="selectDate(cell, $event)">
                   {{ cell.day }}
+                </button>
+              }
+            </div>
+
+            <!-- Time input -->
+            <div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--line-2);
+                        display: flex; align-items: center; gap: 8px;">
+              <app-icon name="clock" [size]="13" color="var(--mute)" />
+              <input type="time"
+                     [value]="timeValue()"
+                     (change)="onTimeChange($event)"
+                     (click)="$event.stopPropagation()"
+                     placeholder="--:--"
+                     style="flex: 1; padding: 5px 8px; border: 1px solid var(--line); border-radius: 6px;
+                            background: var(--bg); color: var(--ink); font-size: 12px;
+                            font-family: monospace; cursor: pointer; outline: none;" />
+              @if (timeValue()) {
+                <button class="btn btn-ghost btn-icon" (click)="clearTime($event)" title="Retirer l'heure">
+                  <app-icon name="x" [size]="11" />
                 </button>
               }
             </div>

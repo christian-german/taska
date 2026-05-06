@@ -35,6 +35,7 @@ import { IconComponent } from '../icon/icon.component';
 export class PageHeaderComponent {
   title = input.required<string>();
   subtitle = input<string>('');
+  projectId = input<string | undefined>(undefined);
 
   add = output<void>();
 
@@ -42,6 +43,6 @@ export class PageHeaderComponent {
 
   onAdd(): void {
     this.add.emit();
-    this.ui.openQuickAdd();
+    this.ui.openQuickAdd(this.projectId());
   }
 }

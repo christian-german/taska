@@ -438,7 +438,7 @@ export class QuickAddComponent implements OnInit {
 
   effectiveDueDate = computed(() => this.manualDate() ?? this.parsed().dueDate ?? null);
 
-  effectiveProjectId = computed(() => this.manualProjectId() ?? this.inboxProject()?.id ?? null);
+  effectiveProjectId = computed(() => this.manualProjectId() ?? this.ui.defaultProjectId() ?? this.inboxProject()?.id ?? null);
 
   effectiveProject = computed(() =>
     this.allProjects().find(p => p.id === this.effectiveProjectId()) ?? this.inboxProject()

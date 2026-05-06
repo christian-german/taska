@@ -268,10 +268,42 @@ export class TaskDetailComponent implements OnChanges {
     this.calMonth.set(m); this.calYear.set(y);
   }
 
+  isDateSelected(date: string): boolean {
+    const t = this.task();
+    if (t.dueDateTime) return t.dueDateTime.startsWith(date);
+    return t.dueDate === date;
+  }
+
+  timeValue = computed(() => this.task().dueDateTime?.slice(11, 16) ?? '');
+
   selectDate(cell: CalCell, e: Event): void {
     e.stopPropagation();
-    this.activeDetailPicker.set(null);
-    this.save({ dueDate: cell.date, dueDateTime: undefined });
+    const currentTime = this.task().dueDateTime?.slice(11, 16);
+    if (currentTime) {
+      this.save({ dueDate: null as any, dueDateTime: `${cell.date}T${currentTime}:00` });
+    } else {
+      this.save({ dueDate: cell.date, dueDateTime: null as any });
+    }
+    // Keep picker open so user can optionally set/change time
+  }
+
+  onTimeChange(e: Event): void {
+    const time = (e.target as HTMLInputElement).value;
+    const t = this.task();
+    const date = t.dueDate ?? t.dueDateTime?.slice(0, 10);
+    if (!date) return;
+    if (!time) {
+      this.save({ dueDate: date, dueDateTime: null as any });
+    } else {
+      this.save({ dueDate: null as any, dueDateTime: `${date}T${time}:00` });
+    }
+  }
+
+  clearTime(e: Event): void {
+    e.stopPropagation();
+    const t = this.task();
+    const date = t.dueDate ?? t.dueDateTime?.slice(0, 10);
+    if (date) this.save({ dueDate: date, dueDateTime: null as any });
   }
 
   clearDate(e: Event): void {

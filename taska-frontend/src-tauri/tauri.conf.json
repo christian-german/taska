@@ -34,7 +34,7 @@
   },
   "plugins": {
     "deep-link": {
-      "schemes": ["tauri"]
+      "schemes": ["taska"]
     }
   }
 }

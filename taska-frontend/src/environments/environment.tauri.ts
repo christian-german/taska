@@ -4,7 +4,7 @@ export const environment = {
   oidc: {
     authority: 'http://localhost:8000/application/o/taska',
     clientId: 'taska-client',
-    redirectUri: 'tauri://localhost/callback',
+    redirectUri: 'http://tauri.localhost/callback',
     postLogoutRedirectUri: 'http://tauri.localhost',
     scope: 'openid profile email offline_access'
   }

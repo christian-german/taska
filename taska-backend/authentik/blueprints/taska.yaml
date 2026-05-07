@@ -25,14 +25,15 @@ entries:
       client_type: public
       allowed_origins:
         - http://localhost:4200
-        - tauri://localhost
+        - http://tauri.localhost
+        - http://127.0.0.1:1430
       redirect_uris:
         - matching_mode: strict
           url: http://localhost:4200/callback
         - matching_mode: strict
           url: http://127.0.0.1:1430/callback
         - matching_mode: strict
-          url: http://tauri:localhost/callback
+          url: http://tauri.localhost/callback
       signing_key: !Find [authentik_crypto.certificatekeypair, [name, "authentik Self-signed Certificate"]]
 
   - model: authentik_core.application

@@ -11,14 +11,14 @@ import {FilterService} from './core/services/filter.service';
 import {UiStateService} from './core/services/ui-state.service';
 import {Task} from './core/models';
 import {sendNotification} from '@tauri-apps/plugin-notification';
-import {attachConsole} from '@tauri-apps/plugin-log';
 import {onOpenUrl} from '@tauri-apps/plugin-deep-link';
 import {UpdateService} from './core/services/update.service';
+import {UpdateDialogComponent} from './layout/update-dialog/UpdateDialogComponent';
 import {interval} from 'rxjs';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, SidebarComponent, QuickAddComponent, TaskDetailComponent, CommandPaletteComponent, ShortcutsModalComponent],
+  imports: [RouterOutlet, SidebarComponent, QuickAddComponent, TaskDetailComponent, CommandPaletteComponent, ShortcutsModalComponent, UpdateDialogComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="app" [class.has-detail]="hasDetail()">
@@ -47,6 +47,7 @@ import {interval} from 'rxjs';
     @if (ui.showHelp()) {
       <app-shortcuts-modal (close)="ui.showHelp.set(false)"/>
     }
+    <app-update-dialog/>
   `,
 })
 export class AppComponent implements OnInit {

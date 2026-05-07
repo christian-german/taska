@@ -1,7 +1,8 @@
-import {Component, OnInit} from '@angular/core';
+import {Component, inject, OnInit} from '@angular/core';
 import {UpdateInfo, UpdateService} from '../../core/services/update.service';
 
 @Component({
+  standalone: true,
   selector: 'app-update-dialog',
   template: `
     @if (visible) {
@@ -27,12 +28,11 @@ import {UpdateInfo, UpdateService} from '../../core/services/update.service';
   `
 })
 export class UpdateDialogComponent implements OnInit {
+  private updateService = inject(UpdateService);
   visible = false;
   downloading = false;
   progress = 0;
   updateInfo: UpdateInfo | null = null;
-
-  constructor(private updateService: UpdateService) {}
 
   ngOnInit() {
     this.updateService.updateAvailable.subscribe((info) => {

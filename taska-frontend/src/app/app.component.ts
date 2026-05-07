@@ -13,6 +13,8 @@ import {Task} from './core/models';
 import {sendNotification} from '@tauri-apps/plugin-notification';
 import {attachConsole} from '@tauri-apps/plugin-log';
 import {onOpenUrl} from '@tauri-apps/plugin-deep-link';
+import {UpdateService} from './core/services/update.service';
+import {interval} from 'rxjs';
 
 @Component({
   selector: 'app-root',
@@ -54,6 +56,7 @@ export class AppComponent implements OnInit {
   private filterService = inject(FilterService);
   private router = inject(Router);
   protected ui = inject(UiStateService);
+  private updateService = inject(UpdateService);
 
   hasDetail = computed(() => this.ui.selectedTask() !== null);
 
@@ -68,8 +71,14 @@ export class AppComponent implements OnInit {
       }
     }).then();
 
-    attachConsole().then(detach => {
-      this.detachConsole = detach;
+    // Vérification au démarrage (léger délai pour laisser l'app s'initialiser)
+    setTimeout(() => this.updateService.checkForUpdates(), 3000);
+
+    // Vérification toutes les 4 heures
+    interval(4 * 60 * 60 * 1000).subscribe(() => {
+      this.updateService.checkForUpdates().then(
+        () => console.log("Update check OK")
+      );
     });
 
     this.projectService.loadProjects().subscribe();

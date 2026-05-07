@@ -14,10 +14,9 @@
     "build:tauri": "ng build --configuration=tauri",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
-    "tauri:build": "npx tauri build --target x86_64-pc-windows-msvc",
-    "tauri:dev": "npx tauri dev",
-    "build:electron:dev": "ng build && electron-builder --win",
-    "build:electron:prod": "ng build --configuration=production && electron-builder --win"
+    "tauri": "tauri",
+    "tauri:build": "npx tauri build",
+    "tauri:dev": "npx tauri dev"
   },
   "build": {
     "appId": "com.taska.app",

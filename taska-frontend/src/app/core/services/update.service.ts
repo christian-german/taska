@@ -17,7 +17,7 @@ export class UpdateService {
     try {
       console.log('Checking for updates...');
       const update = await check();
-      if (update?.available) {
+      if (update) {
         this.updateAvailable$.next({
           version: update.version,
           notes: update.body ?? '',

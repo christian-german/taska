@@ -1,4 +1,4 @@
-import {Component, inject, OnInit} from '@angular/core';
+import {ChangeDetectorRef, Component, inject, OnInit} from '@angular/core';
 import {UpdateInfo, UpdateService} from '../../core/services/update.service';
 
 @Component({
@@ -29,6 +29,7 @@ import {UpdateInfo, UpdateService} from '../../core/services/update.service';
 })
 export class UpdateDialogComponent implements OnInit {
   private updateService = inject(UpdateService);
+  private cdr = inject(ChangeDetectorRef);
   visible = false;
   downloading = false;
   progress = 0;
@@ -38,6 +39,7 @@ export class UpdateDialogComponent implements OnInit {
     this.updateService.updateAvailable.subscribe((info) => {
       this.updateInfo = info;
       this.visible = true;
+      this.cdr.markForCheck();
     });
   }
 

@@ -24,17 +24,18 @@ pub fn run() {
         window.open_devtools();
 
         let app_handle = app.handle().clone();
-            window.on_navigation(move |url| {
-                if url.scheme() == "taska" {
-                    let url_string = url.to_string();
-                    let app_handle = app_handle.clone();
-                    tauri::async_runtime::spawn(async move {
-                        app_handle.emit("oidc-callback", url_string).unwrap();
-                    });
-                    false // bloque la navigation WebView
-                } else {
-                    true // laisse passer les autres URLs
-                }
+        window.on_navigation(move |url| {
+          if url.scheme() == "taska" {
+            let url_string = url.to_string();
+            let app_handle = app_handle.clone();
+            tauri::async_runtime::spawn(async move {
+              app_handle.emit("oidc-callback", url_string).unwrap();
+            });
+            false // bloque la navigation WebView
+          } else {
+            true // laisse passer les autres URLs
+          }
+        });
       }
       Ok(())
     })

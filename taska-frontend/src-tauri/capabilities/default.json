@@ -4,5 +4,10 @@
   "description": "Default capability for Taska",
   "platforms": ["linux", "macOS", "windows"],
   "windows": ["main"],
-  "permissions": ["core:default", "notification:default"]
+  "permissions": [
+    "core:default",
+    "notification:default",
+    "updater:default",
+    "process:allow-relaunch"
+  ]
 }

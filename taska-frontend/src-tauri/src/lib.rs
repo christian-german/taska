@@ -1,7 +1,8 @@
-use tauri::Manager;
+use tauri::{Manager, WebviewWindowBuilder};
 use tauri_plugin_log::{Target, TargetKind};
 use log;
 use serde_json;
+use tauri::Emitter;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -24,18 +25,20 @@ pub fn run() {
         window.open_devtools();
 
         let app_handle = app.handle().clone();
-        window.on_navigation(move |url| {
-          if url.scheme() == "taska" {
+        WebviewWindowBuilder::new(app, "main", tauri::WebviewUrl::default())
+          .title("Mon App")
+          .on_navigation(move |url| {
             let url_string = url.to_string();
-            let app_handle = app_handle.clone();
-            tauri::async_runtime::spawn(async move {
-              app_handle.emit("oidc-callback", url_string).unwrap();
-            });
-            false // bloque la navigation WebView
-          } else {
-            true // laisse passer les autres URLs
-          }
-        });
+            if url_string.contains("oidc-callback") {
+              let handle = app_handle.clone();
+              tauri::async_runtime::spawn(async move {
+                handle.emit("oidc-callback", url_string).unwrap();
+              });
+              return false; // empêche la navigation vers cette URL
+            }
+            true
+          })
+          .build()?;
       }
       Ok(())
     })

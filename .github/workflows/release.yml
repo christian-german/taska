@@ -80,6 +80,15 @@ jobs:
         working-directory: taska-frontend
         run: npm ci
 
+      - name: Set app version from tag
+        shell: pwsh
+        run: |
+          $version = "${{ github.ref_name }}"
+          $path = "taska-frontend/src-tauri/tauri.conf.json"
+          $json = Get-Content $path | ConvertFrom-Json
+          $json.version = $version
+          $json | ConvertTo-Json -Depth 10 | Set-Content $path
+
       - name: Build and release Tauri
         uses: tauri-apps/tauri-action@v0
         env:

@@ -11,7 +11,7 @@
     "prebuild": "npm run tailwind:build",
     "build": "ng build",
     "build:prod": "ng build --configuration=production",
-    "build:tauri": "ng build --configuration=prod.tauri",
+    "build:tauri": "ng build --configuration=prod-tauri",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
     "tauri": "tauri",

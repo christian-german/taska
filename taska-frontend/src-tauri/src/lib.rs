@@ -17,16 +17,9 @@ pub fn run() {
           Target::new(TargetKind::LogDir { file_name: Some("taska".to_string()) }),
           Target::new(TargetKind::Webview),
         ])
-        .level(log::LevelFilter::Info)
+        .level(log::LevelFilter::Debug)
         .build()
     )
-    .setup(|app| {
-      {
-        let window = app.get_webview_window("main").unwrap();
-        window.open_devtools();
-      }
-      Ok(())
-    })
     .run(tauri::generate_context!())
     .expect("error while running tauri application");
 }

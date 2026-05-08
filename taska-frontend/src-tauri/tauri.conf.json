@@ -5,7 +5,9 @@
   "identifier": "com.taska.app",
   "build": {
     "frontendDist": "../dist/taska-frontend/browser",
-    "beforeBuildCommand": "npm run build:tauri"
+    "devUrl": "http://localhost:4200",
+    "beforeBuildCommand": "npm run build:tauri",
+    "beforeDevCommand": "npm run start"
   },
   "bundle": {
     "active": true,

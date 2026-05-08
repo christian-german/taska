@@ -3,7 +3,13 @@ import {provideRouter, withComponentInputBinding} from '@angular/router';
 import {provideHttpClient, withInterceptors} from '@angular/common/http';
 import {provideAnimationsAsync} from '@angular/platform-browser/animations/async';
 import {routes} from './app.routes';
-import {authInterceptor, LogLevel, OidcSecurityService, provideAuth} from 'angular-auth-oidc-client';
+import {
+  AbstractSecurityStorage,
+  authInterceptor,
+  DefaultLocalStorageService,
+  OidcSecurityService,
+  provideAuth
+} from 'angular-auth-oidc-client';
 import {environment} from '../environments/environment';
 import {take} from 'rxjs';
 
@@ -27,11 +33,11 @@ export const appConfig: ApplicationConfig = {
           responseType: 'code',
           silentRenew: true,
           useRefreshToken: true,
-          logLevel: LogLevel.Debug,
-          secureRoutes: [environment.apiUrl],
+          secureRoutes: [environment.apiUrl]
         }
       }
     ),
+    {provide: AbstractSecurityStorage, useClass: DefaultLocalStorageService},
     {
       provide: APP_INITIALIZER,
       useFactory: initializeAuth,

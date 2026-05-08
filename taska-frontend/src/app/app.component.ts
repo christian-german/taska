@@ -1,5 +1,6 @@
 import {ChangeDetectionStrategy, Component, computed, HostListener, inject, OnInit} from '@angular/core';
 import {Router, RouterOutlet} from '@angular/router';
+import {IconComponent} from './shared/components/icon/icon.component';
 import {SidebarComponent} from './layout/sidebar/sidebar.component';
 import {QuickAddComponent} from './shared/components/quick-add/quick-add.component';
 import {TaskDetailComponent} from './features/task-detail/task-detail.component';
@@ -19,9 +20,19 @@ import {interval} from 'rxjs';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, SidebarComponent, QuickAddComponent, TaskDetailComponent, CommandPaletteComponent, ShortcutsModalComponent, UpdateDialogComponent],
+  imports: [RouterOutlet, IconComponent, SidebarComponent, QuickAddComponent, TaskDetailComponent, CommandPaletteComponent, ShortcutsModalComponent, UpdateDialogComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
+    @if (ui.sidebarOpen()) {
+      <div class="sidebar-backdrop" (click)="ui.sidebarOpen.set(false)"></div>
+    }
+
+    <button class="sidebar-toggle btn btn-ghost btn-icon"
+            (click)="ui.sidebarOpen.set(true)"
+            title="Menu">
+      <app-icon name="menu" [size]="18"/>
+    </button>
+
     <div class="app" [class.has-detail]="hasDetail()">
       <app-sidebar/>
 
@@ -64,11 +75,12 @@ export class AppComponent implements OnInit {
 
   ngOnInit(): void {
 
+    // Enable console attach for Tauri to log to a file.
     attachConsole().then(detach => {
       this.detachConsole = detach;
     });
 
-    // Gestion des callbacks pour le scheme "tauri://"
+    // Callback management for the scheme "tauri://"
     onOpenUrl((urls) => {
       const callbackUrl = urls[0];
       if (callbackUrl.includes('code=')) {
@@ -77,24 +89,20 @@ export class AppComponent implements OnInit {
       }
     }).then();
 
-    // Vérification au démarrage (léger délai pour laisser l'app s'initialiser)
+    // Check update at startup.
     setTimeout(() => this.updateService.checkForUpdates(), 3000);
 
-    // Vérification toutes les 4 heures
+    // Check update every 4 hours.
     interval(4 * 60 * 60 * 1000).subscribe(() => {
       this.updateService.checkForUpdates().then(
         () => console.log("Update check OK")
       );
     });
 
+    // Load initial data.
     this.projectService.loadProjects().subscribe();
     this.labelService.loadLabels().subscribe();
     this.filterService.loadFilters().subscribe();
-
-    sendNotification({
-      title: 'Taska',
-      body: 'Ta tâche est terminée !'
-    });
   }
 
   ngOnDestroy() {

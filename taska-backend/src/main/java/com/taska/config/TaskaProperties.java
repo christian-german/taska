@@ -11,14 +11,15 @@ import org.springframework.context.annotation.Configuration;
 @Setter
 public class TaskaProperties {
 
-    private final JwtIssuerValidator jwtIssuerValidator = new JwtIssuerValidator();
+    private final Jwt jwt = new Jwt();
 
     @Getter
     @Setter
-    public static class JwtIssuerValidator {
+    public static class Jwt {
         /**
-         * Indicates whether JWT issuer validation should be disabled.
+         * Indicates whether JWT timeout should be increased by 10 seconds.
+         * Spring security by default sets the timeout to 500ms, which is too short for some OIDC servers.
          */
-        private boolean disable = false;
+        private boolean increaseTimeout = false;
     }
 }

@@ -7,6 +7,7 @@ export class UiStateService {
   showQuickAdd = signal(false);
   showPalette = signal(false);
   showHelp = signal(false);
+  sidebarOpen = signal(false);
   selectedTask = signal<Task | null>(null);
   defaultProjectId = signal<string | null>(null);
 

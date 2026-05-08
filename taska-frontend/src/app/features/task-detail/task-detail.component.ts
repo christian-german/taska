@@ -1,6 +1,7 @@
 import {Component, OnChanges, computed, inject, input, output, signal, ChangeDetectionStrategy} from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { toSignal } from '@angular/core/rxjs-interop';
+import { DatetimePickerComponent } from '../../shared/components/datetime-picker/datetime-picker.component';
 import {
   Comment,
   Label,
@@ -16,14 +17,6 @@ import {
 
   taskHasTime,
 } from '../../core/models';
-
-const FR_MONTHS = [
-  'janvier', 'février', 'mars', 'avril', 'mai', 'juin',
-  'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre',
-];
-
-interface CalCell { date: string; day: number; inMonth: boolean; isToday: boolean; }
-function pad(n: number): string { return n.toString().padStart(2, '0'); }
 
 const ESTIMATE_PRESETS = [
   { minutes: 15, label: '15 min' }, { minutes: 30, label: '30 min' },
@@ -63,6 +56,7 @@ type DetailPicker = 'date' | 'tags' | 'estimate' | 'recurrence' | null;
     PriorityFlagComponent,
     ProjectDotComponent,
     TagChipComponent,
+    DatetimePickerComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './task-detail.component.html',
@@ -88,8 +82,6 @@ export class TaskDetailComponent implements OnChanges {
   showPriorityMenu = signal(false);
   showDeleteConfirm = signal(false);
   activeDetailPicker = signal<DetailPicker>(null);
-  calYear = signal(new Date().getFullYear());
-  calMonth = signal(new Date().getMonth());
   tagSearch = signal('');
 
   readonly priorities: { value: 1 | 2 | 3 | 4; label: string }[] = [
@@ -112,32 +104,6 @@ export class TaskDetailComponent implements OnChanges {
   completedSubs = computed(() => this.subtasks().filter(s => s.isCompleted).length);
 
   priorityLabel = computed(() => PRIORITY_LABELS[this.task().priority] ?? '');
-
-  calMonthLabel = computed(() =>
-    `${FR_MONTHS[this.calMonth()]} ${this.calYear()}`
-  );
-
-  calendarDays = computed<CalCell[]>(() => {
-    const y = this.calYear(), m = this.calMonth();
-    const today = new Date();
-    const firstDow = new Date(y, m, 1).getDay();
-    const offset = (firstDow + 6) % 7;
-    const daysInMonth = new Date(y, m + 1, 0).getDate();
-    const cells: CalCell[] = [];
-    for (let i = 0; i < offset; i++) {
-      const d = new Date(y, m, 1 - offset + i);
-      cells.push({ date: `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`, day: d.getDate(), inMonth: false, isToday: false });
-    }
-    for (let d = 1; d <= daysInMonth; d++) {
-      const dt = new Date(y, m, d);
-      cells.push({ date: `${y}-${pad(m+1)}-${pad(d)}`, day: d, inMonth: true, isToday: dt.toDateString() === today.toDateString() });
-    }
-    while (cells.length < 42) {
-      const d = new Date(y, m + 1, cells.length - offset - daysInMonth + 1);
-      cells.push({ date: `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`, day: d.getDate(), inMonth: false, isToday: false });
-    }
-    return cells;
-  });
 
   filteredLabels = computed(() => {
     const q = this.tagSearch().toLowerCase();
@@ -170,10 +136,6 @@ export class TaskDetailComponent implements OnChanges {
     this.editedContent.set(t.content);
     this.editedDescription.set(t.description ?? '');
     this.activeDetailPicker.set(null);
-    const now = new Date();
-    const d = this.dueDate();
-    this.calYear.set(d ? d.getFullYear() : now.getFullYear());
-    this.calMonth.set(d ? d.getMonth() : now.getMonth());
     this.loadSubtasks();
     this.loadComments();
   }
@@ -254,56 +216,14 @@ export class TaskDetailComponent implements OnChanges {
     if (name === 'tags') this.tagSearch.set('');
   }
 
-  prevMonth(e: Event): void {
-    e.stopPropagation();
-    let m = this.calMonth() - 1, y = this.calYear();
-    if (m < 0) { m = 11; y--; }
-    this.calMonth.set(m); this.calYear.set(y);
-  }
+datePickerValue = computed(() => this.task().dueDateTime ?? this.task().dueDate ?? '');
 
-  nextMonth(e: Event): void {
-    e.stopPropagation();
-    let m = this.calMonth() + 1, y = this.calYear();
-    if (m > 11) { m = 0; y++; }
-    this.calMonth.set(m); this.calYear.set(y);
-  }
-
-  isDateSelected(date: string): boolean {
-    const t = this.task();
-    if (t.dueDateTime) return t.dueDateTime.startsWith(date);
-    return t.dueDate === date;
-  }
-
-  timeValue = computed(() => this.task().dueDateTime?.slice(11, 16) ?? '');
-
-  selectDate(cell: CalCell, e: Event): void {
-    e.stopPropagation();
-    const currentTime = this.task().dueDateTime?.slice(11, 16);
-    if (currentTime) {
-      this.save({ dueDate: null as any, dueDateTime: `${cell.date}T${currentTime}:00` });
+  onDatetimeChange(value: string): void {
+    if (value.includes('T')) {
+      this.save({ dueDate: null as any, dueDateTime: value });
     } else {
-      this.save({ dueDate: cell.date, dueDateTime: null as any });
+      this.save({ dueDate: value, dueDateTime: null as any });
     }
-    // Keep picker open so user can optionally set/change time
-  }
-
-  onTimeChange(e: Event): void {
-    const time = (e.target as HTMLInputElement).value;
-    const t = this.task();
-    const date = t.dueDate ?? t.dueDateTime?.slice(0, 10);
-    if (!date) return;
-    if (!time) {
-      this.save({ dueDate: date, dueDateTime: null as any });
-    } else {
-      this.save({ dueDate: null as any, dueDateTime: `${date}T${time}:00` });
-    }
-  }
-
-  clearTime(e: Event): void {
-    e.stopPropagation();
-    const t = this.task();
-    const date = t.dueDate ?? t.dueDateTime?.slice(0, 10);
-    if (date) this.save({ dueDate: date, dueDateTime: null as any });
   }
 
   clearDate(e: Event): void {

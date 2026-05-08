@@ -6,8 +6,7 @@ import {
   fmtDateLong,
   fmtEstimate,
   isOverdue,
-  sameDay,
-  startOfDay,
+  sameDay
 } from '../../core/models';
 import { TaskService } from '../../core/services/task.service';
 import { ProjectService } from '../../core/services/project.service';
@@ -23,15 +22,6 @@ import { IconComponent } from '../../shared/components/icon/icon.component';
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <app-page-header [title]="'Aujourd\\'hui'" [subtitle]="subtitle()">
-      <div banner>
-        @if (aiSummary()) {
-          <div style="margin-top: 14px; padding: 10px 14px; background: rgba(255, 216, 77, 0.18);
-                      border-radius: 10px; display: flex; align-items: flex-start; gap: 10px;">
-            <app-icon name="sparkle" [size]="14" color="#A6800E" />
-            <span style="font-size: 13.5px; line-height: 1.45; color: #5D4500;">{{ aiSummary() }}</span>
-          </div>
-        }
-      </div>
     </app-page-header>
 
     <div class="scroll" style="flex: 1; overflow-y: auto; padding: 8px 12px 60px;">
@@ -60,7 +50,6 @@ export class TodayComponent implements OnInit {
 
   tasks = signal<Task[]>([]);
   projects = toSignal(this.projectService.projects$, { initialValue: [] as Project[] });
-  aiSummary = signal<string>("Concentre-toi sur l'essentiel d'abord — le reste suivra.");
 
   selectedId = computed(() => this.ui.selectedTask()?.id ?? null);
 

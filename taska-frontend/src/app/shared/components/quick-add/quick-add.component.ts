@@ -13,17 +13,10 @@ import {
   Label, Project, fmtRel, fmtTime, fmtEstimate, hexToRgba, getColor,
 } from '../../../core/models';
 import { IconComponent } from '../icon/icon.component';
+import { DatetimePickerComponent } from '../datetime-picker/datetime-picker.component';
 
 interface DetectedChip { k: string; v: string; color: string; }
-interface CalCell { date: string; day: number; inMonth: boolean; isToday: boolean; }
 type PickerName = 'date' | 'project' | 'tags' | 'estimate' | 'recurrence';
-
-const FR_MONTHS = [
-  'janvier', 'février', 'mars', 'avril', 'mai', 'juin',
-  'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre',
-];
-
-function pad(n: number): string { return n.toString().padStart(2, '0'); }
 
 const ESTIMATE_PRESETS = [
   { minutes: 15, label: '15 min' }, { minutes: 30, label: '30 min' },
@@ -42,7 +35,7 @@ const RECURRENCE_OPTIONS = [
 
 @Component({
   selector: 'app-quick-add',
-  imports: [FormsModule, IconComponent],
+  imports: [FormsModule, IconComponent, DatetimePickerComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="modal-veil" (click)="close.emit()">
@@ -109,49 +102,19 @@ const RECURRENCE_OPTIONS = [
                       [style.color]="effectiveDueDate() ? 'var(--ink)' : 'var(--ink-2)'">
                   {{ dateRowLabel() }}
                 </span>
-                @if (manualDate()) {
+                @if (manualDatetime()) {
                   <span (click)="clearManual($event,'date')"
                         style="color:var(--mute);font-size:15px;line-height:1;cursor:pointer;">×</span>
                 }
               </button>
 
               @if (activePicker() === 'date') {
-                <div style="position:absolute;left:0;top:calc(100% + 4px);z-index:56;background:var(--bg);border:1px solid var(--line);border-radius:10px;box-shadow:0 6px 24px rgba(0,0,0,.14);padding:10px;min-width:236px;"
+                <div style="position:absolute;left:0;top:calc(100% + 4px);z-index:56;background:var(--bg);border:1px solid var(--line);border-radius:10px;box-shadow:0 6px 24px rgba(0,0,0,.14);padding:12px;min-width:260px;"
                      (click)="$event.stopPropagation()">
-                  <!-- month nav -->
-                  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;padding:0 2px;">
-                    <button (click)="prevMonth()"
-                            style="background:transparent;border:0;cursor:pointer;color:var(--mute);
-                                   padding:4px 8px;border-radius:6px;font-size:16px;line-height:1;">‹</button>
-                    <span style="font-size:13px;font-weight:600;color:var(--ink);text-transform:capitalize;">
-                      {{ calMonthLabel() }}</span>
-                    <button (click)="nextMonth()"
-                            style="background:transparent;border:0;cursor:pointer;color:var(--mute);
-                                   padding:4px 8px;border-radius:6px;font-size:16px;line-height:1;">›</button>
-                  </div>
-                  <!-- day headers -->
-                  <div style="display:grid;grid-template-columns:repeat(7,1fr);margin-bottom:4px;">
-                    @for (h of dayHeaders; track $index) {
-                      <div style="text-align:center;font-size:10.5px;font-weight:600;
-                                  color:var(--mute);padding:2px 0;">{{ h }}</div>
-                    }
-                  </div>
-                  <!-- day grid -->
-                  <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;">
-                    @for (cell of calendarDays(); track cell.date) {
-                      <button (click)="selectDate(cell.date)"
-                              style="aspect-ratio:1;border:0;cursor:pointer;border-radius:6px;
-                                     font-size:12.5px;padding:0;display:flex;
-                                     align-items:center;justify-content:center;"
-                              [style.color]="!cell.inMonth ? 'var(--mute)'
-                                : cell.date === effectiveDueDate() ? '#fff' : 'var(--ink)'"
-                              [style.background]="cell.date === effectiveDueDate() ? 'var(--orange)'
-                                : cell.isToday ? 'rgba(255,138,61,0.12)' : 'transparent'"
-                              [style.font-weight]="cell.isToday ? '600' : 'normal'">
-                        {{ cell.day }}
-                      </button>
-                    }
-                  </div>
+                  <app-datetime-picker
+                    [value]="datePickerValue()"
+                    [withTime]="true"
+                    (valueChange)="onDatetimeChange($event)" />
                 </div>
               }
             </div>
@@ -392,23 +355,17 @@ export class QuickAddComponent implements OnInit {
   activePicker = signal<PickerName | null>(null);
 
   // Manual overrides — null means "use NL-detected value"
-  manualDate = signal<string | null>(null);
+  manualDatetime = signal<string | null>(null);
   manualProjectId = signal<string | null>(null);
   manualTags = signal<Set<string> | null>(null);
   manualEstimate = signal<number | null>(null);
   manualRecurrence = signal<string | null>(null); // '' = explicitly none
-
-  // Calendar state
-  calYear = signal(new Date().getFullYear());
-  calMonth = signal(new Date().getMonth());
 
   // Picker search inputs
   projectSearch = signal('');
   tagSearch = signal('');
 
   // Static data
-
-  readonly dayHeaders = ['L', 'M', 'M', 'J', 'V', 'S', 'D'];
   readonly estimatePresets = ESTIMATE_PRESETS;
   readonly recurrenceOptions = RECURRENCE_OPTIONS;
 
@@ -436,7 +393,18 @@ export class QuickAddComponent implements OnInit {
     return this.labels().some(l => l.name.toLowerCase() === q);
   });
 
-  effectiveDueDate = computed(() => this.manualDate() ?? this.parsed().dueDate ?? null);
+  effectiveDueDate = computed(() => {
+    const m = this.manualDatetime();
+    return m ? m.slice(0, 10) : (this.parsed().dueDate ?? null);
+  });
+
+  datePickerValue = computed(() => {
+    const m = this.manualDatetime();
+    if (m) return m;
+    const p = this.parsed();
+    if (p.dueAt) return p.dueAt.slice(0, 16);
+    return p.dueDate ?? '';
+  });
 
   effectiveProjectId = computed(() => this.manualProjectId() ?? this.ui.defaultProjectId() ?? this.inboxProject()?.id ?? null);
 
@@ -460,38 +428,6 @@ export class QuickAddComponent implements OnInit {
   );
 
   hasManualTags = computed(() => this.manualTags() !== null);
-
-  calMonthLabel = computed(() => `${FR_MONTHS[this.calMonth()]} ${this.calYear()}`);
-
-  calendarDays = computed<CalCell[]>(() => {
-    const year = this.calYear();
-    const month = this.calMonth();
-    const todayStr = new Date().toISOString().split('T')[0];
-    const firstDow = (new Date(year, month, 1).getDay() + 6) % 7;
-    const daysInMonth = new Date(year, month + 1, 0).getDate();
-    const daysInPrev = new Date(year, month, 0).getDate();
-    const cells: CalCell[] = [];
-
-    const prevMonth = month === 0 ? 11 : month - 1;
-    const prevYear = month === 0 ? year - 1 : year;
-    for (let i = firstDow; i > 0; i--) {
-      const d = daysInPrev - i + 1;
-      const date = `${prevYear}-${pad(prevMonth + 1)}-${pad(d)}`;
-      cells.push({ date, day: d, inMonth: false, isToday: date === todayStr });
-    }
-    for (let d = 1; d <= daysInMonth; d++) {
-      const date = `${year}-${pad(month + 1)}-${pad(d)}`;
-      cells.push({ date, day: d, inMonth: true, isToday: date === todayStr });
-    }
-    const nextMonth = month === 11 ? 0 : month + 1;
-    const nextYear = month === 11 ? year + 1 : year;
-    let d = 1;
-    while (cells.length < 42) {
-      const date = `${nextYear}-${pad(nextMonth + 1)}-${pad(d++)}`;
-      cells.push({ date, day: d - 1, inMonth: false, isToday: date === todayStr });
-    }
-    return cells;
-  });
 
   detected = computed<DetectedChip[]>(() => {
     const p = this.parsed();
@@ -521,12 +457,7 @@ export class QuickAddComponent implements OnInit {
   togglePicker(name: PickerName): void {
     if (this.activePicker() === name) { this.activePicker.set(null); return; }
 
-    if (name === 'date') {
-      const eff = this.effectiveDueDate();
-      const base = eff ? new Date(eff + 'T00:00:00') : new Date();
-      this.calYear.set(base.getFullYear());
-      this.calMonth.set(base.getMonth());
-    }
+    if (name === 'date') { /* calendar navigation handled by DatetimePickerComponent */ }
     if (name === 'tags') {
       this.tagSearch.set('');
       if (this.manualTags() === null) {
@@ -543,7 +474,7 @@ export class QuickAddComponent implements OnInit {
   clearManual(e: MouseEvent, field: PickerName): void {
     e.stopPropagation();
     switch (field) {
-      case 'date':       this.manualDate.set(null); break;
+      case 'date':       this.manualDatetime.set(null); break;
       case 'project':    this.manualProjectId.set(null); break;
       case 'tags':       this.manualTags.set(null); break;
       case 'estimate':   this.manualEstimate.set(null); break;
@@ -553,16 +484,8 @@ export class QuickAddComponent implements OnInit {
 
   // ── Date ──────────────────────────────────────────────────────────────
 
-  selectDate(date: string): void { this.manualDate.set(date); this.activePicker.set(null); }
-
-  prevMonth(): void {
-    if (this.calMonth() === 0) { this.calMonth.set(11); this.calYear.update(y => y - 1); }
-    else this.calMonth.update(m => m - 1);
-  }
-
-  nextMonth(): void {
-    if (this.calMonth() === 11) { this.calMonth.set(0); this.calYear.update(y => y + 1); }
-    else this.calMonth.update(m => m + 1);
+  onDatetimeChange(value: string): void {
+    this.manualDatetime.set(value);
   }
 
   // ── Project ───────────────────────────────────────────────────────────
@@ -613,12 +536,15 @@ export class QuickAddComponent implements OnInit {
   getColor = getColor;
 
   dateRowLabel(): string {
-    const eff = this.effectiveDueDate();
-    if (!eff) return 'pas de date';
-    const d = new Date(eff + 'T00:00:00');
+    const m = this.manualDatetime();
+    if (m) {
+      const d = new Date(m.includes('T') ? m : m + 'T00:00:00');
+      return fmtRel(d) + (m.includes('T') ? ' · ' + fmtTime(d) : '');
+    }
     const p = this.parsed();
-    const time = !this.manualDate() && p.hasTime && p.dueAt
-      ? ' · ' + fmtTime(new Date(p.dueAt)) : '';
+    if (!p.dueDate) return 'pas de date';
+    const d = new Date(p.dueDate + 'T00:00:00');
+    const time = p.hasTime && p.dueAt ? ' · ' + fmtTime(new Date(p.dueAt)) : '';
     return fmtRel(d) + time;
   }
 
@@ -645,14 +571,15 @@ export class QuickAddComponent implements OnInit {
   submit(): void {
     const p = this.parsed();
     if (!p.title) return;
-    const manual = this.manualDate();
+    const manual = this.manualDatetime();
+    const hasTime = manual ? manual.includes('T') : false;
     this.taskService.createTask({
       content: p.title,
       projectId: this.effectiveProjectId() ?? undefined,
       labels: this.effectiveTags(),
       priority: p.priority ?? 1,
-      dueDate: manual ?? p.dueDate,
-      dueDateTime: manual ? undefined : p.dueDateTime,
+      dueDate: manual && !hasTime ? manual : (manual ? null : p.dueDate),
+      dueDateTime: manual && hasTime ? manual : (manual ? null : p.dueDateTime),
       mentionContext: p.context,
       estimateMinutes: this.effectiveEstimate() ?? undefined,
       recurrenceRule: this.effectiveRecurrence() || undefined,

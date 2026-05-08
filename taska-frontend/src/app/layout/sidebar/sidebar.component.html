@@ -1,4 +1,4 @@
-<aside class="sb desktop-only" style="height: 100%; overflow: hidden;">
+<aside class="sb" [class.sidebar-open]="ui.sidebarOpen()">
   <div style="flex: 1; overflow-y: auto; min-height: 0;">
   <div class="sb-head">
     <div class="script" style="font-size: 30px; line-height: 1; color: var(--ink); position: relative;">
@@ -154,7 +154,7 @@
       (cancelled)="deletingProject.set(null)" />
   }
 
-  <div style="position: relative; padding: 12px; border-top: 1px solid var(--line);
+  <div style="flex-shrink: 0; position: relative; padding: 12px; border-top: 1px solid var(--line);
               display: flex; align-items: center; gap: 10px;">
 
     @if (showUserMenu()) {

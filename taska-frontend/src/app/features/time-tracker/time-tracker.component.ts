@@ -4,6 +4,7 @@ import {
   Component,
   DestroyRef,
   ElementRef,
+  HostListener,
   OnInit,
   ViewChild,
   computed,
@@ -29,6 +30,7 @@ import { TaskService } from '../../core/services/task.service';
 import { TimeEntryService } from '../../core/services/time-entry.service';
 import { IconComponent } from '../../shared/components/icon/icon.component';
 import { ProjectDotComponent } from '../../shared/components/atoms/atoms.component';
+import { DatetimePickerComponent } from '../../shared/components/datetime-picker/datetime-picker.component';
 
 // ── constants ─────────────────────────────────────────────────────────────────
 
@@ -78,9 +80,6 @@ function dtToMin(isoStr: string): number {
   const [h, m] = t.split(':').map(Number);
   return h * 60 + m;
 }
-function toInputDt(iso: string):   string { return iso.slice(0, 16); }
-function fromInputDt(val: string): string { return val.length === 16 ? val + ':00' : val; }
-
 // ── interfaces ────────────────────────────────────────────────────────────────
 
 /** Drag on empty column to create a new entry. */
@@ -146,7 +145,7 @@ interface DayInfo {
 
 @Component({
   selector: 'app-time-tracker',
-  imports: [FormsModule, IconComponent],
+  imports: [FormsModule, IconComponent, DatetimePickerComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { style: 'display:flex; flex-direction:column; flex:1; min-height:0; overflow:hidden;' },
   template: `
@@ -382,8 +381,8 @@ interface DayInfo {
     <div class="modal" (click)="$event.stopPropagation()"
          style="width:min(480px,95vw); padding:24px 24px 20px;">
 
-      <div style="font-size:17px; font-weight:600; color:var(--ink); margin-bottom:20px;">
-        {{ editingId() ? 'Modifier le créneau' : 'Nouveau créneau' }}
+      <div class="script" style="font-size:22px; color:var(--mute); margin-bottom:20px;">
+        {{ editingId() ? 'modifier le créneau' : 'nouveau créneau' }}
       </div>
 
       <!-- project -->
@@ -412,23 +411,59 @@ interface DayInfo {
                       box-sizing:border-box;" />
       </div>
 
+      <!-- pickers backdrop -->
+      @if (showStartPicker() || showEndPicker()) {
+        <div style="position:fixed;inset:0;z-index:59;"
+             (click)="showStartPicker.set(false); showEndPicker.set(false)"></div>
+      }
+
       <!-- start / end -->
       <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:10px;">
-        <div>
+        <div style="position:relative;">
           <label style="display:block; font-size:11px; font-weight:500; color:var(--mute);
                          text-transform:uppercase; letter-spacing:.05em; margin-bottom:5px;">Début</label>
-          <input type="datetime-local" [ngModel]="modalStartAt()" (ngModelChange)="modalStartAt.set($event)"
-                 style="width:100%; padding:8px 10px; border:1px solid var(--line); border-radius:7px;
-                        background:var(--bg); color:var(--ink); font-size:13px; outline:none;
-                        box-sizing:border-box; cursor:pointer;" />
+          <button style="width:100%; padding:8px 10px; border:1px solid var(--line); border-radius:7px;
+                         background:var(--bg); color:var(--ink); font-size:13px; cursor:pointer;
+                         text-align:left; display:flex; align-items:center; justify-content:space-between;
+                         box-sizing:border-box; font-family:monospace;"
+                  (click)="showStartPicker.set(!showStartPicker()); showEndPicker.set(false)">
+            <span [style.color]="modalStartAt() ? 'var(--ink)' : 'var(--mute)'">
+              {{ modalStartAt() ? formatModalDt(modalStartAt()) : 'Choisir…' }}
+            </span>
+            <app-icon name="calendar" [size]="12" color="var(--mute)" />
+          </button>
+          @if (showStartPicker()) {
+            <div style="position:absolute; top:calc(100% + 4px); left:0; z-index:60;
+                        background:var(--bg); border:1px solid var(--line); border-radius:10px;
+                        box-shadow:0 6px 24px rgba(0,0,0,.14); padding:12px; min-width:260px;"
+                 (click)="$event.stopPropagation()">
+              <app-datetime-picker [value]="modalStartAt()" [withTime]="true"
+                                   (valueChange)="onStartChange($event)" />
+            </div>
+          }
         </div>
-        <div>
+        <div style="position:relative;">
           <label style="display:block; font-size:11px; font-weight:500; color:var(--mute);
                          text-transform:uppercase; letter-spacing:.05em; margin-bottom:5px;">Fin</label>
-          <input type="datetime-local" [ngModel]="modalEndAt()" (ngModelChange)="modalEndAt.set($event)"
-                 style="width:100%; padding:8px 10px; border:1px solid var(--line); border-radius:7px;
-                        background:var(--bg); color:var(--ink); font-size:13px; outline:none;
-                        box-sizing:border-box; cursor:pointer;" />
+          <button style="width:100%; padding:8px 10px; border:1px solid var(--line); border-radius:7px;
+                         background:var(--bg); color:var(--ink); font-size:13px; cursor:pointer;
+                         text-align:left; display:flex; align-items:center; justify-content:space-between;
+                         box-sizing:border-box; font-family:monospace;"
+                  (click)="showEndPicker.set(!showEndPicker()); showStartPicker.set(false)">
+            <span [style.color]="modalEndAt() ? 'var(--ink)' : 'var(--mute)'">
+              {{ modalEndAt() ? formatModalDt(modalEndAt()) : 'Choisir…' }}
+            </span>
+            <app-icon name="calendar" [size]="12" color="var(--mute)" />
+          </button>
+          @if (showEndPicker()) {
+            <div style="position:absolute; top:calc(100% + 4px); left:0; z-index:60;
+                        background:var(--bg); border:1px solid var(--line); border-radius:10px;
+                        box-shadow:0 6px 24px rgba(0,0,0,.14); padding:12px; min-width:260px;"
+                 (click)="$event.stopPropagation()">
+              <app-datetime-picker [value]="modalEndAt()" [withTime]="true"
+                                   (valueChange)="onEndChange($event)" />
+            </div>
+          }
         </div>
       </div>
 
@@ -451,17 +486,17 @@ interface DayInfo {
 
       <!-- actions -->
       <div style="display:flex; align-items:center; justify-content:space-between; gap:8px;">
-        @if (editingId()) {
-          <button class="btn btn-ghost" style="color:var(--p1);" (click)="deleteEntry()">
-            <app-icon name="trash" [size]="13" /> Supprimer
-          </button>
-        } @else {
-          <span></span>
-        }
+        <button class="btn btn-ghost" (click)="closeModal()">
+          annuler <span class="kbd" style="margin-left:4px;">esc</span>
+        </button>
         <div style="display:flex; gap:8px;">
-          <button class="btn btn-ghost" (click)="closeModal()">Annuler</button>
+          @if (editingId()) {
+            <button class="btn btn-ghost" style="color:var(--p1);" (click)="deleteEntry()">
+              <app-icon name="trash" [size]="13" /> supprimer
+            </button>
+          }
           <button class="btn btn-primary" (click)="saveModal()" [disabled]="!canSave()">
-            {{ editingId() ? 'Enregistrer' : 'Créer' }}
+            {{ editingId() ? '✓ enregistrer' : '+ créer le créneau' }}
           </button>
         </div>
       </div>
@@ -544,6 +579,8 @@ export class TimeTrackerComponent implements OnInit, AfterViewInit {
   modalProjectId   = signal('');
   modalDescription = signal('');
   modalNotes       = signal('');
+  showStartPicker  = signal(false);
+  showEndPicker    = signal(false);
 
   // ── computed ──
 
@@ -632,7 +669,7 @@ export class TimeTrackerComponent implements OnInit, AfterViewInit {
   modalDurationLabel = computed(() => {
     const s = this.modalStartAt(), e = this.modalEndAt();
     if (!s || !e || s >= e) return '';
-    const dur = (new Date(fromInputDt(e)).getTime() - new Date(fromInputDt(s)).getTime()) / 60000;
+    const dur = (new Date(e).getTime() - new Date(s).getTime()) / 60000;
     return fmtEstimate(Math.round(dur));
   });
 
@@ -905,21 +942,54 @@ export class TimeTrackerComponent implements OnInit, AfterViewInit {
 
   openEdit(e: TimeEntry): void {
     this.editingId.set(e.id);
-    this.modalStartAt.set(toInputDt(e.startAt));
-    this.modalEndAt.set(toInputDt(e.endAt));
+    this.modalStartAt.set(e.startAt);
+    this.modalEndAt.set(e.endAt);
     this.modalProjectId.set(e.projectId);
     this.modalDescription.set(e.description);
     this.modalNotes.set(e.notes ?? '');
     this.showModal.set(true);
   }
 
-  closeModal(): void { this.showModal.set(false); }
+  closeModal(): void {
+    this.showStartPicker.set(false);
+    this.showEndPicker.set(false);
+    this.showModal.set(false);
+  }
+
+  @HostListener('document:keydown.escape')
+  onEscape(): void {
+    if (this.showStartPicker() || this.showEndPicker()) {
+      this.showStartPicker.set(false);
+      this.showEndPicker.set(false);
+    } else if (this.showModal()) {
+      this.closeModal();
+    }
+  }
+
+  onStartChange(value: string): void {
+    this.modalStartAt.set(value.length === 10 ? value + 'T00:00:00' : value);
+  }
+
+  onEndChange(value: string): void {
+    this.modalEndAt.set(value.length === 10 ? value + 'T00:00:00' : value);
+  }
+
+  formatModalDt(iso: string): string {
+    if (!iso) return '';
+    const d = new Date(iso);
+    const days = ['dim.', 'lun.', 'mar.', 'mer.', 'jeu.', 'ven.', 'sam.'];
+    const dd = d.getDate().toString().padStart(2, '0');
+    const mm = (d.getMonth() + 1).toString().padStart(2, '0');
+    const hh = d.getHours().toString().padStart(2, '0');
+    const mn = d.getMinutes().toString().padStart(2, '0');
+    return `${days[d.getDay()]} ${dd}/${mm} ${hh}:${mn}`;
+  }
 
   saveModal(): void {
     if (!this.canSave()) return;
     const payload = {
-      startAt:     fromInputDt(this.modalStartAt()),
-      endAt:       fromInputDt(this.modalEndAt()),
+      startAt:     this.modalStartAt(),
+      endAt:       this.modalEndAt(),
       projectId:   this.modalProjectId(),
       description: this.modalDescription(),
       notes:       this.modalNotes() || undefined,

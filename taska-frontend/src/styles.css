@@ -204,6 +204,9 @@ input, textarea { font-family: inherit; color: inherit; }
   border-right: 1px solid var(--line);
   display: flex;
   flex-direction: column;
+  height: 100%;     /* occupe toute la hauteur du grid item (100vh) */
+  min-height: 0;    /* empêche le grid item de dépasser 100vh */
+  overflow: hidden;
 }
 .sb-head { padding: 18px 18px 8px; }
 .sb-section { padding: 10px 10px 4px; }
@@ -401,9 +404,44 @@ input, textarea { font-family: inherit; color: inherit; }
 }
 .app.has-detail { grid-template-columns: 240px 1fr 380px; }
 
+.sidebar-toggle   { display: none; }
+.sidebar-backdrop { display: none; }
+
 @media (max-width: 1023px) {
   .app, .app.has-detail { grid-template-columns: 1fr; }
-  .desktop-only { display: none !important; }
+
+  /* sidebar devient un overlay fixe */
+  .sb {
+    position: fixed;
+    inset: 0 auto 0 0;
+    width: 240px;
+    z-index: 200;
+    transform: translateX(-100%);
+    transition: transform .25s cubic-bezier(.4,0,.2,1);
+  }
+  .sb.sidebar-open {
+    transform: translateX(0);
+    box-shadow: 4px 0 28px rgba(0,0,0,.22);
+  }
+
+  /* bouton hamburger */
+  .sidebar-toggle {
+    display: flex;
+    position: fixed;
+    top: 10px;
+    left: 10px;
+    z-index: 100;
+  }
+
+  /* voile semi-transparent derrière la sidebar */
+  .sidebar-backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 199;
+    background: rgba(0,0,0,.35);
+    cursor: pointer;
+  }
 }
 @media (min-width: 1024px) {
   .mobile-only { display: none !important; }

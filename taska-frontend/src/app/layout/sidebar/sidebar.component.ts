@@ -1,7 +1,7 @@
-import {Component, OnInit, computed, inject, signal, ChangeDetectionStrategy} from '@angular/core';
-import { RouterLink, RouterLinkActive } from '@angular/router';
-import { toSignal } from '@angular/core/rxjs-interop';
-import { map } from 'rxjs';
+import {Component, DestroyRef, OnInit, computed, inject, signal, ChangeDetectionStrategy} from '@angular/core';
+import { Router, RouterLink, RouterLinkActive, NavigationEnd } from '@angular/router';
+import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
+import { filter, map } from 'rxjs';
 import { OidcSecurityService } from 'angular-auth-oidc-client';
 import { ProjectService } from '../../core/services/project.service';
 import { LabelService } from '../../core/services/label.service';
@@ -33,6 +33,7 @@ interface ProjectNode {
 
 @Component({
   selector: 'app-sidebar',
+  host: { style: 'display: block; height: 100%; min-height: 0; overflow: hidden;' },
   imports: [
     RouterLink,
     RouterLinkActive,
@@ -48,12 +49,14 @@ interface ProjectNode {
 })
 export class SidebarComponent implements OnInit {
   private oidcSecurityService = inject(OidcSecurityService);
+  private router = inject(Router);
+  private destroyRef = inject(DestroyRef);
   private projectService = inject(ProjectService);
   private labelService = inject(LabelService);
   private filterService = inject(FilterService);
   private taskService = inject(TaskService);
   private versionService = inject(VersionService);
-  private ui = inject(UiStateService);
+  ui = inject(UiStateService);
   themeService = inject(ThemeService);
 
   private userData = toSignal(
@@ -151,6 +154,11 @@ export class SidebarComponent implements OnInit {
 
   ngOnInit(): void {
     this.refreshAllTasks();
+    // Fermer la sidebar sur mobile lors d'une navigation
+    this.router.events.pipe(
+      filter(e => e instanceof NavigationEnd),
+      takeUntilDestroyed(this.destroyRef),
+    ).subscribe(() => this.ui.sidebarOpen.set(false));
   }
 
   private refreshAllTasks(): void {

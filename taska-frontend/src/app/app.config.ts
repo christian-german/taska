@@ -33,6 +33,9 @@ export const appConfig: ApplicationConfig = {
           responseType: 'code',
           silentRenew: true,
           useRefreshToken: true,
+          ignoreNonceAfterRefresh: true,
+          disableRefreshIdTokenAuthTimeValidation: true,
+          renewTimeBeforeTokenExpiresInSeconds: 30,
           secureRoutes: [environment.apiUrl]
         }
       }

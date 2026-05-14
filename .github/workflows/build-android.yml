@@ -28,6 +28,9 @@ jobs:
       - name: Set version from tag
         run: echo "VERSION=$(echo '${{ github.ref_name }}' | sed 's/^v//')" >> $GITHUB_ENV
 
+      - name: Make gradlew executable
+        run: chmod +x taska-android/gradlew
+
       - name: Build AAB (prod release)
         working-directory: taska-android
         run: ./gradlew :app:bundleProdRelease -PversionName=${{ env.VERSION }} -PversionCode=${{ github.run_number }}

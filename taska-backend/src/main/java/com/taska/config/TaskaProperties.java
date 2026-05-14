@@ -11,11 +11,17 @@ import org.springframework.context.annotation.Configuration;
 @Setter
 public class TaskaProperties {
 
-    private final Jwt jwt = new Jwt();
+    private final Security security = new Security();
 
     @Getter
     @Setter
-    public static class Jwt {
+    public static class Security {
+
+        /**
+         * Indicates whether security should be disabled.
+         */
+        private boolean disabled = false;
+
         /**
          * Indicates whether JWT timeout should be increased by 10 seconds.
          * Spring security by default sets the timeout to 500ms, which is too short for some OIDC servers.

@@ -75,29 +75,34 @@ export class AppComponent implements OnInit {
 
   ngOnInit(): void {
 
-    // Enable console attach for Tauri to log to a file.
-    attachConsole().then(detach => {
-      this.detachConsole = detach;
-    });
+    // Check if we are running in Tauri.
+    const isTauri = typeof window !== 'undefined' && '__TAURI_INTERNALS__' in window;
 
-    // Callback management for the scheme "tauri://"
-    onOpenUrl((urls) => {
-      const callbackUrl = urls[0];
-      if (callbackUrl.includes('code=')) {
-        const queryString = callbackUrl.split('?')[1];
-        this.router.navigateByUrl(`/callback?${queryString}`);
-      }
-    }).then();
+    if (isTauri) {
+      // Enable console attach for Tauri to log to a file.
+      attachConsole().then(detach => {
+        this.detachConsole = detach;
+      });
 
-    // Check update at startup.
-    setTimeout(() => this.updateService.checkForUpdates(), 3000);
+      // Callback management for the scheme "tauri://"
+      onOpenUrl((urls) => {
+        const callbackUrl = urls[0];
+        if (callbackUrl.includes('code=')) {
+          const queryString = callbackUrl.split('?')[1];
+          this.router.navigateByUrl(`/callback?${queryString}`);
+        }
+      }).then();
 
-    // Check update every 4 hours.
-    interval(4 * 60 * 60 * 1000).subscribe(() => {
-      this.updateService.checkForUpdates().then(
-        () => console.log("Update check OK")
-      );
-    });
+      // Check update at startup.
+      setTimeout(() => this.updateService.checkForUpdates(), 3000);
+
+      // Check update every 4 hours.
+      interval(4 * 60 * 60 * 1000).subscribe(() => {
+        this.updateService.checkForUpdates().then(
+          () => console.log("Update check OK")
+        );
+      });
+    }
 
     // Load initial data.
     this.projectService.loadProjects().subscribe();

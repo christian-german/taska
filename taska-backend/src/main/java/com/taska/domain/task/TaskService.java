@@ -8,6 +8,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -130,5 +131,9 @@ public class TaskService {
     Task getOrThrow(UUID taskId) {
         return taskRepository.findById(taskId)
                 .orElseThrow(() -> new ResourceNotFoundException("Task not found: " + taskId));
+    }
+
+    public List<Task> findTasksDueAround(LocalDateTime in15min) {
+        return taskRepository.findTasksDueAround(in15min);
     }
 }

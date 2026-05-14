@@ -5,6 +5,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -61,4 +62,7 @@ public interface TaskRepository extends JpaRepository<Task, UUID> {
     List<Task> findByCompletedAtAfterOrderByCompletedAtAsc(Instant since);
 
     List<Task> findByIsCompletedTrueOrderByCompletedAtDesc();
+
+    @Query("SELECT t FROM Task t WHERE t.isCompleted = false AND t.isNotified = false AND t.dueDateTime IS NOT NULL AND t.dueDateTime <= :in15min")
+    List<Task> findTasksDueAround(@Param("in15min") LocalDateTime in15min);
 }

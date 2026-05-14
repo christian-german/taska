@@ -34,6 +34,8 @@ entries:
           url: http://127.0.0.1:1430/callback
         - matching_mode: strict
           url: http://tauri.localhost/callback
+        - matching_mode: strict
+          url: com.taska.android://callback
       signing_key: !Find [authentik_crypto.certificatekeypair, [name, "authentik Self-signed Certificate"]]
 
   - model: authentik_core.application

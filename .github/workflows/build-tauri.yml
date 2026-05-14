@@ -1,0 +1,51 @@
+name: Build Tauri (Desktop)
+
+on:
+  workflow_call:
+
+jobs:
+  build:
+    runs-on: windows-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: taska-frontend/package-lock.json
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - uses: swatinem/rust-cache@v2
+        with:
+          workdir: taska-frontend/src-tauri
+
+      - name: Install dependencies
+        working-directory: taska-frontend
+        run: npm ci
+
+      - name: Set app version from tag
+        shell: pwsh
+        run: |
+          $version = "${{ github.ref_name }}"
+          $path = "taska-frontend/src-tauri/tauri.conf.json"
+          $json = Get-Content $path | ConvertFrom-Json
+          $json.version = $version
+          $json | ConvertTo-Json -Depth 10 | Set-Content $path
+
+      - name: Build and release Tauri
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+        with:
+          projectPath: taska-frontend
+          tagName: ${{ github.ref_name }}
+          releaseName: "Taska ${{ github.ref_name }}"
+          releaseDraft: true
+          prerelease: false

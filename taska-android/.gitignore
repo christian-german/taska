@@ -1,0 +1,6 @@
+.gradle
+/local.properties
+local.properties
+design
+api-docs
+app/google-services.json

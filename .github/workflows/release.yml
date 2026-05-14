@@ -4,100 +4,25 @@ on:
   push:
     tags: ["*"]
 
-env:
-  REGISTRY: ghcr.io
-
 jobs:
-  build-and-push:
-    runs-on: ubuntu-latest
+  docker:
+    if: "!contains(github.ref_name, '-tauri') && !contains(github.ref_name, '-android')"
+    uses: ./.github/workflows/frontend-backend.yml
     permissions:
       contents: read
       packages: write
+    secrets: inherit
 
-    strategy:
-      matrix:
-        include:
-          - context: ./taska-frontend
-            image: taska-frontend
-          - context: ./taska-backend
-            image: taska-backend
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: docker/setup-buildx-action@v3
-
-      - uses: docker/login-action@v3
-        with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Extract OCI metadata
-        id: meta
-        uses: docker/metadata-action@v6
-        with:
-          images: ${{ env.REGISTRY }}/${{ github.repository }}/${{ matrix.image }}
-          tags: |
-            type=semver,pattern={{version}}
-            type=semver,pattern={{major}}.{{minor}}
-            type=sha,prefix=sha-
-            type=raw,value=latest
-
-      - name: Build and push
-        uses: docker/build-push-action@v6
-        with:
-          context: ${{ matrix.context }}
-          push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
-          build-args: |
-            VERSION=${{ steps.meta.outputs.version }}
-          cache-from: type=gha,scope=${{ matrix.image }}
-          cache-to: type=gha,mode=max,scope=${{ matrix.image }}
-
-  build-tauri:
-    runs-on: windows-latest
+  tauri:
+    if: "!contains(github.ref_name, '-android')"
+    uses: ./.github/workflows/build-tauri.yml
     permissions:
       contents: write
+    secrets: inherit
 
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: npm
-          cache-dependency-path: taska-frontend/package-lock.json
-
-      - uses: dtolnay/rust-toolchain@stable
-
-      - uses: swatinem/rust-cache@v2
-        with:
-          workdir: taska-frontend/src-tauri
-
-      - name: Install dependencies
-        working-directory: taska-frontend
-        run: npm ci
-
-      - name: Set app version from tag
-        shell: pwsh
-        run: |
-          $version = "${{ github.ref_name }}"
-          $path = "taska-frontend/src-tauri/tauri.conf.json"
-          $json = Get-Content $path | ConvertFrom-Json
-          $json.version = $version
-          $json | ConvertTo-Json -Depth 10 | Set-Content $path
-
-      - name: Build and release Tauri
-        uses: tauri-apps/tauri-action@v0
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
-          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
-        with:
-          projectPath: taska-frontend
-          tagName: ${{ github.ref_name }}
-          releaseName: 'Taska ${{ github.ref_name }}'
-          releaseDraft: true
-          prerelease: false
+  android:
+    if: "!contains(github.ref_name, '-tauri')"
+    uses: ./.github/workflows/build-android.yml
+    permissions:
+      contents: write
+    secrets: inherit

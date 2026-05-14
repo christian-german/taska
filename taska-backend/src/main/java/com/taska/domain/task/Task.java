@@ -77,6 +77,9 @@ public class Task {
     @Column(name = "completed_at")
     private Instant completedAt;
 
+    @Column(name = "is_notified", nullable = false)
+    private Boolean isNotified = false;
+
     @PrePersist
     protected void onCreate() {
         createdAt = Instant.now();

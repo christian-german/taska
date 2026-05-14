@@ -45,10 +45,20 @@ android {
             applicationIdSuffix = ".dev"
             versionNameSuffix = "-dev"
             buildConfigField("String", "API_URL", "\"http://192.168.1.14:8080/\"")
+            // Fill in real values before building
+            buildConfigField("String", "OIDC_ISSUER_URL", "\"http://192.168.1.14:8000/application/o/taska/\"")
+            buildConfigField("String", "OIDC_CLIENT_ID", "\"taska-client\"")
+            buildConfigField("String", "OIDC_REDIRECT_URI", "\"com.taska.android:/oauth2callback\"")
+            manifestPlaceholders["redirectUriScheme"] = "com.taska.android"
         }
         create("prod") {
             dimension = "env"
             buildConfigField("String", "API_URL", "\"https://api-taska.atlascore.dev/\"")
+            // Fill in real values before building
+            buildConfigField("String", "OIDC_ISSUER_URL", "\"https://authentik.atlascore.dev/application/o/taska/\"")
+            buildConfigField("String", "OIDC_CLIENT_ID", "\"mE2vXI67I43D8fmclgsjHKwt42W4dkDpXJQUOQEJ\"")
+            buildConfigField("String", "OIDC_REDIRECT_URI", "\"com.taska.android:/oauth2callback\"")
+            manifestPlaceholders["redirectUriScheme"] = "com.taska.android"
         }
     }
 
@@ -87,9 +97,11 @@ dependencies {
     implementation(libs.androidx.lifecycle.viewmodel.compose)
     implementation(libs.retrofit)
     implementation(libs.retrofit.converter.gson)
+    implementation(libs.appauth)
     implementation(libs.kotlinx.coroutines.android)
     implementation(platform("com.google.firebase:firebase-bom:34.13.0"))
     implementation("com.google.firebase:firebase-messaging:25.0.2")
+    implementation("com.auth0.android:jwtdecode:2.0.2")
     testImplementation(libs.junit)
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)

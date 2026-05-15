@@ -11,10 +11,33 @@ import {
   provideAuth
 } from 'angular-auth-oidc-client';
 import {environment} from '../environments/environment';
-import {take} from 'rxjs';
+import {firstValueFrom, of, switchMap, take} from 'rxjs';
+import {catchError} from 'rxjs/operators';
 
-function initializeAuth(oidc: OidcSecurityService) {
-  return () => oidc.checkAuth().pipe(take(1));
+function initializeAuth(oidcSecurityService: OidcSecurityService) {
+  return () =>
+    firstValueFrom(
+      oidcSecurityService.checkAuth().pipe(
+        switchMap(({ isAuthenticated }) => {
+          if (isAuthenticated) {
+            // Token encore valide, rien à faire.
+            return of(null);
+          }
+
+          // Access token expiré ou absent — on tente un refresh silencieux
+          // Si un refresh token existe en localStorage, forceRefreshSession()
+          // l'utilisera directement sans redirection
+          return oidcSecurityService.forceRefreshSession().pipe(
+            catchError(() => {
+              // Refresh token absent ou expiré côté Authentik
+              // L'app continue sans auth, le guard redirigera vers login
+              return of(null);
+            })
+          );
+        }),
+        catchError(() => of(null))
+      )
+    );
 }
 
 export const appConfig: ApplicationConfig = {

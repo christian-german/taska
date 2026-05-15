@@ -11,7 +11,6 @@ import {LabelService} from './core/services/label.service';
 import {FilterService} from './core/services/filter.service';
 import {UiStateService} from './core/services/ui-state.service';
 import {Task} from './core/models';
-import {sendNotification} from '@tauri-apps/plugin-notification';
 import {attachConsole} from '@tauri-apps/plugin-log';
 import {onOpenUrl} from '@tauri-apps/plugin-deep-link';
 import {UpdateService} from './core/services/update.service';

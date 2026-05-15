@@ -1,5 +1,8 @@
 # See https://docs.github.com/get-started/getting-started-with-git/ignoring-files for more about ignoring files.
 
+# Generated at build time
+/src/app/core/constants/app-version.ts
+
 # Compiled output
 /dist
 /src-tauri/target

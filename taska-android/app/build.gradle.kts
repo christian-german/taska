@@ -49,6 +49,7 @@ android {
             buildConfigField("String", "OIDC_ISSUER_URL", "\"http://192.168.1.14:8000/application/o/taska/\"")
             buildConfigField("String", "OIDC_CLIENT_ID", "\"taska-client\"")
             buildConfigField("String", "OIDC_REDIRECT_URI", "\"com.taska.android:/oauth2callback\"")
+            buildConfigField("String", "ACCOUNT_TYPE", "\"com.taska.account.dev\"")
             manifestPlaceholders["redirectUriScheme"] = "com.taska.android"
         }
         create("prod") {
@@ -58,6 +59,7 @@ android {
             buildConfigField("String", "OIDC_ISSUER_URL", "\"https://authentik.atlascore.dev/application/o/taska/\"")
             buildConfigField("String", "OIDC_CLIENT_ID", "\"mE2vXI67I43D8fmclgsjHKwt42W4dkDpXJQUOQEJ\"")
             buildConfigField("String", "OIDC_REDIRECT_URI", "\"com.taska.android:/oauth2callback\"")
+            buildConfigField("String", "ACCOUNT_TYPE", "\"com.taska.account\"")
             manifestPlaceholders["redirectUriScheme"] = "com.taska.android"
         }
     }
@@ -102,6 +104,7 @@ dependencies {
     implementation(platform("com.google.firebase:firebase-bom:34.13.0"))
     implementation("com.google.firebase:firebase-messaging:25.0.2")
     implementation("com.auth0.android:jwtdecode:2.0.2")
+    implementation("com.squareup.okhttp3:logging-interceptor:4.12.0")
     testImplementation(libs.junit)
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)

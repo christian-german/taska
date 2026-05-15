@@ -160,8 +160,16 @@
     @if (showUserMenu()) {
       <div style="position: fixed; inset: 0; z-index: 10;" (click)="showUserMenu.set(false)"></div>
       <div style="position: absolute; bottom: calc(100% + 4px); left: 12px; right: 12px; z-index: 11;
-                  background: var(--card); border: 1px solid var(--line); border-radius: 8px;
+                  background: var(--bg); border: 1px solid var(--line); border-radius: 8px;
                   padding: 4px 0; box-shadow: 0 4px 16px rgba(0,0,0,.12);">
+        <button (click)="openAbout()"
+                style="width: 100%; display: flex; align-items: center; gap: 8px; padding: 8px 12px;
+                       background: transparent; border: 0; cursor: pointer; font-size: 13px;
+                       color: var(--ink); text-align: left;">
+          <app-icon name="info" [size]="14" color="var(--mute)" />
+          <span>À propos</span>
+        </button>
+        <div style="height: 1px; background: var(--line); margin: 3px 0;"></div>
         <button (click)="logout()"
                 style="width: 100%; display: flex; align-items: center; gap: 8px; padding: 8px 12px;
                        background: transparent; border: 0; cursor: pointer; font-size: 13px;
@@ -169,6 +177,34 @@
           <app-icon name="arrow-left" [size]="14" />
           <span>Se déconnecter</span>
         </button>
+      </div>
+    }
+
+    @if (showAboutModal()) {
+      <div class="modal-veil" (click)="showAboutModal.set(false)">
+        <div class="modal" (click)="$event.stopPropagation()"
+             style="padding: 32px 28px 24px; width: min(340px, 92vw); text-align: center;">
+          <div class="script" style="font-size: 36px; line-height: 1; color: var(--ink);">
+            taska
+          </div>
+          <svg width="56" height="8" viewBox="0 0 56 8" style="display: block; margin: 4px auto 0;">
+            <path d="M2 5 Q 8 1, 14 5 T 26 5 T 38 5 T 50 5"
+                  stroke="var(--orange)" stroke-width="2" fill="none" stroke-linecap="round"/>
+          </svg>
+          <div style="height: 1px; background: var(--line); margin: 20px 0;"></div>
+          <div style="display: flex; flex-direction: column; gap: 6px; text-align: left;">
+            <div style="display: flex; justify-content: space-between; align-items: center;
+                        font-size: 13px; color: var(--ink-2);">
+              <span style="color: var(--mute);">Frontend</span>
+              <span class="mono" style="font-size: 12px;">v{{ frontendVersion }}</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; align-items: center;
+                        font-size: 13px; color: var(--ink-2);">
+              <span style="color: var(--mute);">API</span>
+              <span class="mono" style="font-size: 12px;">v{{ apiVersion() }}</span>
+            </div>
+          </div>
+        </div>
       </div>
     }
 
@@ -182,7 +218,6 @@
       </div>
       <div style="flex: 1; min-width: 0;">
         <div style="font-size: 12.5px; font-weight: 500; color: var(--ink);">{{ userName() }}</div>
-        <div class="mono" style="font-size: 10.5px; color: var(--mute);">{{ appVersion() }}</div>
       </div>
     </button>
 

@@ -8,6 +8,6 @@ object AuthConfig {
     val CLIENT_ID: String = BuildConfig.OIDC_CLIENT_ID
     val REDIRECT_URI: Uri = Uri.parse(BuildConfig.OIDC_REDIRECT_URI)
 
-    const val ACCOUNT_TYPE = "com.taska.account"
+    val ACCOUNT_TYPE: String = BuildConfig.ACCOUNT_TYPE
     const val AUTH_TOKEN_TYPE = "Bearer"
 }

@@ -44,7 +44,7 @@ public class WebSecurityConfiguration {
                         .anyRequest().authenticated()
                 )
                 .oauth2ResourceServer(oauth2 -> oauth2
-                        .jwt(jwt -> {
+                        .jwt(_ -> {
                         })
                 );
 
@@ -79,23 +79,43 @@ public class WebSecurityConfiguration {
         };
     }
 
+    /**
+     * Configures and returns a {@link JwtDecoder} bean for decoding JWT tokens.
+     * The decoder is initialized using the issuer URI specified in the application
+     * properties and optionally customizes the JWT validation logic based on configuration.
+     * Additionally, HTTP connection and read timeout settings are applied.
+     *
+     * @return a fully configured {@link JwtDecoder} instance for validating and decoding JWT tokens
+     */
     @Bean
-    @ConditionalOnProperty(prefix = "taska.jwt", name = "increaseTimeout", havingValue = "true")
     public JwtDecoder jwtTokenDecoder() {
 
-        SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
-        factory.setConnectTimeout(Duration.ofSeconds(5));
-        factory.setReadTimeout(Duration.ofSeconds(10));
+        assert oAuth2ResourceServerProperties.getJwt().getIssuerUri() != null;
 
-        RestTemplate restTemplate = new RestTemplate(factory);
+        NimbusJwtDecoder nimbusJwtDecoder;
 
-        NimbusJwtDecoder decoder = NimbusJwtDecoder
-                .withIssuerLocation(oAuth2ResourceServerProperties.getJwt().getIssuerUri())
-                .restOperations(restTemplate)
-                .build();
+        if (taskaProperties.getSecurity().isIncreaseTimeout()) {
+            SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
+            factory.setConnectTimeout(Duration.ofSeconds(5));
+            factory.setReadTimeout(Duration.ofSeconds(10));
 
-        // Disable issuer verification — only validate token expiry/timestamps.
-        decoder.setJwtValidator(JwtValidators.createDefault());
-        return decoder;
+            RestTemplate restTemplate = new RestTemplate(factory);
+
+            nimbusJwtDecoder = NimbusJwtDecoder
+                    .withIssuerLocation(oAuth2ResourceServerProperties.getJwt().getIssuerUri())
+                    .restOperations(restTemplate)
+                    .build();
+        } else {
+            nimbusJwtDecoder = NimbusJwtDecoder
+                    .withIssuerLocation(oAuth2ResourceServerProperties.getJwt().getIssuerUri())
+                    .build();
+        }
+
+        // Customize JWT validation logic if required
+        if (taskaProperties.getSecurity().isDisableIssuerValidation()) {
+            nimbusJwtDecoder.setJwtValidator(JwtValidators.createDefault());
+        }
+
+        return nimbusJwtDecoder;
     }
 }

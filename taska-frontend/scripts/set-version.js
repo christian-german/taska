@@ -1,5 +1,5 @@
 const { execSync } = require('child_process');
-const { writeFileSync } = require('fs');
+const { mkdirSync, writeFileSync } = require('fs');
 const path = require('path');
 
 let version;
@@ -12,5 +12,6 @@ try {
 }
 
 const dest = path.join(__dirname, '../src/app/core/constants/app-version.ts');
+mkdirSync(path.dirname(dest), { recursive: true });
 writeFileSync(dest, `// Auto-generated at build time — do not edit manually.\nexport const APP_VERSION = '${version}';\n`);
 console.log(`[set-version] APP_VERSION = ${version}`);

@@ -10,6 +10,7 @@
     "start": "concurrently \"npm run tailwind:watch\" \"ng serve\"",
     "prebuild": "node scripts/set-version.js && npm run tailwind:build",
     "build": "ng build",
+    "prebuild:prod": "node scripts/set-version.js && npm run tailwind:build",
     "build:prod": "ng build --configuration=production",
     "prebuild:tauri": "node scripts/set-version.js && npm run tailwind:build",
     "build:tauri": "ng build --configuration=prod.tauri",

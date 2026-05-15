@@ -31,7 +31,7 @@ jobs:
       - name: Set app version from tag
         shell: pwsh
         run: |
-          $version = "${{ github.ref_name }}"
+          $version = "${{ github.ref_name }}" -replace '-tauri$', ''
           $path = "taska-frontend/src-tauri/tauri.conf.json"
           $json = Get-Content $path | ConvertFrom-Json
           $json.version = $version

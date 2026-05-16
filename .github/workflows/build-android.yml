@@ -45,7 +45,7 @@ jobs:
         with:
           tag_name: ${{ github.ref_name }}
           draft: true
-          files: taska-android/app/build/outputs/bundle/prodRelease/app-prod-release.apk
+          files: taska-android/app/build/outputs/apk/prodRelease/app-prod-release.apk
 
       - name: Deploy to Firebase App Distribution
         uses: wzieba/Firebase-Distribution-Github-Action@v1
@@ -53,5 +53,5 @@ jobs:
           appId: ${{ secrets.FIREBASE_APP_ID }}
           serviceCredentialsFileContent: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
           groups: testers
-          file: taska-android/app/build/outputs/bundle/prodRelease/app-prod-release.apk
+          file: taska-android/app/build/outputs/apk/prodRelease/app-prod-release.apk
           releaseNotes: "Version ${{ env.VERSION }}"

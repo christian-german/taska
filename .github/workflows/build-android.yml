@@ -31,21 +31,21 @@ jobs:
       - name: Make gradlew executable
         run: chmod +x taska-android/gradlew
 
-      - name: Build AAB (prod release)
+      - name: Build APK (prod release)
         working-directory: taska-android
-        run: ./gradlew :app:bundleProdRelease -PversionName=${{ env.VERSION }} -PversionCode=${{ github.run_number }}
+        run: ./gradlew :app:assembleProdRelease -PversionName=${{ env.VERSION }} -PversionCode=${{ github.run_number }}
         env:
           KEYSTORE_PATH: /tmp/keystore.jks
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
 
-      - name: Upload AAB to release
+      - name: Upload APK to release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ github.ref_name }}
           draft: true
-          files: taska-android/app/build/outputs/bundle/prodRelease/app-prod-release.aab
+          files: taska-android/app/build/outputs/bundle/prodRelease/app-prod-release.apk
 
       - name: Deploy to Firebase App Distribution
         uses: wzieba/Firebase-Distribution-Github-Action@v1
@@ -53,5 +53,5 @@ jobs:
           appId: ${{ secrets.FIREBASE_APP_ID }}
           serviceCredentialsFileContent: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
           groups: testers
-          file: taska-android/app/build/outputs/bundle/prodRelease/app-prod-release.aab
+          file: taska-android/app/build/outputs/bundle/prodRelease/app-prod-release.apk
           releaseNotes: "Version ${{ env.VERSION }}"

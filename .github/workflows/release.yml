@@ -5,9 +5,9 @@ on:
     tags: ["*"]
 
 jobs:
-  docker:
+  frontend-backend:
     if: "!contains(github.ref_name, '-tauri') && !contains(github.ref_name, '-android')"
-    uses: ./.github/workflows/frontend-backend.yml
+    uses: ./.github/workflows/build-frontend-backend.yml
     permissions:
       contents: read
       packages: write

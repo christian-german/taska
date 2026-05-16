@@ -1,0 +1,36 @@
+name: Deploy to Portainer
+
+on:
+  workflow_call:
+    inputs:
+      version:
+        required: true
+        type: string
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Update Portainer stack
+        run: |
+          STACK_CONTENT=$(curl -s "${{ secrets.PORTAINER_URL }}/api/stacks/21/file" \
+            -H "X-API-Key: ${{ secrets.PORTAINER_API_KEY }}" \
+            | jq -r '.StackFileContent')
+
+          PAYLOAD=$(jq -n \
+            --arg content "$STACK_CONTENT" \
+            --arg version "${{ inputs.version }}" \
+            '{
+              stackFileContent: $content,
+              env: [
+                {name: "FRONTEND_VERSION", value: $version},
+                {name: "BACKEND_VERSION", value: $version}
+              ],
+              prune: false,
+              pullImage: true
+            }')
+
+          curl -X PUT "${{ secrets.PORTAINER_URL }}/api/stacks/21?endpointId=3" \
+            -H "X-API-Key: ${{ secrets.PORTAINER_API_KEY }}" \
+            -H "Content-Type: application/json" \
+            -d "$PAYLOAD"

@@ -26,3 +26,11 @@ jobs:
     permissions:
       contents: write
     secrets: inherit
+
+  deploy-portainer:
+    needs: frontend-backend
+    if: "!contains(github.ref_name, '-tauri') && !contains(github.ref_name, '-android')"
+    uses: ./.github/workflows/deploy-portainer.yml
+    with:
+      version: ${{ github.ref_name }}
+    secrets: inherit

@@ -152,13 +152,14 @@ export const DESIGN_PRIORITY_COLOR: Record<number, string> = {
 };
 
 export const PRIORITY_LABELS: Record<number, string> = {
-  1: 'Normale',
-  2: 'Moyenne',
-  3: 'Haute',
-  4: 'Urgente',
+  1: 'Urgente',
+  2: 'Haute',
+  3: 'Moyenne',
+  4: 'Normale',
 };
 
 export function getColor(colorName: string): string {
+  if (colorName.startsWith('#')) return colorName;
   return PROJECT_COLORS[colorName] ?? PROJECT_COLORS['charcoal'];
 }
 

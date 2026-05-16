@@ -22,7 +22,9 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.ChevronRight
 import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.KeyboardArrowDown
+import androidx.compose.material.icons.outlined.MoveToInbox
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -54,9 +56,11 @@ private val DrawerBg = Color(0xFFEAE5DC)
 private val TextPrimary = Color(0xFF1A1A1A)
 private val TextSecondary = Color(0xFF9A9A9A)
 private val OrangeAccent = Color(0xFFE8763A)
+private val DividerColor = Color(0xFFD5D0C8)
 
 @Composable
 fun WithDrawer(
+    onInboxSelected: () -> Unit,
     onProjectSelected: (String) -> Unit,
     content: @Composable () -> Unit
 ) {
@@ -71,6 +75,10 @@ fun WithDrawer(
             ProjectDrawer(
                 viewModel = drawerViewModel,
                 onClose = { scope.launch { drawerState.close() } },
+                onInboxClick = {
+                    scope.launch { drawerState.close() }
+                    onInboxSelected()
+                },
                 onProjectClick = { projectId ->
                     scope.launch { drawerState.close() }
                     onProjectSelected(projectId)
@@ -116,6 +124,7 @@ fun WithDrawer(
 private fun ProjectDrawer(
     viewModel: DrawerViewModel,
     onClose: () -> Unit,
+    onInboxClick: () -> Unit,
     onProjectClick: (String) -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -127,6 +136,29 @@ private fun ProjectDrawer(
             .clip(RoundedCornerShape(topEnd = 0.dp, bottomEnd = 0.dp))
             .background(DrawerBg)
             .statusBarsPadding()
+            .pointerInput(Unit) {
+                val minSwipePx = 80.dp.toPx()
+                awaitEachGesture {
+                    var totalDx = 0f
+                    var totalDy = 0f
+                    var gotDown = false
+                    while (!gotDown) {
+                        val event = awaitPointerEvent(PointerEventPass.Initial)
+                        val down = event.changes.firstOrNull { it.pressed && !it.previousPressed }
+                        if (down != null) gotDown = true
+                    }
+                    while (true) {
+                        val event = awaitPointerEvent(PointerEventPass.Initial)
+                        val change = event.changes.firstOrNull() ?: break
+                        totalDx += change.position.x - change.previousPosition.x
+                        totalDy += change.position.y - change.previousPosition.y
+                        if (!change.pressed) break
+                    }
+                    if (totalDx < -minSwipePx && abs(totalDx) > abs(totalDy) * 1.5f) {
+                        onClose()
+                    }
+                }
+            }
     ) {
         // Header: logo + close button
         Row(
@@ -171,6 +203,28 @@ private fun ProjectDrawer(
                 .weight(1f)
                 .verticalScroll(rememberScrollState())
         ) {
+            // Inbox row
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { onInboxClick() }
+                    .padding(start = 16.dp, end = 16.dp, top = 14.dp, bottom = 14.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(
+                    imageVector = Icons.Outlined.MoveToInbox,
+                    contentDescription = "Inbox",
+                    tint = TextPrimary,
+                    modifier = Modifier.size(20.dp)
+                )
+                Spacer(modifier = Modifier.width(10.dp))
+                Text(
+                    text = "Inbox",
+                    style = TextStyle(fontSize = 16.sp, fontWeight = FontWeight.Normal, color = TextPrimary, lineHeight = 22.sp)
+                )
+            }
+            HorizontalDivider(color = DividerColor, thickness = 0.5.dp)
+
             // PROJETS section label
             Text(
                 text = "PROJETS",

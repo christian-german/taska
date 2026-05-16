@@ -21,6 +21,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Flag
 import androidx.compose.material.icons.outlined.MoreHoriz
 import androidx.compose.material.icons.outlined.Schedule
 import androidx.compose.material3.CircularProgressIndicator
@@ -56,6 +57,9 @@ private val DividerColor = Color(0xFFD5D0C8)
 private val CheckboxBorder = Color(0xFFAAAAAA)
 private val OverdueRed = Color(0xFFDD4433)
 private val CompletedGreen = Color(0xFF4CAF50)
+private val PriorityUrgentColor = Color(0xFFE83030)
+private val PriorityHighColor = Color(0xFFFF8C00)
+private val PriorityMediumColor = Color(0xFF4287F5)
 
 @Composable
 fun TodayScreen(
@@ -249,6 +253,13 @@ private fun TodayTaskItem(
             .padding(horizontal = 16.dp, vertical = 12.dp),
         verticalAlignment = Alignment.Top
     ) {
+        val checkboxBorderColor = when {
+            isOverdue -> OverdueRed
+            task.priority == 1 -> PriorityUrgentColor
+            task.priority == 2 -> PriorityHighColor
+            task.priority == 3 -> PriorityMediumColor
+            else -> CheckboxBorder
+        }
         Box(
             modifier = Modifier
                 .size(22.dp)
@@ -267,7 +278,7 @@ private fun TodayTaskItem(
                     modifier = Modifier
                         .size(22.dp)
                         .clip(CircleShape)
-                        .border(1.5.dp, if (isOverdue) OverdueRed else CheckboxBorder, CircleShape)
+                        .border(1.5.dp, checkboxBorderColor, CircleShape)
                 )
             }
         }
@@ -275,16 +286,28 @@ private fun TodayTaskItem(
         Spacer(modifier = Modifier.width(14.dp))
 
         Column {
-            Text(
-                text = task.content,
-                style = TextStyle(
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Medium,
-                    color = if (isCompleted) TextSecondary else TextPrimary,
-                    lineHeight = 22.sp,
-                    textDecoration = if (isCompleted) TextDecoration.LineThrough else TextDecoration.None
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                val flagColor = priorityFlagColor(task.priority)
+                if (!isCompleted && flagColor != null) {
+                    Icon(
+                        imageVector = Icons.Filled.Flag,
+                        contentDescription = null,
+                        tint = flagColor,
+                        modifier = Modifier.size(14.dp)
+                    )
+                    Spacer(modifier = Modifier.width(4.dp))
+                }
+                Text(
+                    text = task.content,
+                    style = TextStyle(
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Medium,
+                        color = if (isCompleted) TextSecondary else TextPrimary,
+                        lineHeight = 22.sp,
+                        textDecoration = if (isCompleted) TextDecoration.LineThrough else TextDecoration.None
+                    )
                 )
-            )
+            }
             TaskMeta(task = task, project = project, isOverdue = isOverdue)
         }
     }
@@ -352,6 +375,13 @@ private fun formatRelativeDate(dueDateStr: String): String = try {
     else SimpleDateFormat("d MMM", Locale.FRENCH).format(fmt.parse(dueDateStr)!!)
 } catch (e: Exception) {
     dueDateStr
+}
+
+private fun priorityFlagColor(priority: Int?): Color? = when (priority) {
+    1 -> PriorityUrgentColor
+    2 -> PriorityHighColor
+    3 -> PriorityMediumColor
+    else -> null
 }
 
 private fun parseHexColor(hex: String): Color? = try {

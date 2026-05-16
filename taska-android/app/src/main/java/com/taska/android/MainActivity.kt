@@ -79,6 +79,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             TaskaTheme {
                 WithDrawer(
+                    onInboxSelected = { /* already on inbox, do nothing */ },
                     onProjectSelected = { projectId ->
                         startActivity(
                             Intent(this, ProjectActivity::class.java)
@@ -93,6 +94,10 @@ class MainActivity : ComponentActivity() {
                             when (dest) {
                                 NavDestination.TODAY -> startActivity(
                                     Intent(this, TodayActivity::class.java)
+                                        .addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT)
+                                )
+                                NavDestination.DAY -> startActivity(
+                                    Intent(this, DayActivity::class.java)
                                         .addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT)
                                 )
                                 NavDestination.WEEK -> startActivity(

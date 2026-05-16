@@ -40,6 +40,9 @@ class TodayActivity : ComponentActivity() {
         setContent {
             TaskaTheme {
                 WithDrawer(
+                    onInboxSelected = {
+                        startActivity(Intent(this, MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT))
+                    },
                     onProjectSelected = { projectId ->
                         startActivity(
                             Intent(this, ProjectActivity::class.java)
@@ -57,6 +60,10 @@ class TodayActivity : ComponentActivity() {
                                         .addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT)
                                 )
                                 NavDestination.TODAY -> Unit
+                                NavDestination.DAY -> startActivity(
+                                    Intent(this, DayActivity::class.java)
+                                        .addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT)
+                                )
                                 NavDestination.WEEK -> startActivity(
                                     Intent(this, WeekActivity::class.java)
                                         .addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT)

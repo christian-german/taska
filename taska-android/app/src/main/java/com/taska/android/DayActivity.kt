@@ -2,7 +2,6 @@ package com.taska.android
 
 import android.content.Intent
 import android.os.Bundle
-import com.taska.android.TaskDetailActivity
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -17,16 +16,16 @@ import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.taska.android.ui.addtask.AddTaskBottomSheet
 import com.taska.android.ui.addtask.AddTaskViewModel
+import com.taska.android.ui.day.DayScreen
+import com.taska.android.ui.day.DayViewModel
 import com.taska.android.ui.drawer.WithDrawer
 import com.taska.android.ui.shared.BottomNavBar
 import com.taska.android.ui.shared.NavDestination
 import com.taska.android.ui.theme.TaskaTheme
-import com.taska.android.ui.week.WeekScreen
-import com.taska.android.ui.week.WeekViewModel
 
-class WeekActivity : ComponentActivity() {
+class DayActivity : ComponentActivity() {
 
-    private val weekViewModel: WeekViewModel by viewModels()
+    private val dayViewModel: DayViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -38,48 +37,33 @@ class WeekActivity : ComponentActivity() {
 
                 WithDrawer(
                     onInboxSelected = {
-                        startActivity(Intent(this@WeekActivity, MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT))
+                        startActivity(Intent(this@DayActivity, MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT))
                     },
                     onProjectSelected = { projectId ->
                         startActivity(
-                            Intent(this@WeekActivity, ProjectActivity::class.java)
+                            Intent(this@DayActivity, ProjectActivity::class.java)
                                 .putExtra("project_id", projectId)
-                                .putExtra("nav_current", NavDestination.WEEK.name)
+                                .putExtra("nav_current", NavDestination.DAY.name)
                         )
                     }
                 ) {
                     Column(modifier = Modifier.fillMaxSize()) {
-                        WeekScreen(
-                            viewModel = weekViewModel,
+                        DayScreen(
+                            viewModel = dayViewModel,
                             onTaskClick = { taskId ->
-                                startActivity(
-                                    Intent(this@WeekActivity, TaskDetailActivity::class.java)
-                                        .putExtra("task_id", taskId)
-                                )
+                                startActivity(Intent(this@DayActivity, TaskDetailActivity::class.java).putExtra("task_id", taskId))
                             },
                             modifier = Modifier.weight(1f)
                         )
                         BottomNavBar(
-                            current = NavDestination.WEEK,
+                            current = NavDestination.DAY,
                             onNavigate = { dest ->
                                 when (dest) {
-                                    NavDestination.INBOX -> startActivity(
-                                        Intent(this@WeekActivity, MainActivity::class.java)
-                                            .addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT)
-                                    )
-                                    NavDestination.TODAY -> startActivity(
-                                        Intent(this@WeekActivity, TodayActivity::class.java)
-                                            .addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT)
-                                    )
-                                    NavDestination.DAY -> startActivity(
-                                        Intent(this@WeekActivity, DayActivity::class.java)
-                                            .addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT)
-                                    )
-                                    NavDestination.WEEK -> Unit
-                                    NavDestination.TRACKER -> startActivity(
-                                        Intent(this@WeekActivity, TrackerActivity::class.java)
-                                            .addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT)
-                                    )
+                                    NavDestination.TODAY -> startActivity(Intent(this@DayActivity, TodayActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT))
+                                    NavDestination.DAY -> Unit
+                                    NavDestination.WEEK -> startActivity(Intent(this@DayActivity, WeekActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT))
+                                    NavDestination.TRACKER -> startActivity(Intent(this@DayActivity, TrackerActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT))
+                                    NavDestination.INBOX -> Unit
                                 }
                             },
                             onAddClick = { showAddTask = true }
@@ -100,6 +84,6 @@ class WeekActivity : ComponentActivity() {
 
     override fun onResume() {
         super.onResume()
-        weekViewModel.load()
+        dayViewModel.load()
     }
 }

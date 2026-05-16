@@ -46,7 +46,7 @@ class ProjectActivity : ComponentActivity() {
                 var showAddTask by remember { mutableStateOf(false) }
                 val navCurrent = intent.getStringExtra("nav_current")
                     ?.let { runCatching { NavDestination.valueOf(it) }.getOrNull() }
-                    ?: NavDestination.INBOX
+                    ?: NavDestination.TODAY
 
                 Column(modifier = Modifier.fillMaxSize()) {
                     ProjectScreen(
@@ -70,6 +70,10 @@ class ProjectActivity : ComponentActivity() {
                                 )
                                 NavDestination.TODAY -> startActivity(
                                     Intent(this@ProjectActivity, TodayActivity::class.java)
+                                        .addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT)
+                                )
+                                NavDestination.DAY -> startActivity(
+                                    Intent(this@ProjectActivity, DayActivity::class.java)
                                         .addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT)
                                 )
                                 NavDestination.WEEK -> startActivity(

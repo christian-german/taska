@@ -16,7 +16,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.AccessTime
 import androidx.compose.material.icons.outlined.CalendarMonth
-import androidx.compose.material.icons.outlined.MoveToInbox
+import androidx.compose.material.icons.outlined.CalendarViewDay
 import androidx.compose.material.icons.outlined.Timer
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
@@ -31,7 +31,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 enum class NavDestination {
-    INBOX, TODAY, WEEK, TRACKER
+    INBOX, TODAY, DAY, WEEK, TRACKER
 }
 
 private val NavBarBg = Color(0xFF1A1A1A)
@@ -56,16 +56,16 @@ fun BottomNavBar(
         horizontalArrangement = Arrangement.SpaceEvenly
     ) {
         NavItem(
-            icon = Icons.Outlined.MoveToInbox,
-            label = "Inbox",
-            active = current == NavDestination.INBOX,
-            onClick = { onNavigate(NavDestination.INBOX) }
-        )
-        NavItem(
             icon = Icons.Outlined.AccessTime,
             label = "Aujourd'hui",
             active = current == NavDestination.TODAY,
             onClick = { onNavigate(NavDestination.TODAY) }
+        )
+        NavItem(
+            icon = Icons.Outlined.CalendarViewDay,
+            label = "Journée",
+            active = current == NavDestination.DAY,
+            onClick = { onNavigate(NavDestination.DAY) }
         )
 
         Box(

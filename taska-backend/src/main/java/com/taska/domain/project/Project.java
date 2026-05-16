@@ -21,7 +21,7 @@ public class Project {
     private String name;
 
     @Column(nullable = false)
-    private String color = "charcoal";
+    private String color = "#808080";
 
     @Column(name = "parent_id")
     private UUID parentId;

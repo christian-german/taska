@@ -57,13 +57,13 @@ const COLOR_KEYS = Object.keys(PROJECT_COLORS) as (keyof typeof PROJECT_COLORS)[
             <div style="display: flex; flex-wrap: wrap; gap: 7px;">
               @for (key of colorKeys; track key) {
                 <button
-                  (click)="color.set(key)"
+                  (click)="color.set(PROJECT_COLORS[key])"
                   [title]="key"
                   style="width: 22px; height: 22px; border-radius: 50%; border: 2px solid transparent;
                          cursor: pointer; padding: 0; flex-shrink: 0; transition: transform .1s;"
-                  [style.background]="getColor(key)"
-                  [style.border-color]="color() === key ? 'var(--ink)' : 'transparent'"
-                  [style.transform]="color() === key ? 'scale(1.25)' : 'scale(1)'">
+                  [style.background]="PROJECT_COLORS[key]"
+                  [style.border-color]="color() === PROJECT_COLORS[key] ? 'var(--ink)' : 'transparent'"
+                  [style.transform]="color() === PROJECT_COLORS[key] ? 'scale(1.25)' : 'scale(1)'">
                 </button>
               }
             </div>
@@ -162,12 +162,13 @@ export class AddProjectModalComponent implements OnInit {
   private allProjects = toSignal(this.projectService.projects$, { initialValue: [] as Project[] });
 
   name = signal('');
-  color = signal('charcoal');
+  color = signal('#808080');
   parentId = signal('');
   viewStyle = signal<ViewStyle>('LIST');
   isFavorite = signal(false);
 
   colorKeys = COLOR_KEYS;
+  PROJECT_COLORS = PROJECT_COLORS;
   getColor = getColor;
 
   viewStyles: { value: ViewStyle; label: string; icon: string }[] = [

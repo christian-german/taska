@@ -78,10 +78,10 @@ class AddTaskViewModel : ViewModel() {
     }
 
     fun millisToApiDateTime(millis: Long, timeMinutes: Int?): String {
-        val utc = Calendar.getInstance(TimeZone.getTimeZone("UTC")).also { it.timeInMillis = millis }
-        val y = utc.get(Calendar.YEAR)
-        val m = (utc.get(Calendar.MONTH) + 1).toString().padStart(2, '0')
-        val d = utc.get(Calendar.DAY_OF_MONTH).toString().padStart(2, '0')
+        val local = Calendar.getInstance().also { it.timeInMillis = millis }
+        val y = local.get(Calendar.YEAR)
+        val m = (local.get(Calendar.MONTH) + 1).toString().padStart(2, '0')
+        val d = local.get(Calendar.DAY_OF_MONTH).toString().padStart(2, '0')
         return if (timeMinutes != null) {
             val h = (timeMinutes / 60).toString().padStart(2, '0')
             val min = (timeMinutes % 60).toString().padStart(2, '0')

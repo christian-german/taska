@@ -39,6 +39,9 @@ class TrackerActivity : ComponentActivity() {
                 var showAddTask by remember { mutableStateOf(false) }
 
                 WithDrawer(
+                    onInboxSelected = {
+                        startActivity(Intent(this@TrackerActivity, MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT))
+                    },
                     onProjectSelected = { projectId ->
                         startActivity(
                             Intent(this@TrackerActivity, ProjectActivity::class.java)
@@ -74,6 +77,10 @@ class TrackerActivity : ComponentActivity() {
                                     )
                                     NavDestination.TODAY -> startActivity(
                                         Intent(this@TrackerActivity, TodayActivity::class.java)
+                                            .addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT)
+                                    )
+                                    NavDestination.DAY -> startActivity(
+                                        Intent(this@TrackerActivity, DayActivity::class.java)
                                             .addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT)
                                     )
                                     NavDestination.WEEK -> startActivity(

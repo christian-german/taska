@@ -34,7 +34,7 @@ public class ProjectService {
     public Project create(ProjectRequest req) {
         Project p = new Project();
         p.setName(req.name());
-        p.setColor(req.color() != null ? req.color() : "charcoal");
+        p.setColor(req.color() != null ? req.color() : "#808080");
         p.setParentId(req.parentId());
         p.setPosition(req.order() != null ? req.order() : 0);
         p.setIsFavorite(req.isFavorite() != null ? req.isFavorite() : false);

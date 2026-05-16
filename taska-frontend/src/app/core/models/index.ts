@@ -57,8 +57,8 @@ export interface Task {
   priority: 1 | 2 | 3 | 4;
   labels: string[];
   isCompleted: boolean;
-  dueDate?: string;
-  dueDateTime?: string;
+  dueAt: string | null;
+  allDay: boolean;
   isRecurring: boolean;
   estimateMinutes?: number;
   mentionContext?: string;
@@ -173,24 +173,26 @@ export function hexToRgba(hex: string | undefined, a: number): string {
   return `rgba(${r},${g},${b},${a})`;
 }
 
-export function isOverdue(taskOrDate: Pick<Task, 'dueDate' | 'isCompleted'> | string | undefined): boolean {
+export function isOverdue(taskOrDate: Pick<Task, 'dueAt' | 'allDay' | 'isCompleted'> | string | undefined): boolean {
   if (!taskOrDate) return false;
+  const today = new Date().toISOString().split('T')[0];
   if (typeof taskOrDate === 'string') {
-    return taskOrDate < new Date().toISOString().split('T')[0];
+    return taskOrDate.slice(0, 10) < today;
   }
-  if (!taskOrDate.dueDate || taskOrDate.isCompleted) return false;
-  return taskOrDate.dueDate < new Date().toISOString().split('T')[0];
+  if (!taskOrDate.dueAt || taskOrDate.isCompleted) return false;
+  return taskOrDate.dueAt.slice(0, 10) < today;
 }
 
-export function formatDueDate(dueDate?: string): string {
-  if (!dueDate) return '';
-  const date = new Date(dueDate + 'T00:00:00');
+export function formatDueDate(dueAt?: string | null): string {
+  if (!dueAt) return '';
+  const date = new Date(dueAt);
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   const tomorrow = new Date(today);
   tomorrow.setDate(today.getDate() + 1);
-  if (date.getTime() === today.getTime()) return "Aujourd'hui";
-  if (date.getTime() === tomorrow.getTime()) return 'Demain';
+  const d = new Date(dueAt.slice(0, 10) + 'T00:00:00');
+  if (d.getTime() === today.getTime()) return "Aujourd'hui";
+  if (d.getTime() === tomorrow.getTime()) return 'Demain';
   return fmtDateShort(date);
 }
 
@@ -208,9 +210,9 @@ export const PRIORITY_TEXT_COLORS: Record<number, string> = {
   4: 'text-red-500',
 };
 
-export function isToday(dueDate?: string): boolean {
-  if (!dueDate) return false;
-  return dueDate === new Date().toISOString().split('T')[0];
+export function isToday(dueAt?: string | null): boolean {
+  if (!dueAt) return false;
+  return dueAt.slice(0, 10) === new Date().toISOString().split('T')[0];
 }
 
 export function startOfDay(d: Date | string): Date {
@@ -267,12 +269,10 @@ export function fmtEstimate(min?: number | null): string {
   return h ? (m ? `${h}h${m.toString().padStart(2, '0')}` : `${h}h`) : `${m}min`;
 }
 
-export function getTaskDueDateTime(task: Pick<Task, 'dueDate' | 'dueDateTime'>): Date | null {
-  if (task.dueDateTime) return new Date(task.dueDateTime);
-  if (task.dueDate) return new Date(task.dueDate + 'T00:00:00');
-  return null;
+export function getTaskDueDate(task: Pick<Task, 'dueAt'>): Date | null {
+  return task.dueAt ? new Date(task.dueAt) : null;
 }
 
-export function taskHasTime(task: Pick<Task, 'dueDateTime'>): boolean {
-  return !!task.dueDateTime;
+export function isTaskAllDay(task: Pick<Task, 'allDay'>): boolean {
+  return task.allDay;
 }

@@ -24,12 +24,13 @@ public class TaskService {
     @Transactional(readOnly = true)
     public List<Task> findAll(UUID projectId, UUID sectionId, String label, String filter, boolean showCompleted) {
         if (filter != null) {
-            LocalDate today = LocalDate.now();
+            LocalDateTime startOfToday    = LocalDate.now().atStartOfDay();
+            LocalDateTime startOfTomorrow = LocalDate.now().plusDays(1).atStartOfDay();
             return switch (filter) {
-                case "today" -> taskRepository.findByDueDateAndIsCompletedFalseOrderByPositionAsc(today);
-                case "overdue" -> taskRepository.findByDueDateBeforeAndIsCompletedFalseOrderByDueDateAsc(today);
-                case "upcoming" -> taskRepository.findByDueDateBetweenAndIsCompletedFalseOrderByDueDateAsc(
-                        today.plusDays(1), today.plusDays(14));
+                case "today"    -> taskRepository.findByDueAtBetweenAndIsCompletedFalseOrderByDueAtAsc(startOfToday, startOfTomorrow);
+                case "overdue"  -> taskRepository.findByDueAtBeforeAndIsCompletedFalseOrderByDueAtAsc(startOfToday);
+                case "upcoming" -> taskRepository.findByDueAtBetweenAndIsCompletedFalseOrderByDueAtAsc(
+                        startOfTomorrow, LocalDate.now().plusDays(14).atStartOfDay());
                 default -> taskRepository.findAll();
             };
         }
@@ -68,8 +69,8 @@ public class TaskService {
         t.setPosition(req.order() != null ? req.order() : 0);
         t.setPriority(req.priority() != null ? req.priority() : 1);
         t.setLabels(req.labels() != null ? req.labels() : new ArrayList<>());
-        t.setDueDate(req.dueDate());
-        t.setDueDateTime(req.dueDateTime());
+        t.setDueAt(req.dueAt());
+        t.setAllDay(req.allDay() != null ? req.allDay() : false);
         t.setIsRecurring(req.isRecurring() != null ? req.isRecurring() : false);
         t.setEstimateMinutes(req.estimateMinutes());
         t.setMentionContext(req.mentionContext());
@@ -96,8 +97,8 @@ public class TaskService {
         if (taskRequest.order() != null) task.setPosition(taskRequest.order());
         if (taskRequest.priority() != null) task.setPriority(taskRequest.priority());
         if (taskRequest.labels() != null) task.setLabels(taskRequest.labels());
-        if (taskRequest.dueDate() != null) task.setDueDate(taskRequest.dueDate());
-        if (taskRequest.dueDateTime() != null) task.setDueDateTime(taskRequest.dueDateTime());
+        if (taskRequest.dueAt() != null) task.setDueAt(taskRequest.dueAt());
+        if (taskRequest.allDay() != null) task.setAllDay(taskRequest.allDay());
         if (taskRequest.isRecurring() != null) task.setIsRecurring(taskRequest.isRecurring());
         if (taskRequest.estimateMinutes() != null) task.setEstimateMinutes(taskRequest.estimateMinutes());
         if (taskRequest.mentionContext() != null) task.setMentionContext(taskRequest.mentionContext());

@@ -395,7 +395,7 @@ export class QuickAddComponent implements OnInit {
 
   effectiveDueDate = computed(() => {
     const m = this.manualDatetime();
-    return m ? m.slice(0, 10) : (this.parsed().dueDate ?? null);
+    return m ? m.slice(0, 10) : (this.parsed().dueAt?.slice(0, 10) ?? null);
   });
 
   datePickerValue = computed(() => {
@@ -403,7 +403,7 @@ export class QuickAddComponent implements OnInit {
     if (m) return m;
     const p = this.parsed();
     if (p.dueAt) return p.dueAt.slice(0, 16);
-    return p.dueDate ?? '';
+    return '';
   });
 
   effectiveProjectId = computed(() => this.manualProjectId() ?? this.ui.defaultProjectId() ?? this.inboxProject()?.id ?? null);
@@ -538,14 +538,14 @@ export class QuickAddComponent implements OnInit {
   dateRowLabel(): string {
     const m = this.manualDatetime();
     if (m) {
-      const d = new Date(m.includes('T') ? m : m + 'T00:00:00');
-      return fmtRel(d) + (m.includes('T') ? ' · ' + fmtTime(d) : '');
+      const hasTime = m.includes('T');
+      const d = new Date(hasTime ? m : m + 'T00:00:00');
+      return fmtRel(d) + (hasTime ? ' · ' + fmtTime(d) : '');
     }
     const p = this.parsed();
-    if (!p.dueDate) return 'pas de date';
-    const d = new Date(p.dueDate + 'T00:00:00');
-    const time = p.hasTime && p.dueAt ? ' · ' + fmtTime(new Date(p.dueAt)) : '';
-    return fmtRel(d) + time;
+    if (!p.dueAt) return 'pas de date';
+    const d = new Date(p.dueAt);
+    return fmtRel(d) + (p.hasTime ? ' · ' + fmtTime(d) : '');
   }
 
   tagRowLabel(): string {
@@ -573,13 +573,24 @@ export class QuickAddComponent implements OnInit {
     if (!p.title) return;
     const manual = this.manualDatetime();
     const hasTime = manual ? manual.includes('T') : false;
+
+    let dueAt: string | null = null;
+    let allDay = false;
+    if (manual) {
+      dueAt = hasTime ? (manual.length === 16 ? manual + ':00' : manual) : manual + 'T00:00:00';
+      allDay = !hasTime;
+    } else if (p.dueAt) {
+      dueAt = p.dueAt;
+      allDay = p.allDay;
+    }
+
     this.taskService.createTask({
       content: p.title,
       projectId: this.effectiveProjectId() ?? undefined,
       labels: this.effectiveTags(),
       priority: p.priority ?? 1,
-      dueDate: manual && !hasTime ? manual : (manual ? null : p.dueDate),
-      dueDateTime: manual && hasTime ? manual : (manual ? null : p.dueDateTime),
+      dueAt,
+      allDay,
       mentionContext: p.context,
       estimateMinutes: this.effectiveEstimate() ?? undefined,
       recurrenceRule: this.effectiveRecurrence() || undefined,

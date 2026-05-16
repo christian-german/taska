@@ -2,33 +2,32 @@ package com.taska.android
 
 import android.content.Intent
 import android.os.Bundle
+import com.taska.android.TaskDetailActivity
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
+import androidx.activity.viewModels
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.material3.Text
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.font.FontStyle
-import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.taska.android.ui.addtask.AddTaskBottomSheet
 import com.taska.android.ui.addtask.AddTaskViewModel
+import com.taska.android.ui.drawer.WithDrawer
 import com.taska.android.ui.shared.BottomNavBar
 import com.taska.android.ui.shared.NavDestination
 import com.taska.android.ui.theme.TaskaTheme
+import com.taska.android.ui.week.WeekScreen
+import com.taska.android.ui.week.WeekViewModel
 
 class WeekActivity : ComponentActivity() {
+
+    private val weekViewModel: WeekViewModel by viewModels()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -37,44 +36,48 @@ class WeekActivity : ComponentActivity() {
                 val addTaskViewModel: AddTaskViewModel = viewModel()
                 var showAddTask by remember { mutableStateOf(false) }
 
-                Column(modifier = Modifier.fillMaxSize()) {
-                    Box(
-                        modifier = Modifier
-                            .weight(1f)
-                            .fillMaxSize()
-                            .background(Color(0xFFEAE5DC))
-                            .statusBarsPadding(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            text = "Semaine",
-                            fontFamily = FontFamily.Serif,
-                            fontStyle = FontStyle.Italic,
-                            fontSize = 32.sp,
-                            color = Color(0xFF1A1A1A)
+                WithDrawer(
+                    onProjectSelected = { projectId ->
+                        startActivity(
+                            Intent(this@WeekActivity, ProjectActivity::class.java)
+                                .putExtra("project_id", projectId)
+                                .putExtra("nav_current", NavDestination.WEEK.name)
                         )
                     }
-                    BottomNavBar(
-                        current = NavDestination.WEEK,
-                        onNavigate = { dest ->
-                            when (dest) {
-                                NavDestination.INBOX -> startActivity(
-                                    Intent(this@WeekActivity, MainActivity::class.java)
-                                        .addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT)
+                ) {
+                    Column(modifier = Modifier.fillMaxSize()) {
+                        WeekScreen(
+                            viewModel = weekViewModel,
+                            onTaskClick = { taskId ->
+                                startActivity(
+                                    Intent(this@WeekActivity, TaskDetailActivity::class.java)
+                                        .putExtra("task_id", taskId)
                                 )
-                                NavDestination.TODAY -> startActivity(
-                                    Intent(this@WeekActivity, TodayActivity::class.java)
-                                        .addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT)
-                                )
-                                NavDestination.WEEK -> Unit
-                                NavDestination.TRACKER -> startActivity(
-                                    Intent(this@WeekActivity, TrackerActivity::class.java)
-                                        .addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT)
-                                )
-                            }
-                        },
-                        onAddClick = { showAddTask = true }
-                    )
+                            },
+                            modifier = Modifier.weight(1f)
+                        )
+                        BottomNavBar(
+                            current = NavDestination.WEEK,
+                            onNavigate = { dest ->
+                                when (dest) {
+                                    NavDestination.INBOX -> startActivity(
+                                        Intent(this@WeekActivity, MainActivity::class.java)
+                                            .addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT)
+                                    )
+                                    NavDestination.TODAY -> startActivity(
+                                        Intent(this@WeekActivity, TodayActivity::class.java)
+                                            .addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT)
+                                    )
+                                    NavDestination.WEEK -> Unit
+                                    NavDestination.TRACKER -> startActivity(
+                                        Intent(this@WeekActivity, TrackerActivity::class.java)
+                                            .addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT)
+                                    )
+                                }
+                            },
+                            onAddClick = { showAddTask = true }
+                        )
+                    }
                 }
 
                 if (showAddTask) {
@@ -86,5 +89,10 @@ class WeekActivity : ComponentActivity() {
                 }
             }
         }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        weekViewModel.load()
     }
 }

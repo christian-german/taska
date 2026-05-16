@@ -5,7 +5,6 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.time.Instant;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -50,11 +49,11 @@ public class Task {
     @Column(name = "is_completed", nullable = false)
     private Boolean isCompleted = false;
 
-    @Column(name = "due_date")
-    private LocalDate dueDate;
+    @Column(name = "due_at")
+    private LocalDateTime dueAt;
 
-    @Column(name = "due_date_time")
-    private LocalDateTime dueDateTime;
+    @Column(name = "all_day", nullable = false)
+    private boolean allDay = false;
 
     @Column(name = "is_recurring", nullable = false)
     private Boolean isRecurring = false;

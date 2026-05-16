@@ -58,7 +58,9 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TimePicker
 import androidx.compose.material3.rememberDatePickerState
+import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -100,7 +102,7 @@ private val DividerColor = Color(0xFFD5D0C8)
 private val Orange = Color(0xFFE8763A)
 private val GreenDone = Color(0xFF4CAF50)
 
-private enum class ActivePicker { DATE, CALENDAR, PROJECT, DURATION, LABELS, PRIORITY }
+private enum class ActivePicker { DATE, CALENDAR, TIME, PROJECT, DURATION, LABELS, PRIORITY }
 
 @Composable
 fun TaskDetailScreen(
@@ -177,29 +179,59 @@ fun TaskDetailScreen(
 
     when (activePicker) {
         ActivePicker.DATE -> DateShortcutsDialog(
+            hasDue = task?.dueAt != null,
             onSelect = { millis ->
-                viewModel.reschedule(viewModel.millisToApiDate(millis))
-                activePicker = null
+                viewModel.rescheduleAllDay(millis)
+                activePicker = ActivePicker.TIME
             },
             onOpenCalendar = { activePicker = ActivePicker.CALENDAR },
+            onClear = { viewModel.clearDue(); activePicker = null },
             onDismiss = { activePicker = null }
         )
         ActivePicker.CALENDAR -> {
-            val datePickerState = rememberDatePickerState(initialSelectedDateMillis = todayMillis())
+            val datePickerState = rememberDatePickerState(
+                initialSelectedDateMillis = viewModel.dueAtToMillis()
+            )
             DatePickerDialog(
                 onDismissRequest = { activePicker = null },
                 confirmButton = {
                     TextButton(onClick = {
                         datePickerState.selectedDateMillis?.let {
-                            viewModel.reschedule(viewModel.millisToApiDate(it))
+                            viewModel.rescheduleAllDay(it)
                         }
-                        activePicker = null
+                        activePicker = ActivePicker.TIME
                     }) { Text("OK") }
                 },
                 dismissButton = {
                     TextButton(onClick = { activePicker = null }) { Text("Annuler") }
                 }
             ) { DatePicker(state = datePickerState) }
+        }
+        ActivePicker.TIME -> {
+            val dueAt = task?.dueAt
+            val initialHour = if (dueAt != null && task.allDay == false)
+                dueAt.substring(11, 13).toIntOrNull() ?: 9 else 9
+            val initialMinute = if (dueAt != null && task.allDay == false)
+                dueAt.substring(14, 16).toIntOrNull() ?: 0 else 0
+            val timeState = rememberTimePickerState(
+                initialHour = initialHour,
+                initialMinute = initialMinute,
+                is24Hour = true
+            )
+            TimePickerDialog(
+                onConfirm = {
+                    viewModel.rescheduleWithTime(
+                        viewModel.dueAtToMillis(),
+                        timeState.hour,
+                        timeState.minute
+                    )
+                    activePicker = null
+                },
+                onAllDay = { activePicker = null },
+                onDismiss = { activePicker = null }
+            ) {
+                TimePicker(state = timeState)
+            }
         }
         ActivePicker.PROJECT -> ProjectPickerDialog(
             projects = state.projects,
@@ -362,10 +394,8 @@ private fun TaskContent(
             PropertyRow(
                 icon = Icons.Outlined.Schedule,
                 label = "ÉCHÉANCE",
-                value = if (task.dueDate != null || task.dueDateTime != null)
-                    formatDueDate(task.dueDate, task.dueDateTime)
-                else null,
-                valueColor = if (isOverdue(task.dueDate, task.dueDateTime)) OverdueColor else TextPrimary,
+                value = task.dueAt?.let { formatDueDate(it, task.allDay) },
+                valueColor = if (isOverdue(task.dueAt, task.allDay)) OverdueColor else TextPrimary,
                 onClick = { onPropertyClick(ActivePicker.DATE) }
             )
             HorizontalDivider(color = DividerColor)
@@ -676,8 +706,10 @@ private fun BottomBar(
 
 @Composable
 private fun DateShortcutsDialog(
+    hasDue: Boolean,
     onSelect: (Long) -> Unit,
     onOpenCalendar: () -> Unit,
+    onClear: () -> Unit,
     onDismiss: () -> Unit
 ) {
     val shortcuts = listOf(
@@ -723,6 +755,59 @@ private fun DateShortcutsDialog(
                 Icon(Icons.Outlined.CalendarToday, null, tint = Color(0xFF555555), modifier = Modifier.size(20.dp))
                 Spacer(Modifier.width(14.dp))
                 Text("Choisir une date…")
+            }
+            if (hasDue) {
+                HorizontalDivider(color = Color(0xFFF0F0F0))
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { onClear() }
+                        .padding(horizontal = 20.dp, vertical = 14.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(Icons.Filled.Close, null, tint = OverdueColor, modifier = Modifier.size(20.dp))
+                    Spacer(Modifier.width(14.dp))
+                    Text("Supprimer l'échéance", color = OverdueColor)
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun TimePickerDialog(
+    onConfirm: () -> Unit,
+    onAllDay: () -> Unit,
+    onDismiss: () -> Unit,
+    content: @Composable () -> Unit
+) {
+    Dialog(onDismissRequest = onDismiss) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(16.dp))
+                .background(Color.White)
+                .padding(vertical = 16.dp, horizontal = 20.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                text = "Choisir l'heure",
+                style = TextStyle(fontSize = 16.sp, fontWeight = FontWeight.SemiBold),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 16.dp)
+            )
+            content()
+            Spacer(Modifier.height(12.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                TextButton(onClick = onAllDay) { Text("Journée entière") }
+                Row {
+                    TextButton(onClick = onDismiss) { Text("Annuler") }
+                    TextButton(onClick = onConfirm) { Text("OK") }
+                }
             }
         }
     }
@@ -986,8 +1071,8 @@ private fun formatDuration(minutes: Int): String {
     }
 }
 
-private fun formatDueDate(dueDate: String?, dueDateTime: String?): String {
-    val dateStr = dueDate ?: dueDateTime?.substringBefore('T') ?: return ""
+private fun formatDueDate(dueAt: String, allDay: Boolean): String {
+    val dateStr = dueAt.substringBefore('T')
     val parts = dateStr.split("-")
     if (parts.size != 3) return dateStr
 
@@ -1015,20 +1100,29 @@ private fun formatDueDate(dueDate: String?, dueDateTime: String?): String {
         }
     }
 
-    val timePart = dueDateTime?.substringAfter('T')?.take(5)
-    return if (timePart != null) "$dayPart · $timePart" else dayPart
+    return if (!allDay) {
+        val timePart = dueAt.substringAfter('T', "").take(5)
+        if (timePart.isNotEmpty()) "$dayPart · $timePart" else dayPart
+    } else {
+        dayPart
+    }
 }
 
-private fun isOverdue(dueDate: String?, dueDateTime: String?): Boolean {
-    val dateStr = dueDate ?: dueDateTime?.substringBefore('T') ?: return false
+private fun isOverdue(dueAt: String?, allDay: Boolean): Boolean {
+    dueAt ?: return false
+    val dateStr = dueAt.substringBefore('T')
     val parts = dateStr.split("-")
     if (parts.size != 3) return false
     val cal = Calendar.getInstance().apply {
         set(Calendar.YEAR, parts[0].toIntOrNull() ?: return false)
         set(Calendar.MONTH, (parts[1].toIntOrNull() ?: return false) - 1)
         set(Calendar.DAY_OF_MONTH, parts[2].toIntOrNull() ?: return false)
-        set(Calendar.HOUR_OF_DAY, 23)
-        set(Calendar.MINUTE, 59)
+        if (allDay) {
+            set(Calendar.HOUR_OF_DAY, 23); set(Calendar.MINUTE, 59)
+        } else {
+            set(Calendar.HOUR_OF_DAY, dueAt.substring(11, 13).toIntOrNull() ?: 23)
+            set(Calendar.MINUTE, dueAt.substring(14, 16).toIntOrNull() ?: 59)
+        }
     }
     return cal.before(Calendar.getInstance())
 }

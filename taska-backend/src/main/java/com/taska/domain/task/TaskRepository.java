@@ -19,11 +19,9 @@ public interface TaskRepository extends JpaRepository<Task, UUID> {
 
     List<Task> findByProjectIdAndSectionIdIsNullAndIsCompletedFalseOrderByPositionAsc(UUID projectId);
 
-    List<Task> findByDueDateAndIsCompletedFalseOrderByPositionAsc(LocalDate dueDate);
+    List<Task> findByDueAtBetweenAndIsCompletedFalseOrderByDueAtAsc(LocalDateTime from, LocalDateTime to);
 
-    List<Task> findByDueDateBeforeAndIsCompletedFalseOrderByDueDateAsc(LocalDate date);
-
-    List<Task> findByDueDateBetweenAndIsCompletedFalseOrderByDueDateAsc(LocalDate from, LocalDate to);
+    List<Task> findByDueAtBeforeAndIsCompletedFalseOrderByDueAtAsc(LocalDateTime before);
 
     List<Task> findByProjectIdOrderByPositionAsc(UUID projectId);
 
@@ -43,26 +41,27 @@ public interface TaskRepository extends JpaRepository<Task, UUID> {
     @Query("SELECT t FROM Task t JOIN t.labels l WHERE l = :label ORDER BY t.position ASC")
     List<Task> findByLabel(@Param("label") String label);
 
-    @Query("SELECT t FROM Task t WHERE t.isCompleted = false AND t.dueDate IS NOT NULL ORDER BY t.dueDate ASC")
-    List<Task> findAllWithDueDateNotCompleted();
+    @Query("SELECT t FROM Task t WHERE t.isCompleted = false AND t.dueAt IS NOT NULL ORDER BY t.dueAt ASC")
+    List<Task> findAllWithDueAtNotCompleted();
 
-    @Query("SELECT t FROM Task t WHERE t.isCompleted = false AND t.dueDate IS NULL ORDER BY t.position ASC")
-    List<Task> findAllWithNoDueDateNotCompleted();
+    @Query("SELECT t FROM Task t WHERE t.isCompleted = false AND t.dueAt IS NULL ORDER BY t.position ASC")
+    List<Task> findAllWithNoDueAtNotCompleted();
 
-    List<Task> findByProjectIdAndDueDateIsNotNullAndIsCompletedFalseOrderByDueDateAsc(UUID projectId);
+    List<Task> findByProjectIdAndDueAtIsNotNullAndIsCompletedFalseOrderByDueAtAsc(UUID projectId);
 
-    List<Task> findByProjectIdAndDueDateIsNullAndIsCompletedFalseOrderByPositionAsc(UUID projectId);
+    List<Task> findByProjectIdAndDueAtIsNullAndIsCompletedFalseOrderByPositionAsc(UUID projectId);
 
     long countByIsCompletedTrue();
 
     long countByIsCompletedFalse();
 
-    long countByIsCompletedFalseAndDueDateBefore(LocalDate date);
+    @Query("SELECT COUNT(t) FROM Task t WHERE t.isCompleted = false AND t.dueAt < :before")
+    long countByIsCompletedFalseAndDueAtBefore(@Param("before") LocalDateTime before);
 
     List<Task> findByCompletedAtAfterOrderByCompletedAtAsc(Instant since);
 
     List<Task> findByIsCompletedTrueOrderByCompletedAtDesc();
 
-    @Query("SELECT t FROM Task t WHERE t.isCompleted = false AND t.isNotified = false AND t.dueDateTime IS NOT NULL AND t.dueDateTime <= :in15min")
+    @Query("SELECT t FROM Task t WHERE t.isCompleted = false AND t.isNotified = false AND t.allDay = false AND t.dueAt IS NOT NULL AND t.dueAt <= :in15min")
     List<Task> findTasksDueAround(@Param("in15min") LocalDateTime in15min);
 }

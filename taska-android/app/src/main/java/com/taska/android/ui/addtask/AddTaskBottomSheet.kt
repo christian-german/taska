@@ -32,6 +32,7 @@ import androidx.compose.material.icons.outlined.FolderOpen
 import androidx.compose.material.icons.outlined.MoveToInbox
 import androidx.compose.material.icons.outlined.NotificationsNone
 import androidx.compose.material.icons.outlined.Repeat
+import androidx.compose.material.icons.outlined.Schedule
 import androidx.compose.material.icons.outlined.Timer
 import androidx.compose.material.icons.outlined.WbSunny
 import androidx.compose.material3.Button
@@ -45,8 +46,10 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TimePicker
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -91,6 +94,7 @@ fun AddTaskBottomSheet(
 
     var showDateShortcuts by remember { mutableStateOf(false) }
     var showCalendar by remember { mutableStateOf(false) }
+    var showTimePicker by remember { mutableStateOf(false) }
     var showProjectPicker by remember { mutableStateOf(false) }
     var showDurationPicker by remember { mutableStateOf(false) }
     var showPriorityPicker by remember { mutableStateOf(false) }
@@ -169,6 +173,14 @@ fun AddTaskBottomSheet(
                     selected = state.dueDateMillis != null,
                     onClick = { showDateShortcuts = true }
                 )
+                if (state.dueDateMillis != null) {
+                    TaskChip(
+                        icon = Icons.Outlined.Schedule,
+                        text = state.dueTimeMinutes?.let { formatTimeMinutes(it) } ?: "Heure",
+                        selected = state.dueTimeMinutes != null,
+                        onClick = { showTimePicker = true }
+                    )
+                }
                 TaskChip(
                     icon = Icons.Outlined.FolderOpen,
                     text = state.selectedProject?.name ?: "Projet",
@@ -255,6 +267,7 @@ fun AddTaskBottomSheet(
             onSelect = { millis ->
                 viewModel.updateDueDate(millis)
                 showDateShortcuts = false
+                showTimePicker = true
             },
             onOpenCalendar = {
                 showDateShortcuts = false
@@ -274,6 +287,7 @@ fun AddTaskBottomSheet(
                 TextButton(onClick = {
                     datePickerState.selectedDateMillis?.let { viewModel.updateDueDate(it) }
                     showCalendar = false
+                    showTimePicker = true
                 }) { Text("OK") }
             },
             dismissButton = {
@@ -281,6 +295,28 @@ fun AddTaskBottomSheet(
             }
         ) {
             DatePicker(state = datePickerState)
+        }
+    }
+
+    if (showTimePicker) {
+        val initial = state.dueTimeMinutes
+        val timeState = rememberTimePickerState(
+            initialHour = initial?.div(60) ?: 9,
+            initialMinute = initial?.rem(60) ?: 0,
+            is24Hour = true
+        )
+        TimePickerDialog(
+            onConfirm = {
+                viewModel.updateTime(timeState.hour * 60 + timeState.minute)
+                showTimePicker = false
+            },
+            onAllDay = {
+                viewModel.clearTime()
+                showTimePicker = false
+            },
+            onDismiss = { showTimePicker = false }
+        ) {
+            TimePicker(state = timeState)
         }
     }
 
@@ -636,6 +672,51 @@ private fun formatDuration(minutes: Int): String {
         m == 0 -> "${h}h"
         else -> "${h}h${m}"
     }
+}
+
+@Composable
+private fun TimePickerDialog(
+    onConfirm: () -> Unit,
+    onAllDay: () -> Unit,
+    onDismiss: () -> Unit,
+    content: @Composable () -> Unit
+) {
+    Dialog(onDismissRequest = onDismiss) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(16.dp))
+                .background(Color.White)
+                .padding(vertical = 16.dp, horizontal = 20.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                text = "Choisir l'heure",
+                style = TextStyle(fontSize = 16.sp, fontWeight = FontWeight.SemiBold),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 16.dp)
+            )
+            content()
+            Spacer(Modifier.height(12.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                TextButton(onClick = onAllDay) { Text("Journée entière") }
+                Row {
+                    TextButton(onClick = onDismiss) { Text("Annuler") }
+                    TextButton(onClick = onConfirm) { Text("OK") }
+                }
+            }
+        }
+    }
+}
+
+private fun formatTimeMinutes(totalMinutes: Int): String {
+    val h = (totalMinutes / 60).toString().padStart(2, '0')
+    val m = (totalMinutes % 60).toString().padStart(2, '0')
+    return "$h:$m"
 }
 
 private fun parseHexColor(hex: String): Color? = try {

@@ -22,8 +22,8 @@ import {
   getColor,
   hexToRgba,
   isOverdue,
-  getTaskDueDateTime,
-  taskHasTime,
+  getTaskDueDate,
+  isTaskAllDay,
 } from '../../../core/models';
 import { LabelService } from '../../../core/services/label.service';
 import { IconComponent } from '../icon/icon.component';
@@ -139,14 +139,14 @@ export class TaskRowComponent {
 
   @ViewChild('editInput') editInput?: ElementRef<HTMLInputElement>;
 
-  dueDate = computed(() => getTaskDueDateTime(this.task()));
+  dueDate = computed(() => getTaskDueDate(this.task()));
   overdue = computed(() => isOverdue(this.task()));
 
   dueLabel = computed<string>(() => {
     const d = this.dueDate();
     if (!d) return '';
     const t = this.task();
-    const time = taskHasTime(t) ? fmtTime(d) : '';
+    const time = !isTaskAllDay(t) ? fmtTime(d) : '';
     const rel = fmtRel(d);
     return time && rel !== 'auj.' ? `${time} · ${rel}` : (time || rel);
   });
@@ -155,7 +155,7 @@ export class TaskRowComponent {
 
   hasMeta = computed(() => {
     const t = this.task();
-    return !!(t.dueDate || t.estimateMinutes || t.recurrenceRule || t.isRecurring || this.project() ||
+    return !!(t.dueAt || t.estimateMinutes || t.recurrenceRule || t.isRecurring || this.project() ||
               t.mentionContext || (t.labels && t.labels.length > 0));
   });
 

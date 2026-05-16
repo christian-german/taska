@@ -27,6 +27,7 @@ import com.google.firebase.messaging.FirebaseMessaging
 import kotlinx.coroutines.launch
 import com.taska.android.ui.addtask.AddTaskBottomSheet
 import com.taska.android.ui.addtask.AddTaskViewModel
+import com.taska.android.ui.drawer.WithDrawer
 import com.taska.android.ui.inbox.InboxScreen
 import com.taska.android.ui.inbox.InboxViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -77,26 +78,36 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             TaskaTheme {
-                InboxRoot(
-                    inboxViewModel = inboxViewModel,
-                    onNavigate = { dest ->
-                        when (dest) {
-                            NavDestination.TODAY -> startActivity(
-                                Intent(this, TodayActivity::class.java)
-                                    .addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT)
-                            )
-                            NavDestination.WEEK -> startActivity(
-                                Intent(this, WeekActivity::class.java)
-                                    .addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT)
-                            )
-                            NavDestination.TRACKER -> startActivity(
-                                Intent(this, TrackerActivity::class.java)
-                                    .addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT)
-                            )
-                            NavDestination.INBOX -> Unit
-                        }
+                WithDrawer(
+                    onProjectSelected = { projectId ->
+                        startActivity(
+                            Intent(this, ProjectActivity::class.java)
+                                .putExtra("project_id", projectId)
+                                .putExtra("nav_current", NavDestination.INBOX.name)
+                        )
                     }
-                )
+                ) {
+                    InboxRoot(
+                        inboxViewModel = inboxViewModel,
+                        onNavigate = { dest ->
+                            when (dest) {
+                                NavDestination.TODAY -> startActivity(
+                                    Intent(this, TodayActivity::class.java)
+                                        .addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT)
+                                )
+                                NavDestination.WEEK -> startActivity(
+                                    Intent(this, WeekActivity::class.java)
+                                        .addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT)
+                                )
+                                NavDestination.TRACKER -> startActivity(
+                                    Intent(this, TrackerActivity::class.java)
+                                        .addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT)
+                                )
+                                NavDestination.INBOX -> Unit
+                            }
+                        }
+                    )
+                }
             }
         }
     }

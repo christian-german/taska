@@ -1,7 +1,6 @@
 package com.taska.domain.task;
 
 import java.time.Instant;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
@@ -17,8 +16,8 @@ public record TaskDto(
         Integer priority,
         List<String> labels,
         Boolean isCompleted,
-        LocalDate dueDate,
-        LocalDateTime dueDateTime,
+        LocalDateTime dueAt,
+        Boolean allDay,
         Boolean isRecurring,
         Integer estimateMinutes,
         String mentionContext,

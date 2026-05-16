@@ -31,6 +31,27 @@ object RetrofitClient {
             chain.proceed(request)
         }
 
+        val tokenAuthenticator = okhttp3.Authenticator { _, response ->
+            // Stop retrying after the first retry to avoid infinite loops
+            if (response.priorResponse?.code == 401) return@Authenticator null
+
+            val am = AccountManager.get(appContext)
+            val account = am.getAccountsByType(AuthConfig.ACCOUNT_TYPE).firstOrNull()
+                ?: return@Authenticator null
+
+            val staleToken = response.request.header("Authorization")?.removePrefix("Bearer ")
+            if (staleToken != null) {
+                am.invalidateAuthToken(AuthConfig.ACCOUNT_TYPE, staleToken)
+            }
+
+            val newToken = am.blockingGetAuthToken(account, AuthConfig.AUTH_TOKEN_TYPE, false)
+                ?: return@Authenticator null
+
+            response.request.newBuilder()
+                .header("Authorization", "Bearer $newToken")
+                .build()
+        }
+
         val logging = HttpLoggingInterceptor().apply {
             level = HttpLoggingInterceptor.Level.HEADERS
         }
@@ -41,6 +62,7 @@ object RetrofitClient {
             .client(
                 OkHttpClient.Builder()
                     .addInterceptor(authInterceptor)
+                    .authenticator(tokenAuthenticator)
                     .addInterceptor(logging)
                     .build()
             )

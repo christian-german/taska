@@ -130,11 +130,12 @@ class LoginActivity : ComponentActivity() {
                 Log.d("LoginActivity", "Token response: $rawJson")
 
                 val json = JSONObject(rawJson)
-                val accessToken  = json.getString("access_token")
-                val refreshToken = json.optString("refresh_token")
-                val idToken      = json.optString("id_token")
+                val accessToken   = json.getString("access_token")
+                val refreshToken  = json.optString("refresh_token")
+                val idToken       = json.optString("id_token")
+                val tokenEndpoint = response.request.configuration.tokenEndpoint.toString()
 
-                runOnUiThread { saveAccount(accessToken, refreshToken, idToken) }
+                runOnUiThread { saveAccount(accessToken, refreshToken, idToken, tokenEndpoint) }
 
             } catch (e: Exception) {
                 Log.e("LoginActivity", "exchangeCode failed", e)
@@ -143,7 +144,7 @@ class LoginActivity : ComponentActivity() {
         }.start()
     }
 
-    private fun saveAccount(accessToken: String, refreshToken: String, idToken: String) {
+    private fun saveAccount(accessToken: String, refreshToken: String, idToken: String, tokenEndpoint: String) {
         val name = idToken.takeIf { it.isNotEmpty() }
             ?.let { JWT(it).getClaim("preferred_username").asString() }
             ?: "taska"
@@ -159,6 +160,7 @@ class LoginActivity : ComponentActivity() {
 
         accountManager.setAuthToken(account, AuthConfig.AUTH_TOKEN_TYPE, accessToken)
         accountManager.setUserData(account, "refresh_token", refreshToken)
+        accountManager.setUserData(account, "token_endpoint", tokenEndpoint)
 
         Log.d("LoginActivity", "accounts: ${accountManager.getAccountsByType(AuthConfig.ACCOUNT_TYPE).map { it.name }}")
 

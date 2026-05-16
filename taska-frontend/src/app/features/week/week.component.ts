@@ -58,8 +58,8 @@ export class WeekComponent implements OnInit {
       days.push({ key: 'd' + i, label, tasks: [] });
     }
     for (const t of this.tasks()) {
-      if (!t.dueDate || t.isCompleted) continue;
-      const due = new Date(t.dueDate + 'T00:00:00');
+      if (!t.dueAt || t.isCompleted) continue;
+      const due = new Date(t.dueAt);
       const diff = daysDiff(today, due);
       if (diff >= 0 && diff < 7) days[diff].tasks.push(t);
     }
@@ -78,7 +78,7 @@ export class WeekComponent implements OnInit {
   ngOnInit(): void {
     this.refresh();
     this.ui.taskCreated$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(task => {
-      const diff = task.dueDate ? daysDiff(new Date(), new Date(task.dueDate + 'T00:00:00')) : -1;
+      const diff = task.dueAt ? daysDiff(new Date(), new Date(task.dueAt)) : -1;
       if (!task.isCompleted && diff >= 0 && diff < 7) {
         this.tasks.update(list => [...list, task]);
       }
@@ -89,7 +89,7 @@ export class WeekComponent implements OnInit {
     this.ui.taskUpdated$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(task => {
       this.tasks.update(list => {
         const today = new Date();
-        const diff = task.dueDate ? daysDiff(today, new Date(task.dueDate + 'T00:00:00')) : -1;
+        const diff = task.dueAt ? daysDiff(today, new Date(task.dueAt)) : -1;
         const qualifies = !task.isCompleted && diff >= 0 && diff < 7;
         const inList = list.some(t => t.id === task.id);
         if (inList && qualifies) return list.map(t => t.id === task.id ? task : t);

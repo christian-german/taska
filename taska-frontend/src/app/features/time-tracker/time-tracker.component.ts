@@ -704,9 +704,10 @@ export class TimeTrackerComponent implements OnInit, AfterViewInit {
         this.taskService.getTasks().subscribe(all => {
           this.tasks.set(all.filter(t =>
             !t.isCompleted &&
-            !!t.dueDateTime &&
-            t.dueDateTime >= days[0].iso &&
-            t.dueDateTime <= days[days.length - 1].iso + 'T23:59:59' &&
+            !!t.dueAt &&
+            !t.allDay &&
+            t.dueAt >= days[0].iso &&
+            t.dueAt <= days[days.length - 1].iso + 'T23:59:59' &&
             (!pid || t.projectId === pid)
           ));
         });
@@ -826,11 +827,11 @@ export class TimeTrackerComponent implements OnInit, AfterViewInit {
     }
 
     if (ia.task) {
-      const dueDateTime     = `${ia.curDate}T${minToHHMM(ia.curStartMin)}:00`;
+      const dueAt           = `${ia.curDate}T${minToHHMM(ia.curStartMin)}:00`;
       const estimateMinutes = ia.curEndMin - ia.curStartMin;
-      const optimistic: Task = { ...ia.task, dueDateTime, estimateMinutes };
+      const optimistic: Task = { ...ia.task, dueAt, allDay: false, estimateMinutes };
       this.tasks.update(list => list.map(t => t.id === ia.task!.id ? optimistic : t));
-      this.taskService.updateTask(ia.task.id, { dueDateTime, estimateMinutes }).subscribe({
+      this.taskService.updateTask(ia.task.id, { dueAt, allDay: false, estimateMinutes }).subscribe({
         next:  saved => this.tasks.update(list => list.map(t => t.id === saved.id ? saved : t)),
         error: ()    => this.tasks.update(list => list.map(t => t.id === ia.task!.id ? ia.task! : t)),
       });
@@ -1020,7 +1021,7 @@ export class TimeTrackerComponent implements OnInit, AfterViewInit {
 
   gridItemsForDay(iso: string): GridItem[] {
     const entries = this.entries().filter(e => e.startAt.startsWith(iso));
-    const tasks   = this.tasks().filter(t => t.dueDateTime?.startsWith(iso));
+    const tasks   = this.tasks().filter(t => !t.allDay && t.dueAt?.startsWith(iso));
 
     const raw: Omit<GridItem, 'lane' | 'totalLanes'>[] = [
       ...entries.map(e => ({
@@ -1031,7 +1032,7 @@ export class TimeTrackerComponent implements OnInit, AfterViewInit {
         entry: e,
       })),
       ...tasks.map(t => {
-        const startMin = dtToMin(t.dueDateTime!);
+        const startMin = dtToMin(t.dueAt!);
         return {
           kind: 'task' as const,
           id: t.id,
@@ -1107,8 +1108,8 @@ export class TimeTrackerComponent implements OnInit, AfterViewInit {
 
   convertTaskToEntry(task: Task): void {
     this.taskPopup.set(null);
-    if (!task.dueDateTime || !task.projectId) return;
-    const startAt     = task.dueDateTime;
+    if (!task.dueAt || task.allDay || !task.projectId) return;
+    const startAt     = task.dueAt;
     const startMin    = dtToMin(startAt);
     const endMin      = startMin + (task.estimateMinutes ?? 30);
     const endAt       = `${startAt.slice(0, 11)}${minToHHMM(endMin)}:00`;
@@ -1124,8 +1125,8 @@ export class TimeTrackerComponent implements OnInit, AfterViewInit {
   }
 
   taskTimeRange(task: Task): string {
-    if (!task.dueDateTime) return '';
-    const startMin = dtToMin(task.dueDateTime);
+    if (!task.dueAt || task.allDay) return '';
+    const startMin = dtToMin(task.dueAt);
     const endMin   = startMin + (task.estimateMinutes ?? 30);
     return `${minToHHMM(startMin)}–${minToHHMM(endMin)}`;
   }

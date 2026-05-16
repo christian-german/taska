@@ -11,12 +11,10 @@ export interface NlToken {
 
 export interface NlParsed {
   title: string;
-  /** ISO date+time string or undefined */
+  /** ISO local datetime string (YYYY-MM-DDTHH:MM:SS) or undefined */
   dueAt?: string;
-  /** YYYY-MM-DD only (no time component) */
-  dueDate?: string;
-  /** ISO local date-time when a clock time was supplied */
-  dueDateTime?: string;
+  /** true when no specific time was set (date-only) */
+  allDay: boolean;
   hasTime: boolean;
   projectName?: string;
   tags: string[];
@@ -69,8 +67,7 @@ export class NlParserService {
     const tokens: NlToken[] = [];
 
     let dueAt: string | undefined;
-    let dueDate: string | undefined;
-    let dueDateTime: string | undefined;
+    let allDay = true;
     let hasTime = false;
     const tags: string[] = [];
     let context: string | undefined;
@@ -186,20 +183,18 @@ export class NlParserService {
     if (baseDate) {
       if (time) {
         baseDate.setHours(time.h, time.m, 0, 0);
-        dueDateTime = localIso(baseDate);
-        dueAt = dueDateTime;
-        dueDate = dateOnlyIso(baseDate);
+        dueAt = localIso(baseDate);
+        allDay = false;
       } else {
         baseDate.setHours(0, 0, 0, 0);
-        dueDate = dateOnlyIso(baseDate);
-        dueAt = baseDate.toISOString();
+        dueAt = localIso(baseDate);
+        allDay = true;
       }
     } else if (time) {
       const d = new Date(today);
       d.setHours(time.h, time.m, 0, 0);
-      dueDateTime = localIso(d);
-      dueAt = dueDateTime;
-      dueDate = dateOnlyIso(d);
+      dueAt = localIso(d);
+      allDay = false;
       hasTime = true;
     }
 
@@ -216,8 +211,7 @@ export class NlParserService {
     return {
       title,
       dueAt,
-      dueDate,
-      dueDateTime,
+      allDay,
       hasTime,
       projectName,
       tags,

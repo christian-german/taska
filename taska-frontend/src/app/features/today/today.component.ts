@@ -60,11 +60,11 @@ export class TodayComponent implements OnInit {
 
     const tasks = this.tasks();
     const overdue = tasks.filter(t => isOverdue(t));
-    const todayDue = tasks.filter(t => t.dueDate && sameDay(new Date(t.dueDate + 'T00:00:00'), today));
+    const todayDue = tasks.filter(t => t.dueAt && sameDay(new Date(t.dueAt), today));
     const tomorrowDue = tasks.filter(t =>
       !t.isCompleted &&
-      t.dueDate &&
-      sameDay(new Date(t.dueDate + 'T00:00:00'), tomorrow)
+      t.dueAt &&
+      sameDay(new Date(t.dueAt), tomorrow)
     );
 
     const groups: TaskGroup[] = [];
@@ -95,7 +95,7 @@ export class TodayComponent implements OnInit {
   suggestedIds = computed(() => {
     const today = new Date();
     const candidates = this.tasks()
-      .filter(t => !t.isCompleted && t.dueDate && sameDay(new Date(t.dueDate + 'T00:00:00'), today))
+      .filter(t => !t.isCompleted && t.dueAt && sameDay(new Date(t.dueAt), today))
       .sort((a, b) =>
         (b.priority - a.priority) || ((b.estimateMinutes || 0) - (a.estimateMinutes || 0))
       );
@@ -104,7 +104,7 @@ export class TodayComponent implements OnInit {
 
   subtitle = computed(() => {
     const today = new Date();
-    const todayDue = this.tasks().filter(t => t.dueDate && sameDay(new Date(t.dueDate + 'T00:00:00'), today));
+    const todayDue = this.tasks().filter(t => t.dueAt && sameDay(new Date(t.dueAt), today));
     const overdue = this.tasks().filter(t => isOverdue(t));
     const totalEst = todayDue.filter(t => !t.isCompleted).reduce((a, b) => a + (b.estimateMinutes || 0), 0);
     let s = `${fmtDateLong(today)} · ${todayDue.filter(t => !t.isCompleted).length} tâches`;
@@ -121,10 +121,10 @@ export class TodayComponent implements OnInit {
       const today = new Date();
       const tomorrow = new Date(today);
       tomorrow.setDate(tomorrow.getDate() + 1);
-      const qualifies = !task.isCompleted && !!task.dueDate && (
+      const qualifies = !task.isCompleted && !!task.dueAt && (
         isOverdue(task) ||
-        sameDay(new Date(task.dueDate + 'T00:00:00'), today) ||
-        sameDay(new Date(task.dueDate + 'T00:00:00'), tomorrow)
+        sameDay(new Date(task.dueAt), today) ||
+        sameDay(new Date(task.dueAt), tomorrow)
       );
       if (qualifies) this.tasks.update(list => [...list, task]);
     });
@@ -136,10 +136,10 @@ export class TodayComponent implements OnInit {
         const today = new Date();
         const tomorrow = new Date(today);
         tomorrow.setDate(tomorrow.getDate() + 1);
-        const qualifies = !task.isCompleted && !!task.dueDate && (
+        const qualifies = !task.isCompleted && !!task.dueAt && (
           isOverdue(task) ||
-          sameDay(new Date(task.dueDate + 'T00:00:00'), today) ||
-          sameDay(new Date(task.dueDate + 'T00:00:00'), tomorrow)
+          sameDay(new Date(task.dueAt), today) ||
+          sameDay(new Date(task.dueAt), tomorrow)
         );
         const inList = list.some(t => t.id === task.id);
         if (inList && qualifies) return list.map(t => t.id === task.id ? task : t);
@@ -156,10 +156,10 @@ export class TodayComponent implements OnInit {
       const tomorrow = new Date(today);
       tomorrow.setDate(tomorrow.getDate() + 1);
       this.tasks.set(tasks.filter(t =>
-        !!t.dueDate && (
+        !!t.dueAt && (
           isOverdue(t) ||
-          sameDay(new Date(t.dueDate + 'T00:00:00'), today) ||
-          sameDay(new Date(t.dueDate + 'T00:00:00'), tomorrow)
+          sameDay(new Date(t.dueAt), today) ||
+          sameDay(new Date(t.dueAt), tomorrow)
         )
       ));
     });
@@ -185,7 +185,7 @@ export class TodayComponent implements OnInit {
       if (a.isCompleted !== b.isCompleted) return a.isCompleted ? 1 : -1;
       // Higher internal priority = higher importance, so descending
       if (a.priority !== b.priority) return b.priority - a.priority;
-      if (a.dueDate && b.dueDate) return a.dueDate.localeCompare(b.dueDate);
+      if (a.dueAt && b.dueAt) return a.dueAt.localeCompare(b.dueAt);
       return 0;
     });
   }

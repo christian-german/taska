@@ -7,6 +7,7 @@ data class TaskRequest(
     val parentId: String? = null,
     val priority: Int? = null,
     val labels: List<String>? = null,
-    val dueDate: String? = null,
+    val dueAt: String? = null,
+    val allDay: Boolean? = null,
     val estimateMinutes: Int? = null
 )

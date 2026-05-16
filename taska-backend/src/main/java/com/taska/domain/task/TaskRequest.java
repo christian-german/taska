@@ -1,7 +1,6 @@
 package com.taska.domain.task;
 
 import jakarta.validation.constraints.NotBlank;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
@@ -15,8 +14,8 @@ public record TaskRequest(
         Integer order,
         Integer priority,
         List<String> labels,
-        LocalDate dueDate,
-        LocalDateTime dueDateTime,
+        LocalDateTime dueAt,
+        Boolean allDay,
         Boolean isRecurring,
         Integer estimateMinutes,
         String mentionContext,

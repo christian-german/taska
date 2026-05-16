@@ -17,7 +17,7 @@ interface ParsedTask {
   content: string;
   description?: string;
   priority: 1 | 2 | 3 | 4;
-  dueDate?: string;
+  dueAt?: string;
 }
 
 const EN_MONTHS: Record<string, number> = {
@@ -78,11 +78,12 @@ function parseTodoistCsv(text: string): ParsedTask[] {
     if (type === 'task') {
       const rawPriority = parseInt(row[4] ?? '1') as 1 | 2 | 3 | 4;
       const priority: 1 | 2 | 3 | 4 = [1, 2, 3, 4].includes(rawPriority) ? rawPriority : 1;
+      const parsedDate = parseTodoistDate(row[8] ?? '');
       current = {
         content: row[1] ?? '',
         description: row[2] || undefined,
         priority,
-        dueDate: parseTodoistDate(row[8] ?? ''),
+        dueAt: parsedDate ? parsedDate + 'T00:00:00' : undefined,
       };
       if (current.content.trim()) tasks.push(current);
     } else if (type === 'note' && current) {
@@ -148,9 +149,9 @@ function parseTodoistCsv(text: string): ParsedTask[] {
                     <div style="color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
                       {{ t.content }}
                     </div>
-                    @if (t.dueDate) {
+                    @if (t.dueAt) {
                       <div class="mono" style="font-size: 10.5px; color: var(--mute); margin-top: 2px;">
-                        {{ t.dueDate }}
+                        {{ t.dueAt.slice(0, 10) }}
                       </div>
                     }
                   </div>
@@ -246,7 +247,8 @@ export class CsvImportModalComponent {
         content: t.content,
         description: t.description,
         priority: t.priority,
-        dueDate: t.dueDate,
+        dueAt: t.dueAt ?? null,
+        allDay: !!t.dueAt,
         projectId: this.projectId(),
         labels: [],
       }))

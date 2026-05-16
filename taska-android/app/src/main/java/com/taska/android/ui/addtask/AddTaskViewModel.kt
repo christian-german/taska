@@ -11,10 +11,12 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.util.Calendar
+import java.util.TimeZone
 
 data class AddTaskUiState(
     val content: String = "",
     val dueDateMillis: Long? = null,
+    val dueTimeMinutes: Int? = null,
     val selectedProject: ProjectDto? = null,
     val estimateMinutes: Int? = null,
     val priority: Int = 4,
@@ -41,7 +43,9 @@ class AddTaskViewModel : ViewModel() {
     }
 
     fun updateContent(content: String) = _state.update { it.copy(content = content) }
-    fun updateDueDate(millis: Long?) = _state.update { it.copy(dueDateMillis = millis) }
+    fun updateDueDate(millis: Long?) = _state.update { it.copy(dueDateMillis = millis, dueTimeMinutes = null) }
+    fun updateTime(totalMinutes: Int) = _state.update { it.copy(dueTimeMinutes = totalMinutes) }
+    fun clearTime() = _state.update { it.copy(dueTimeMinutes = null) }
     fun updateProject(project: ProjectDto?) = _state.update { it.copy(selectedProject = project) }
     fun updateEstimate(minutes: Int?) = _state.update { it.copy(estimateMinutes = minutes) }
     fun updatePriority(priority: Int) = _state.update { it.copy(priority = priority) }
@@ -54,11 +58,14 @@ class AddTaskViewModel : ViewModel() {
         viewModelScope.launch {
             _state.update { it.copy(isSubmitting = true) }
             try {
+                val dueAt = current.dueDateMillis?.let { millisToApiDateTime(it, current.dueTimeMinutes) }
+                val allDay = if (current.dueDateMillis != null) current.dueTimeMinutes == null else null
                 val request = TaskRequest(
                     content = current.content.trim(),
                     projectId = current.selectedProject?.id,
                     priority = current.priority.takeIf { it < 4 },
-                    dueDate = current.dueDateMillis?.let { millisToApiDate(it) },
+                    dueAt = dueAt,
+                    allDay = allDay,
                     estimateMinutes = current.estimateMinutes
                 )
                 RetrofitClient.api.createTask(request)
@@ -70,11 +77,17 @@ class AddTaskViewModel : ViewModel() {
         }
     }
 
-    private fun millisToApiDate(millis: Long): String {
-        val cal = Calendar.getInstance().also { it.timeInMillis = millis }
-        val y = cal.get(Calendar.YEAR)
-        val m = (cal.get(Calendar.MONTH) + 1).toString().padStart(2, '0')
-        val d = cal.get(Calendar.DAY_OF_MONTH).toString().padStart(2, '0')
-        return "$y-$m-$d"
+    fun millisToApiDateTime(millis: Long, timeMinutes: Int?): String {
+        val utc = Calendar.getInstance(TimeZone.getTimeZone("UTC")).also { it.timeInMillis = millis }
+        val y = utc.get(Calendar.YEAR)
+        val m = (utc.get(Calendar.MONTH) + 1).toString().padStart(2, '0')
+        val d = utc.get(Calendar.DAY_OF_MONTH).toString().padStart(2, '0')
+        return if (timeMinutes != null) {
+            val h = (timeMinutes / 60).toString().padStart(2, '0')
+            val min = (timeMinutes % 60).toString().padStart(2, '0')
+            "$y-$m-${d}T$h:$min:00"
+        } else {
+            "$y-$m-${d}T00:00:00"
+        }
     }
 }

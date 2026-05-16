@@ -64,6 +64,10 @@
                 android:name=".TaskDetailActivity"
                 android:exported="false"
                 android:theme="@style/Theme.Taska"/>
+        <activity
+                android:name=".ProjectActivity"
+                android:exported="false"
+                android:theme="@style/Theme.Taska"/>
 
         <service
                 android:name=".auth.AuthenticatorService"

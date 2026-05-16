@@ -24,6 +24,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.taska.android.ui.addtask.AddTaskBottomSheet
 import com.taska.android.ui.addtask.AddTaskViewModel
+import com.taska.android.ui.drawer.WithDrawer
 import com.taska.android.ui.shared.BottomNavBar
 import com.taska.android.ui.shared.NavDestination
 import com.taska.android.ui.theme.TaskaTheme
@@ -37,44 +38,54 @@ class TrackerActivity : ComponentActivity() {
                 val addTaskViewModel: AddTaskViewModel = viewModel()
                 var showAddTask by remember { mutableStateOf(false) }
 
-                Column(modifier = Modifier.fillMaxSize()) {
-                    Box(
-                        modifier = Modifier
-                            .weight(1f)
-                            .fillMaxSize()
-                            .background(Color(0xFFEAE5DC))
-                            .statusBarsPadding(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            text = "Tracker",
-                            fontFamily = FontFamily.Serif,
-                            fontStyle = FontStyle.Italic,
-                            fontSize = 32.sp,
-                            color = Color(0xFF1A1A1A)
+                WithDrawer(
+                    onProjectSelected = { projectId ->
+                        startActivity(
+                            Intent(this@TrackerActivity, ProjectActivity::class.java)
+                                .putExtra("project_id", projectId)
+                                .putExtra("nav_current", NavDestination.TRACKER.name)
                         )
                     }
-                    BottomNavBar(
-                        current = NavDestination.TRACKER,
-                        onNavigate = { dest ->
-                            when (dest) {
-                                NavDestination.INBOX -> startActivity(
-                                    Intent(this@TrackerActivity, MainActivity::class.java)
-                                        .addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT)
-                                )
-                                NavDestination.TODAY -> startActivity(
-                                    Intent(this@TrackerActivity, TodayActivity::class.java)
-                                        .addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT)
-                                )
-                                NavDestination.WEEK -> startActivity(
-                                    Intent(this@TrackerActivity, WeekActivity::class.java)
-                                        .addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT)
-                                )
-                                NavDestination.TRACKER -> Unit
-                            }
-                        },
-                        onAddClick = { showAddTask = true }
-                    )
+                ) {
+                    Column(modifier = Modifier.fillMaxSize()) {
+                        Box(
+                            modifier = Modifier
+                                .weight(1f)
+                                .fillMaxSize()
+                                .background(Color(0xFFEAE5DC))
+                                .statusBarsPadding(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = "Tracker",
+                                fontFamily = FontFamily.Serif,
+                                fontStyle = FontStyle.Italic,
+                                fontSize = 32.sp,
+                                color = Color(0xFF1A1A1A)
+                            )
+                        }
+                        BottomNavBar(
+                            current = NavDestination.TRACKER,
+                            onNavigate = { dest ->
+                                when (dest) {
+                                    NavDestination.INBOX -> startActivity(
+                                        Intent(this@TrackerActivity, MainActivity::class.java)
+                                            .addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT)
+                                    )
+                                    NavDestination.TODAY -> startActivity(
+                                        Intent(this@TrackerActivity, TodayActivity::class.java)
+                                            .addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT)
+                                    )
+                                    NavDestination.WEEK -> startActivity(
+                                        Intent(this@TrackerActivity, WeekActivity::class.java)
+                                            .addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT)
+                                    )
+                                    NavDestination.TRACKER -> Unit
+                                }
+                            },
+                            onAddClick = { showAddTask = true }
+                        )
+                    }
                 }
 
                 if (showAddTask) {

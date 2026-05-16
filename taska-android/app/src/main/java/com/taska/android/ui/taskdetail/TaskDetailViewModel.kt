@@ -19,6 +19,7 @@ import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
 import java.util.Locale
+import java.util.TimeZone
 
 data class TaskDetailUiState(
     val task: TaskDto? = null,
@@ -73,7 +74,6 @@ class TaskDetailViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
         }
     }
 
-    // Central update helper — preserves all current task fields
     private fun applyUpdate(transform: TaskRequest.() -> TaskRequest) {
         val task = _uiState.value.task ?: return
         val base = TaskRequest(
@@ -82,7 +82,8 @@ class TaskDetailViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
             projectId = task.projectId,
             priority = task.priority,
             labels = task.labels,
-            dueDate = task.dueDate,
+            dueAt = task.dueAt,
+            allDay = task.allDay,
             estimateMinutes = task.estimateMinutes
         )
         viewModelScope.launch {
@@ -101,7 +102,15 @@ class TaskDetailViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
 
     fun updateDescription(desc: String) = applyUpdate { copy(description = desc.ifEmpty { null }) }
 
-    fun reschedule(dateStr: String) = applyUpdate { copy(dueDate = dateStr) }
+    fun rescheduleAllDay(millis: Long) = applyUpdate {
+        copy(dueAt = millisToApiDateTime(millis, null), allDay = true)
+    }
+
+    fun rescheduleWithTime(millis: Long, hour: Int, minute: Int) = applyUpdate {
+        copy(dueAt = millisToApiDateTime(millis, hour * 60 + minute), allDay = false)
+    }
+
+    fun clearDue() = applyUpdate { copy(dueAt = null, allDay = null) }
 
     fun updateProject(projectId: String?) = applyUpdate { copy(projectId = projectId) }
 
@@ -167,12 +176,40 @@ class TaskDetailViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
         }
     }
 
-    fun millisToApiDate(millis: Long): String {
-        val cal = Calendar.getInstance().also { it.timeInMillis = millis }
-        val y = cal.get(Calendar.YEAR)
-        val m = (cal.get(Calendar.MONTH) + 1).toString().padStart(2, '0')
-        val d = cal.get(Calendar.DAY_OF_MONTH).toString().padStart(2, '0')
-        return "$y-$m-$d"
+    // Le DatePicker Material fonctionne en UTC : il donne/attend des millis pour minuit UTC.
+    // On extrait donc la date en UTC depuis les millis du DatePicker, et on y colle l'heure locale.
+    fun millisToApiDateTime(millis: Long, timeMinutes: Int?): String {
+        val utc = Calendar.getInstance(TimeZone.getTimeZone("UTC")).also { it.timeInMillis = millis }
+        val y = utc.get(Calendar.YEAR)
+        val m = (utc.get(Calendar.MONTH) + 1).toString().padStart(2, '0')
+        val d = utc.get(Calendar.DAY_OF_MONTH).toString().padStart(2, '0')
+        return if (timeMinutes != null) {
+            val h = (timeMinutes / 60).toString().padStart(2, '0')
+            val min = (timeMinutes % 60).toString().padStart(2, '0')
+            "$y-$m-${d}T$h:$min:00"
+        } else {
+            "$y-$m-${d}T00:00:00"
+        }
+    }
+
+    // On extrait uniquement la partie date (YYYY-MM-DD) et on retourne minuit UTC pour que
+    // le DatePicker affiche le bon jour, quelle que soit la timezone.
+    fun dueAtToMillis(): Long {
+        val dueAt = _uiState.value.task?.dueAt ?: return todayMillis()
+        return try {
+            SimpleDateFormat("yyyy-MM-dd", Locale.US)
+                .apply { timeZone = TimeZone.getTimeZone("UTC") }
+                .parse(dueAt.take(10))?.time ?: todayMillis()
+        } catch (_: Exception) { todayMillis() }
+    }
+
+    // Aujourd'hui en date locale, représenté comme minuit UTC pour le DatePicker.
+    private fun todayMillis(): Long {
+        val local = Calendar.getInstance()
+        return Calendar.getInstance(TimeZone.getTimeZone("UTC")).apply {
+            set(local.get(Calendar.YEAR), local.get(Calendar.MONTH), local.get(Calendar.DAY_OF_MONTH), 0, 0, 0)
+            set(Calendar.MILLISECOND, 0)
+        }.timeInMillis
     }
 
     private fun currentIsoDateTime(): String =

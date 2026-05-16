@@ -13,9 +13,8 @@ import {
   fmtRel,
   fmtTime,
   getColor,
-  getTaskDueDateTime,
-
-  taskHasTime,
+  getTaskDueDate,
+  isTaskAllDay,
 } from '../../core/models';
 
 const ESTIMATE_PRESETS = [
@@ -99,7 +98,7 @@ export class TaskDetailComponent implements OnChanges {
   currentProject = computed(() =>
     this.projects().find(p => p.id === this.task().projectId) ?? null
   );
-  dueDate = computed(() => getTaskDueDateTime(this.task()));
+  dueDate = computed(() => getTaskDueDate(this.task()));
 
   completedSubs = computed(() => this.subtasks().filter(s => s.isCompleted).length);
 
@@ -117,7 +116,7 @@ export class TaskDetailComponent implements OnChanges {
   dateRowLabel = computed(() => {
     const d = this.dueDate();
     if (!d) return 'Ajouter une date';
-    return fmtRel(d) + (taskHasTime(this.task()) ? ' · ' + fmtTime(d) : '');
+    return fmtRel(d) + (!isTaskAllDay(this.task()) ? ' · ' + fmtTime(d) : '');
   });
 
   estimateRowLabel = computed(() => {
@@ -216,21 +215,21 @@ export class TaskDetailComponent implements OnChanges {
     if (name === 'tags') this.tagSearch.set('');
   }
 
-datePickerValue = computed(() => this.task().dueDateTime ?? this.task().dueDate ?? '');
+datePickerValue = computed(() => this.task().dueAt ?? '');
 
   onDatetimeChange(value: string): void {
-    if (value.includes('T')) {
-      this.save({ dueDate: null as any, dueDateTime: value });
-    } else {
-      this.save({ dueDate: value, dueDateTime: null as any });
-    }
+    const hasTime = value.includes('T');
+    const dueAt = hasTime
+      ? (value.length === 16 ? value + ':00' : value)
+      : value + 'T00:00:00';
+    this.save({ dueAt, allDay: !hasTime });
   }
 
   clearDate(e: Event): void {
     e.stopPropagation();
     this.activeDetailPicker.set(null);
-    this.taskService.updateTask(this.task().id, { dueDate: null as any, dueDateTime: null as any })
-      .subscribe(t => this.taskUpdated.emit({ ...t, dueDate: undefined, dueDateTime: undefined }));
+    this.taskService.updateTask(this.task().id, { dueAt: null as any, allDay: false })
+      .subscribe(t => this.taskUpdated.emit({ ...t, dueAt: null }));
   }
 
   toggleTag(name: string, e: Event): void {

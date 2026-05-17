@@ -588,7 +588,7 @@ export class QuickAddComponent implements OnInit {
       content: p.title,
       projectId: this.effectiveProjectId() ?? undefined,
       labels: this.effectiveTags(),
-      priority: p.priority ?? 1,
+      priority: p.priority ?? 4,
       dueAt,
       allDay,
       mentionContext: p.context,

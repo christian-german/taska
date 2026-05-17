@@ -11,6 +11,7 @@ import android.util.Log
 import androidx.annotation.RequiresPermission
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
+import androidx.core.app.TaskStackBuilder
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 
@@ -27,6 +28,7 @@ class TaskaFirebaseMessagingService : FirebaseMessagingService() {
         val title = message.data["title"] ?: message.notification?.title ?: "Tâche"
         val body = message.data["body"] ?: message.notification?.body ?: ""
         val taskId = message.data["task_id"]
+        val projectId = message.data["project_id"]
         val notifId = System.currentTimeMillis().toInt()
 
         val largeIcon = BitmapFactory.decodeResource(resources, R.mipmap.ic_launcher)
@@ -40,6 +42,20 @@ class TaskaFirebaseMessagingService : FirebaseMessagingService() {
             .setAutoCancel(true)
 
         if (taskId != null) {
+            val tapPendingIntent = TaskStackBuilder.create(this).run {
+                addNextIntent(Intent(this@TaskaFirebaseMessagingService, TodayActivity::class.java))
+                if (projectId != null) {
+                    addNextIntent(Intent(this@TaskaFirebaseMessagingService, ProjectActivity::class.java).apply {
+                        putExtra("project_id", projectId)
+                    })
+                }
+                addNextIntent(Intent(this@TaskaFirebaseMessagingService, TaskDetailActivity::class.java).apply {
+                    putExtra("task_id", taskId)
+                })
+                getPendingIntent(notifId, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
+            }
+            builder.setContentIntent(tapPendingIntent)
+
             val snoozeIntent = Intent(this, SnoozeReceiver::class.java).apply {
                 putExtra("task_id", taskId)
                 putExtra("notif_id", notifId)

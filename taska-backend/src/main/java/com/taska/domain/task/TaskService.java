@@ -67,7 +67,7 @@ public class TaskService {
         t.setSectionId(req.sectionId());
         t.setParentId(req.parentId());
         t.setPosition(req.order() != null ? req.order() : 0);
-        t.setPriority(req.priority() != null ? req.priority() : 1);
+        t.setPriority(req.priority() != null ? req.priority() : 4);
         t.setLabels(req.labels() != null ? req.labels() : new ArrayList<>());
         t.setDueAt(req.dueAt());
         t.setAllDay(req.allDay() != null ? req.allDay() : false);
@@ -97,7 +97,12 @@ public class TaskService {
         if (taskRequest.order() != null) task.setPosition(taskRequest.order());
         if (taskRequest.priority() != null) task.setPriority(taskRequest.priority());
         if (taskRequest.labels() != null) task.setLabels(taskRequest.labels());
-        if (taskRequest.dueAt() != null) task.setDueAt(taskRequest.dueAt());
+        if (taskRequest.dueAt() != null) {
+            if (!taskRequest.dueAt().equals(task.getDueAt())) {
+                task.setIsNotified(false);
+            }
+            task.setDueAt(taskRequest.dueAt());
+        }
         if (taskRequest.allDay() != null) task.setAllDay(taskRequest.allDay());
         if (taskRequest.isRecurring() != null) task.setIsRecurring(taskRequest.isRecurring());
         if (taskRequest.estimateMinutes() != null) task.setEstimateMinutes(taskRequest.estimateMinutes());

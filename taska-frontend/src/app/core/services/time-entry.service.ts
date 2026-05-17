@@ -6,8 +6,8 @@ import { environment } from '../../../environments/environment';
 
 export interface TimeEntryFilters {
   projectId?: string;
-  start?: string;  // ISO datetime "2024-05-01T00:00:00"
-  end?: string;    // ISO datetime "2024-05-07T23:59:59"
+  start?: string;  // ISO 8601 UTC, e.g. "2024-05-01T00:00:00Z"
+  end?: string;    // ISO 8601 UTC, e.g. "2024-05-07T23:59:59Z"
 }
 
 @Injectable({ providedIn: 'root' })

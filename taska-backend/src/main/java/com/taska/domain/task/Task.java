@@ -5,7 +5,6 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.time.Instant;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -50,7 +49,7 @@ public class Task {
     private Boolean isCompleted = false;
 
     @Column(name = "due_at")
-    private LocalDateTime dueAt;
+    private Instant dueAt;
 
     @Column(name = "all_day", nullable = false)
     private boolean allDay = false;

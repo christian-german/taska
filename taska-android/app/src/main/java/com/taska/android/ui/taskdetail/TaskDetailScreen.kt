@@ -209,10 +209,12 @@ fun TaskDetailScreen(
         }
         ActivePicker.TIME -> {
             val dueAt = task?.dueAt
-            val initialHour = if (dueAt != null && task.allDay == false)
-                dueAt.substring(11, 13).toIntOrNull() ?: 9 else 9
-            val initialMinute = if (dueAt != null && task.allDay == false)
-                dueAt.substring(14, 16).toIntOrNull() ?: 0 else 0
+            val (initialHour, initialMinute) = if (dueAt != null && task.allDay == false) {
+                try {
+                    val zoned = java.time.Instant.parse(dueAt).atZone(java.time.ZoneId.systemDefault())
+                    Pair(zoned.hour, zoned.minute)
+                } catch (_: Exception) { Pair(9, 0) }
+            } else Pair(9, 0)
             val timeState = rememberTimePickerState(
                 initialHour = initialHour,
                 initialMinute = initialMinute,
@@ -1072,59 +1074,57 @@ private fun formatDuration(minutes: Int): String {
 }
 
 private fun formatDueDate(dueAt: String, allDay: Boolean): String {
-    val dateStr = dueAt.substringBefore('T')
-    val parts = dateStr.split("-")
-    if (parts.size != 3) return dateStr
-
-    val cal = Calendar.getInstance().apply {
-        set(Calendar.YEAR, parts[0].toIntOrNull() ?: return dateStr)
-        set(Calendar.MONTH, (parts[1].toIntOrNull() ?: return dateStr) - 1)
-        set(Calendar.DAY_OF_MONTH, parts[2].toIntOrNull() ?: return dateStr)
-    }
-    val today = Calendar.getInstance()
-    val yesterday = Calendar.getInstance().apply { add(Calendar.DAY_OF_YEAR, -1) }
-    val tomorrow = Calendar.getInstance().apply { add(Calendar.DAY_OF_YEAR, 1) }
-
-    fun sameDay(a: Calendar, b: Calendar) =
-        a.get(Calendar.YEAR) == b.get(Calendar.YEAR) &&
-                a.get(Calendar.DAY_OF_YEAR) == b.get(Calendar.DAY_OF_YEAR)
-
-    val dayPart = when {
-        sameDay(cal, today) -> "aujourd'hui"
-        sameDay(cal, yesterday) -> "hier"
-        sameDay(cal, tomorrow) -> "demain"
-        else -> {
-            val day = cal.get(Calendar.DAY_OF_MONTH)
-            val month = cal.getDisplayName(Calendar.MONTH, Calendar.SHORT, Locale.FRENCH) ?: ""
-            "$day $month"
+    return try {
+        val zoned = java.time.Instant.parse(dueAt).atZone(java.time.ZoneId.systemDefault())
+        val cal = Calendar.getInstance().apply {
+            set(zoned.year, zoned.monthValue - 1, zoned.dayOfMonth, 0, 0, 0)
+            set(Calendar.MILLISECOND, 0)
         }
-    }
+        fun zeroed(c: Calendar) = (c.clone() as Calendar).apply {
+            set(Calendar.HOUR_OF_DAY, 0); set(Calendar.MINUTE, 0)
+            set(Calendar.SECOND, 0); set(Calendar.MILLISECOND, 0)
+        }
+        fun sameDay(a: Calendar, b: Calendar) =
+            a.get(Calendar.YEAR) == b.get(Calendar.YEAR) &&
+                    a.get(Calendar.DAY_OF_YEAR) == b.get(Calendar.DAY_OF_YEAR)
 
-    return if (!allDay) {
-        val timePart = dueAt.substringAfter('T', "").take(5)
-        if (timePart.isNotEmpty()) "$dayPart · $timePart" else dayPart
-    } else {
-        dayPart
+        val today = zeroed(Calendar.getInstance())
+        val yesterday = zeroed(Calendar.getInstance().apply { add(Calendar.DAY_OF_YEAR, -1) })
+        val tomorrow = zeroed(Calendar.getInstance().apply { add(Calendar.DAY_OF_YEAR, 1) })
+
+        val dayPart = when {
+            sameDay(cal, today) -> "aujourd'hui"
+            sameDay(cal, yesterday) -> "hier"
+            sameDay(cal, tomorrow) -> "demain"
+            else -> {
+                val month = cal.getDisplayName(Calendar.MONTH, Calendar.SHORT, Locale.FRENCH) ?: ""
+                "${zoned.dayOfMonth} $month"
+            }
+        }
+        if (!allDay) {
+            val h = zoned.hour.toString().padStart(2, '0')
+            val m = zoned.minute.toString().padStart(2, '0')
+            "$dayPart · $h:$m"
+        } else {
+            dayPart
+        }
+    } catch (_: Exception) {
+        dueAt.substringBefore('T')
     }
 }
 
 private fun isOverdue(dueAt: String?, allDay: Boolean): Boolean {
     dueAt ?: return false
-    val dateStr = dueAt.substringBefore('T')
-    val parts = dateStr.split("-")
-    if (parts.size != 3) return false
-    val cal = Calendar.getInstance().apply {
-        set(Calendar.YEAR, parts[0].toIntOrNull() ?: return false)
-        set(Calendar.MONTH, (parts[1].toIntOrNull() ?: return false) - 1)
-        set(Calendar.DAY_OF_MONTH, parts[2].toIntOrNull() ?: return false)
-        if (allDay) {
-            set(Calendar.HOUR_OF_DAY, 23); set(Calendar.MINUTE, 59)
-        } else {
-            set(Calendar.HOUR_OF_DAY, dueAt.substring(11, 13).toIntOrNull() ?: 23)
-            set(Calendar.MINUTE, dueAt.substring(14, 16).toIntOrNull() ?: 59)
+    return try {
+        val zoned = java.time.Instant.parse(dueAt).atZone(java.time.ZoneId.systemDefault())
+        val cal = Calendar.getInstance().apply {
+            set(zoned.year, zoned.monthValue - 1, zoned.dayOfMonth,
+                if (allDay) 23 else zoned.hour,
+                if (allDay) 59 else zoned.minute, 0)
+            set(Calendar.MILLISECOND, 0)
         }
-    }
-    return cal.before(Calendar.getInstance())
+        cal.before(Calendar.getInstance())
+    } catch (_: Exception) { false }
 }
 
 private fun todayMillis() = Calendar.getInstance().apply {

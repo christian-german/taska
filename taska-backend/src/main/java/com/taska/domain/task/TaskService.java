@@ -8,7 +8,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -24,13 +24,13 @@ public class TaskService {
     @Transactional(readOnly = true)
     public List<Task> findAll(UUID projectId, UUID sectionId, String label, String filter, boolean showCompleted) {
         if (filter != null) {
-            LocalDateTime startOfToday    = LocalDate.now().atStartOfDay();
-            LocalDateTime startOfTomorrow = LocalDate.now().plusDays(1).atStartOfDay();
+            Instant startOfToday    = LocalDate.now(ZoneOffset.UTC).atStartOfDay(ZoneOffset.UTC).toInstant();
+            Instant startOfTomorrow = LocalDate.now(ZoneOffset.UTC).plusDays(1).atStartOfDay(ZoneOffset.UTC).toInstant();
             return switch (filter) {
                 case "today"    -> taskRepository.findByDueAtBetweenAndIsCompletedFalseOrderByDueAtAsc(startOfToday, startOfTomorrow);
                 case "overdue"  -> taskRepository.findByDueAtBeforeAndIsCompletedFalseOrderByDueAtAsc(startOfToday);
                 case "upcoming" -> taskRepository.findByDueAtBetweenAndIsCompletedFalseOrderByDueAtAsc(
-                        startOfTomorrow, LocalDate.now().plusDays(14).atStartOfDay());
+                        startOfTomorrow, LocalDate.now(ZoneOffset.UTC).plusDays(14).atStartOfDay(ZoneOffset.UTC).toInstant());
                 default -> taskRepository.findAll();
             };
         }
@@ -134,7 +134,7 @@ public class TaskService {
                 .orElseThrow(() -> new ResourceNotFoundException("Task not found: " + taskId));
     }
 
-    public List<Task> findTasksDueAround(LocalDateTime in15min) {
+    public List<Task> findTasksDueAround(Instant in15min) {
         return taskRepository.findTasksDueAround(in15min);
     }
 }

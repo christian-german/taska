@@ -118,14 +118,33 @@ export class DatetimePickerComponent {
     effect(() => {
       const v = this.value();
       if (v && v.length >= 10) {
-        const [y, mo] = v.split('-').map(Number);
-        if (!isNaN(y) && !isNaN(mo)) { this.calYear.set(y); this.calMonth.set(mo - 1); }
+        if (v.includes('T')) {
+          const d = new Date(v);
+          if (!isNaN(d.getTime())) { this.calYear.set(d.getFullYear()); this.calMonth.set(d.getMonth()); }
+        } else {
+          const [y, mo] = v.split('-').map(Number);
+          if (!isNaN(y) && !isNaN(mo)) { this.calYear.set(y); this.calMonth.set(mo - 1); }
+        }
       }
     });
   }
 
-  selectedDate   = computed(() => this.value()?.slice(0, 10) ?? '');
-  selectedTime   = computed(() => this.value()?.length >= 16 ? this.value().slice(11, 16) : '');
+  selectedDate = computed(() => {
+    const v = this.value();
+    if (!v || v.length < 10) return '';
+    if (v.includes('T')) {
+      const d = new Date(v);
+      if (!isNaN(d.getTime())) return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+    }
+    return v.slice(0, 10);
+  });
+  selectedTime = computed(() => {
+    const v = this.value();
+    if (!v || !v.includes('T')) return '';
+    const d = new Date(v);
+    if (isNaN(d.getTime())) return '';
+    return `${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  });
   selectedHour   = computed(() => this.selectedTime() ? this.selectedTime().slice(0, 2) : '');
   selectedMinute = computed(() => this.selectedTime() ? this.selectedTime().slice(3, 5) : '');
   monthLabel     = computed(() => `${FR_MONTHS[this.calMonth()]} ${this.calYear()}`);
@@ -169,21 +188,25 @@ export class DatetimePickerComponent {
 
   onDateClick(date: string): void {
     const time = this.selectedTime();
-    this.valueChange.emit(time && this.withTime() ? `${date}T${time}:00` : date);
+    if (time && this.withTime()) {
+      this.valueChange.emit(new Date(`${date}T${time}:00`).toISOString());
+    } else {
+      this.valueChange.emit(date);
+    }
   }
 
   onHourChange(h: string): void {
     if (!h) { this.clearTime(); return; }
     const date = this.selectedDate() || todayIso();
     const min  = this.selectedMinute() || '00';
-    this.valueChange.emit(`${date}T${h}:${min}:00`);
+    this.valueChange.emit(new Date(`${date}T${h}:${min}:00`).toISOString());
   }
 
   onMinuteChange(m: string): void {
     if (!m) { this.clearTime(); return; }
     const date = this.selectedDate() || todayIso();
     const hour = this.selectedHour() || '00';
-    this.valueChange.emit(`${date}T${hour}:${m}:00`);
+    this.valueChange.emit(new Date(`${date}T${hour}:${m}:00`).toISOString());
   }
 
   clearTime(): void {

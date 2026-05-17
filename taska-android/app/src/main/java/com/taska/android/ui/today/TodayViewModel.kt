@@ -50,15 +50,15 @@ class TodayViewModel : ViewModel() {
                 )
 
                 val overdue = tasks
-                    .filter { it.isCompleted != true && it.dueAt != null && it.dueAt.substring(0, 10) < todayStr }
+                    .filter { it.isCompleted != true && it.dueAt != null && dueAtLocalDate(it.dueAt) < todayStr }
                     .sortedBy { it.dueAt }
 
                 val today = tasks
-                    .filter { it.dueAt?.substring(0, 10) == todayStr }
+                    .filter { it.dueAt != null && dueAtLocalDate(it.dueAt) == todayStr }
                     .sortedWith(compareBy({ it.isCompleted == true }, { it.dueAt }))
 
                 val tomorrow = tasks
-                    .filter { it.isCompleted != true && it.dueAt?.substring(0, 10) == tomorrowStr }
+                    .filter { it.isCompleted != true && it.dueAt != null && dueAtLocalDate(it.dueAt) == tomorrowStr }
                     .sortedBy { it.dueAt }
 
                 _uiState.update {
@@ -108,3 +108,9 @@ class TodayViewModel : ViewModel() {
         }
     }
 }
+
+private fun dueAtLocalDate(dueAt: String): String = try {
+    val instant = java.time.Instant.parse(dueAt)
+    val zoned = instant.atZone(java.time.ZoneId.systemDefault())
+    "%04d-%02d-%02d".format(zoned.year, zoned.monthValue, zoned.dayOfMonth)
+} catch (_: Exception) { dueAt.take(10) }

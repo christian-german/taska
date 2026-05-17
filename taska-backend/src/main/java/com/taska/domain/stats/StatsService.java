@@ -10,7 +10,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -33,7 +32,7 @@ public class StatsService {
 
         long completed = taskRepo.countByIsCompletedTrue();
         long active = taskRepo.countByIsCompletedFalse();
-        long overdue = taskRepo.countByIsCompletedFalseAndDueAtBefore(today.atStartOfDay());
+        long overdue = taskRepo.countByIsCompletedFalseAndDueAtBefore(today.atStartOfDay(zone).toInstant());
 
         Instant since = today.minusDays(14).atStartOfDay(zone).toInstant();
         List<Task> recentDone = taskRepo.findByCompletedAtAfterOrderByCompletedAtAsc(since);

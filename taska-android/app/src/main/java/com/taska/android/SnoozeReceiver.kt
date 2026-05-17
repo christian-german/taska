@@ -10,9 +10,6 @@ import com.taska.android.data.model.TaskRequest
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import java.text.SimpleDateFormat
-import java.util.Calendar
-import java.util.Locale
 
 class SnoozeReceiver : BroadcastReceiver() {
 
@@ -51,10 +48,7 @@ class SnoozeReceiver : BroadcastReceiver() {
         }
     }
 
-    private fun addMinutes(dueAt: String, minutes: Int): String {
-        val fmt = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.US)
-        val date = fmt.parse(dueAt.take(19)) ?: return dueAt
-        val cal = Calendar.getInstance().apply { time = date; add(Calendar.MINUTE, minutes) }
-        return fmt.format(cal.time)
-    }
+    private fun addMinutes(dueAt: String, minutes: Int): String = try {
+        java.time.Instant.parse(dueAt).plusSeconds(minutes * 60L).toString()
+    } catch (_: Exception) { dueAt }
 }

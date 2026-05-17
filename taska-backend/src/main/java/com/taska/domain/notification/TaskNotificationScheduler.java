@@ -1,23 +1,24 @@
 package com.taska.domain.notification;
 
-import com.fasterxml.jackson.annotation.JacksonInject;
 import com.google.firebase.messaging.FirebaseMessaging;
 import com.google.firebase.messaging.Message;
-import com.google.firebase.messaging.Notification;
 import com.taska.domain.task.Task;
 import com.taska.domain.task.TaskRepository;
 import com.taska.domain.task.TaskService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
+@ConditionalOnProperty(value = "taska.notification.enabled", havingValue = "true", matchIfMissing = true)
 public class TaskNotificationScheduler {
 
     private final TaskService taskService;
@@ -27,7 +28,7 @@ public class TaskNotificationScheduler {
     @Scheduled(fixedDelayString = "${taska.notification.scheduler-delay}")
     public void checkUpcomingTasks() {
         log.debug("Checking for upcoming tasks to notify");
-        LocalDateTime in15min = LocalDateTime.now().plusMinutes(15);
+        Instant in15min = Instant.now().plus(15, ChronoUnit.MINUTES);
         log.debug("Checking tasks due around {}", in15min);
         List<Task> tasks = taskService.findTasksDueAround(in15min);
         log.debug("Found {} tasks due around {}", tasks.size(), in15min);

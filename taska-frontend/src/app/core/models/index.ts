@@ -2,8 +2,8 @@ export type ViewStyle = 'LIST' | 'BOARD' | 'CALENDAR';
 
 export interface TimeEntry {
   id: string;
-  startAt: string;    // "2024-05-03T10:00:00" (LocalDateTime, no tz)
-  endAt: string;      // "2024-05-03T11:30:00"
+  startAt: string;    // ISO 8601 UTC, e.g. "2024-05-03T10:00:00Z"
+  endAt: string;      // ISO 8601 UTC, e.g. "2024-05-03T11:30:00Z"
   projectId: string;
   description: string;
   notes?: string;
@@ -163,12 +163,17 @@ export function hexToRgba(hex: string | undefined, a: number): string {
 
 export function isOverdue(taskOrDate: Pick<Task, 'dueAt' | 'allDay' | 'isCompleted'> | string | undefined): boolean {
   if (!taskOrDate) return false;
-  const today = new Date().toISOString().split('T')[0];
+  const todayMidnight = new Date();
+  todayMidnight.setHours(0, 0, 0, 0);
   if (typeof taskOrDate === 'string') {
-    return taskOrDate.slice(0, 10) < today;
+    const d = new Date(taskOrDate);
+    d.setHours(0, 0, 0, 0);
+    return d < todayMidnight;
   }
   if (!taskOrDate.dueAt || taskOrDate.isCompleted) return false;
-  return taskOrDate.dueAt.slice(0, 10) < today;
+  const d = new Date(taskOrDate.dueAt);
+  d.setHours(0, 0, 0, 0);
+  return d < todayMidnight;
 }
 
 export function formatDueDate(dueAt?: string | null): string {
@@ -178,7 +183,8 @@ export function formatDueDate(dueAt?: string | null): string {
   today.setHours(0, 0, 0, 0);
   const tomorrow = new Date(today);
   tomorrow.setDate(today.getDate() + 1);
-  const d = new Date(dueAt.slice(0, 10) + 'T00:00:00');
+  const d = new Date(date);
+  d.setHours(0, 0, 0, 0);
   if (d.getTime() === today.getTime()) return "Aujourd'hui";
   if (d.getTime() === tomorrow.getTime()) return 'Demain';
   return fmtDateShort(date);
@@ -200,7 +206,9 @@ export const PRIORITY_TEXT_COLORS: Record<number, string> = {
 
 export function isToday(dueAt?: string | null): boolean {
   if (!dueAt) return false;
-  return dueAt.slice(0, 10) === new Date().toISOString().split('T')[0];
+  const d = new Date(dueAt);
+  const t = new Date();
+  return d.getFullYear() === t.getFullYear() && d.getMonth() === t.getMonth() && d.getDate() === t.getDate();
 }
 
 export function startOfDay(d: Date | string): Date {

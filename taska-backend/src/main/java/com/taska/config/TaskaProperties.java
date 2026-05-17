@@ -36,6 +36,11 @@ public class TaskaProperties {
     public static class Notification {
 
         /**
+         * Indicates whether notifications are enabled.
+         */
+        private boolean enabled = true;
+
+        /**
          * Delay in milliseconds between notification checks.
          */
         private long schedulerDelay = 15_000;

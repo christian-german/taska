@@ -363,11 +363,14 @@ private fun SingleDayColumn(
 
 private fun snapToQuarter(min: Int): Int = ((min.toFloat() / 15f).roundToInt() * 15).coerceIn(0, 23 * 60)
 
-private fun formatDueAt(day: Calendar, startMin: Int): String =
-    "%04d-%02d-%02dT%02d:%02d:00".format(
-        day.get(Calendar.YEAR), day.get(Calendar.MONTH) + 1, day.get(Calendar.DAY_OF_MONTH),
-        startMin / 60, startMin % 60
-    )
+private fun formatDueAt(day: Calendar, startMin: Int): String {
+    val cal = Calendar.getInstance().apply {
+        set(day.get(Calendar.YEAR), day.get(Calendar.MONTH), day.get(Calendar.DAY_OF_MONTH),
+            startMin / 60, startMin % 60, 0)
+        set(Calendar.MILLISECOND, 0)
+    }
+    return java.time.Instant.ofEpochMilli(cal.timeInMillis).toString()
+}
 
 private fun parseHexColor(hex: String): Color = try {
     Color(android.graphics.Color.parseColor(if (hex.startsWith("#")) hex else "#$hex"))

@@ -219,9 +219,7 @@ datePickerValue = computed(() => this.task().dueAt ?? '');
 
   onDatetimeChange(value: string): void {
     const hasTime = value.includes('T');
-    const dueAt = hasTime
-      ? (value.length === 16 ? value + ':00' : value)
-      : value + 'T00:00:00';
+    const dueAt = hasTime ? value : value + 'T00:00:00Z';
     this.save({ dueAt, allDay: !hasTime });
   }
 

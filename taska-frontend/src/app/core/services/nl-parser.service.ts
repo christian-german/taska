@@ -11,7 +11,7 @@ export interface NlToken {
 
 export interface NlParsed {
   title: string;
-  /** ISO local datetime string (YYYY-MM-DDTHH:MM:SS) or undefined */
+  /** ISO 8601 UTC string (with Z) for timed tasks, or YYYY-MM-DD for all-day */
   dueAt?: string;
   /** true when no specific time was set (date-only) */
   allDay: boolean;
@@ -52,7 +52,7 @@ function pad2(n: number): string {
 }
 
 function localIso(d: Date): string {
-  return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}T${pad2(d.getHours())}:${pad2(d.getMinutes())}:00`;
+  return d.toISOString();
 }
 
 function dateOnlyIso(d: Date): string {

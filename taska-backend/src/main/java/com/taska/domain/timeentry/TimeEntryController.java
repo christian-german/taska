@@ -1,11 +1,10 @@
 package com.taska.domain.timeentry;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
@@ -20,9 +19,11 @@ public class TimeEntryController {
     @GetMapping
     public List<TimeEntryDto> getAll(
             @RequestParam(required = false) UUID project_id,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime start,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime end) {
-        return service.findAll(project_id, start, end).stream().map(mapper::toDto).toList();
+            @RequestParam(required = false) String start,
+            @RequestParam(required = false) String end) {
+        Instant from = start != null ? Instant.parse(start) : null;
+        Instant to   = end   != null ? Instant.parse(end)   : null;
+        return service.findAll(project_id, from, to).stream().map(mapper::toDto).toList();
     }
 
     @PostMapping

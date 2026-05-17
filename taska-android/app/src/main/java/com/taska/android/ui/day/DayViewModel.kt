@@ -85,10 +85,10 @@ class DayViewModel : ViewModel() {
         val day = computeDay(offset)
         val dayStr = formatDayStr(day)
         val tasks = computeLayout(allTasks.filter { task ->
-            task.isCompleted != true && !task.allDay && task.dueAt?.substring(0, 10) == dayStr
+            task.isCompleted != true && !task.allDay && task.dueAt != null && dueAtLocalDate(task.dueAt) == dayStr
         })
         val allDayTasks = allTasks.filter { task ->
-            task.isCompleted != true && task.allDay && task.dueAt?.substring(0, 10) == dayStr
+            task.isCompleted != true && task.allDay && task.dueAt != null && dueAtLocalDate(task.dueAt) == dayStr
         }
         _uiState.update { it.copy(dayOffset = offset, currentDay = day, tasks = tasks, allDayTasks = allDayTasks) }
     }
@@ -110,9 +110,7 @@ class DayViewModel : ViewModel() {
         data class Raw(val task: TaskDto, val startMin: Int, val endMin: Int)
         val raws = tasks.mapNotNull { task ->
             val dueAt = task.dueAt ?: return@mapNotNull null
-            if (dueAt.length < 16) return@mapNotNull null
-            val h = dueAt.substring(11, 13).toIntOrNull() ?: return@mapNotNull null
-            val m = dueAt.substring(14, 16).toIntOrNull() ?: return@mapNotNull null
+            val (h, m) = dueAtLocalHourMinute(dueAt) ?: return@mapNotNull null
             val start = h * 60 + m
             Raw(task, start, start + (task.estimateMinutes ?: 60))
         }.sortedBy { it.startMin }
@@ -136,3 +134,15 @@ class DayViewModel : ViewModel() {
         }
     }
 }
+
+private fun dueAtLocalDate(dueAt: String): String = try {
+    val instant = java.time.Instant.parse(dueAt)
+    val zoned = instant.atZone(java.time.ZoneId.systemDefault())
+    "%04d-%02d-%02d".format(zoned.year, zoned.monthValue, zoned.dayOfMonth)
+} catch (_: Exception) { dueAt.take(10) }
+
+private fun dueAtLocalHourMinute(dueAt: String): Pair<Int, Int>? = try {
+    val instant = java.time.Instant.parse(dueAt)
+    val zoned = instant.atZone(java.time.ZoneId.systemDefault())
+    Pair(zoned.hour, zoned.minute)
+} catch (_: Exception) { null }

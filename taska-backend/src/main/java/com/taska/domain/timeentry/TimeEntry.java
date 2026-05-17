@@ -5,7 +5,6 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.time.Instant;
-import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
@@ -19,10 +18,10 @@ public class TimeEntry {
     private UUID id;
 
     @Column(name = "start_at", nullable = false)
-    private LocalDateTime startAt;
+    private Instant startAt;
 
     @Column(name = "end_at", nullable = false)
-    private LocalDateTime endAt;
+    private Instant endAt;
 
     @Column(name = "project_id", nullable = false)
     private UUID projectId;

@@ -95,8 +95,8 @@ export class AppComponent implements OnInit {
       // Check update at startup.
       setTimeout(() => this.updateService.checkForUpdates(), 3000);
 
-      // Check update every 4 hours.
-      interval(4 * 60 * 60 * 1000).subscribe(() => {
+      // Check update every 5 minutes.
+      interval(5 * 60 * 1000).subscribe(() => {
         this.updateService.checkForUpdates().then(
           () => console.log("Update check OK")
         );

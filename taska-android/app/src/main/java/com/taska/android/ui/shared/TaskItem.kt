@@ -133,7 +133,7 @@ fun TaskItem(
 
             // Date / heure / estimation
             val accentColor = if (isOverdue) OverdueRed else TextSecondary
-            val dateStr = task.dueAt?.substring(0, 10)?.let { formatDate(it) }
+            val dateStr = task.dueAt?.let { formatDate(it) }
             val timeStr = if (!task.allDay) task.dueAt?.let { formatTime(it) } else null
             val estimateStr = task.estimateMinutes?.let { formatEstimate(it) }
 
@@ -187,15 +187,19 @@ fun parseHexColor(hex: String): Color? = try {
     Color(android.graphics.Color.parseColor(if (hex.startsWith("#")) hex else "#$hex"))
 } catch (_: Exception) { null }
 
-private fun formatDate(dateStr: String): String = try {
-    val date = SimpleDateFormat("yyyy-MM-dd", Locale.US).parse(dateStr) ?: return dateStr
-    SimpleDateFormat("d MMM", Locale.FRENCH).format(date)
-} catch (_: Exception) { dateStr }
+private fun formatDate(isoDateTime: String): String = try {
+    val instant = java.time.Instant.parse(isoDateTime)
+    SimpleDateFormat("d MMM", Locale.FRENCH).format(java.util.Date.from(instant))
+} catch (_: Exception) {
+    try {
+        val date = SimpleDateFormat("yyyy-MM-dd", Locale.US).parse(isoDateTime.take(10)) ?: return isoDateTime
+        SimpleDateFormat("d MMM", Locale.FRENCH).format(date)
+    } catch (_: Exception) { isoDateTime }
+}
 
 private fun formatTime(isoDateTime: String): String? = try {
-    val date = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.US).parse(isoDateTime.take(19))
-        ?: return null
-    SimpleDateFormat("HH:mm", Locale.FRENCH).format(date)
+    val instant = java.time.Instant.parse(isoDateTime)
+    SimpleDateFormat("HH:mm", Locale.FRENCH).format(java.util.Date.from(instant))
 } catch (_: Exception) { null }
 
 private fun formatEstimate(minutes: Int): String = when {

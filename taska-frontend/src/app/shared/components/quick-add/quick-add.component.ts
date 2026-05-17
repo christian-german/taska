@@ -402,7 +402,7 @@ export class QuickAddComponent implements OnInit {
     const m = this.manualDatetime();
     if (m) return m;
     const p = this.parsed();
-    if (p.dueAt) return p.dueAt.slice(0, 16);
+    if (p.dueAt) return p.dueAt;
     return '';
   });
 
@@ -577,7 +577,7 @@ export class QuickAddComponent implements OnInit {
     let dueAt: string | null = null;
     let allDay = false;
     if (manual) {
-      dueAt = hasTime ? (manual.length === 16 ? manual + ':00' : manual) : manual + 'T00:00:00';
+      dueAt = hasTime ? manual : manual + 'T00:00:00Z';
       allDay = !hasTime;
     } else if (p.dueAt) {
       dueAt = p.dueAt;

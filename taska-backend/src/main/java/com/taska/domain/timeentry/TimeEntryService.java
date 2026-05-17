@@ -5,7 +5,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
@@ -17,7 +17,7 @@ public class TimeEntryService {
     private final TimeEntryRepository repository;
 
     @Transactional(readOnly = true)
-    public List<TimeEntry> findAll(UUID projectId, LocalDateTime from, LocalDateTime to) {
+    public List<TimeEntry> findAll(UUID projectId, Instant from, Instant to) {
         if (projectId != null && from != null && to != null) {
             return repository.findByProjectIdAndStartAtBetweenOrderByStartAtAsc(projectId, from, to);
         }

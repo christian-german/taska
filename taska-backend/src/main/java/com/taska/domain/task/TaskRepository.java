@@ -4,8 +4,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import java.time.Instant;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -19,9 +17,9 @@ public interface TaskRepository extends JpaRepository<Task, UUID> {
 
     List<Task> findByProjectIdAndSectionIdIsNullAndIsCompletedFalseOrderByPositionAsc(UUID projectId);
 
-    List<Task> findByDueAtBetweenAndIsCompletedFalseOrderByDueAtAsc(LocalDateTime from, LocalDateTime to);
+    List<Task> findByDueAtBetweenAndIsCompletedFalseOrderByDueAtAsc(Instant from, Instant to);
 
-    List<Task> findByDueAtBeforeAndIsCompletedFalseOrderByDueAtAsc(LocalDateTime before);
+    List<Task> findByDueAtBeforeAndIsCompletedFalseOrderByDueAtAsc(Instant before);
 
     List<Task> findByProjectIdOrderByPositionAsc(UUID projectId);
 
@@ -56,12 +54,12 @@ public interface TaskRepository extends JpaRepository<Task, UUID> {
     long countByIsCompletedFalse();
 
     @Query("SELECT COUNT(t) FROM Task t WHERE t.isCompleted = false AND t.dueAt < :before")
-    long countByIsCompletedFalseAndDueAtBefore(@Param("before") LocalDateTime before);
+    long countByIsCompletedFalseAndDueAtBefore(@Param("before") Instant before);
 
     List<Task> findByCompletedAtAfterOrderByCompletedAtAsc(Instant since);
 
     List<Task> findByIsCompletedTrueOrderByCompletedAtDesc();
 
     @Query("SELECT t FROM Task t WHERE t.isCompleted = false AND t.isNotified = false AND t.allDay = false AND t.dueAt IS NOT NULL AND t.dueAt <= :in15min")
-    List<Task> findTasksDueAround(@Param("in15min") LocalDateTime in15min);
+    List<Task> findTasksDueAround(@Param("in15min") Instant in15min);
 }

@@ -1,11 +1,11 @@
 package com.taska.domain.timeentry;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.UUID;
 
 public record TimeEntryRequest(
-        LocalDateTime startAt,
-        LocalDateTime endAt,
+        Instant startAt,
+        Instant endAt,
         UUID projectId,
         String description,
         String notes

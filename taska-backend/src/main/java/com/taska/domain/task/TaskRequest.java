@@ -5,7 +5,7 @@ import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Positive;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
@@ -19,7 +19,7 @@ public record TaskRequest(
         @Min(1) @Max(4)
         Integer priority,
         List<String> labels,
-        LocalDateTime dueAt,
+        Instant dueAt,
         Boolean allDay,
         Boolean isRecurring,
         @Positive

@@ -12,6 +12,7 @@ import org.springframework.context.annotation.Configuration;
 public class TaskaProperties {
 
     private final Security security = new Security();
+    private final Notification notification = new Notification();
 
     @Getter
     @Setter
@@ -28,5 +29,15 @@ public class TaskaProperties {
          * This is useful when the issuer URI is not available or cannot be verified.
          */
         private boolean disableIssuerValidation = false;
+    }
+
+    @Getter
+    @Setter
+    public static class Notification {
+
+        /**
+         * Delay in milliseconds between notification checks.
+         */
+        private long schedulerDelay = 15_000;
     }
 }

@@ -1,7 +1,11 @@
 package com.taska.android
 
+import android.Manifest
+import android.accounts.AccountManager
 import android.content.Intent
+import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -15,7 +19,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.google.firebase.messaging.FirebaseMessaging
+import com.taska.android.auth.AuthConfig
+import com.taska.android.auth.LoginActivity
+import com.taska.android.data.api.RetrofitClient
+import com.taska.android.data.model.RegisterDeviceRequest
 import com.taska.android.ui.addtask.AddTaskBottomSheet
 import com.taska.android.ui.addtask.AddTaskViewModel
 import com.taska.android.ui.drawer.WithDrawer
@@ -24,6 +34,7 @@ import com.taska.android.ui.shared.NavDestination
 import com.taska.android.ui.theme.TaskaTheme
 import com.taska.android.ui.today.TodayScreen
 import com.taska.android.ui.today.TodayViewModel
+import kotlinx.coroutines.launch
 
 class TodayActivity : ComponentActivity() {
 
@@ -36,6 +47,32 @@ class TodayActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        RetrofitClient.init(this)
+
+        val accounts = AccountManager.get(this).getAccountsByType(AuthConfig.ACCOUNT_TYPE)
+        if (accounts.isEmpty()) {
+            startActivity(Intent(this, LoginActivity::class.java))
+            finish()
+            return
+        }
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            requestPermissions(arrayOf(Manifest.permission.POST_NOTIFICATIONS), 1)
+        }
+
+        FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
+            if (!task.isSuccessful) {
+                Log.w("FCM", "Récupération du token échouée", task.exception)
+                return@addOnCompleteListener
+            }
+            val token = task.result
+            Log.d("FCM", "Token: $token")
+            lifecycleScope.launch {
+                RetrofitClient.api.registerDevice(RegisterDeviceRequest(token))
+            }
+        }
+
         enableEdgeToEdge()
         setContent {
             TaskaTheme {

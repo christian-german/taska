@@ -1,5 +1,5 @@
 import {ChangeDetectionStrategy, Component, computed, input, output, signal} from '@angular/core';
-import { displayPriority, hexToRgba } from '../../../core/models';
+import { hexToRgba } from '../../../core/models';
 
 @Component({
   selector: 'app-checkbox',
@@ -8,7 +8,6 @@ import { displayPriority, hexToRgba } from '../../../core/models';
     <span class="cb"
           [class.checked]="checked()"
           [class.just-checked]="justChecked()"
-          [attr.data-prio]="displayPrio()"
           [style.width.px]="size()"
           [style.height.px]="size()"
           (click)="onClick($event)"
@@ -29,7 +28,6 @@ export class CheckboxComponent {
   toggled = output<MouseEvent>();
 
   justChecked = signal(false);
-  displayPrio = computed(() => displayPriority(this.priority() || 1));
 
   onClick(e: MouseEvent): void {
     e.stopPropagation();
@@ -45,7 +43,7 @@ export class CheckboxComponent {
   selector: 'app-priority-flag',
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    @if (display() && display() < 4) {
+    @if (display() && display() <= 4) {
       <span [style.color]="color()" [style.display]="'inline-flex'" [style.align-items]="'center'" [title]="'P' + display()">
         <svg [attr.width]="size()" [attr.height]="size()" viewBox="0 0 16 16" fill="none">
           <path d="M3 1.5 V14.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" />
@@ -56,11 +54,11 @@ export class CheckboxComponent {
   `,
 })
 export class PriorityFlagComponent {
-  /** internal priority 1=lowest..4=highest */
-  priority = input<number>(1);
+  /** internal priority 1=highest..4=lowest */
+  priority = input<number>(4);
   size = input<number>(13);
 
-  display = computed(() => displayPriority(this.priority() || 1));
+  display = computed(() => this.priority() || 4);
   color = computed(() => {
     const p = this.display();
     return p === 1 ? 'var(--p1)' : p === 2 ? 'var(--p2)' : p === 3 ? 'var(--p3)' : 'var(--p4)';

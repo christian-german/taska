@@ -4,7 +4,6 @@ import com.taska.config.TaskaProperties;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.NonNull;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.security.oauth2.server.resource.autoconfigure.OAuth2ResourceServerProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -32,7 +31,6 @@ public class WebSecurityConfiguration {
     private final TaskaProperties taskaProperties;
 
     @Bean
-    @ConditionalOnProperty(prefix = "taska.security", name = "disabled", havingValue = "false", matchIfMissing = true)
     public SecurityFilterChain securityFilterChain(HttpSecurity http) {
         http
                 .csrf(AbstractHttpConfigurer::disable)
@@ -46,20 +44,6 @@ public class WebSecurityConfiguration {
                 .oauth2ResourceServer(oauth2 -> oauth2
                         .jwt(_ -> {
                         })
-                );
-
-        return http.build();
-    }
-
-    @Bean
-    @ConditionalOnProperty(prefix = "taska.security", name = "disabled", havingValue = "true")
-    public SecurityFilterChain disableSecurity(HttpSecurity http) {
-        http
-                .csrf(AbstractHttpConfigurer::disable)
-                .cors(Customizer.withDefaults())
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .authorizeHttpRequests(auth -> auth
-                        .anyRequest().permitAll()
                 );
 
         return http.build();
@@ -90,7 +74,9 @@ public class WebSecurityConfiguration {
     @Bean
     public JwtDecoder jwtTokenDecoder() {
 
-        assert oAuth2ResourceServerProperties.getJwt().getIssuerUri() != null;
+        if (oAuth2ResourceServerProperties.getJwt().getIssuerUri() == null) {
+            throw new IllegalStateException("spring.security.oauth2.resourceserver.jwt.issuer-uri must be set");
+        }
 
         NimbusJwtDecoder nimbusJwtDecoder;
 

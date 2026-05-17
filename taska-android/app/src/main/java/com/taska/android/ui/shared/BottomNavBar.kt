@@ -41,7 +41,7 @@ private val FabBg = Color(0xFF2C2C2E)
 
 @Composable
 fun BottomNavBar(
-    current: NavDestination,
+    current: NavDestination?,
     onNavigate: (NavDestination) -> Unit,
     onAddClick: () -> Unit
 ) {

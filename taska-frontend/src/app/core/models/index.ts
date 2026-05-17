@@ -132,24 +132,11 @@ export const PROJECT_COLORS: Record<string, string> = {
 };
 
 /**
- * Internal priority semantics: 1 = lowest (normal), 4 = highest (urgent).
- * Design / Todoist semantics: P1 = highest, P4 = lowest.
- * Map back and forth for display.
+ * Internal priority semantics: 1 = highest, 4 = lowest.
  */
 export function displayPriority(internal: number): 1 | 2 | 3 | 4 {
   return (5 - Math.max(1, Math.min(4, internal))) as 1 | 2 | 3 | 4;
 }
-
-export function internalPriority(display: number): 1 | 2 | 3 | 4 {
-  return (5 - Math.max(1, Math.min(4, display))) as 1 | 2 | 3 | 4;
-}
-
-export const DESIGN_PRIORITY_COLOR: Record<number, string> = {
-  1: 'var(--p1)',
-  2: 'var(--p2)',
-  3: 'var(--p3)',
-  4: 'var(--p4)',
-};
 
 export const PRIORITY_LABELS: Record<number, string> = {
   1: 'Urgente',

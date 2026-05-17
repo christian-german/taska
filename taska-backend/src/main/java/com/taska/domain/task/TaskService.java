@@ -19,7 +19,7 @@ import java.util.UUID;
 public class TaskService {
 
     private final TaskRepository taskRepository;
-    private final ProjectRepository projectRepo;
+    private final ProjectRepository projectRepository;
 
     @Transactional(readOnly = true)
     public List<Task> findAll(UUID projectId, UUID sectionId, String label, String filter, boolean showCompleted) {
@@ -78,7 +78,7 @@ public class TaskService {
 
         UUID projectId = req.projectId();
         if (projectId == null && req.parentId() == null) {
-            projectId = projectRepo.findByIsInboxProjectTrue()
+            projectId = projectRepository.findByIsInboxProjectTrue()
                     .orElseThrow(() -> new ResourceNotFoundException("Inbox project not found"))
                     .getId();
         }
@@ -129,7 +129,7 @@ public class TaskService {
         return taskRepository.findByParentIdOrderByPositionAsc(parentTaskId);
     }
 
-    Task getOrThrow(UUID taskId) {
+    public Task getOrThrow(UUID taskId) {
         return taskRepository.findById(taskId)
                 .orElseThrow(() -> new ResourceNotFoundException("Task not found: " + taskId));
     }

@@ -42,7 +42,6 @@ import { CheckboxComponent, PriorityFlagComponent, ProjectDotComponent, TagChipC
          (click)="onSelect(); $event.stopPropagation()">
       <app-checkbox
         [checked]="task().isCompleted"
-        [priority]="task().priority"
         (toggled)="onToggle($event)" />
 
       <div style="min-width: 0;">

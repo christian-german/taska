@@ -169,32 +169,33 @@ private fun DayHeader(
         else -> SimpleDateFormat("EEE d MMM", Locale.FRENCH).format(day.time)
             .replaceFirstChar { it.uppercase() }
     }
-    val dateSubLabel = SimpleDateFormat("EEE d MMM yyyy", Locale.FRENCH).format(day.time)
+    val dateStr = if (dayOffset in -1..1) {
+        SimpleDateFormat("EEE d MMM", Locale.FRENCH).format(day.time)
+    } else null
 
     Column(modifier = Modifier.fillMaxWidth()) {
-        Text(
-            text = dayLabel,
-            modifier = Modifier.padding(start = TIME_GUTTER_W + 4.dp, top = 6.dp, bottom = 1.dp),
-            style = TextStyle(
-                fontFamily = FontFamily.Serif,
-                fontStyle = FontStyle.Italic,
-                fontSize = 24.sp,
-                color = TextPrimary
-            )
-        )
-        if (dayOffset != 0) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(start = TIME_GUTTER_W + 4.dp, end = 8.dp, top = 6.dp, bottom = 4.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
             Text(
-                text = dateSubLabel,
-                modifier = Modifier.padding(start = TIME_GUTTER_W + 4.dp, bottom = 4.dp),
-                style = TextStyle(fontFamily = FontFamily.Monospace, fontSize = 11.sp, color = TextSecondary)
+                text = dayLabel,
+                style = TextStyle(
+                    fontFamily = FontFamily.Serif,
+                    fontStyle = FontStyle.Italic,
+                    fontSize = 24.sp,
+                    color = TextPrimary
+                )
             )
-        } else {
-            val dateStr = SimpleDateFormat("EEE d MMM", Locale.FRENCH).format(day.time)
-            Text(
-                text = dateStr,
-                modifier = Modifier.padding(start = TIME_GUTTER_W + 4.dp, bottom = 4.dp),
-                style = TextStyle(fontFamily = FontFamily.Monospace, fontSize = 11.sp, color = TextSecondary)
-            )
+            if (dateStr != null) {
+                Spacer(modifier = Modifier.width(10.dp))
+                Text(
+                    text = dateStr,
+                    style = TextStyle(fontFamily = FontFamily.Monospace, fontSize = 11.sp, color = TextSecondary)
+                )
+            }
         }
 
         // All-day tasks row

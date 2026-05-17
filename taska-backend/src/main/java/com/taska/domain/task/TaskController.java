@@ -17,12 +17,11 @@ public class TaskController {
     private final TaskMapper taskMapper;
 
     @GetMapping
-    public List<TaskDto> getAll(
-            @RequestParam(required = false) UUID project_id,
-            @RequestParam(required = false) UUID section_id,
-            @RequestParam(required = false) String label,
-            @RequestParam(required = false) String filter,
-            @RequestParam(required = false, defaultValue = "false") boolean show_completed) {
+    public List<TaskDto> getAll(@RequestParam(required = false) UUID project_id,
+                                @RequestParam(required = false) UUID section_id,
+                                @RequestParam(required = false) String label,
+                                @RequestParam(required = false) String filter,
+                                @RequestParam(required = false, defaultValue = "false") boolean show_completed) {
         return taskService.findAll(project_id, section_id, label, filter, show_completed)
                 .stream().map(taskMapper::toDto).toList();
     }

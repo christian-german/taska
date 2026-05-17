@@ -21,7 +21,7 @@ public class TaskNotificationScheduler {
     private final TaskRepository taskRepository;
     private final DeviceTokenRepository deviceTokenRepository;
 
-    @Scheduled(fixedDelay = 5_000)
+    @Scheduled(fixedDelay = 60_000)
     public void checkUpcomingTasks() {
         LocalDateTime in15min = LocalDateTime.now().plusMinutes(15);
         List<Task> tasks = taskService.findTasksDueAround(in15min);

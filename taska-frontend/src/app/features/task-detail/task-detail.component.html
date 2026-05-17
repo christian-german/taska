@@ -20,7 +20,6 @@
     <div style="display: flex; gap: 12px; align-items: flex-start;">
       <app-checkbox
         [checked]="task().isCompleted"
-        [priority]="task().priority"
         [size]="22"
         (toggled)="toggleComplete()" />
       <input class="inline-edit script"

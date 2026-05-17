@@ -1,9 +1,6 @@
 package com.taska.android.ui.today
 
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -13,17 +10,11 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.Flag
 import androidx.compose.material.icons.outlined.MoreHoriz
-import androidx.compose.material.icons.outlined.Schedule
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -34,19 +25,16 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.taska.android.data.model.ProjectDto
 import com.taska.android.data.model.TaskDto
+import com.taska.android.ui.shared.TaskItem
 import java.text.SimpleDateFormat
-import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 
@@ -54,12 +42,7 @@ private val AppBackground = Color(0xFFEAE5DC)
 private val TextPrimary = Color(0xFF1A1A1A)
 private val TextSecondary = Color(0xFF9A9A9A)
 private val DividerColor = Color(0xFFD5D0C8)
-private val CheckboxBorder = Color(0xFFAAAAAA)
 private val OverdueRed = Color(0xFFDD4433)
-private val CompletedGreen = Color(0xFF4CAF50)
-private val PriorityUrgentColor = Color(0xFFE83030)
-private val PriorityHighColor = Color(0xFFFF8C00)
-private val PriorityMediumColor = Color(0xFF4287F5)
 
 @Composable
 fun TodayScreen(
@@ -174,7 +157,7 @@ private fun TodayList(
                 SectionHeader(title = "En retard", count = uiState.overdueTasks.size, titleColor = OverdueRed)
             }
             items(uiState.overdueTasks, key = { it.id }) { task ->
-                TodayTaskItem(
+                TaskItem(
                     task = task,
                     project = task.projectId?.let { uiState.projects[it] },
                     isOverdue = true,
@@ -191,7 +174,7 @@ private fun TodayList(
                 SectionHeader(title = "Aujourd'hui", count = uiState.todayTasks.size, titleColor = TextPrimary)
             }
             items(uiState.todayTasks, key = { it.id }) { task ->
-                TodayTaskItem(
+                TaskItem(
                     task = task,
                     project = task.projectId?.let { uiState.projects[it] },
                     isOverdue = false,
@@ -208,7 +191,7 @@ private fun TodayList(
                 SectionHeader(title = "Demain", count = uiState.tomorrowTasks.size, titleColor = TextPrimary)
             }
             items(uiState.tomorrowTasks, key = { it.id }) { task ->
-                TodayTaskItem(
+                TaskItem(
                     task = task,
                     project = task.projectId?.let { uiState.projects[it] },
                     isOverdue = false,
@@ -235,157 +218,4 @@ private fun SectionHeader(title: String, count: Int, titleColor: Color) {
             letterSpacing = (-0.2).sp
         )
     )
-}
-
-@Composable
-private fun TodayTaskItem(
-    task: TaskDto,
-    project: ProjectDto?,
-    isOverdue: Boolean,
-    onToggle: () -> Unit,
-    onClick: () -> Unit
-) {
-    val isCompleted = task.isCompleted == true
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable { onClick() }
-            .padding(horizontal = 16.dp, vertical = 12.dp),
-        verticalAlignment = Alignment.Top
-    ) {
-        val checkboxBorderColor = when {
-            isOverdue -> OverdueRed
-            task.priority == 1 -> PriorityUrgentColor
-            task.priority == 2 -> PriorityHighColor
-            task.priority == 3 -> PriorityMediumColor
-            else -> CheckboxBorder
-        }
-        Box(
-            modifier = Modifier
-                .size(22.dp)
-                .clickable { onToggle() },
-            contentAlignment = Alignment.Center
-        ) {
-            if (isCompleted) {
-                Icon(
-                    imageVector = Icons.Filled.CheckCircle,
-                    contentDescription = "Terminé",
-                    tint = CompletedGreen,
-                    modifier = Modifier.size(22.dp)
-                )
-            } else {
-                Box(
-                    modifier = Modifier
-                        .size(22.dp)
-                        .clip(CircleShape)
-                        .border(1.5.dp, checkboxBorderColor, CircleShape)
-                )
-            }
-        }
-
-        Spacer(modifier = Modifier.width(14.dp))
-
-        Column {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                val flagColor = priorityFlagColor(task.priority)
-                if (!isCompleted && flagColor != null) {
-                    Icon(
-                        imageVector = Icons.Filled.Flag,
-                        contentDescription = null,
-                        tint = flagColor,
-                        modifier = Modifier.size(14.dp)
-                    )
-                    Spacer(modifier = Modifier.width(4.dp))
-                }
-                Text(
-                    text = task.content,
-                    style = TextStyle(
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Medium,
-                        color = if (isCompleted) TextSecondary else TextPrimary,
-                        lineHeight = 22.sp,
-                        textDecoration = if (isCompleted) TextDecoration.LineThrough else TextDecoration.None
-                    )
-                )
-            }
-            TaskMeta(task = task, project = project, isOverdue = isOverdue)
-        }
-    }
-}
-
-@Composable
-private fun TaskMeta(task: TaskDto, project: ProjectDto?, isOverdue: Boolean) {
-    val timeStr = if (!task.allDay) task.dueAt?.let { formatTime(it) } else null
-    val estimateStr = task.estimateMinutes?.let { formatEstimate(it) }
-    val relativeDateStr = if (isOverdue) task.dueAt?.substring(0, 10)?.let { formatRelativeDate(it) } else null
-    val projectColor = project?.color?.let { parseHexColor(it) } ?: Color(0xFF9A9A9A)
-    val projectDisplay = buildProjectDisplay(task, project)
-
-    if (timeStr == null && estimateStr == null && relativeDateStr == null && projectDisplay == null) return
-
-    val accentColor = if (isOverdue) OverdueRed else TextSecondary
-
-    Row(
-        modifier = Modifier.padding(top = 4.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(5.dp)
-    ) {
-        if (timeStr != null) {
-            Icon(
-                imageVector = Icons.Outlined.Schedule,
-                contentDescription = null,
-                tint = accentColor,
-                modifier = Modifier.size(13.dp)
-            )
-            Text(text = timeStr, style = TextStyle(fontSize = 13.sp, color = accentColor))
-        }
-        if (estimateStr != null) {
-            Text(text = estimateStr, style = TextStyle(fontSize = 13.sp, color = accentColor))
-        }
-        if (relativeDateStr != null) {
-            Text(text = relativeDateStr, style = TextStyle(fontSize = 13.sp, color = accentColor))
-        }
-        if (projectDisplay != null) {
-            Canvas(modifier = Modifier.size(8.dp)) { drawCircle(color = projectColor) }
-            Text(text = projectDisplay, style = TextStyle(fontSize = 13.sp, color = TextSecondary))
-        }
-    }
-}
-
-private fun buildProjectDisplay(task: TaskDto, project: ProjectDto?): String? = project?.name
-
-private fun formatTime(isoDateTime: String): String? = try {
-    val date = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.US).parse(isoDateTime.take(19))
-        ?: return null
-    SimpleDateFormat("HH:mm", Locale.FRENCH).format(date)
-} catch (e: Exception) {
-    null
-}
-
-private fun formatEstimate(minutes: Int): String = when {
-    minutes < 60 -> "${minutes}m"
-    minutes % 60 == 0 -> "${minutes / 60}h"
-    else -> "${minutes / 60}h${minutes % 60}m"
-}
-
-private fun formatRelativeDate(dueDateStr: String): String = try {
-    val fmt = SimpleDateFormat("yyyy-MM-dd", Locale.US)
-    val yesterdayStr = fmt.format(Calendar.getInstance().also { it.add(Calendar.DAY_OF_YEAR, -1) }.time)
-    if (dueDateStr == yesterdayStr) "hier"
-    else SimpleDateFormat("d MMM", Locale.FRENCH).format(fmt.parse(dueDateStr)!!)
-} catch (e: Exception) {
-    dueDateStr
-}
-
-private fun priorityFlagColor(priority: Int?): Color? = when (priority) {
-    1 -> PriorityUrgentColor
-    2 -> PriorityHighColor
-    3 -> PriorityMediumColor
-    else -> null
-}
-
-private fun parseHexColor(hex: String): Color? = try {
-    Color(android.graphics.Color.parseColor(if (hex.startsWith("#")) hex else "#$hex"))
-} catch (e: Exception) {
-    null
 }

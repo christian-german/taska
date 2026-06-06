@@ -225,9 +225,9 @@
             @for (opt of RECURRENCE_OPTIONS; track opt.value) {
               <div style="padding: 8px 12px; border-radius: 6px; cursor: pointer; font-size: 13px;
                           display: flex; align-items: center; gap: 8px;"
-                   [style.background]="(task().recurrenceRule ?? '') === opt.value ? 'var(--bg-3)' : 'transparent'"
+                   [style.background]="activeRecurrenceKey() === opt.value ? 'var(--bg-3)' : 'transparent'"
                    (click)="selectRecurrence(opt.value, $event)">
-                @if ((task().recurrenceRule ?? '') === opt.value) {
+                @if (activeRecurrenceKey() === opt.value) {
                   <app-icon name="check" [size]="12" color="var(--accent)" />
                 } @else {
                   <span style="width: 12px;"></span>
@@ -336,4 +336,18 @@
     message="Cette action est définitive et ne peut pas être annulée."
     (confirmed)="confirmDelete()"
     (cancelled)="showDeleteConfirm.set(false)" />
+}
+
+@if (showDeleteScopeDialog()) {
+  <app-recurrence-scope-dialog
+    title="Supprimer la récurrence"
+    (selected)="onDeleteScope($event)"
+    (cancelled)="showDeleteScopeDialog.set(false)" />
+}
+
+@if (showModifyScopeDialog()) {
+  <app-recurrence-scope-dialog
+    title="Modifier la récurrence"
+    (selected)="onModifyScope($event)"
+    (cancelled)="showModifyScopeDialog.set(false)" />
 }

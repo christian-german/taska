@@ -1,6 +1,6 @@
 import {Component, DestroyRef, OnInit, computed, inject, signal, ChangeDetectionStrategy} from '@angular/core';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
-import { Project, Task, daysDiff, fmtDateShort, sameDay, startOfDay } from '../../core/models';
+import { Project, Task, daysDiff, fmtDateShort } from '../../core/models';
 import { TaskService } from '../../core/services/task.service';
 import { ProjectService } from '../../core/services/project.service';
 import { UiStateService } from '../../core/services/ui-state.service';
@@ -16,7 +16,22 @@ const FR_DAYS = ['dimanche', 'lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 
   imports: [TaskListComponent, PageHeaderComponent, EmptyStateComponent, IconComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <app-page-header [title]="'Cette semaine'" [subtitle]="subtitle()" />
+    <app-page-header [title]="title()" [subtitle]="subtitle()">
+      <div actions style="display: flex; align-items: center; gap: 4px;">
+        <button class="btn btn-ghost" style="padding: 5px 8px;"
+                (click)="prevWeek()" title="Semaine précédente">
+          <app-icon name="chevron-left" [size]="16" />
+        </button>
+        @if (weekOffset() !== 0) {
+          <button class="btn btn-ghost" style="padding: 5px 10px; font-size: 12px;"
+                  (click)="resetWeek()">aujourd'hui</button>
+        }
+        <button class="btn btn-ghost" style="padding: 5px 8px;"
+                (click)="nextWeek()" title="Semaine suivante">
+          <app-icon name="chevron-right" [size]="16" />
+        </button>
+      </div>
+    </app-page-header>
 
     <div class="scroll" style="flex: 1; overflow-y: auto; padding: 8px 12px 60px;">
       @if (isEmpty()) {
@@ -42,70 +57,84 @@ export class WeekComponent implements OnInit {
   private destroyRef = inject(DestroyRef);
 
   tasks = signal<Task[]>([]);
+  weekOffset = signal(0);
   projects = toSignal(this.projectService.projects$, { initialValue: [] as Project[] });
 
   selectedId = computed(() => this.ui.selectedTask()?.id ?? null);
 
+  weekStart = computed(() => {
+    const d = new Date();
+    d.setDate(d.getDate() + this.weekOffset() * 7);
+    d.setHours(0, 0, 0, 0);
+    return d;
+  });
+
+  title = computed(() => {
+    const o = this.weekOffset();
+    if (o === 0) return 'Cette semaine';
+    if (o === 1) return 'Semaine prochaine';
+    if (o === -1) return 'Semaine dernière';
+    return o > 0 ? `Dans ${o} semaines` : `Il y a ${Math.abs(o)} semaines`;
+  });
+
   groups = computed<TaskGroup[]>(() => {
-    const today = new Date();
+    const start = this.weekStart();
+    const today = new Date(); today.setHours(0, 0, 0, 0);
     const days: TaskGroup[] = [];
     for (let i = 0; i < 7; i++) {
-      const d = new Date(today);
+      const d = new Date(start);
       d.setDate(d.getDate() + i);
-      const label = i === 0 ? "Aujourd'hui"
-                  : i === 1 ? 'Demain'
+      const diffFromToday = Math.round((d.getTime() - today.getTime()) / 86400000);
+      const label = diffFromToday === 0 ? "Aujourd'hui"
+                  : diffFromToday === 1 ? 'Demain'
                   : `${FR_DAYS[d.getDay()]} ${d.getDate()}`;
       days.push({ key: 'd' + i, label, tasks: [] });
     }
     for (const t of this.tasks()) {
       if (!t.dueAt || t.isCompleted) continue;
       const due = new Date(t.dueAt);
-      const diff = daysDiff(today, due);
+      const diff = daysDiff(start, due);
       if (diff >= 0 && diff < 7) days[diff].tasks.push(t);
     }
     return days;
   });
 
   subtitle = computed(() => {
-    const today = new Date();
-    const end = new Date(today);
-    end.setDate(end.getDate() + 7);
-    return `du ${fmtDateShort(today)} au ${fmtDateShort(end)}`;
+    const start = this.weekStart();
+    const end = new Date(start);
+    end.setDate(end.getDate() + 6);
+    return `du ${fmtDateShort(start)} au ${fmtDateShort(end)}`;
   });
 
   isEmpty = computed(() => this.groups().every(g => g.tasks.length === 0));
 
   ngOnInit(): void {
     this.refresh();
-    this.ui.taskCreated$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(task => {
-      const diff = task.dueAt ? daysDiff(new Date(), new Date(task.dueAt)) : -1;
-      if (!task.isCompleted && diff >= 0 && diff < 7) {
-        this.tasks.update(list => [...list, task]);
-      }
-    });
+    this.ui.taskCreated$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => this.refresh());
     this.ui.taskDeleted$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(id => {
       this.tasks.update(list => list.filter(t => t.id !== id));
     });
-    this.ui.taskUpdated$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(task => {
-      this.tasks.update(list => {
-        const today = new Date();
-        const diff = task.dueAt ? daysDiff(today, new Date(task.dueAt)) : -1;
-        const qualifies = !task.isCompleted && diff >= 0 && diff < 7;
-        const inList = list.some(t => t.id === task.id);
-        if (inList && qualifies) return list.map(t => t.id === task.id ? task : t);
-        if (inList && !qualifies) return list.filter(t => t.id !== task.id);
-        if (!inList && qualifies) return [...list, task];
-        return list;
-      });
-    });
+    this.ui.taskUpdated$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => this.refresh());
   }
 
+  prevWeek(): void { this.weekOffset.update(o => o - 1); this.refresh(); }
+  nextWeek(): void { this.weekOffset.update(o => o + 1); this.refresh(); }
+  resetWeek(): void { this.weekOffset.set(0); this.refresh(); }
+
   private refresh(): void {
-    this.taskService.getTasks({ showCompleted: false }).subscribe(t => this.tasks.set(t));
+    const start = this.weekStart();
+    const end = new Date(start);
+    end.setDate(end.getDate() + 6);
+    const from = start.toISOString().slice(0, 10);
+    const to = end.toISOString().slice(0, 10);
+    this.taskService.getTasks({ from, to }).subscribe(t => this.tasks.set(t));
   }
 
   onToggle(t: Task): void {
-    const op = t.isCompleted ? this.taskService.reopenTask(t.id) : this.taskService.closeTask(t.id);
+    const scheduledAt = t.scheduledAt ?? undefined;
+    const op = t.isCompleted
+      ? this.taskService.reopenTask(t.id, scheduledAt)
+      : this.taskService.closeTask(t.id, scheduledAt);
     op.subscribe(() => this.refresh());
   }
 
@@ -114,8 +143,6 @@ export class WeekComponent implements OnInit {
   }
 
   onUpdate(payload: { id: string; patch: Partial<Task> }): void {
-    this.taskService.updateTask(payload.id, payload.patch).subscribe(updated => {
-      this.tasks.update(list => list.map(x => x.id === updated.id ? updated : x));
-    });
+    this.taskService.updateTask(payload.id, payload.patch).subscribe(() => this.refresh());
   }
 }

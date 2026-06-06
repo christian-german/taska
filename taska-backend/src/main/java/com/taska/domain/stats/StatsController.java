@@ -12,6 +12,12 @@ public class StatsController {
 
     private final StatsService statsService;
 
+    /**
+     * Returns an aggregated statistics snapshot including task counts, completion streak,
+     * estimated remaining time, and per-project and per-day breakdowns.
+     *
+     * @return the current stats DTO
+     */
     @GetMapping("/overview")
     public StatsDto overview() {
         return statsService.compute();

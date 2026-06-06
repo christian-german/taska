@@ -7,6 +7,7 @@ import {
   Label,
   PRIORITY_LABELS,
   Project,
+  RecurrenceScope,
   Task,
   fmtDateShort,
   fmtEstimate,
@@ -29,13 +30,24 @@ const RECURRENCE_OPTIONS = [
   { value: 'daily', label: 'Quotidien' },
   { value: 'weekly', label: 'Hebdomadaire' },
   { value: 'monthly', label: 'Mensuel' },
+  { value: 'yearly', label: 'Annuel' },
 ] as const;
+
+const RRULE_TO_KEY: Record<string, string> = {
+  'freq=daily': 'daily', 'freq=weekly': 'weekly',
+  'freq=monthly': 'monthly', 'freq=yearly': 'yearly',
+};
+function normalizeRRuleKey(rule: string | null | undefined): string {
+  if (!rule) return '';
+  return RRULE_TO_KEY[rule.toLowerCase()] ?? rule.toLowerCase();
+}
 import { TaskService } from '../../core/services/task.service';
 import { CommentService } from '../../core/services/comment.service';
 import { ProjectService } from '../../core/services/project.service';
 import { LabelService } from '../../core/services/label.service';
 import { IconComponent } from '../../shared/components/icon/icon.component';
 import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/confirm-dialog.component';
+import { RecurrenceScopeDialogComponent } from '../../shared/components/recurrence-scope-dialog/recurrence-scope-dialog.component';
 import {
   CheckboxComponent,
   PriorityFlagComponent,
@@ -51,6 +63,7 @@ type DetailPicker = 'date' | 'tags' | 'estimate' | 'recurrence' | null;
     FormsModule,
     IconComponent,
     ConfirmDialogComponent,
+    RecurrenceScopeDialogComponent,
     CheckboxComponent,
     PriorityFlagComponent,
     ProjectDotComponent,
@@ -80,6 +93,9 @@ export class TaskDetailComponent implements OnChanges {
   showProjectMenu = signal(false);
   showPriorityMenu = signal(false);
   showDeleteConfirm = signal(false);
+  showDeleteScopeDialog = signal(false);
+  showModifyScopeDialog = signal(false);
+  pendingPatch = signal<Partial<Task> | null>(null);
   activeDetailPicker = signal<DetailPicker>(null);
   tagSearch = signal('');
 
@@ -124,10 +140,12 @@ export class TaskDetailComponent implements OnChanges {
     return m ? fmtEstimate(m) : 'Estimer';
   });
 
+  activeRecurrenceKey = computed(() => normalizeRRuleKey(this.task().recurrenceRule));
+
   recurrenceRowLabel = computed(() => {
-    const r = this.task().recurrenceRule;
-    if (!r) return 'Ne se répète pas';
-    return RECURRENCE_OPTIONS.find(o => (o.value as string) === r)?.label ?? r;
+    const key = this.activeRecurrenceKey();
+    if (!key) return 'Ne se répète pas';
+    return RECURRENCE_OPTIONS.find(o => o.value === key)?.label ?? this.task().recurrenceRule ?? key;
   });
 
   ngOnChanges(): void {
@@ -172,10 +190,11 @@ export class TaskDetailComponent implements OnChanges {
   }
 
   toggleComplete(): void {
+    const scheduledAt = this.task().scheduledAt ?? undefined;
     if (this.task().isCompleted) {
-      this.taskService.reopenTask(this.task().id).subscribe(t => this.taskUpdated.emit(t));
+      this.taskService.reopenTask(this.task().id, scheduledAt).subscribe(t => this.taskUpdated.emit(t));
     } else {
-      this.taskService.closeTask(this.task().id).subscribe(t => this.taskUpdated.emit(t));
+      this.taskService.closeTask(this.task().id, scheduledAt).subscribe(t => this.taskUpdated.emit(t));
     }
   }
 
@@ -215,7 +234,7 @@ export class TaskDetailComponent implements OnChanges {
     if (name === 'tags') this.tagSearch.set('');
   }
 
-datePickerValue = computed(() => this.task().dueAt ?? '');
+  datePickerValue = computed(() => this.task().dueAt ?? '');
 
   onDatetimeChange(value: string): void {
     const hasTime = value.includes('T');
@@ -287,7 +306,11 @@ datePickerValue = computed(() => this.task().dueAt ?? '');
   }
 
   deleteTask(): void {
-    this.showDeleteConfirm.set(true);
+    if (this.task().isRecurring && this.task().scheduledAt) {
+      this.showDeleteScopeDialog.set(true);
+    } else {
+      this.showDeleteConfirm.set(true);
+    }
   }
 
   confirmDelete(): void {
@@ -295,6 +318,24 @@ datePickerValue = computed(() => this.task().dueAt ?? '');
     this.taskService.deleteTask(this.task().id).subscribe(() => {
       this.taskDeleted.emit(this.task().id);
     });
+  }
+
+  onDeleteScope(scope: RecurrenceScope): void {
+    this.showDeleteScopeDialog.set(false);
+    const scheduledAt = this.task().scheduledAt ?? undefined;
+    this.taskService.deleteTask(this.task().id, scope, scheduledAt).subscribe(() => {
+      this.taskDeleted.emit(this.task().id);
+    });
+  }
+
+  onModifyScope(scope: RecurrenceScope): void {
+    this.showModifyScopeDialog.set(false);
+    const patch = this.pendingPatch();
+    if (!patch) return;
+    this.pendingPatch.set(null);
+    const scheduledAt = this.task().scheduledAt ?? undefined;
+    this.taskService.updateTask(this.task().id, { ...patch, scope, scheduledAt })
+      .subscribe(updated => this.taskUpdated.emit(updated));
   }
 
   onClose(): void {
@@ -311,6 +352,12 @@ datePickerValue = computed(() => this.task().dueAt ?? '');
   }
 
   private save(patch: Partial<Task>): void {
-    this.taskService.updateTask(this.task().id, patch).subscribe(updated => this.taskUpdated.emit(updated));
+    if (this.task().isRecurring && this.task().scheduledAt) {
+      this.pendingPatch.set(patch);
+      this.showModifyScopeDialog.set(true);
+    } else {
+      this.taskService.updateTask(this.task().id, patch)
+        .subscribe(updated => this.taskUpdated.emit(updated));
+    }
   }
 }

@@ -46,6 +46,8 @@ export interface Section {
   createdAt: string;
 }
 
+export type RecurrenceScope = 'THIS_ONLY' | 'FROM_THIS';
+
 export interface Task {
   id: string;
   content: string;
@@ -66,6 +68,10 @@ export interface Task {
   createdAt: string;
   updatedAt: string;
   completedAt?: string;
+  instanceId?: string | null;
+  scheduledAt?: string | null;
+  isVirtual?: boolean;
+  rruleEndsAt?: string | null;
 }
 
 export interface Label {

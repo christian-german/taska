@@ -51,10 +51,12 @@ class WeekActivity : ComponentActivity() {
                     Column(modifier = Modifier.fillMaxSize()) {
                         WeekScreen(
                             viewModel = weekViewModel,
-                            onTaskClick = { taskId ->
+                            onTaskClick = { taskId, scheduledAt ->
                                 startActivity(
-                                    Intent(this@WeekActivity, TaskDetailActivity::class.java)
-                                        .putExtra("task_id", taskId)
+                                    Intent(this@WeekActivity, TaskDetailActivity::class.java).apply {
+                                        putExtra("task_id", taskId)
+                                        scheduledAt?.let { putExtra("scheduled_at", it) }
+                                    }
                                 )
                             },
                             modifier = Modifier.weight(1f)

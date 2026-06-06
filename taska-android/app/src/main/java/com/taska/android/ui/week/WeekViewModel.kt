@@ -2,10 +2,12 @@ package com.taska.android.ui.week
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.taska.android.data.api.RetrofitClient
 import com.taska.android.data.model.ProjectDto
+import com.taska.android.data.model.RecurrenceScope
 import com.taska.android.data.model.TaskDto
 import com.taska.android.data.model.TaskRequest
+import com.taska.android.data.repository.ProjectRepository
+import com.taska.android.data.repository.TaskRepository
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -22,6 +24,8 @@ data class TaskBlock(
     val totalCols: Int
 )
 
+data class PendingReschedule(val task: TaskDto, val newDueAt: String, val newEstimateMinutes: Int)
+
 data class WeekUiState(
     val weekOffset: Int = 0,
     val weekDays: List<Calendar> = emptyList(),
@@ -29,83 +33,102 @@ data class WeekUiState(
     val allDayTasksByDay: List<List<TaskDto>> = List(7) { emptyList() },
     val projects: Map<String, ProjectDto> = emptyMap(),
     val isLoading: Boolean = false,
-    val error: String? = null
+    val error: String? = null,
+    val pendingReschedule: PendingReschedule? = null
 )
 
-class WeekViewModel : ViewModel() {
+class WeekViewModel(
+    private val taskRepo: TaskRepository,
+    private val projectRepo: ProjectRepository,
+) : ViewModel() {
+
+    constructor() : this(TaskRepository(), ProjectRepository())
 
     private val _uiState = MutableStateFlow(WeekUiState())
     val uiState: StateFlow<WeekUiState> = _uiState.asStateFlow()
 
-    private var allTasks: List<TaskDto> = emptyList()
-
     init {
-        load()
+        loadForOffset(0)
     }
 
-    fun load() {
-        viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true, error = null) }
-            try {
-                val tasksDef = async { RetrofitClient.api.getTasks() }
-                val projectsDef = async { RetrofitClient.api.getProjects() }
-                allTasks = tasksDef.await()
-                val projectMap = projectsDef.await().associateBy { it.id }
-                _uiState.update { it.copy(projects = projectMap, isLoading = false) }
-                recompute(_uiState.value.weekOffset)
-            } catch (e: Exception) {
-                _uiState.update { it.copy(isLoading = false, error = e.message) }
-            }
+    fun load() = loadForOffset(_uiState.value.weekOffset)
+
+    fun nextWeek() = loadForOffset(_uiState.value.weekOffset + 1)
+    fun prevWeek() = loadForOffset(_uiState.value.weekOffset - 1)
+
+    fun requestRescheduleTask(task: TaskDto, newDueAt: String, newEstimateMinutes: Int) {
+        if (task.isRecurring == true && task.scheduledAt != null) {
+            _uiState.update { it.copy(pendingReschedule = PendingReschedule(task, newDueAt, newEstimateMinutes)) }
+        } else {
+            executeReschedule(task, newDueAt, newEstimateMinutes, scope = null)
         }
     }
 
-    fun nextWeek() = recompute(_uiState.value.weekOffset + 1)
-    fun prevWeek() = recompute(_uiState.value.weekOffset - 1)
+    fun confirmRescheduleTask(scope: RecurrenceScope?) {
+        val pending = _uiState.value.pendingReschedule ?: return
+        _uiState.update { it.copy(pendingReschedule = null) }
+        executeReschedule(pending.task, pending.newDueAt, pending.newEstimateMinutes, scope)
+    }
 
-    fun rescheduleTask(taskId: String, newDueAt: String, newEstimateMinutes: Int) {
-        val current = allTasks.find { it.id == taskId } ?: return
+    fun dismissRescheduleScope() {
+        _uiState.update { it.copy(pendingReschedule = null) }
+    }
+
+    private fun executeReschedule(task: TaskDto, newDueAt: String, newEstimateMinutes: Int, scope: RecurrenceScope?) {
         viewModelScope.launch {
             try {
-                val updated = RetrofitClient.api.updateTask(
-                    taskId,
+                taskRepo.updateTask(
+                    task.id,
                     TaskRequest(
-                        content = current.content,
-                        description = current.description,
-                        projectId = current.projectId,
-                        priority = current.priority,
-                        labels = current.labels,
+                        content = task.content,
+                        description = task.description,
+                        projectId = task.projectId,
+                        priority = task.priority,
+                        labels = task.labels,
                         dueAt = newDueAt,
                         allDay = false,
-                        estimateMinutes = newEstimateMinutes
+                        estimateMinutes = newEstimateMinutes,
+                        scope = scope?.name,
+                        scheduledAt = task.scheduledAt
                     )
                 )
-                allTasks = allTasks.map { if (it.id == taskId) updated else it }
-                recompute(_uiState.value.weekOffset)
+                loadForOffset(_uiState.value.weekOffset)
             } catch (_: Exception) {}
         }
     }
 
-    private fun recompute(offset: Int) {
+    private fun loadForOffset(offset: Int) {
         val weekDays = computeWeekDays(offset)
-        val tasksByDay = weekDays.map { day ->
-            val dayStr = formatDayStr(day)
-            computeLayout(allTasks.filter { task ->
-                task.isCompleted != true && !task.allDay && task.dueAt != null && dueAtLocalDate(task.dueAt) == dayStr
-            })
-        }
-        val allDayTasksByDay = weekDays.map { day ->
-            val dayStr = formatDayStr(day)
-            allTasks.filter { task ->
-                task.isCompleted != true && task.allDay && task.dueAt != null && dueAtLocalDate(task.dueAt) == dayStr
+        val from = formatDayStr(weekDays.first())
+        val to = formatDayStr(weekDays.last())
+        viewModelScope.launch {
+            _uiState.update { it.copy(isLoading = true, error = null) }
+            try {
+                val tasksDef = async { taskRepo.getTasks(from = from, to = to) }
+                val projectsDef = async { projectRepo.getProjects() }
+                val tasks = tasksDef.await()
+                val projectMap = projectsDef.await().associateBy { it.id }
+                val tasksByDay = weekDays.map { day ->
+                    val dayStr = formatDayStr(day)
+                    computeLayout(tasks.filter { !it.allDay && it.dueAt != null && dueAtLocalDate(it.dueAt) == dayStr })
+                }
+                val allDayTasksByDay = weekDays.map { day ->
+                    val dayStr = formatDayStr(day)
+                    tasks.filter { it.allDay && it.dueAt != null && dueAtLocalDate(it.dueAt) == dayStr }
+                }
+                _uiState.update {
+                    it.copy(
+                        weekOffset = offset,
+                        weekDays = weekDays,
+                        tasksByDay = tasksByDay,
+                        allDayTasksByDay = allDayTasksByDay,
+                        projects = projectMap,
+                        isLoading = false
+                    )
+                }
+            } catch (e: Exception) {
+                _uiState.update { it.copy(isLoading = false, error = e.message) }
             }
-        }
-        _uiState.update {
-            it.copy(
-                weekOffset = offset,
-                weekDays = weekDays,
-                tasksByDay = tasksByDay,
-                allDayTasksByDay = allDayTasksByDay
-            )
         }
     }
 

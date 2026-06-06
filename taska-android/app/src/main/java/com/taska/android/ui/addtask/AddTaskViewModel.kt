@@ -2,16 +2,16 @@ package com.taska.android.ui.addtask
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.taska.android.data.api.RetrofitClient
 import com.taska.android.data.model.ProjectDto
 import com.taska.android.data.model.TaskRequest
+import com.taska.android.data.repository.ProjectRepository
+import com.taska.android.data.repository.TaskRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.util.Calendar
-import java.util.TimeZone
 
 data class AddTaskUiState(
     val content: String = "",
@@ -20,11 +20,17 @@ data class AddTaskUiState(
     val selectedProject: ProjectDto? = null,
     val estimateMinutes: Int? = null,
     val priority: Int = 4,
+    val recurrenceRule: String? = null,
     val projects: List<ProjectDto> = emptyList(),
     val isSubmitting: Boolean = false
 )
 
-class AddTaskViewModel : ViewModel() {
+class AddTaskViewModel(
+    private val taskRepo: TaskRepository,
+    private val projectRepo: ProjectRepository,
+) : ViewModel() {
+
+    constructor() : this(TaskRepository(), ProjectRepository())
 
     private val _state = MutableStateFlow(AddTaskUiState())
     val state: StateFlow<AddTaskUiState> = _state.asStateFlow()
@@ -36,7 +42,7 @@ class AddTaskViewModel : ViewModel() {
     private fun loadProjects() {
         viewModelScope.launch {
             try {
-                val projects = RetrofitClient.api.getProjects()
+                val projects = projectRepo.getProjects()
                 _state.update { it.copy(projects = projects.filter { p -> p.isInboxProject != true }) }
             } catch (_: Exception) {}
         }
@@ -49,6 +55,7 @@ class AddTaskViewModel : ViewModel() {
     fun updateProject(project: ProjectDto?) = _state.update { it.copy(selectedProject = project) }
     fun updateEstimate(minutes: Int?) = _state.update { it.copy(estimateMinutes = minutes) }
     fun updatePriority(priority: Int) = _state.update { it.copy(priority = priority) }
+    fun updateRecurrence(rule: String?) = _state.update { it.copy(recurrenceRule = rule) }
 
     fun reset() = _state.update { AddTaskUiState(projects = it.projects) }
 
@@ -66,9 +73,11 @@ class AddTaskViewModel : ViewModel() {
                     priority = current.priority.takeIf { it < 4 },
                     dueAt = dueAt,
                     allDay = allDay,
-                    estimateMinutes = current.estimateMinutes
+                    estimateMinutes = current.estimateMinutes,
+                    isRecurring = if (current.recurrenceRule != null) true else null,
+                    recurrenceRule = current.recurrenceRule
                 )
-                RetrofitClient.api.createTask(request)
+                taskRepo.createTask(request)
                 _state.update { it.copy(isSubmitting = false) }
                 onSuccess()
             } catch (_: Exception) {

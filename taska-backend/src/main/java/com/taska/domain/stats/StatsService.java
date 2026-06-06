@@ -26,6 +26,22 @@ public class StatsService {
     private final TaskRepository taskRepo;
     private final ProjectRepository projectRepo;
 
+    /**
+     * Computes and returns an aggregated statistics snapshot for the current user.
+     * The snapshot includes:
+     * <ul>
+     *   <li>Total completed and active task counts.</li>
+     *   <li>Number of overdue tasks (due before start of today).</li>
+     *   <li>Completion streak in days (consecutive days with at least one completed task,
+     *       skipping today if it has no completions yet).</li>
+     *   <li>Number of tasks completed in the last 7 days.</li>
+     *   <li>Sum of estimated minutes across all incomplete tasks.</li>
+     *   <li>Per-day completed task counts for the last 14 days.</li>
+     *   <li>Per-project task totals and completion counts.</li>
+     * </ul>
+     *
+     * @return the computed {@link StatsDto}
+     */
     public StatsDto compute() {
         ZoneId zone = ZoneId.systemDefault();
         LocalDate today = LocalDate.now(zone);

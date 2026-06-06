@@ -2,9 +2,10 @@ package com.taska.android.ui.project
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.taska.android.data.api.RetrofitClient
 import com.taska.android.data.model.ProjectDto
 import com.taska.android.data.model.TaskDto
+import com.taska.android.data.repository.ProjectRepository
+import com.taska.android.data.repository.TaskRepository
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -24,7 +25,12 @@ data class ProjectUiState(
     val error: String? = null
 )
 
-class ProjectViewModel : ViewModel() {
+class ProjectViewModel(
+    private val taskRepo: TaskRepository,
+    private val projectRepo: ProjectRepository,
+) : ViewModel() {
+
+    constructor() : this(TaskRepository(), ProjectRepository())
 
     private val _uiState = MutableStateFlow(ProjectUiState())
     val uiState: StateFlow<ProjectUiState> = _uiState.asStateFlow()
@@ -36,8 +42,8 @@ class ProjectViewModel : ViewModel() {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, error = null) }
             try {
-                val projectsDeferred = async { RetrofitClient.api.getProjects() }
-                val tasksDeferred = async { RetrofitClient.api.getTasks(projectId = id) }
+                val projectsDeferred = async { projectRepo.getProjects() }
+                val tasksDeferred = async { taskRepo.getTasks(projectId = id) }
 
                 val allProjects = projectsDeferred.await()
                 val project = allProjects.firstOrNull { it.id == id }
@@ -77,7 +83,7 @@ class ProjectViewModel : ViewModel() {
     fun closeTask(taskId: String) {
         viewModelScope.launch {
             try {
-                RetrofitClient.api.closeTask(taskId)
+                taskRepo.closeTask(taskId)
                 _uiState.update { state ->
                     state.copy(tasks = state.tasks.filter { it.id != taskId })
                 }

@@ -25,11 +25,22 @@ const ESTIMATE_PRESETS = [
   { minutes: 180, label: '3h' },   { minutes: 240, label: '4h' },
 ];
 
+const RRULE_LABELS: Record<string, string> = {
+  'daily': 'quotidien', 'freq=daily': 'quotidien',
+  'weekly': 'hebdomadaire', 'freq=weekly': 'hebdomadaire',
+  'monthly': 'mensuel', 'freq=monthly': 'mensuel',
+  'yearly': 'annuel', 'freq=yearly': 'annuel',
+};
+function rruleToLabel(rule: string): string | undefined {
+  return RRULE_LABELS[rule.toLowerCase()];
+}
+
 const RECURRENCE_OPTIONS = [
   { value: '', label: 'Ne se répète pas', icon: 'x' },
   { value: 'daily', label: 'Quotidien', icon: 'repeat' },
   { value: 'weekly', label: 'Hebdomadaire', icon: 'repeat' },
   { value: 'monthly', label: 'Mensuel', icon: 'repeat' },
+  { value: 'yearly', label: 'Annuel', icon: 'repeat' },
 ] as const;
 
 
@@ -559,11 +570,8 @@ export class QuickAddComponent implements OnInit {
   }
 
   recurrenceRowLabel(): string {
-    const map: Record<string, string> = {
-      daily: 'quotidien', weekly: 'hebdomadaire', monthly: 'mensuel',
-    };
     const r = this.effectiveRecurrence();
-    return r ? (map[r] ?? r) : 'ne se répète pas';
+    return r ? (rruleToLabel(r) ?? r) : 'ne se répète pas';
   }
 
   // ── Submit ────────────────────────────────────────────────────────────

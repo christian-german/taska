@@ -1,5 +1,7 @@
 package com.taska.android.data.api
 
+import com.taska.android.data.model.CloseReopenRequest
+import com.taska.android.data.model.DeleteTaskBody
 import com.taska.android.data.model.LabelDto
 import com.taska.android.data.model.ProjectDto
 import com.taska.android.data.model.RegisterDeviceRequest
@@ -9,6 +11,7 @@ import com.taska.android.data.model.TimeEntryRequest
 import retrofit2.http.Body
 import retrofit2.http.DELETE
 import retrofit2.http.GET
+import retrofit2.http.HTTP
 import retrofit2.http.POST
 import retrofit2.http.PUT
 import retrofit2.http.Path
@@ -22,7 +25,10 @@ interface TaskaApi {
     @GET("/tasks")
     suspend fun getTasks(
         @Query("project_id") projectId: String? = null,
-        @Query("show_completed") showCompleted: Boolean = false
+        @Query("show_completed") showCompleted: Boolean = false,
+        @Query("date") date: String? = null,
+        @Query("from") from: String? = null,
+        @Query("to") to: String? = null
     ): List<TaskDto>
 
     @GET("/tasks/{id}")
@@ -38,13 +44,19 @@ interface TaskaApi {
     suspend fun updateTask(@Path("id") id: String, @Body request: TaskRequest): TaskDto
 
     @POST("/tasks/{taskId}/close")
-    suspend fun closeTask(@Path("taskId") taskId: String): TaskDto
+    suspend fun closeTask(
+        @Path("taskId") taskId: String,
+        @Body body: CloseReopenRequest = CloseReopenRequest()
+    ): TaskDto
 
     @POST("/tasks/{taskId}/reopen")
-    suspend fun reopenTask(@Path("taskId") taskId: String): TaskDto
+    suspend fun reopenTask(
+        @Path("taskId") taskId: String,
+        @Body body: CloseReopenRequest = CloseReopenRequest()
+    ): TaskDto
 
-    @DELETE("/tasks/{id}")
-    suspend fun deleteTask(@Path("id") id: String)
+    @HTTP(method = "DELETE", path = "/tasks/{id}", hasBody = true)
+    suspend fun deleteTask(@Path("id") id: String, @Body body: DeleteTaskBody = DeleteTaskBody())
 
     @POST("/time-entries")
     suspend fun createTimeEntry(@Body request: TimeEntryRequest)

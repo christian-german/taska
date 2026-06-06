@@ -29,7 +29,9 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.taska.android.data.model.ProjectDto
+import com.taska.android.data.model.RecurrenceScope
 import com.taska.android.data.model.TaskDto
+import com.taska.android.ui.shared.RecurrenceScopeDialog
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
@@ -53,7 +55,7 @@ private data class BlockDragState(val blockId: String, val mode: DragMode, val d
 @Composable
 fun DayScreen(
     viewModel: DayViewModel,
-    onTaskClick: (String) -> Unit,
+    onTaskClick: (taskId: String, scheduledAt: String?) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -147,10 +149,19 @@ fun DayScreen(
                 projects = uiState.projects,
                 currentMinutes = if (isToday) currentMinutes else -1,
                 onTaskClick = onTaskClick,
-                onReschedule = viewModel::rescheduleTask,
+                onReschedule = viewModel::requestRescheduleTask,
                 modifier = Modifier.weight(1f)
             )
         }
+    }
+
+    uiState.pendingReschedule?.let {
+        RecurrenceScopeDialog(
+            title = "Déplacer la récurrence",
+            onThisOnly = { viewModel.confirmRescheduleTask(RecurrenceScope.THIS_ONLY) },
+            onFromThis = { viewModel.confirmRescheduleTask(RecurrenceScope.FROM_THIS) },
+            onDismiss = { viewModel.dismissRescheduleScope() }
+        )
     }
 }
 
@@ -160,7 +171,7 @@ private fun DayHeader(
     allDayTasks: List<TaskDto>,
     projects: Map<String, ProjectDto>,
     dayOffset: Int,
-    onTaskClick: (String) -> Unit
+    onTaskClick: (taskId: String, scheduledAt: String?) -> Unit
 ) {
     val dayLabel = when (dayOffset) {
         0 -> "Aujourd'hui"
@@ -217,7 +228,7 @@ private fun DayHeader(
                             .padding(bottom = 1.dp)
                             .clip(RoundedCornerShape(2.dp))
                             .background(color.copy(alpha = 0.85f))
-                            .clickable { onTaskClick(task.id) }
+                            .clickable { onTaskClick(task.id, task.scheduledAt) }
                             .padding(horizontal = 3.dp, vertical = 2.dp)
                     ) {
                         Text(
@@ -242,8 +253,8 @@ private fun SingleDayColumn(
     blocks: List<DayTaskBlock>,
     projects: Map<String, ProjectDto>,
     currentMinutes: Int,
-    onTaskClick: (String) -> Unit,
-    onReschedule: (taskId: String, newDueAt: String, newEstimateMinutes: Int) -> Unit,
+    onTaskClick: (taskId: String, scheduledAt: String?) -> Unit,
+    onReschedule: (task: TaskDto, newDueAt: String, newEstimateMinutes: Int) -> Unit,
     modifier: Modifier = Modifier
 ) {
     var dragState by remember { mutableStateOf<BlockDragState?>(null) }
@@ -302,7 +313,7 @@ private fun SingleDayColumn(
                     .height(blockH)
                     .clip(RoundedCornerShape(3.dp))
                     .background(blockColor.copy(alpha = if (isDragging) 0.95f else 0.85f))
-                    .clickable { onTaskClick(block.task.id) }
+                    .clickable { onTaskClick(block.task.id, block.task.scheduledAt) }
                     .pointerInput(block.task.id) {
                         detectDragGesturesAfterLongPress(
                             onDragStart = { startOffset ->
@@ -339,7 +350,7 @@ private fun SingleDayColumn(
                                             formatDueAt(day, block.startMin) to (newEnd - block.startMin)
                                         }
                                     }
-                                    onReschedule(block.task.id, newDueAt, newDuration.coerceAtLeast(15))
+                                    onReschedule(block.task, newDueAt, newDuration.coerceAtLeast(15))
                                 }
                                 dragState = null
                             },

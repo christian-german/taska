@@ -10,6 +10,17 @@ import {
   signal,
   ChangeDetectionStrategy
 } from '@angular/core';
+
+const RRULE_LABELS: Record<string, string> = {
+  'daily': 'quotidien', 'freq=daily': 'quotidien',
+  'weekly': 'hebdomadaire', 'freq=weekly': 'hebdomadaire',
+  'monthly': 'mensuel', 'freq=monthly': 'mensuel',
+  'yearly': 'annuel', 'freq=yearly': 'annuel',
+};
+function rruleToLabel(rule: string | null | undefined): string {
+  if (!rule) return 'récurrente';
+  return RRULE_LABELS[rule.toLowerCase()] ?? rule;
+}
 import { FormsModule } from '@angular/forms';
 import { toSignal } from '@angular/core/rxjs-interop';
 import {
@@ -94,7 +105,7 @@ import { CheckboxComponent, PriorityFlagComponent, ProjectDotComponent, TagChipC
               <span class="mono"
                     style="display: inline-flex; align-items: center; gap: 3px; color: var(--mute); font-size: 11px;">
                 <app-icon name="repeat" [size]="10" />
-                {{ task().recurrenceRule || 'récurrente' }}
+                {{ recurrenceLabel() }}
               </span>
             }
             @if (project(); as p) {
@@ -151,6 +162,7 @@ export class TaskRowComponent {
   });
 
   estimateLabel = computed(() => fmtEstimate(this.task().estimateMinutes ?? null));
+  recurrenceLabel = computed(() => rruleToLabel(this.task().recurrenceRule));
 
   hasMeta = computed(() => {
     const t = this.task();

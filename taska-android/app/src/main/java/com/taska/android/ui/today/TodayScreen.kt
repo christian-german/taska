@@ -33,6 +33,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.taska.android.data.model.TaskDto
+import com.taska.android.data.model.RecurrenceScope
+import com.taska.android.ui.shared.RecurrenceScopeDialog
 import com.taska.android.ui.shared.TaskItem
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -47,7 +49,7 @@ private val OverdueRed = Color(0xFFDD4433)
 @Composable
 fun TodayScreen(
     viewModel: TodayViewModel,
-    onTaskClick: (String) -> Unit = {},
+    onTaskClick: (taskId: String, scheduledAt: String?) -> Unit = { _, _ -> },
     modifier: Modifier = Modifier
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -85,13 +87,22 @@ fun TodayScreen(
                         uiState = uiState,
                         onTaskClick = onTaskClick,
                         onTaskToggle = { task ->
-                            if (task.isCompleted == true) viewModel.reopenTask(task.id)
-                            else viewModel.closeTask(task.id)
+                            if (task.isCompleted == true) viewModel.reopenTask(task)
+                            else viewModel.closeTask(task)
                         }
                     )
                 }
             }
         }
+    }
+
+    uiState.pendingDeleteTask?.let { task ->
+        RecurrenceScopeDialog(
+            title = "Supprimer la récurrence",
+            onThisOnly = { viewModel.confirmDeleteTask(task, RecurrenceScope.THIS_ONLY) },
+            onFromThis = { viewModel.confirmDeleteTask(task, RecurrenceScope.FROM_THIS) },
+            onDismiss = { viewModel.dismissDeleteScope() }
+        )
     }
 }
 
@@ -148,7 +159,7 @@ private fun TodayHeader(overdueCount: Int, todayCount: Int) {
 @Composable
 private fun TodayList(
     uiState: TodayUiState,
-    onTaskClick: (String) -> Unit,
+    onTaskClick: (taskId: String, scheduledAt: String?) -> Unit,
     onTaskToggle: (TaskDto) -> Unit
 ) {
     LazyColumn(modifier = Modifier.fillMaxSize()) {
@@ -156,13 +167,13 @@ private fun TodayList(
             item {
                 SectionHeader(title = "En retard", count = uiState.overdueTasks.size, titleColor = OverdueRed)
             }
-            items(uiState.overdueTasks, key = { it.id }) { task ->
+            items(uiState.overdueTasks, key = { occurrenceKey(it) }) { task ->
                 TaskItem(
                     task = task,
                     project = task.projectId?.let { uiState.projects[it] },
                     isOverdue = true,
                     onToggle = { onTaskToggle(task) },
-                    onClick = { onTaskClick(task.id) }
+                    onClick = { onTaskClick(task.id, task.scheduledAt) }
                 )
                 HorizontalDivider(color = DividerColor, thickness = 0.5.dp)
             }
@@ -173,13 +184,13 @@ private fun TodayList(
             item {
                 SectionHeader(title = "Aujourd'hui", count = uiState.todayTasks.size, titleColor = TextPrimary)
             }
-            items(uiState.todayTasks, key = { it.id }) { task ->
+            items(uiState.todayTasks, key = { occurrenceKey(it) }) { task ->
                 TaskItem(
                     task = task,
                     project = task.projectId?.let { uiState.projects[it] },
                     isOverdue = false,
                     onToggle = { onTaskToggle(task) },
-                    onClick = { onTaskClick(task.id) }
+                    onClick = { onTaskClick(task.id, task.scheduledAt) }
                 )
                 HorizontalDivider(color = DividerColor, thickness = 0.5.dp)
             }
@@ -190,13 +201,13 @@ private fun TodayList(
             item {
                 SectionHeader(title = "Demain", count = uiState.tomorrowTasks.size, titleColor = TextPrimary)
             }
-            items(uiState.tomorrowTasks, key = { it.id }) { task ->
+            items(uiState.tomorrowTasks, key = { occurrenceKey(it) }) { task ->
                 TaskItem(
                     task = task,
                     project = task.projectId?.let { uiState.projects[it] },
                     isOverdue = false,
                     onToggle = { onTaskToggle(task) },
-                    onClick = { onTaskClick(task.id) }
+                    onClick = { onTaskClick(task.id, task.scheduledAt) }
                 )
                 HorizontalDivider(color = DividerColor, thickness = 0.5.dp)
             }
@@ -219,3 +230,6 @@ private fun SectionHeader(title: String, count: Int, titleColor: Color) {
         )
     )
 }
+
+private fun occurrenceKey(task: TaskDto): String =
+    task.instanceId ?: if (task.scheduledAt != null) "${task.id}:${task.scheduledAt}" else task.id

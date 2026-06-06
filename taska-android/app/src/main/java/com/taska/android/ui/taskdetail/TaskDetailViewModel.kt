@@ -3,12 +3,16 @@ package com.taska.android.ui.taskdetail
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.taska.android.data.api.RetrofitClient
 import com.taska.android.data.model.LabelDto
 import com.taska.android.data.model.ProjectDto
+import com.taska.android.data.model.RecurrenceScope
 import com.taska.android.data.model.TaskDto
 import com.taska.android.data.model.TaskRequest
 import com.taska.android.data.model.TimeEntryRequest
+import com.taska.android.data.repository.LabelRepository
+import com.taska.android.data.repository.ProjectRepository
+import com.taska.android.data.repository.TaskRepository
+import com.taska.android.data.repository.TimeEntryRepository
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -17,9 +21,10 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Calendar
-import java.util.Date
 import java.util.Locale
 import java.util.TimeZone
+
+data class PendingReschedule(val millis: Long, val timeMinutes: Int?)
 
 data class TaskDetailUiState(
     val task: TaskDto? = null,
@@ -29,12 +34,28 @@ data class TaskDetailUiState(
     val subtasks: List<TaskDto> = emptyList(),
     val isLoading: Boolean = false,
     val error: String? = null,
-    val timerStarted: Boolean = false
+    val timerStarted: Boolean = false,
+    val pendingReschedule: PendingReschedule? = null
 )
 
-class TaskDetailViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
+class TaskDetailViewModel(
+    savedStateHandle: SavedStateHandle,
+    private val taskRepo: TaskRepository,
+    private val projectRepo: ProjectRepository,
+    private val labelRepo: LabelRepository,
+    private val timeEntryRepo: TimeEntryRepository,
+) : ViewModel() {
+
+    constructor(savedStateHandle: SavedStateHandle) : this(
+        savedStateHandle,
+        TaskRepository(),
+        ProjectRepository(),
+        LabelRepository(),
+        TimeEntryRepository(),
+    )
 
     private val taskId: String = checkNotNull(savedStateHandle["task_id"])
+    private val instanceScheduledAt: String? = savedStateHandle["scheduled_at"]
 
     private val _uiState = MutableStateFlow(TaskDetailUiState())
     val uiState: StateFlow<TaskDetailUiState> = _uiState.asStateFlow()
@@ -47,12 +68,13 @@ class TaskDetailViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, error = null) }
             try {
-                val taskDef = async { RetrofitClient.api.getTask(taskId) }
-                val subtasksDef = async { RetrofitClient.api.getSubtasks(taskId) }
-                val projectsDef = async { RetrofitClient.api.getProjects() }
-                val labelsDef = async { RetrofitClient.api.getLabels() }
+                val taskDef = async { taskRepo.getTask(taskId) }
+                val subtasksDef = async { taskRepo.getSubtasks(taskId) }
+                val projectsDef = async { projectRepo.getProjects() }
+                val labelsDef = async { labelRepo.getLabels() }
 
-                val task = taskDef.await()
+                val rawTask = taskDef.await()
+                val task = if (instanceScheduledAt != null) rawTask.copy(dueAt = instanceScheduledAt) else rawTask
                 val subtasks = subtasksDef.await()
                 val projects = projectsDef.await()
                 val labels = labelsDef.await()
@@ -84,11 +106,13 @@ class TaskDetailViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
             labels = task.labels,
             dueAt = task.dueAt,
             allDay = task.allDay,
-            estimateMinutes = task.estimateMinutes
+            estimateMinutes = task.estimateMinutes,
+            isRecurring = task.isRecurring,
+            recurrenceRule = task.recurrenceRule
         )
         viewModelScope.launch {
             try {
-                val updated = RetrofitClient.api.updateTask(taskId, base.transform())
+                val updated = taskRepo.updateTask(taskId, base.transform())
                 val newProject = _uiState.value.projects.firstOrNull { it.id == updated.projectId }
                 _uiState.update { it.copy(task = updated, project = newProject ?: if (updated.projectId == null) null else it.project) }
             } catch (_: Exception) {}
@@ -102,12 +126,57 @@ class TaskDetailViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
 
     fun updateDescription(desc: String) = applyUpdate { copy(description = desc.ifEmpty { null }) }
 
-    fun rescheduleAllDay(millis: Long) = applyUpdate {
-        copy(dueAt = millisToApiDateTime(millis, null), allDay = true)
+    fun requestRescheduleAllDay(millis: Long) {
+        val task = _uiState.value.task ?: return
+        if (task.isRecurring == true && instanceScheduledAt != null) {
+            _uiState.update { it.copy(pendingReschedule = PendingReschedule(millis, null)) }
+        } else {
+            doReschedule(millis, null, scope = null)
+        }
     }
 
-    fun rescheduleWithTime(millis: Long, hour: Int, minute: Int) = applyUpdate {
-        copy(dueAt = millisToApiDateTime(millis, hour * 60 + minute), allDay = false)
+    fun requestRescheduleWithTime(millis: Long, hour: Int, minute: Int) {
+        val task = _uiState.value.task ?: return
+        if (task.isRecurring == true && instanceScheduledAt != null) {
+            _uiState.update { it.copy(pendingReschedule = PendingReschedule(millis, hour * 60 + minute)) }
+        } else {
+            doReschedule(millis, hour * 60 + minute, scope = null)
+        }
+    }
+
+    fun confirmReschedule(scope: RecurrenceScope?) {
+        val pending = _uiState.value.pendingReschedule ?: return
+        _uiState.update { it.copy(pendingReschedule = null) }
+        doReschedule(pending.millis, pending.timeMinutes, scope)
+    }
+
+    fun dismissRescheduleScope() {
+        _uiState.update { it.copy(pendingReschedule = null) }
+    }
+
+    private fun doReschedule(millis: Long, timeMinutes: Int?, scope: RecurrenceScope?) {
+        val task = _uiState.value.task ?: return
+        val request = TaskRequest(
+            content = task.content,
+            description = task.description,
+            projectId = task.projectId,
+            priority = task.priority,
+            labels = task.labels,
+            dueAt = millisToApiDateTime(millis, timeMinutes),
+            allDay = timeMinutes == null,
+            estimateMinutes = task.estimateMinutes,
+            isRecurring = task.isRecurring,
+            recurrenceRule = task.recurrenceRule,
+            scope = scope?.name,
+            scheduledAt = instanceScheduledAt
+        )
+        viewModelScope.launch {
+            try {
+                val updated = taskRepo.updateTask(taskId, request)
+                val newProject = _uiState.value.projects.firstOrNull { it.id == updated.projectId }
+                _uiState.update { it.copy(task = updated, project = newProject ?: if (updated.projectId == null) null else it.project) }
+            } catch (_: Exception) {}
+        }
     }
 
     fun clearDue() = applyUpdate { copy(dueAt = null, allDay = null) }
@@ -120,10 +189,14 @@ class TaskDetailViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
 
     fun updatePriority(priority: Int) = applyUpdate { copy(priority = priority) }
 
+    fun updateRecurrence(rule: String?) = applyUpdate {
+        copy(isRecurring = if (rule != null) true else false, recurrenceRule = rule)
+    }
+
     fun deleteTask(onDeleted: () -> Unit) {
         viewModelScope.launch {
             try {
-                RetrofitClient.api.deleteTask(taskId)
+                taskRepo.deleteTask(taskId)
                 onDeleted()
             } catch (_: Exception) {}
         }
@@ -133,11 +206,11 @@ class TaskDetailViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
         viewModelScope.launch {
             try {
                 if (subtask.isCompleted == true) {
-                    RetrofitClient.api.reopenTask(subtask.id)
+                    taskRepo.reopenTask(subtask.id)
                 } else {
-                    RetrofitClient.api.closeTask(subtask.id)
+                    taskRepo.closeTask(subtask.id)
                 }
-                val updated = RetrofitClient.api.getSubtasks(taskId)
+                val updated = taskRepo.getSubtasks(taskId)
                 _uiState.update { it.copy(subtasks = updated) }
             } catch (_: Exception) {}
         }
@@ -147,14 +220,14 @@ class TaskDetailViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
         if (content.isBlank()) return
         viewModelScope.launch {
             try {
-                RetrofitClient.api.createTask(
+                taskRepo.createTask(
                     TaskRequest(
                         content = content,
                         projectId = _uiState.value.task?.projectId,
                         parentId = taskId
                     )
                 )
-                val updated = RetrofitClient.api.getSubtasks(taskId)
+                val updated = taskRepo.getSubtasks(taskId)
                 _uiState.update { it.copy(subtasks = updated) }
             } catch (_: Exception) {}
         }
@@ -164,7 +237,7 @@ class TaskDetailViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
         viewModelScope.launch {
             val task = _uiState.value.task ?: return@launch
             try {
-                RetrofitClient.api.createTimeEntry(
+                timeEntryRepo.createTimeEntry(
                     TimeEntryRequest(
                         startAt = currentIsoDateTime(),
                         projectId = task.projectId,
@@ -193,8 +266,6 @@ class TaskDetailViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
         }
     }
 
-    // On extrait uniquement la partie date (YYYY-MM-DD) et on retourne minuit UTC pour que
-    // le DatePicker affiche le bon jour, quelle que soit la timezone.
     fun dueAtToMillis(): Long {
         val dueAt = _uiState.value.task?.dueAt ?: return todayMillis()
         return try {
@@ -204,7 +275,6 @@ class TaskDetailViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
         } catch (_: Exception) { todayMillis() }
     }
 
-    // Aujourd'hui en date locale, représenté comme minuit UTC pour le DatePicker.
     private fun todayMillis(): Long {
         val local = Calendar.getInstance()
         return Calendar.getInstance(TimeZone.getTimeZone("UTC")).apply {

@@ -50,8 +50,13 @@ class DayActivity : ComponentActivity() {
                     Column(modifier = Modifier.fillMaxSize()) {
                         DayScreen(
                             viewModel = dayViewModel,
-                            onTaskClick = { taskId ->
-                                startActivity(Intent(this@DayActivity, TaskDetailActivity::class.java).putExtra("task_id", taskId))
+                            onTaskClick = { taskId, scheduledAt ->
+                                startActivity(
+                                    Intent(this@DayActivity, TaskDetailActivity::class.java).apply {
+                                        putExtra("task_id", taskId)
+                                        scheduledAt?.let { putExtra("scheduled_at", it) }
+                                    }
+                                )
                             },
                             modifier = Modifier.weight(1f)
                         )

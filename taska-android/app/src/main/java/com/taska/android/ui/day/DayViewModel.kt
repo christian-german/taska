@@ -2,10 +2,12 @@ package com.taska.android.ui.day
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.taska.android.data.api.RetrofitClient
 import com.taska.android.data.model.ProjectDto
+import com.taska.android.data.model.RecurrenceScope
 import com.taska.android.data.model.TaskDto
 import com.taska.android.data.model.TaskRequest
+import com.taska.android.data.repository.ProjectRepository
+import com.taska.android.data.repository.TaskRepository
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -22,6 +24,8 @@ data class DayTaskBlock(
     val totalCols: Int
 )
 
+data class PendingReschedule(val task: TaskDto, val newDueAt: String, val newEstimateMinutes: Int)
+
 data class DayUiState(
     val dayOffset: Int = 0,
     val currentDay: Calendar = Calendar.getInstance(),
@@ -29,68 +33,94 @@ data class DayUiState(
     val allDayTasks: List<TaskDto> = emptyList(),
     val projects: Map<String, ProjectDto> = emptyMap(),
     val isLoading: Boolean = false,
-    val error: String? = null
+    val error: String? = null,
+    val pendingReschedule: PendingReschedule? = null
 )
 
-class DayViewModel : ViewModel() {
+class DayViewModel(
+    private val taskRepo: TaskRepository,
+    private val projectRepo: ProjectRepository,
+) : ViewModel() {
+
+    constructor() : this(TaskRepository(), ProjectRepository())
+
     private val _uiState = MutableStateFlow(DayUiState())
     val uiState: StateFlow<DayUiState> = _uiState.asStateFlow()
-    private var allTasks: List<TaskDto> = emptyList()
 
-    init { load() }
+    init { loadForOffset(0) }
 
-    fun load() {
-        viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true, error = null) }
-            try {
-                val tasksDef = async { RetrofitClient.api.getTasks() }
-                val projectsDef = async { RetrofitClient.api.getProjects() }
-                allTasks = tasksDef.await()
-                val projectMap = projectsDef.await().associateBy { it.id }
-                _uiState.update { it.copy(projects = projectMap, isLoading = false) }
-                recompute(_uiState.value.dayOffset)
-            } catch (e: Exception) {
-                _uiState.update { it.copy(isLoading = false, error = e.message) }
-            }
+    fun load() = loadForOffset(_uiState.value.dayOffset)
+
+    fun nextDay() = loadForOffset(_uiState.value.dayOffset + 1)
+    fun prevDay() = loadForOffset(_uiState.value.dayOffset - 1)
+
+    fun requestRescheduleTask(task: TaskDto, newDueAt: String, newEstimateMinutes: Int) {
+        if (task.isRecurring == true && task.scheduledAt != null) {
+            _uiState.update { it.copy(pendingReschedule = PendingReschedule(task, newDueAt, newEstimateMinutes)) }
+        } else {
+            executeReschedule(task, newDueAt, newEstimateMinutes, scope = null)
         }
     }
 
-    fun nextDay() = recompute(_uiState.value.dayOffset + 1)
-    fun prevDay() = recompute(_uiState.value.dayOffset - 1)
+    fun confirmRescheduleTask(scope: RecurrenceScope?) {
+        val pending = _uiState.value.pendingReschedule ?: return
+        _uiState.update { it.copy(pendingReschedule = null) }
+        executeReschedule(pending.task, pending.newDueAt, pending.newEstimateMinutes, scope)
+    }
 
-    fun rescheduleTask(taskId: String, newDueAt: String, newEstimateMinutes: Int) {
-        val current = allTasks.find { it.id == taskId } ?: return
+    fun dismissRescheduleScope() {
+        _uiState.update { it.copy(pendingReschedule = null) }
+    }
+
+    private fun executeReschedule(task: TaskDto, newDueAt: String, newEstimateMinutes: Int, scope: RecurrenceScope?) {
         viewModelScope.launch {
             try {
-                val updated = RetrofitClient.api.updateTask(
-                    taskId,
+                taskRepo.updateTask(
+                    task.id,
                     TaskRequest(
-                        content = current.content,
-                        description = current.description,
-                        projectId = current.projectId,
-                        priority = current.priority,
-                        labels = current.labels,
+                        content = task.content,
+                        description = task.description,
+                        projectId = task.projectId,
+                        priority = task.priority,
+                        labels = task.labels,
                         dueAt = newDueAt,
                         allDay = false,
-                        estimateMinutes = newEstimateMinutes
+                        estimateMinutes = newEstimateMinutes,
+                        scope = scope?.name,
+                        scheduledAt = task.scheduledAt
                     )
                 )
-                allTasks = allTasks.map { if (it.id == taskId) updated else it }
-                recompute(_uiState.value.dayOffset)
+                loadForOffset(_uiState.value.dayOffset)
             } catch (_: Exception) {}
         }
     }
 
-    private fun recompute(offset: Int) {
+    private fun loadForOffset(offset: Int) {
         val day = computeDay(offset)
-        val dayStr = formatDayStr(day)
-        val tasks = computeLayout(allTasks.filter { task ->
-            task.isCompleted != true && !task.allDay && task.dueAt != null && dueAtLocalDate(task.dueAt) == dayStr
-        })
-        val allDayTasks = allTasks.filter { task ->
-            task.isCompleted != true && task.allDay && task.dueAt != null && dueAtLocalDate(task.dueAt) == dayStr
+        val dateStr = formatDayStr(day)
+        viewModelScope.launch {
+            _uiState.update { it.copy(isLoading = true, error = null) }
+            try {
+                val tasksDef = async { taskRepo.getTasks(date = dateStr) }
+                val projectsDef = async { projectRepo.getProjects() }
+                val tasks = tasksDef.await()
+                val projectMap = projectsDef.await().associateBy { it.id }
+                val timedBlocks = computeLayout(tasks.filter { !it.allDay && it.dueAt != null })
+                val allDayTasks = tasks.filter { it.allDay }
+                _uiState.update {
+                    it.copy(
+                        dayOffset = offset,
+                        currentDay = day,
+                        tasks = timedBlocks,
+                        allDayTasks = allDayTasks,
+                        projects = projectMap,
+                        isLoading = false
+                    )
+                }
+            } catch (e: Exception) {
+                _uiState.update { it.copy(isLoading = false, error = e.message) }
+            }
         }
-        _uiState.update { it.copy(dayOffset = offset, currentDay = day, tasks = tasks, allDayTasks = allDayTasks) }
     }
 
     private fun computeDay(offset: Int): Calendar = Calendar.getInstance().apply {
@@ -134,12 +164,6 @@ class DayViewModel : ViewModel() {
         }
     }
 }
-
-private fun dueAtLocalDate(dueAt: String): String = try {
-    val instant = java.time.Instant.parse(dueAt)
-    val zoned = instant.atZone(java.time.ZoneId.systemDefault())
-    "%04d-%02d-%02d".format(zoned.year, zoned.monthValue, zoned.dayOfMonth)
-} catch (_: Exception) { dueAt.take(10) }
 
 private fun dueAtLocalHourMinute(dueAt: String): Pair<Int, Int>? = try {
     val instant = java.time.Instant.parse(dueAt)

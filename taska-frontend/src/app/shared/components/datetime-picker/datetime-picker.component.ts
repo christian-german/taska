@@ -78,23 +78,23 @@ function todayIso(): string {
           }
         </div>
         <div style="display:flex;align-items:center;gap:6px;">
-          <select [value]="selectedHour()" (change)="onHourChange($any($event.target).value)"
+          <select (change)="onHourChange($any($event.target).value)"
                   style="flex:1;padding:6px 8px;border:1px solid var(--line);border-radius:7px;
                          background:var(--bg);color:var(--ink);font-size:13px;font-family:monospace;
                          outline:none;cursor:pointer;appearance:auto;">
             <option value="">--</option>
             @for (h of HOURS; track h) {
-              <option [value]="h">{{ h }}</option>
+              <option [value]="h" [selected]="h === selectedHour()">{{ h }}</option>
             }
           </select>
           <span class="mono" style="color:var(--mute);font-size:14px;font-weight:600;">:</span>
-          <select [value]="selectedMinute()" (change)="onMinuteChange($any($event.target).value)"
+          <select (change)="onMinuteChange($any($event.target).value)"
                   style="flex:1;padding:6px 8px;border:1px solid var(--line);border-radius:7px;
                          background:var(--bg);color:var(--ink);font-size:13px;font-family:monospace;
                          outline:none;cursor:pointer;appearance:auto;">
             <option value="">--</option>
             @for (m of MINUTES; track m) {
-              <option [value]="m">{{ m }}</option>
+              <option [value]="m" [selected]="m === selectedMinute()">{{ m }}</option>
             }
           </select>
         </div>
@@ -112,7 +112,7 @@ export class DatetimePickerComponent {
 
   readonly DAY_HEADERS = DAY_HEADERS;
   readonly HOURS   = Array.from({ length: 24 }, (_, i) => pad(i));
-  readonly MINUTES = ['00', '15', '30', '45'];
+  readonly MINUTES = Array.from({ length: 60 }, (_, i) => pad(i));
 
   constructor() {
     effect(() => {

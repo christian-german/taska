@@ -45,10 +45,10 @@ import androidx.compose.ui.unit.sp
 import com.taska.android.data.model.LabelDto
 import com.taska.android.data.model.TaskDto
 
-private val AppBackground = Color(0xFFEAE5DC)
-private val TextPrimary = Color(0xFF1A1A1A)
-private val TextSecondary = Color(0xFF9A9A9A)
-private val DividerColor = Color(0xFFD5D0C8)
+private val AppBackground = Color(0xFFF6F8FA)
+private val TextPrimary = Color(0xFF17233D)
+private val TextSecondary = Color(0xFF78828F)
+private val DividerColor = Color(0xFFD9E1E8)
 private val CheckboxBorder = Color(0xFFAAAAAA)
 private val DefaultLabelColor = Color(0xFFFF8FAD)
 
@@ -110,7 +110,7 @@ private fun InboxHeader(taskCount: Int) {
             text = buildAnnotatedString {
                 withStyle(
                     SpanStyle(
-                        fontFamily = FontFamily.Serif,
+                        fontFamily = com.taska.android.ui.theme.Archivo,
                         fontStyle = FontStyle.Italic,
                         fontSize = 32.sp,
                         fontWeight = FontWeight.Normal,
@@ -120,7 +120,7 @@ private fun InboxHeader(taskCount: Int) {
                 append("  ")
                 withStyle(
                     SpanStyle(
-                        fontFamily = FontFamily.Monospace,
+                        fontFamily = com.taska.android.ui.theme.Archivo,
                         fontSize = 14.sp,
                         color = TextSecondary,
                         fontWeight = FontWeight.Normal,
@@ -241,7 +241,7 @@ private fun AddTaskHint() {
         Text(
             text = "+ appui long pour glisser vers un projet",
             style = TextStyle(
-                fontFamily = FontFamily.Monospace,
+                fontFamily = com.taska.android.ui.theme.Archivo,
                 fontSize = 13.sp,
                 color = TextSecondary
             )

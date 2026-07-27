@@ -42,10 +42,10 @@ import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
 
-private val AppBackground = Color(0xFFEAE5DC)
-private val TextPrimary = Color(0xFF1A1A1A)
-private val TextSecondary = Color(0xFF9A9A9A)
-private val DividerColor = Color(0xFFD5D0C8)
+private val AppBackground = Color(0xFFF6F8FA)
+private val TextPrimary = Color(0xFF17233D)
+private val TextSecondary = Color(0xFF78828F)
+private val DividerColor = Color(0xFFD9E1E8)
 
 @Composable
 fun ProjectScreen(
@@ -141,7 +141,7 @@ fun ProjectScreen(
                                 Text(
                                     text = project?.name ?: "",
                                     style = TextStyle(
-                                        fontFamily = FontFamily.Serif,
+                                        fontFamily = com.taska.android.ui.theme.Archivo,
                                         fontStyle = FontStyle.Italic,
                                         fontSize = 28.sp,
                                         fontWeight = FontWeight.Normal,
@@ -160,7 +160,7 @@ fun ProjectScreen(
                                 text = statsText,
                                 modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 12.dp),
                                 style = TextStyle(
-                                    fontFamily = FontFamily.Monospace,
+                                    fontFamily = com.taska.android.ui.theme.Archivo,
                                     fontSize = 13.sp,
                                     color = TextSecondary
                                 )

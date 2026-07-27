@@ -97,13 +97,13 @@ import kotlinx.coroutines.delay
 import java.util.Calendar
 import java.util.Locale
 
-private val AppBackground = Color(0xFFEAE5DC)
-private val TextPrimary = Color(0xFF1A1A1A)
-private val TextSecondary = Color(0xFF9A9A9A)
+private val AppBackground = Color(0xFFF6F8FA)
+private val TextPrimary = Color(0xFF17233D)
+private val TextSecondary = Color(0xFF78828F)
 private val OverdueColor = Color(0xFFDD4433)
-private val DividerColor = Color(0xFFD5D0C8)
-private val Orange = Color(0xFFE8763A)
-private val GreenDone = Color(0xFF4CAF50)
+private val DividerColor = Color(0xFFD9E1E8)
+private val Orange = Color(0xFF17233D)
+private val GreenDone = Color(0xFF14B37D)
 
 private enum class ActivePicker { DATE, CALENDAR, TIME, PROJECT, DURATION, LABELS, PRIORITY, RECURRENCE }
 
@@ -367,7 +367,7 @@ private fun TaskContent(
                         .fillMaxWidth()
                         .onFocusChanged { if (!it.hasFocus) onTitleSave() },
                     textStyle = TextStyle(
-                        fontFamily = FontFamily.Serif,
+                        fontFamily = com.taska.android.ui.theme.Archivo,
                         fontStyle = FontStyle.Italic,
                         fontSize = 28.sp,
                         fontWeight = FontWeight.Normal,
@@ -507,7 +507,7 @@ private fun TaskContent(
             Text(
                 text = "SOUS-TÂCHES ($doneCount/${subtasks.size})",
                 style = TextStyle(
-                    fontFamily = FontFamily.Monospace,
+                    fontFamily = com.taska.android.ui.theme.Archivo,
                     fontSize = 11.sp,
                     letterSpacing = 0.8.sp,
                     color = TextSecondary

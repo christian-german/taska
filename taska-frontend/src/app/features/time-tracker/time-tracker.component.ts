@@ -76,9 +76,28 @@ function minToHHMM(min: number): string {
 }
 
 function dtToMin(isoStr: string): number {
-  const t = isoStr.slice(11, 16);
-  const [h, m] = t.split(':').map(Number);
-  return h * 60 + m;
+  const date = new Date(isoStr);
+  return date.getHours() * 60 + date.getMinutes();
+}
+
+/** Converts a calendar cell's local date and minute-of-day to the API's UTC Instant format. */
+function localDateAndMinToIso(date: string, min: number): string {
+  const [year, month, day] = date.split('-').map(Number);
+  return new Date(year, month - 1, day, Math.floor(min / 60), min % 60, 0).toISOString();
+}
+
+function localDay(isoStr: string): string {
+  return isoDate(new Date(isoStr));
+}
+
+function localDayStartIso(date: string): string {
+  return localDateAndMinToIso(date, 0);
+}
+
+function localDayEndIso(date: string): string {
+  const start = new Date(localDayStartIso(date));
+  start.setDate(start.getDate() + 1);
+  return start.toISOString();
 }
 // ── interfaces ────────────────────────────────────────────────────────────────
 
@@ -619,7 +638,7 @@ export class TimeTrackerComponent implements OnInit, AfterViewInit {
   totalPerDay = computed<Record<string, number>>(() => {
     const totals: Record<string, number> = {};
     for (const e of this.entries()) {
-      const day = e.startAt.slice(0, 10);
+      const day = localDay(e.startAt);
       totals[day] = (totals[day] ?? 0) + timeEntryDuration(e);
     }
     return totals;
@@ -697,8 +716,8 @@ export class TimeTrackerComponent implements OnInit, AfterViewInit {
       const days = this.viewDays();
       const pid  = this.projectFilter();
       untracked(() => {
-        const start = days[0].iso + 'T00:00:00';
-        const end   = days[days.length - 1].iso + 'T23:59:59';
+        const start = localDayStartIso(days[0].iso);
+        const end   = localDayEndIso(days[days.length - 1].iso);
         this.timeEntryService.getEntries({ start, end, projectId: pid ?? undefined })
           .subscribe(es => this.entries.set(es));
         this.taskService.getTasks().subscribe(all => {
@@ -706,8 +725,8 @@ export class TimeTrackerComponent implements OnInit, AfterViewInit {
             !t.isCompleted &&
             !!t.dueAt &&
             !t.allDay &&
-            t.dueAt >= days[0].iso &&
-            t.dueAt <= days[days.length - 1].iso + 'T23:59:59' &&
+            localDay(t.dueAt) >= days[0].iso &&
+            localDay(t.dueAt) <= days[days.length - 1].iso &&
             (!pid || t.projectId === pid)
           ));
         });
@@ -827,7 +846,7 @@ export class TimeTrackerComponent implements OnInit, AfterViewInit {
     }
 
     if (ia.task) {
-      const dueAt           = `${ia.curDate}T${minToHHMM(ia.curStartMin)}:00`;
+      const dueAt           = localDateAndMinToIso(ia.curDate, ia.curStartMin);
       const estimateMinutes = ia.curEndMin - ia.curStartMin;
       const optimistic: Task = { ...ia.task, dueAt, allDay: false, estimateMinutes };
       this.tasks.update(list => list.map(t => t.id === ia.task!.id ? optimistic : t));
@@ -838,8 +857,8 @@ export class TimeTrackerComponent implements OnInit, AfterViewInit {
       return;
     }
 
-    const startAt = `${ia.curDate}T${minToHHMM(ia.curStartMin)}:00`;
-    const endAt   = `${ia.curDate}T${minToHHMM(ia.curEndMin)}:00`;
+    const startAt = localDateAndMinToIso(ia.curDate, ia.curStartMin);
+    const endAt   = localDateAndMinToIso(ia.curDate, ia.curEndMin);
     const optimistic: TimeEntry = { ...ia.entry!, startAt, endAt };
     this.entries.update(list => list.map(e => e.id === ia.entry!.id ? optimistic : e));
     this.timeEntryService.updateEntry(ia.entry!.id, { startAt, endAt }).subscribe({
@@ -933,8 +952,8 @@ export class TimeTrackerComponent implements OnInit, AfterViewInit {
 
   openCreate(date: string, startMin: number, endMin: number): void {
     this.editingId.set(null);
-    this.modalStartAt.set(`${date}T${minToHHMM(startMin)}`);
-    this.modalEndAt.set(`${date}T${minToHHMM(endMin)}`);
+    this.modalStartAt.set(localDateAndMinToIso(date, startMin));
+    this.modalEndAt.set(localDateAndMinToIso(date, endMin));
     this.modalProjectId.set(this.projectFilter() ?? '');
     this.modalDescription.set('');
     this.modalNotes.set('');
@@ -968,11 +987,11 @@ export class TimeTrackerComponent implements OnInit, AfterViewInit {
   }
 
   onStartChange(value: string): void {
-    this.modalStartAt.set(value.length === 10 ? value + 'T00:00:00' : value);
+    this.modalStartAt.set(value.length === 10 ? localDayStartIso(value) : value);
   }
 
   onEndChange(value: string): void {
-    this.modalEndAt.set(value.length === 10 ? value + 'T00:00:00' : value);
+    this.modalEndAt.set(value.length === 10 ? localDayStartIso(value) : value);
   }
 
   formatModalDt(iso: string): string {
@@ -1020,8 +1039,8 @@ export class TimeTrackerComponent implements OnInit, AfterViewInit {
   // ── unified grid layout (entries + tasks) ──
 
   gridItemsForDay(iso: string): GridItem[] {
-    const entries = this.entries().filter(e => e.startAt.startsWith(iso));
-    const tasks   = this.tasks().filter(t => !t.allDay && t.dueAt?.startsWith(iso));
+    const entries = this.entries().filter(e => localDay(e.startAt) === iso);
+    const tasks   = this.tasks().filter(t => !t.allDay && t.dueAt && localDay(t.dueAt) === iso);
 
     const raw: Omit<GridItem, 'lane' | 'totalLanes'>[] = [
       ...entries.map(e => ({
@@ -1112,7 +1131,7 @@ export class TimeTrackerComponent implements OnInit, AfterViewInit {
     const startAt     = task.dueAt;
     const startMin    = dtToMin(startAt);
     const endMin      = startMin + (task.estimateMinutes ?? 30);
-    const endAt       = `${startAt.slice(0, 11)}${minToHHMM(endMin)}:00`;
+    const endAt       = localDateAndMinToIso(localDay(startAt), endMin);
 
     this.tasks.update(list => list.filter(t => t.id !== task.id));
     this.timeEntryService.createEntry({
@@ -1132,7 +1151,7 @@ export class TimeTrackerComponent implements OnInit, AfterViewInit {
   }
 
   entryTimeRange(e: TimeEntry): string {
-    return `${e.startAt.slice(11,16)}–${e.endAt.slice(11,16)}`;
+    return `${minToHHMM(dtToMin(e.startAt))}–${minToHHMM(dtToMin(e.endAt))}`;
   }
 
   projectName(id: string): string {

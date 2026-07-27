@@ -58,10 +58,10 @@ import java.util.Locale
 import kotlin.math.abs
 import kotlin.math.roundToInt
 
-private val AppBackground = Color(0xFFEAE5DC)
-private val TextPrimary = Color(0xFF1A1A1A)
-private val TextSecondary = Color(0xFF9A9A9A)
-private val DividerColor = Color(0xFFD5D0C8)
+private val AppBackground = Color(0xFFF6F8FA)
+private val TextPrimary = Color(0xFF17233D)
+private val TextSecondary = Color(0xFF78828F)
+private val DividerColor = Color(0xFFD9E1E8)
 private val TaskBlockDefault = Color(0xFF5B7FA6)
 private val CurrentTimeRed = Color(0xFFDD4433)
 
@@ -190,7 +190,7 @@ private fun TimeGutter() {
                 style = TextStyle(
                     fontSize = 9.sp,
                     color = TextSecondary,
-                    fontFamily = FontFamily.Monospace
+                    fontFamily = com.taska.android.ui.theme.Archivo
                 )
             )
         }
@@ -216,7 +216,7 @@ private fun WeekHeader(
             text = buildWeekLabel(weekDays),
             modifier = Modifier.padding(start = TIME_GUTTER_W + 4.dp, top = 6.dp, bottom = 2.dp),
             style = TextStyle(
-                fontFamily = FontFamily.Serif,
+                fontFamily = com.taska.android.ui.theme.Archivo,
                 fontStyle = FontStyle.Italic,
                 fontSize = 18.sp,
                 color = TextPrimary
@@ -237,7 +237,7 @@ private fun WeekHeader(
                         style = TextStyle(
                             fontSize = 9.sp,
                             color = if (isToday) TextPrimary else TextSecondary,
-                            fontFamily = FontFamily.Monospace,
+                            fontFamily = com.taska.android.ui.theme.Archivo,
                             fontWeight = if (isToday) FontWeight.Bold else FontWeight.Normal
                         )
                     )

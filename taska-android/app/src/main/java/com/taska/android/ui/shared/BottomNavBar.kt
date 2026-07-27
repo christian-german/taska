@@ -19,25 +19,21 @@ import androidx.compose.material.icons.outlined.CalendarMonth
 import androidx.compose.material.icons.outlined.CalendarViewDay
 import androidx.compose.material.icons.outlined.Timer
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.taska.android.ui.theme.frostedChrome
 
 enum class NavDestination {
     INBOX, TODAY, DAY, WEEK, TRACKER
 }
-
-private val NavBarBg = Color(0xFF1A1A1A)
-private val NavItemActive = Color(0xFFFFFFFF)
-private val NavItemInactive = Color(0xFF6B6B6B)
-private val FabBg = Color(0xFF2C2C2E)
 
 @Composable
 fun BottomNavBar(
@@ -48,7 +44,7 @@ fun BottomNavBar(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .background(NavBarBg)
+            .frostedChrome()
             .navigationBarsPadding()
             .height(64.dp)
             .padding(horizontal = 8.dp),
@@ -72,13 +68,13 @@ fun BottomNavBar(
             modifier = Modifier
                 .size(52.dp)
                 .clip(RoundedCornerShape(14.dp))
-                .background(FabBg)
+                .background(MaterialTheme.colorScheme.primary)
                 .clickable { onAddClick() },
             contentAlignment = Alignment.Center
         ) {
             Text(
                 text = "+",
-                color = Color.White,
+                color = MaterialTheme.colorScheme.onPrimary,
                 fontSize = 28.sp,
                 fontWeight = FontWeight.Light,
                 lineHeight = 28.sp
@@ -107,7 +103,7 @@ private fun NavItem(
     active: Boolean,
     onClick: () -> Unit
 ) {
-    val tint = if (active) NavItemActive else NavItemInactive
+    val tint = if (active) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.onSurfaceVariant
     Column(
         modifier = Modifier
             .clickable(onClick = onClick)

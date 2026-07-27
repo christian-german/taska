@@ -60,7 +60,7 @@ const RECURRENCE_OPTIONS = [
           <div style="position:relative;">
             <div aria-hidden="true"
                  style="position:absolute;inset:0;padding:10px 12px;
-                        font-family:'Caveat',cursive;font-size:22px;line-height:32px;
+                        font-family:inherit;font-size:22px;line-height:32px;font-weight:700;
                         color:var(--ink);white-space:pre-wrap;word-break:break-word;pointer-events:none;">
               @if (input(); as txt) {
                 @for (seg of segments(); track $index) {
@@ -76,7 +76,7 @@ const RECURRENCE_OPTIONS = [
                    (keydown.enter)="$event.preventDefault(); submit()"
                    (keydown.escape)="close.emit()"
                    style="width:100%;padding:10px 12px;
-                          font-family:'Caveat',cursive;font-size:22px;line-height:32px;
+                          font-family:inherit;font-size:22px;line-height:32px;font-weight:700;
                           background:transparent;border:0;outline:none;
                           color:transparent;caret-color:var(--ink);position:relative;z-index:2;" />
           </div>

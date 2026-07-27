@@ -40,10 +40,10 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-private val AppBackground = Color(0xFFEAE5DC)
-private val TextPrimary = Color(0xFF1A1A1A)
-private val TextSecondary = Color(0xFF9A9A9A)
-private val DividerColor = Color(0xFFD5D0C8)
+private val AppBackground = Color(0xFFF6F8FA)
+private val TextPrimary = Color(0xFF17233D)
+private val TextSecondary = Color(0xFF78828F)
+private val DividerColor = Color(0xFFD9E1E8)
 private val OverdueRed = Color(0xFFDD4433)
 
 @Composable
@@ -120,7 +120,7 @@ private fun TodayHeader(overdueCount: Int, todayCount: Int) {
             Text(
                 text = "Aujourd'hui",
                 style = TextStyle(
-                    fontFamily = FontFamily.Serif,
+                    fontFamily = com.taska.android.ui.theme.Archivo,
                     fontStyle = FontStyle.Italic,
                     fontSize = 32.sp,
                     fontWeight = FontWeight.Normal,
@@ -130,7 +130,7 @@ private fun TodayHeader(overdueCount: Int, todayCount: Int) {
             Text(
                 text = "$dateStr · $todayCount tâche${if (todayCount != 1) "s" else ""}",
                 style = TextStyle(
-                    fontFamily = FontFamily.Monospace,
+                    fontFamily = com.taska.android.ui.theme.Archivo,
                     fontSize = 13.sp,
                     color = TextSecondary
                 )
@@ -139,7 +139,7 @@ private fun TodayHeader(overdueCount: Int, todayCount: Int) {
                 Text(
                     text = "  · $overdueCount en retard",
                     style = TextStyle(
-                        fontFamily = FontFamily.Monospace,
+                        fontFamily = com.taska.android.ui.theme.Archivo,
                         fontSize = 13.sp,
                         color = OverdueRed
                     )

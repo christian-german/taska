@@ -55,16 +55,16 @@ class TrackerActivity : ComponentActivity() {
                             modifier = Modifier
                                 .weight(1f)
                                 .fillMaxSize()
-                                .background(Color(0xFFEAE5DC))
+                                .background(Color(0xFFF6F8FA))
                                 .statusBarsPadding(),
                             contentAlignment = Alignment.Center
                         ) {
                             Text(
                                 text = "Tracker",
-                                fontFamily = FontFamily.Serif,
-                                fontStyle = FontStyle.Italic,
+                                fontFamily = com.taska.android.ui.theme.Archivo,
+                                fontWeight = androidx.compose.ui.text.font.FontWeight.Bold,
                                 fontSize = 32.sp,
-                                color = Color(0xFF1A1A1A)
+                                color = Color(0xFF17233D)
                             )
                         }
                         BottomNavBar(

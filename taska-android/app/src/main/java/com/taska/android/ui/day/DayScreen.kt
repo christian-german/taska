@@ -38,10 +38,10 @@ import java.util.Locale
 import kotlin.math.abs
 import kotlin.math.roundToInt
 
-private val AppBackground = Color(0xFFEAE5DC)
-private val TextPrimary = Color(0xFF1A1A1A)
-private val TextSecondary = Color(0xFF9A9A9A)
-private val DividerColor = Color(0xFFD5D0C8)
+private val AppBackground = Color(0xFFF6F8FA)
+private val TextPrimary = Color(0xFF17233D)
+private val TextSecondary = Color(0xFF78828F)
+private val DividerColor = Color(0xFFD9E1E8)
 private val TaskBlockDefault = Color(0xFF5B7FA6)
 private val CurrentTimeRed = Color(0xFFDD4433)
 
@@ -135,7 +135,7 @@ fun DayScreen(
                             .absoluteOffset(y = HOUR_HEIGHT * h - 6.dp)
                             .width(TIME_GUTTER_W - 3.dp),
                         textAlign = TextAlign.End,
-                        style = TextStyle(fontSize = 9.sp, color = TextSecondary, fontFamily = FontFamily.Monospace)
+                        style = TextStyle(fontSize = 9.sp, color = TextSecondary, fontFamily = com.taska.android.ui.theme.Archivo)
                     )
                 }
             }
@@ -194,7 +194,7 @@ private fun DayHeader(
             Text(
                 text = dayLabel,
                 style = TextStyle(
-                    fontFamily = FontFamily.Serif,
+                    fontFamily = com.taska.android.ui.theme.Archivo,
                     fontStyle = FontStyle.Italic,
                     fontSize = 24.sp,
                     color = TextPrimary
@@ -204,7 +204,7 @@ private fun DayHeader(
                 Spacer(modifier = Modifier.width(10.dp))
                 Text(
                     text = dateStr,
-                    style = TextStyle(fontFamily = FontFamily.Monospace, fontSize = 11.sp, color = TextSecondary)
+                    style = TextStyle(fontFamily = com.taska.android.ui.theme.Archivo, fontSize = 11.sp, color = TextSecondary)
                 )
             }
         }

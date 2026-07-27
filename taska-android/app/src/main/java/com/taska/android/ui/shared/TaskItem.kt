@@ -47,11 +47,11 @@ import java.util.Locale
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
-private val TextPrimary = Color(0xFF1A1A1A)
-private val TextSecondary = Color(0xFF9A9A9A)
+private val TextPrimary = Color(0xFF17233D)
+private val TextSecondary = Color(0xFF78828F)
 private val CheckboxBorder = Color(0xFFAAAAAA)
 private val OverdueRed = Color(0xFFDD4433)
-private val CompletedGreen = Color(0xFF4CAF50)
+private val CompletedGreen = Color(0xFF14B37D)
 private val PriorityUrgentColor = Color(0xFFE83030)
 private val PriorityHighColor = Color(0xFFFF8C00)
 private val PriorityMediumColor = Color(0xFF4287F5)

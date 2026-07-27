@@ -18,7 +18,7 @@ docker compose up -d --build
 ```
 
 - **Frontend**: http://localhost:4200
-- **Backend API**: http://localhost:8080/api/v1
+- **Backend API**: http://localhost:8080
 
 ## Development
 
@@ -43,13 +43,13 @@ npm start          # dev server on :4200 with API proxy
 
 ## REST API
 
-### Projects  `GET/POST /api/v1/projects`
-### Sections  `GET/POST /api/v1/sections?project_id=`
-### Tasks     `GET/POST /api/v1/tasks?project_id=&filter=today|overdue|upcoming`
-### Labels    `GET/POST /api/v1/labels`
-### Comments  `GET/POST /api/v1/comments?task_id=`
+### Projects  `GET/POST /projects`
+### Sections  `GET/POST /sections?project_id=`
+### Tasks     `GET/POST /tasks?project_id=&filter=today|overdue|upcoming`
+### Labels    `GET/POST /labels`
+### Comments  `GET/POST /comments?task_id=`
 
-Task lifecycle: `POST /api/v1/tasks/{id}/close` · `POST /api/v1/tasks/{id}/reopen`
+Task lifecycle: `POST /tasks/{id}/close` · `POST /tasks/{id}/reopen`
 
 ## Features
 

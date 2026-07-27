@@ -35,7 +35,7 @@
         @if (currentProject(); as p) {
           <span style="display: inline-flex; align-items: center; gap: 5px; font-size: 13px;">
             <app-icon name="folder" [size]="13" [color]="getColor(p.color)" />
-            <span style="font-family: Caveat; font-size: 17px;">{{ p.name }}</span>
+            <span style="font-size: 17px; font-weight: 700;">{{ p.name }}</span>
           </span>
         } @else {
           <span class="mono" style="color: var(--mute); font-size: 12px;">Inbox</span>
@@ -279,7 +279,7 @@
             [size]="16"
             (toggled)="toggleSubtask(s)" />
           <span [style.font-size.px]="14"
-                style="font-family: Caveat;"
+                style="font-weight: 400;"
                 [style.color]="s.isCompleted ? 'var(--mute)' : 'var(--ink)'"
                 [style.text-decoration]="s.isCompleted ? 'line-through' : 'none'">
             {{ s.content }}

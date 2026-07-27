@@ -45,6 +45,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TimePicker
@@ -77,11 +78,11 @@ import kotlinx.coroutines.delay
 import java.util.Calendar
 import java.util.Locale
 
-private val Orange = Color(0xFFE8763A)
-private val TextPrimary = Color(0xFF1A1A1A)
-private val TextSecondary = Color(0xFF9A9A9A)
+private val Orange = Color(0xFF17233D)
+private val TextPrimary = Color(0xFF17233D)
+private val TextSecondary = Color(0xFF78828F)
 private val ChipBorder = Color(0xFFCCCCCC)
-private val ChipSelectedBg = Color(0xFF1A1A1A)
+private val ChipSelectedBg = Color(0xFF17233D)
 private val DisabledIcon = Color(0xFFCCCCCC)
 
 @Composable
@@ -106,7 +107,9 @@ fun AddTaskBottomSheet(
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState,
-        containerColor = Color.White
+        containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.96f),
+        contentColor = MaterialTheme.colorScheme.onSurface,
+        tonalElevation = 0.dp
     ) {
         Column(
             modifier = Modifier
@@ -117,7 +120,7 @@ fun AddTaskBottomSheet(
             Text(
                 text = "NOUVELLE TÂCHE",
                 style = TextStyle(
-                    fontFamily = FontFamily.Monospace,
+                    fontFamily = com.taska.android.ui.theme.Archivo,
                     fontSize = 11.sp,
                     letterSpacing = 1.sp,
                     color = TextSecondary
@@ -130,7 +133,7 @@ fun AddTaskBottomSheet(
                 value = state.content,
                 onValueChange = viewModel::updateContent,
                 textStyle = TextStyle(
-                    fontFamily = FontFamily.Serif,
+                    fontFamily = com.taska.android.ui.theme.Archivo,
                     fontStyle = FontStyle.Italic,
                     fontSize = 26.sp,
                     color = TextPrimary
@@ -144,7 +147,7 @@ fun AddTaskBottomSheet(
                             Text(
                                 text = "Nouvelle tâche...",
                                 style = TextStyle(
-                                    fontFamily = FontFamily.Serif,
+                                    fontFamily = com.taska.android.ui.theme.Archivo,
                                     fontStyle = FontStyle.Italic,
                                     fontSize = 26.sp,
                                     color = Color(0xFFBBBBBB)

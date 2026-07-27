@@ -76,7 +76,7 @@ import { CheckboxComponent, PriorityFlagComponent, ProjectDotComponent, TagChipC
           @if (suggested()) {
             <span class="chip"
                   style="background: rgba(255, 216, 77, 0.25); color: #8A6F00; font-size: 10.5px;
-                         font-family: 'JetBrains Mono', monospace; display: inline-flex;
+                         font-family: inherit; display: inline-flex;
                          align-items: center; gap: 3px;">
               <app-icon name="zap" [size]="10" /> suggéré
             </span>
@@ -111,13 +111,13 @@ import { CheckboxComponent, PriorityFlagComponent, ProjectDotComponent, TagChipC
             @if (project(); as p) {
               <span style="display: inline-flex; align-items: center; gap: 4px; font-size: 11.5px; color: var(--ink-2);">
                 <app-project-dot [color]="getColor(p.color)" [size]="7" />
-                <span style="font-family: Caveat, cursive; font-size: 14px;">{{ p.name }}</span>
+                <span style="font-weight: 700; font-size: 14px;">{{ p.name }}</span>
               </span>
             }
             @if (task().mentionContext) {
               <span class="chip"
                     style="background: rgba(255, 94, 125, 0.15); color: #B22F4E;
-                           font-family: 'JetBrains Mono', monospace; font-size: 10.5px;">
+                           font-family: inherit; font-size: 10.5px;">
                 &#64;{{ task().mentionContext }}
               </span>
             }

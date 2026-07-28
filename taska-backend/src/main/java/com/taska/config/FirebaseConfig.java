@@ -5,12 +5,14 @@ import com.google.firebase.FirebaseApp;
 import com.google.firebase.FirebaseOptions;
 import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.Resource;
 
 import java.io.IOException;
 
 @Configuration
+@ConditionalOnProperty(prefix = "taska.firebase", name = "disabled", havingValue = "false", matchIfMissing = true)
 public class FirebaseConfig {
 
     @Value("${firebase.service-account-path:classpath:firebase-service-account.json}")

@@ -11,8 +11,19 @@ import org.springframework.context.annotation.Configuration;
 @Setter
 public class TaskaProperties {
 
+    private final Firebase firebase = new Firebase();
     private final Security security = new Security();
     private final Notification notification = new Notification();
+
+    @Getter
+    @Setter
+    public static class Firebase {
+
+        /**
+         * Indicates whether Firebase should be disabled.
+         */
+        private boolean disabled = false;
+    }
 
     @Getter
     @Setter

@@ -74,6 +74,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import com.taska.android.data.model.ProjectDto
+import com.taska.android.ui.theme.frostedChrome
 import kotlinx.coroutines.delay
 import java.util.Calendar
 import java.util.Locale
@@ -420,8 +421,7 @@ private fun DateShortcutsDialog(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .clip(RoundedCornerShape(16.dp))
-                .background(Color.White)
+                .frostedChrome()
                 .padding(vertical = 8.dp)
         ) {
             Text(

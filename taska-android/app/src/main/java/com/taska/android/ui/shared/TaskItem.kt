@@ -42,6 +42,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.taska.android.data.model.ProjectDto
 import com.taska.android.data.model.TaskDto
+import com.taska.android.ui.theme.opaqueWorkSurface
 import java.text.SimpleDateFormat
 import java.util.Locale
 import kotlinx.coroutines.delay
@@ -81,6 +82,7 @@ fun TaskItem(
     Row(
         modifier = Modifier
             .fillMaxWidth()
+            .opaqueWorkSurface()
             .clickable { onClick() }
             .padding(horizontal = 16.dp, vertical = 12.dp),
         verticalAlignment = Alignment.Top

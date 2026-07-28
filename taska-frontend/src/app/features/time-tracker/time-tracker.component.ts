@@ -169,10 +169,10 @@ interface DayInfo {
   host: { style: 'display:flex; flex-direction:column; flex:1; min-height:0; overflow:hidden;' },
   template: `
 <!-- ── outer shell ── -->
-<div style="display:flex; flex-direction:column; flex:1; min-height:0; overflow:hidden; background:var(--bg);">
+<div class="tracker-shell" style="display:flex; flex-direction:column; flex:1; min-height:0; overflow:hidden; background:var(--bg);">
 
   <!-- control bar -->
-  <div style="display:flex; align-items:center; gap:12px; padding:14px 20px 10px;
+  <div class="tracker-toolbar" style="display:flex; align-items:center; gap:12px; padding:14px 20px 10px;
               border-bottom:1px solid var(--line); flex-shrink:0;">
     <button class="btn btn-ghost btn-icon" (click)="prevPeriod()" title="Précédent">
       <app-icon name="chevron-left" [size]="15" />
@@ -198,7 +198,7 @@ interface DayInfo {
         <button (click)="viewMode.set(m.id)"
                 style="padding:4px 10px; border-radius:5px; border:0; cursor:pointer; font-size:12px;
                        transition:background .15s;"
-                [style.background]="viewMode() === m.id ? 'var(--orange)' : 'transparent'"
+                [style.background]="viewMode() === m.id ? 'var(--navy)' : 'transparent'"
                 [style.color]="viewMode() === m.id ? '#fff' : 'var(--ink-2)'">{{ m.label }}</button>
       }
     </div>
@@ -216,16 +216,16 @@ interface DayInfo {
   </div>
 
   <!-- day-header row -->
-  <div style="display:flex; border-bottom:1px solid var(--line); flex-shrink:0; background:var(--bg);">
+  <div class="tracker-grid-header" style="display:flex; border-bottom:1px solid var(--line); flex-shrink:0; background:var(--bg);">
     <div style="width:50px; flex-shrink:0; border-right:1px solid var(--line);"></div>
     @for (day of viewDays(); track day.iso) {
       <div style="flex:1; padding:6px 0; text-align:center; min-width:0;"
-           [style.background]="day.isToday ? 'rgba(255,138,61,.06)' : 'transparent'">
+           [style.background]="day.isToday ? 'var(--accent-pale)' : 'transparent'">
         <div class="mono" style="font-size:10px; color:var(--mute); text-transform:uppercase; letter-spacing:.06em;">
           {{ day.label }}
         </div>
         <div style="font-size:18px; font-weight:600; line-height:1.2;"
-             [style.color]="day.isToday ? 'var(--orange)' : 'var(--ink)'">{{ day.dayNum }}</div>
+             [style.color]="day.isToday ? 'var(--accent-ink)' : 'var(--ink)'">{{ day.dayNum }}</div>
         @if (totalPerDay()[day.iso]) {
           <div class="mono" style="font-size:10px; color:var(--mute);">{{ fmtEst(totalPerDay()[day.iso]) }}</div>
         }
@@ -235,7 +235,7 @@ interface DayInfo {
 
   <!-- scrollable grid -->
   <div #gridScroll
-       style="flex:1; overflow-y:auto; overflow-x:hidden; position:relative;"
+       style="flex:1; overflow:auto; position:relative;"
        [style.cursor]="gridCursor()"
        [style.user-select]="entryInteraction() ? 'none' : 'auto'"
        (mousemove)="onGridMove($event)"
@@ -246,7 +246,7 @@ interface DayInfo {
       <div style="position:absolute; inset:0; z-index:50; cursor:inherit;"></div>
     }
 
-    <div style="display:flex; position:relative; min-height:1440px;" #gridInner>
+    <div class="tracker-grid" style="display:flex; position:relative; min-height:1440px;" #gridInner>
 
       <!-- time axis -->
       <div style="width:50px; flex-shrink:0; position:relative; border-right:1px solid var(--line); pointer-events:none;">
@@ -264,7 +264,7 @@ interface DayInfo {
       @for (day of viewDays(); track day.iso; let ci = $index) {
         <div style="flex:1; position:relative; border-right:1px solid var(--line-2);
                     cursor:crosshair; min-width:0;"
-             [style.background]="day.isToday ? 'rgba(255,138,61,.03)' : 'transparent'"
+             [style.background]="day.isToday ? 'color-mix(in srgb, var(--accent-pale) 55%, transparent)' : 'transparent'"
              (mousedown)="onColDown($event, ci, day.iso)">
 
           <!-- shaded off-hours zones -->
@@ -366,13 +366,13 @@ interface DayInfo {
           <!-- create-drag ghost -->
           @if (createDrag() && createDrag()!.colIndex === ci && createGhostRange()) {
             <div style="position:absolute; left:2px; right:2px; border-radius:5px; z-index:3;
-                        pointer-events:none; background:rgba(255,138,61,.12);
-                        border:2px dashed var(--orange); display:flex; align-items:center;
+                        pointer-events:none; background:color-mix(in srgb, var(--accent-pale) 70%, transparent);
+                        border:2px dashed var(--accent-ink); display:flex; align-items:center;
                         justify-content:center; box-sizing:border-box;"
                  [style.top.px]="createGhostRange()!.top"
                  [style.height.px]="createGhostRange()!.height">
               @if (createGhostRange()!.height >= 20) {
-                <span class="mono" style="font-size:10px; color:var(--orange); white-space:nowrap;">
+                <span class="mono" style="font-size:10px; color:var(--accent-ink); white-space:nowrap;">
                   {{ createGhostLabel() }}
                 </span>
               }
@@ -548,6 +548,14 @@ interface DayInfo {
   </div>
 }
   `,
+  styles: [`
+    @media (max-width: 700px) {
+      .tracker-toolbar { align-items: flex-start !important; flex-wrap: wrap; gap: 8px !important; padding: 10px 12px !important; }
+      .tracker-toolbar > div[style="flex:1;"] { display: none; }
+      .tracker-grid-header { min-width: 720px; }
+      .tracker-grid { min-width: 720px; }
+    }
+  `],
 })
 export class TimeTrackerComponent implements OnInit, AfterViewInit {
   private projectService   = inject(ProjectService);

@@ -60,6 +60,7 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TimePicker
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
@@ -93,6 +94,8 @@ import com.taska.android.data.model.ProjectDto
 import com.taska.android.data.model.RecurrenceScope
 import com.taska.android.data.model.TaskDto
 import com.taska.android.ui.shared.RecurrenceScopeDialog
+import com.taska.android.ui.theme.frostedChrome
+import com.taska.android.ui.theme.opaqueWorkSurface
 import kotlinx.coroutines.delay
 import java.util.Calendar
 import java.util.Locale
@@ -125,7 +128,7 @@ fun TaskDetailScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(AppBackground)
+            .background(MaterialTheme.colorScheme.background)
             .statusBarsPadding()
     ) {
         TopBar(onClose = onClose, onDeleteClick = { showDeleteConfirm = true })
@@ -341,7 +344,7 @@ private fun TaskContent(
     val taskLabels = task.labels?.filter { it.isNotBlank() }.orEmpty()
 
     LazyColumn(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier.fillMaxSize().opaqueWorkSurface(),
         contentPadding = PaddingValues(bottom = 16.dp)
     ) {
         // Title
@@ -704,7 +707,7 @@ private fun BottomBar(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .background(Color.White)
+            .frostedChrome()
             .navigationBarsPadding()
             .padding(horizontal = 16.dp, vertical = 12.dp),
         horizontalArrangement = Arrangement.spacedBy(12.dp),

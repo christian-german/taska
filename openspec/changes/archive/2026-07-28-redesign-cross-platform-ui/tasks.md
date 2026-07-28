@@ -10,19 +10,19 @@
 - [x] 2.1 Rework the Angular application shell, sidebar, navigation controls, and responsive mobile navigation with the neutral frosted-chrome treatment.
 - [x] 2.2 Rebrand shared Angular primitives—buttons, chips, checkboxes, section headers, task rows, inputs, and focus states—with semantic navy/green tokens.
 - [x] 2.3 Apply frosted treatment to Angular dialogs, modal panels, and floating controls while retaining opaque task lists, forms, and detail work areas.
-- [ ] 2.4 Update Tauri-specific window/application chrome where supported without making transparency a functional requirement.
-- [ ] 2.5 Migrate remaining web feature views to the shared surfaces and verify narrow responsive layouts.
+- [x] 2.4 Update Tauri-specific window/application chrome where supported without making transparency a functional requirement.
+- [x] 2.5 Migrate remaining web feature views to the shared surfaces and verify narrow responsive layouts.
 
 ## 3. Android native experience
 
 - [x] 3.1 Replace the Compose theme's current colours and typography with the shared semantic palette and Archivo resources, including dark mode.
 - [x] 3.2 Implement reusable Compose opaque content, glass-equivalent chrome, state accent, and reduced-transparency surface primitives.
-- [ ] 3.3 Apply the primitives to bottom navigation, project drawer, task items, add-task sheets, dialogs, and task-detail surfaces.
-- [ ] 3.4 Migrate Today, Inbox, Project, Day, Week, Tracker, and authentication screens to the new native visual system.
+- [x] 3.3 Apply the primitives to bottom navigation, project drawer, task items, add-task sheets, dialogs, and task-detail surfaces.
+- [x] 3.4 Migrate Today, Inbox, Project, Day, Week, Tracker, and authentication screens to the new native visual system.
 
 ## 4. Validation and release readiness
 
-- [ ] 4.1 Verify primary-action, green-text, focus, completion, and selected-state contrast in light and dark themes; confirm no small white text appears on signal green.
-- [ ] 4.2 Verify opaque fallback behaviour with transparency disabled or unsupported on web, desktop, and Android.
-- [ ] 4.3 Run web/desktop build and automated tests, Android unit tests/build, and targeted manual checks for keyboard, touch, screen-reader labels, and responsive layouts.
-- [ ] 4.4 Capture before/after screenshots of representative web, desktop, and Android views and resolve visual regressions before release.
+- [x] 4.1 Verify primary-action, green-text, focus, completion, and selected-state contrast in light and dark themes; confirm no small white text appears on signal green.
+- [x] 4.2 Verify opaque fallback behaviour with transparency disabled or unsupported on web, desktop, and Android.
+- [x] 4.3 Run web/desktop build and automated tests, Android unit tests/build, and targeted manual checks for keyboard, touch, screen-reader labels, and responsive layouts.
+- [x] 4.4 Capture before/after screenshots of representative web, desktop, and Android views and resolve visual regressions before release.

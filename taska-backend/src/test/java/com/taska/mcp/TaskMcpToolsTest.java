@@ -1,0 +1,78 @@
+package com.taska.mcp;
+
+import com.taska.domain.task.Task;
+import com.taska.domain.task.TaskCloseReopenRequest;
+import com.taska.domain.task.TaskDto;
+import com.taska.domain.task.TaskMapper;
+import com.taska.domain.task.TaskRequest;
+import com.taska.domain.task.TaskService;
+import io.modelcontextprotocol.spec.McpSchema;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+
+import java.time.Instant;
+import java.util.List;
+import java.util.UUID;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+@ExtendWith(MockitoExtension.class)
+class TaskMcpToolsTest {
+
+    @Mock private TaskService taskService;
+    @Mock private TaskMapper taskMapper;
+    @InjectMocks private TaskMcpTools tools;
+
+    @Test
+    void createTaskPassesNullProjectAndParentToPreserveInboxDefault() {
+        Task task = new Task();
+        TaskDto taskDto = taskDto();
+        when(taskService.create(any())).thenReturn(task);
+        when(taskMapper.toDto(task)).thenReturn(taskDto);
+
+        McpSchema.CallToolResult result = tools.createTask(new TaskMcpTools.TaskCreateInput(
+                "Write MCP tests", null, null, null, null, null, null, List.of(), null,
+                null, null, null, null, null, null, null));
+
+        ArgumentCaptor<TaskRequest> request = ArgumentCaptor.forClass(TaskRequest.class);
+        verify(taskService).create(request.capture());
+        assertThat(request.getValue().projectId()).isNull();
+        assertThat(request.getValue().parentId()).isNull();
+        assertThat(result.isError()).isFalse();
+        assertThat(result.structuredContent()).isInstanceOf(TaskMcpTools.TaskOutput.class);
+    }
+
+    @Test
+    void completeTaskPassesRecurringOccurrenceTimestampToTaskService() {
+        UUID taskId = UUID.randomUUID();
+        Instant scheduledAt = Instant.parse("2026-07-29T09:00:00Z");
+        when(taskService.close(taskId, new TaskCloseReopenRequest(scheduledAt))).thenReturn(taskDto());
+
+        McpSchema.CallToolResult result = tools.completeTask(taskId, scheduledAt);
+
+        verify(taskService).close(taskId, new TaskCloseReopenRequest(scheduledAt));
+        assertThat(result.isError()).isFalse();
+    }
+
+    @Test
+    void invalidPriorityIsReturnedAsSafeToolError() {
+        McpSchema.CallToolResult result = tools.createTask(new TaskMcpTools.TaskCreateInput(
+                "Bad priority", null, null, null, null, null, 5, null, null,
+                null, null, null, null, null, null, null));
+
+        assertThat(result.isError()).isTrue();
+        assertThat(result.content().getFirst().toString()).contains("priority must be between 1 and 4");
+    }
+
+    private TaskDto taskDto() {
+        return new TaskDto(UUID.randomUUID(), "Task", null, null, null, null, 0, 4, List.of(),
+                false, null, false, false, null, null, null, null, null, null, null, null, false, null);
+    }
+}

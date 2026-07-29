@@ -35,6 +35,7 @@ import androidx.compose.material.icons.outlined.Repeat
 import androidx.compose.material.icons.outlined.Schedule
 import androidx.compose.material.icons.outlined.Timer
 import androidx.compose.material.icons.outlined.WbSunny
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -44,6 +45,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TimePicker
@@ -72,15 +74,16 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import com.taska.android.data.model.ProjectDto
+import com.taska.android.ui.theme.frostedChrome
 import kotlinx.coroutines.delay
 import java.util.Calendar
 import java.util.Locale
 
-private val Orange = Color(0xFFE8763A)
-private val TextPrimary = Color(0xFF1A1A1A)
-private val TextSecondary = Color(0xFF9A9A9A)
+private val Orange = Color(0xFF17233D)
+private val TextPrimary = Color(0xFF17233D)
+private val TextSecondary = Color(0xFF78828F)
 private val ChipBorder = Color(0xFFCCCCCC)
-private val ChipSelectedBg = Color(0xFF1A1A1A)
+private val ChipSelectedBg = Color(0xFF17233D)
 private val DisabledIcon = Color(0xFFCCCCCC)
 
 @Composable
@@ -98,13 +101,16 @@ fun AddTaskBottomSheet(
     var showProjectPicker by remember { mutableStateOf(false) }
     var showDurationPicker by remember { mutableStateOf(false) }
     var showPriorityPicker by remember { mutableStateOf(false) }
+    var showRecurrencePicker by remember { mutableStateOf(false) }
 
     val focusRequester = remember { FocusRequester() }
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState,
-        containerColor = Color.White
+        containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.96f),
+        contentColor = MaterialTheme.colorScheme.onSurface,
+        tonalElevation = 0.dp
     ) {
         Column(
             modifier = Modifier
@@ -115,7 +121,7 @@ fun AddTaskBottomSheet(
             Text(
                 text = "NOUVELLE TÂCHE",
                 style = TextStyle(
-                    fontFamily = FontFamily.Monospace,
+                    fontFamily = com.taska.android.ui.theme.Archivo,
                     fontSize = 11.sp,
                     letterSpacing = 1.sp,
                     color = TextSecondary
@@ -128,7 +134,7 @@ fun AddTaskBottomSheet(
                 value = state.content,
                 onValueChange = viewModel::updateContent,
                 textStyle = TextStyle(
-                    fontFamily = FontFamily.Serif,
+                    fontFamily = com.taska.android.ui.theme.Archivo,
                     fontStyle = FontStyle.Italic,
                     fontSize = 26.sp,
                     color = TextPrimary
@@ -142,7 +148,7 @@ fun AddTaskBottomSheet(
                             Text(
                                 text = "Nouvelle tâche...",
                                 style = TextStyle(
-                                    fontFamily = FontFamily.Serif,
+                                    fontFamily = com.taska.android.ui.theme.Archivo,
                                     fontStyle = FontStyle.Italic,
                                     fontSize = 26.sp,
                                     color = Color(0xFFBBBBBB)
@@ -212,9 +218,11 @@ fun AddTaskBottomSheet(
                 Spacer(Modifier.width(16.dp))
                 Icon(
                     Icons.Outlined.Repeat,
-                    contentDescription = null,
-                    tint = DisabledIcon,
-                    modifier = Modifier.size(22.dp)
+                    contentDescription = "Répétition",
+                    tint = if (state.recurrenceRule != null) Color(0xFFE07B39) else TextSecondary,
+                    modifier = Modifier
+                        .size(22.dp)
+                        .clickable { showRecurrencePicker = true }
                 )
                 Spacer(Modifier.width(16.dp))
                 Icon(
@@ -353,6 +361,17 @@ fun AddTaskBottomSheet(
             onDismiss = { showPriorityPicker = false }
         )
     }
+
+    if (showRecurrencePicker) {
+        AddTaskRecurrencePickerDialog(
+            currentRule = state.recurrenceRule,
+            onSelect = { rule ->
+                viewModel.updateRecurrence(rule)
+                showRecurrencePicker = false
+            },
+            onDismiss = { showRecurrencePicker = false }
+        )
+    }
 }
 
 @Composable
@@ -402,8 +421,7 @@ private fun DateShortcutsDialog(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .clip(RoundedCornerShape(16.dp))
-                .background(Color.White)
+                .frostedChrome()
                 .padding(vertical = 8.dp)
         ) {
             Text(
@@ -722,3 +740,53 @@ private fun formatTimeMinutes(totalMinutes: Int): String {
 private fun parseHexColor(hex: String): Color? = try {
     Color(android.graphics.Color.parseColor(if (hex.startsWith("#")) hex else "#$hex"))
 } catch (_: Exception) { null }
+
+private val RECURRENCE_OPTIONS = listOf(
+    null      to "Pas de répétition",
+    "daily"   to "Quotidien",
+    "weekly"  to "Hebdomadaire",
+    "monthly" to "Mensuel",
+    "yearly"  to "Annuel",
+)
+
+@Composable
+private fun AddTaskRecurrencePickerDialog(
+    currentRule: String?,
+    onSelect: (String?) -> Unit,
+    onDismiss: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Répétition") },
+        text = {
+            Column {
+                RECURRENCE_OPTIONS.forEach { (value, label) ->
+                    val isSelected = when {
+                        value == null -> currentRule.isNullOrEmpty()
+                        else -> currentRule?.uppercase() == "FREQ=${value.uppercase()}"
+                    }
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { onSelect(value) }
+                            .padding(vertical = 12.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = label,
+                            style = TextStyle(
+                                fontSize = 15.sp,
+                                color = if (isSelected) Color(0xFFE07B39) else TextPrimary,
+                                fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal
+                            )
+                        )
+                    }
+                }
+            }
+        },
+        confirmButton = {},
+        dismissButton = {
+            TextButton(onClick = onDismiss) { Text("Annuler") }
+        }
+    )
+}

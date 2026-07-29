@@ -2,9 +2,11 @@ package com.taska.android.ui.today
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.taska.android.data.api.RetrofitClient
 import com.taska.android.data.model.ProjectDto
+import com.taska.android.data.model.RecurrenceScope
 import com.taska.android.data.model.TaskDto
+import com.taska.android.data.repository.ProjectRepository
+import com.taska.android.data.repository.TaskRepository
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -21,10 +23,16 @@ data class TodayUiState(
     val tomorrowTasks: List<TaskDto> = emptyList(),
     val projects: Map<String, ProjectDto> = emptyMap(),
     val isLoading: Boolean = false,
-    val error: String? = null
+    val error: String? = null,
+    val pendingDeleteTask: TaskDto? = null
 )
 
-class TodayViewModel : ViewModel() {
+class TodayViewModel(
+    private val taskRepo: TaskRepository,
+    private val projectRepo: ProjectRepository,
+) : ViewModel() {
+
+    constructor() : this(TaskRepository(), ProjectRepository())
 
     private val _uiState = MutableStateFlow(TodayUiState())
     val uiState: StateFlow<TodayUiState> = _uiState.asStateFlow()
@@ -37,28 +45,29 @@ class TodayViewModel : ViewModel() {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, error = null) }
             try {
-                val projectsDeferred = async { RetrofitClient.api.getProjects() }
-                val tasksDeferred = async { RetrofitClient.api.getTasks(showCompleted = true) }
-
-                val projectsMap = projectsDeferred.await().associateBy { it.id }
-                val tasks = tasksDeferred.await()
-
                 val fmt = SimpleDateFormat("yyyy-MM-dd", Locale.US)
                 val todayStr = fmt.format(Calendar.getInstance().time)
                 val tomorrowStr = fmt.format(
                     Calendar.getInstance().also { it.add(Calendar.DAY_OF_YEAR, 1) }.time
                 )
 
-                val overdue = tasks
-                    .filter { it.isCompleted != true && it.dueAt != null && dueAtLocalDate(it.dueAt) < todayStr }
+                val projectsDeferred = async { projectRepo.getProjects() }
+                val todayDeferred = async { taskRepo.getTasks(date = todayStr) }
+                val tomorrowDeferred = async { taskRepo.getTasks(date = tomorrowStr) }
+
+                val projectsMap = projectsDeferred.await().associateBy { it.id }
+                val todayAll = todayDeferred.await()
+                val tomorrowAll = tomorrowDeferred.await()
+
+                val overdue = taskRepo.getTasks(showCompleted = false)
+                    .filter { it.isCompleted != true && it.isRecurring != true && it.dueAt != null && dueAtLocalDate(it.dueAt) < todayStr }
                     .sortedBy { it.dueAt }
 
-                val today = tasks
-                    .filter { it.dueAt != null && dueAtLocalDate(it.dueAt) == todayStr }
+                val today = todayAll
                     .sortedWith(compareBy({ it.isCompleted == true }, { it.dueAt }))
 
-                val tomorrow = tasks
-                    .filter { it.isCompleted != true && it.dueAt != null && dueAtLocalDate(it.dueAt) == tomorrowStr }
+                val tomorrow = tomorrowAll
+                    .filter { it.isCompleted != true }
                     .sortedBy { it.dueAt }
 
                 _uiState.update {
@@ -76,15 +85,17 @@ class TodayViewModel : ViewModel() {
         }
     }
 
-    fun closeTask(taskId: String) {
+    fun closeTask(task: TaskDto) {
         viewModelScope.launch {
             try {
-                val closed = RetrofitClient.api.closeTask(taskId)
+                val closed = taskRepo.closeTask(task.id, task.scheduledAt)
                 _uiState.update { state ->
                     state.copy(
-                        overdueTasks = state.overdueTasks.filter { it.id != taskId },
-                        todayTasks = state.todayTasks.map { if (it.id == taskId) closed else it },
-                        tomorrowTasks = state.tomorrowTasks.filter { it.id != taskId }
+                        overdueTasks = state.overdueTasks.filter { it.id != task.id || it.scheduledAt != task.scheduledAt },
+                        todayTasks = state.todayTasks.map {
+                            if (it.id == task.id && it.scheduledAt == task.scheduledAt) closed else it
+                        },
+                        tomorrowTasks = state.tomorrowTasks.filter { it.id != task.id || it.scheduledAt != task.scheduledAt }
                     )
                 }
             } catch (e: Exception) {
@@ -93,19 +104,45 @@ class TodayViewModel : ViewModel() {
         }
     }
 
-    fun reopenTask(taskId: String) {
+    fun reopenTask(task: TaskDto) {
         viewModelScope.launch {
             try {
-                val reopened = RetrofitClient.api.reopenTask(taskId)
+                val reopened = taskRepo.reopenTask(task.id, task.scheduledAt)
                 _uiState.update { state ->
                     state.copy(
-                        todayTasks = state.todayTasks.map { if (it.id == taskId) reopened else it }
+                        todayTasks = state.todayTasks.map {
+                            if (it.id == task.id && it.scheduledAt == task.scheduledAt) reopened else it
+                        }
                     )
                 }
             } catch (e: Exception) {
                 _uiState.update { it.copy(error = e.message) }
             }
         }
+    }
+
+    fun requestDeleteTask(task: TaskDto) {
+        if (task.isRecurring == true && task.scheduledAt != null) {
+            _uiState.update { it.copy(pendingDeleteTask = task) }
+        } else {
+            confirmDeleteTask(task, scope = null)
+        }
+    }
+
+    fun confirmDeleteTask(task: TaskDto, scope: RecurrenceScope?) {
+        _uiState.update { it.copy(pendingDeleteTask = null) }
+        viewModelScope.launch {
+            try {
+                taskRepo.deleteTask(task.id, scope, task.scheduledAt)
+                load()
+            } catch (e: Exception) {
+                _uiState.update { it.copy(error = e.message) }
+            }
+        }
+    }
+
+    fun dismissDeleteScope() {
+        _uiState.update { it.copy(pendingDeleteTask = null) }
     }
 }
 

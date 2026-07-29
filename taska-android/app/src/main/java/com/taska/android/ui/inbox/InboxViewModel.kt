@@ -2,9 +2,11 @@ package com.taska.android.ui.inbox
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.taska.android.data.api.RetrofitClient
 import com.taska.android.data.model.LabelDto
 import com.taska.android.data.model.TaskDto
+import com.taska.android.data.repository.LabelRepository
+import com.taska.android.data.repository.ProjectRepository
+import com.taska.android.data.repository.TaskRepository
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -19,7 +21,13 @@ data class InboxUiState(
     val error: String? = null
 )
 
-class InboxViewModel : ViewModel() {
+class InboxViewModel(
+    private val taskRepo: TaskRepository,
+    private val projectRepo: ProjectRepository,
+    private val labelRepo: LabelRepository,
+) : ViewModel() {
+
+    constructor() : this(TaskRepository(), ProjectRepository(), LabelRepository())
 
     private val _uiState = MutableStateFlow(InboxUiState())
     val uiState: StateFlow<InboxUiState> = _uiState.asStateFlow()
@@ -32,8 +40,8 @@ class InboxViewModel : ViewModel() {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, error = null) }
             try {
-                val projectsDeferred = async { RetrofitClient.api.getProjects() }
-                val labelsDeferred = async { RetrofitClient.api.getLabels() }
+                val projectsDeferred = async { projectRepo.getProjects() }
+                val labelsDeferred = async { labelRepo.getLabels() }
 
                 val projects = projectsDeferred.await()
                 val labelsList = labelsDeferred.await()
@@ -41,7 +49,7 @@ class InboxViewModel : ViewModel() {
 
                 val inboxProject = projects.firstOrNull { it.isInboxProject == true }
                 val tasks = if (inboxProject != null) {
-                    RetrofitClient.api.getTasks(projectId = inboxProject.id)
+                    taskRepo.getTasks(projectId = inboxProject.id)
                 } else {
                     emptyList()
                 }
@@ -58,7 +66,7 @@ class InboxViewModel : ViewModel() {
     fun closeTask(taskId: String) {
         viewModelScope.launch {
             try {
-                RetrofitClient.api.closeTask(taskId)
+                taskRepo.closeTask(taskId)
                 _uiState.update { state ->
                     state.copy(tasks = state.tasks.filter { it.id != taskId })
                 }

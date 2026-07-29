@@ -17,6 +17,12 @@ public class VersionController {
         VERSION = (appVersion != null && !appVersion.isBlank()) ? appVersion : "develop";
     }
 
+    /**
+     * Returns the running application version. The version is read once at startup from the
+     * {@code APP_VERSION} environment variable, falling back to {@code "develop"} when unset.
+     *
+     * @return a single-entry map {@code {"version": "<version string>"}}
+     */
     @GetMapping
     public Map<String, String> version() {
         return Map.of("version", VERSION);

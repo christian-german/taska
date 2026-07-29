@@ -18,6 +18,12 @@ public class RegisterDeviceController {
 
     private final DeviceTokenRepository deviceTokenRepository;
 
+    /**
+     * Registers a device token for push notifications. If the token already exists it is
+     * upserted rather than duplicated. Returns HTTP 200 on success.
+     *
+     * @param req the registration payload containing the FCM device token
+     */
     @PostMapping
     public void registerDevice(@Valid @RequestBody RegisterDeviceRequest req) {
         log.debug("Registering device token: {}", req.token());

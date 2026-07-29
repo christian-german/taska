@@ -23,6 +23,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -49,17 +50,19 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.taska.android.data.model.ProjectDto
+import com.taska.android.data.model.RecurrenceScope
 import com.taska.android.data.model.TaskDto
+import com.taska.android.ui.shared.RecurrenceScopeDialog
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
 import kotlin.math.abs
 import kotlin.math.roundToInt
 
-private val AppBackground = Color(0xFFEAE5DC)
-private val TextPrimary = Color(0xFF1A1A1A)
-private val TextSecondary = Color(0xFF9A9A9A)
-private val DividerColor = Color(0xFFD5D0C8)
+private val AppBackground = Color(0xFFF6F8FA)
+private val TextPrimary = Color(0xFF17233D)
+private val TextSecondary = Color(0xFF78828F)
+private val DividerColor = Color(0xFFD9E1E8)
 private val TaskBlockDefault = Color(0xFF5B7FA6)
 private val CurrentTimeRed = Color(0xFFDD4433)
 
@@ -74,7 +77,7 @@ private data class BlockDragState(val blockId: String, val mode: DragMode, val d
 @Composable
 fun WeekScreen(
     viewModel: WeekViewModel,
-    onTaskClick: (String) -> Unit,
+    onTaskClick: (taskId: String, scheduledAt: String?) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -102,7 +105,7 @@ fun WeekScreen(
 
     Column(
         modifier = modifier
-            .background(AppBackground)
+            .background(MaterialTheme.colorScheme.background)
             .statusBarsPadding()
             .pointerInput(viewModel) {
                 val edgePx = 60.dp.toPx()
@@ -155,7 +158,7 @@ fun WeekScreen(
                     projects = uiState.projects,
                     currentMinutes = if (isToday) currentMinutes else -1,
                     onTaskClick = onTaskClick,
-                    onReschedule = viewModel::rescheduleTask,
+                    onReschedule = viewModel::requestRescheduleTask,
                     modifier = Modifier.weight(1f)
                 )
                 if (index < 6) {
@@ -163,6 +166,15 @@ fun WeekScreen(
                 }
             }
         }
+    }
+
+    uiState.pendingReschedule?.let {
+        RecurrenceScopeDialog(
+            title = "Déplacer la récurrence",
+            onThisOnly = { viewModel.confirmRescheduleTask(RecurrenceScope.THIS_ONLY) },
+            onFromThis = { viewModel.confirmRescheduleTask(RecurrenceScope.FROM_THIS) },
+            onDismiss = { viewModel.dismissRescheduleScope() }
+        )
     }
 }
 
@@ -179,7 +191,7 @@ private fun TimeGutter() {
                 style = TextStyle(
                     fontSize = 9.sp,
                     color = TextSecondary,
-                    fontFamily = FontFamily.Monospace
+                    fontFamily = com.taska.android.ui.theme.Archivo
                 )
             )
         }
@@ -192,7 +204,7 @@ private fun WeekHeader(
     allDayTasksByDay: List<List<TaskDto>>,
     projects: Map<String, ProjectDto>,
     todayStr: String,
-    onTaskClick: (String) -> Unit
+    onTaskClick: (taskId: String, scheduledAt: String?) -> Unit
 ) {
     if (weekDays.isEmpty()) {
         Spacer(modifier = Modifier.height(60.dp))
@@ -205,7 +217,7 @@ private fun WeekHeader(
             text = buildWeekLabel(weekDays),
             modifier = Modifier.padding(start = TIME_GUTTER_W + 4.dp, top = 6.dp, bottom = 2.dp),
             style = TextStyle(
-                fontFamily = FontFamily.Serif,
+                fontFamily = com.taska.android.ui.theme.Archivo,
                 fontStyle = FontStyle.Italic,
                 fontSize = 18.sp,
                 color = TextPrimary
@@ -226,7 +238,7 @@ private fun WeekHeader(
                         style = TextStyle(
                             fontSize = 9.sp,
                             color = if (isToday) TextPrimary else TextSecondary,
-                            fontFamily = FontFamily.Monospace,
+                            fontFamily = com.taska.android.ui.theme.Archivo,
                             fontWeight = if (isToday) FontWeight.Bold else FontWeight.Normal
                         )
                     )
@@ -275,7 +287,7 @@ private fun WeekHeader(
                                 .padding(bottom = 1.dp)
                                 .clip(RoundedCornerShape(2.dp))
                                 .background(color.copy(alpha = 0.85f))
-                                .clickable { onTaskClick(task.id) }
+                                .clickable { onTaskClick(task.id, task.scheduledAt) }
                                 .padding(horizontal = 2.dp, vertical = 1.dp)
                         ) {
                             Text(
@@ -305,8 +317,8 @@ private fun DayColumn(
     blocks: List<TaskBlock>,
     projects: Map<String, ProjectDto>,
     currentMinutes: Int,
-    onTaskClick: (String) -> Unit,
-    onReschedule: (taskId: String, newDueAt: String, newEstimateMinutes: Int) -> Unit,
+    onTaskClick: (taskId: String, scheduledAt: String?) -> Unit,
+    onReschedule: (task: TaskDto, newDueAt: String, newEstimateMinutes: Int) -> Unit,
     modifier: Modifier = Modifier
 ) {
     var dragState by remember { mutableStateOf<BlockDragState?>(null) }
@@ -384,7 +396,7 @@ private fun DayColumn(
                     .height(blockH)
                     .clip(RoundedCornerShape(3.dp))
                     .background(blockColor.copy(alpha = if (isDragging) 0.95f else 0.85f))
-                    .clickable { onTaskClick(block.task.id) }
+                    .clickable { onTaskClick(block.task.id, block.task.scheduledAt) }
                     .pointerInput(block.task.id) {
                         detectDragGesturesAfterLongPress(
                             onDragStart = { startOffset ->
@@ -421,7 +433,7 @@ private fun DayColumn(
                                             formatDueAt(day, block.startMin) to (newEnd - block.startMin)
                                         }
                                     }
-                                    onReschedule(block.task.id, newDueAt, newDuration.coerceAtLeast(15))
+                                    onReschedule(block.task, newDueAt, newDuration.coerceAtLeast(15))
                                 }
                                 dragState = null
                             },

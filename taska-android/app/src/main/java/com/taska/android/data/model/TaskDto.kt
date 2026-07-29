@@ -16,8 +16,13 @@ data class TaskDto(
     val dueAt: String?,
     val allDay: Boolean = false,
     @SerializedName("isRecurring") val isRecurring: Boolean?,
+    val recurrenceRule: String? = null,
     val estimateMinutes: Int?,
     val createdAt: String?,
     val updatedAt: String?,
-    val completedAt: String?
+    val completedAt: String?,
+    val instanceId: String? = null,
+    val scheduledAt: String? = null,
+    @SerializedName("isVirtual") val isVirtual: Boolean? = null,
+    val rruleEndsAt: String? = null
 )

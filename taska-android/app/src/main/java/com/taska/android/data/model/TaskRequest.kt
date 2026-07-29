@@ -9,5 +9,9 @@ data class TaskRequest(
     val labels: List<String>? = null,
     val dueAt: String? = null,
     val allDay: Boolean? = null,
-    val estimateMinutes: Int? = null
+    val estimateMinutes: Int? = null,
+    val isRecurring: Boolean? = null,
+    val recurrenceRule: String? = null,
+    val scope: String? = null,
+    val scheduledAt: String? = null
 )

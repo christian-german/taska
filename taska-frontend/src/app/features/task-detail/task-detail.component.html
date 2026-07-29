@@ -35,7 +35,7 @@
         @if (currentProject(); as p) {
           <span style="display: inline-flex; align-items: center; gap: 5px; font-size: 13px;">
             <app-icon name="folder" [size]="13" [color]="getColor(p.color)" />
-            <span style="font-family: Caveat; font-size: 17px;">{{ p.name }}</span>
+            <span style="font-size: 17px; font-weight: 700;">{{ p.name }}</span>
           </span>
         } @else {
           <span class="mono" style="color: var(--mute); font-size: 12px;">Inbox</span>
@@ -225,9 +225,9 @@
             @for (opt of RECURRENCE_OPTIONS; track opt.value) {
               <div style="padding: 8px 12px; border-radius: 6px; cursor: pointer; font-size: 13px;
                           display: flex; align-items: center; gap: 8px;"
-                   [style.background]="(task().recurrenceRule ?? '') === opt.value ? 'var(--bg-3)' : 'transparent'"
+                   [style.background]="activeRecurrenceKey() === opt.value ? 'var(--bg-3)' : 'transparent'"
                    (click)="selectRecurrence(opt.value, $event)">
-                @if ((task().recurrenceRule ?? '') === opt.value) {
+                @if (activeRecurrenceKey() === opt.value) {
                   <app-icon name="check" [size]="12" color="var(--accent)" />
                 } @else {
                   <span style="width: 12px;"></span>
@@ -279,7 +279,7 @@
             [size]="16"
             (toggled)="toggleSubtask(s)" />
           <span [style.font-size.px]="14"
-                style="font-family: Caveat;"
+                style="font-weight: 400;"
                 [style.color]="s.isCompleted ? 'var(--mute)' : 'var(--ink)'"
                 [style.text-decoration]="s.isCompleted ? 'line-through' : 'none'">
             {{ s.content }}
@@ -336,4 +336,18 @@
     message="Cette action est définitive et ne peut pas être annulée."
     (confirmed)="confirmDelete()"
     (cancelled)="showDeleteConfirm.set(false)" />
+}
+
+@if (showDeleteScopeDialog()) {
+  <app-recurrence-scope-dialog
+    title="Supprimer la récurrence"
+    (selected)="onDeleteScope($event)"
+    (cancelled)="showDeleteScopeDialog.set(false)" />
+}
+
+@if (showModifyScopeDialog()) {
+  <app-recurrence-scope-dialog
+    title="Modifier la récurrence"
+    (selected)="onModifyScope($event)"
+    (cancelled)="showModifyScopeDialog.set(false)" />
 }

@@ -25,6 +25,12 @@ public class TaskNotificationScheduler {
     private final TaskRepository taskRepository;
     private final DeviceTokenRepository deviceTokenRepository;
 
+    /**
+     * Scheduled job that runs at the configured interval to identify tasks due in approximately
+     * 15 minutes and send Firebase Cloud Messaging push notifications to all registered devices.
+     * Each notified task is flagged with {@code isNotified = true} to prevent duplicate alerts.
+     * The job is a no-op when no device tokens are registered.
+     */
     @Scheduled(fixedDelayString = "${taska.notification.scheduler-delay}")
     public void checkUpcomingTasks() {
         log.debug("Checking for upcoming tasks to notify");
@@ -47,6 +53,16 @@ public class TaskNotificationScheduler {
         }
     }
 
+    /**
+     * Sends a Firebase Cloud Messaging data message to a single device token.
+     * The message carries the task ID, title, and body as data payload fields so the
+     * client can display a local notification with the correct content.
+     *
+     * @param token the FCM device token to target
+     * @param title the notification title text
+     * @param body  the notification body text
+     * @param task  the task being notified (used for logging and for the task_id data field)
+     */
     private void sendNotification(String token, String title, String body, Task task) {
         log.debug("Sending notification for task {} to device token {}", task.getId(), token);
         Message message = Message.builder()

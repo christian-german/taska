@@ -14,7 +14,7 @@ android {
 
     defaultConfig {
         applicationId = "com.taska.android"
-        minSdk = 24
+        minSdk = 26
         targetSdk = 36
         versionCode = (project.findProperty("versionCode") as String?)?.toInt() ?: 1
         versionName = project.findProperty("versionName") as String? ?: "1.0"
@@ -106,6 +106,8 @@ dependencies {
     implementation("com.auth0.android:jwtdecode:2.0.2")
     implementation("com.squareup.okhttp3:logging-interceptor:4.12.0")
     testImplementation(libs.junit)
+    testImplementation(libs.mockk)
+    testImplementation(libs.kotlinx.coroutines.test)
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
     androidTestImplementation(libs.androidx.espresso.core)

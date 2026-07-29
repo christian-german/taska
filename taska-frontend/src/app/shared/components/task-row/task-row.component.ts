@@ -10,6 +10,17 @@ import {
   signal,
   ChangeDetectionStrategy
 } from '@angular/core';
+
+const RRULE_LABELS: Record<string, string> = {
+  'daily': 'quotidien', 'freq=daily': 'quotidien',
+  'weekly': 'hebdomadaire', 'freq=weekly': 'hebdomadaire',
+  'monthly': 'mensuel', 'freq=monthly': 'mensuel',
+  'yearly': 'annuel', 'freq=yearly': 'annuel',
+};
+function rruleToLabel(rule: string | null | undefined): string {
+  if (!rule) return 'récurrente';
+  return RRULE_LABELS[rule.toLowerCase()] ?? rule;
+}
 import { FormsModule } from '@angular/forms';
 import { toSignal } from '@angular/core/rxjs-interop';
 import {
@@ -65,7 +76,7 @@ import { CheckboxComponent, PriorityFlagComponent, ProjectDotComponent, TagChipC
           @if (suggested()) {
             <span class="chip"
                   style="background: rgba(255, 216, 77, 0.25); color: #8A6F00; font-size: 10.5px;
-                         font-family: 'JetBrains Mono', monospace; display: inline-flex;
+                         font-family: inherit; display: inline-flex;
                          align-items: center; gap: 3px;">
               <app-icon name="zap" [size]="10" /> suggéré
             </span>
@@ -94,19 +105,19 @@ import { CheckboxComponent, PriorityFlagComponent, ProjectDotComponent, TagChipC
               <span class="mono"
                     style="display: inline-flex; align-items: center; gap: 3px; color: var(--mute); font-size: 11px;">
                 <app-icon name="repeat" [size]="10" />
-                {{ task().recurrenceRule || 'récurrente' }}
+                {{ recurrenceLabel() }}
               </span>
             }
             @if (project(); as p) {
               <span style="display: inline-flex; align-items: center; gap: 4px; font-size: 11.5px; color: var(--ink-2);">
                 <app-project-dot [color]="getColor(p.color)" [size]="7" />
-                <span style="font-family: Caveat, cursive; font-size: 14px;">{{ p.name }}</span>
+                <span style="font-weight: 700; font-size: 14px;">{{ p.name }}</span>
               </span>
             }
             @if (task().mentionContext) {
               <span class="chip"
                     style="background: rgba(255, 94, 125, 0.15); color: #B22F4E;
-                           font-family: 'JetBrains Mono', monospace; font-size: 10.5px;">
+                           font-family: inherit; font-size: 10.5px;">
                 &#64;{{ task().mentionContext }}
               </span>
             }
@@ -151,6 +162,7 @@ export class TaskRowComponent {
   });
 
   estimateLabel = computed(() => fmtEstimate(this.task().estimateMinutes ?? null));
+  recurrenceLabel = computed(() => rruleToLabel(this.task().recurrenceRule));
 
   hasMeta = computed(() => {
     const t = this.task();

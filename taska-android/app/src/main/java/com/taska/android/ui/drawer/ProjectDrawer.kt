@@ -29,6 +29,7 @@ import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ModalNavigationDrawer
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
@@ -48,15 +49,16 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.taska.android.ui.theme.frostedChrome
 import com.taska.android.data.model.ProjectDto
 import kotlinx.coroutines.launch
 import kotlin.math.abs
 
-private val DrawerBg = Color(0xFFEAE5DC)
-private val TextPrimary = Color(0xFF1A1A1A)
-private val TextSecondary = Color(0xFF9A9A9A)
-private val OrangeAccent = Color(0xFFE8763A)
-private val DividerColor = Color(0xFFD5D0C8)
+private val DrawerBg = Color(0xFFF6F8FA)
+private val TextPrimary = Color(0xFF17233D)
+private val TextSecondary = Color(0xFF78828F)
+private val OrangeAccent = Color(0xFF14B37D)
+private val DividerColor = Color(0xFFD9E1E8)
 
 @Composable
 fun WithDrawer(
@@ -133,8 +135,7 @@ private fun ProjectDrawer(
         modifier = Modifier
             .fillMaxHeight()
             .fillMaxWidth(0.85f)
-            .clip(RoundedCornerShape(topEnd = 0.dp, bottomEnd = 0.dp))
-            .background(DrawerBg)
+            .frostedChrome()
             .statusBarsPadding()
             .pointerInput(Unit) {
                 val minSwipePx = 80.dp.toPx()
@@ -171,7 +172,7 @@ private fun ProjectDrawer(
                 Text(
                     text = "taska",
                     style = TextStyle(
-                        fontFamily = FontFamily.Serif,
+                        fontFamily = com.taska.android.ui.theme.Archivo,
                         fontStyle = FontStyle.Italic,
                         fontSize = 26.sp,
                         fontWeight = FontWeight.Normal,
@@ -181,7 +182,7 @@ private fun ProjectDrawer(
                 Text(
                     text = "_",
                     style = TextStyle(
-                        fontFamily = FontFamily.Serif,
+                        fontFamily = com.taska.android.ui.theme.Archivo,
                         fontStyle = FontStyle.Italic,
                         fontSize = 26.sp,
                         color = OrangeAccent
@@ -230,7 +231,7 @@ private fun ProjectDrawer(
                 text = "PROJETS",
                 modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 4.dp),
                 style = TextStyle(
-                    fontFamily = FontFamily.Monospace,
+                    fontFamily = com.taska.android.ui.theme.Archivo,
                     fontSize = 11.sp,
                     color = TextSecondary,
                     letterSpacing = 1.sp,

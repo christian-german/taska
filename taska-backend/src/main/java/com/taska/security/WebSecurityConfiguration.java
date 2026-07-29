@@ -28,6 +28,14 @@ public class WebSecurityConfiguration {
 
     private final OAuth2ResourceServerProperties oAuth2ResourceServerProperties;
 
+    /**
+     * Configures the main security filter chain. CSRF is disabled (stateless API), CORS is
+     * enabled with default settings, sessions are never created, and all endpoints require an
+     * authenticated OAuth2 JWT except {@code /public/**} and the actuator health check.
+     *
+     * @param http the {@link HttpSecurity} builder
+     * @return the configured {@link SecurityFilterChain}
+     */
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) {
         http
@@ -37,6 +45,7 @@ public class WebSecurityConfiguration {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/public/**").permitAll()
                         .requestMatchers("/actuator/health/**").permitAll()
+                        .requestMatchers("/mcp/**").authenticated()
                         .anyRequest().authenticated()
                 )
                 .oauth2ResourceServer(oauth2 -> oauth2
@@ -47,6 +56,13 @@ public class WebSecurityConfiguration {
         return http.build();
     }
 
+    /**
+     * Configures CORS to allow all origins, methods, and headers on every endpoint.
+     * This is intentionally permissive; restrict in production if the API is not intended to be
+     * publicly accessible from any origin.
+     *
+     * @return a {@link WebMvcConfigurer} that registers the CORS mapping
+     */
     @Bean
     public WebMvcConfigurer corsConfigurer() {
 

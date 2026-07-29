@@ -26,6 +26,7 @@ import com.taska.android.auth.AuthConfig
 import com.taska.android.auth.LoginActivity
 import com.taska.android.data.api.RetrofitClient
 import com.taska.android.data.model.RegisterDeviceRequest
+import com.taska.android.data.repository.DeviceRepository
 import com.taska.android.ui.addtask.AddTaskBottomSheet
 import com.taska.android.ui.addtask.AddTaskViewModel
 import com.taska.android.ui.drawer.WithDrawer
@@ -69,7 +70,7 @@ class TodayActivity : ComponentActivity() {
             val token = task.result
             Log.d("FCM", "Token: $token")
             lifecycleScope.launch {
-                RetrofitClient.api.registerDevice(RegisterDeviceRequest(token))
+                DeviceRepository().registerDevice(RegisterDeviceRequest(token))
             }
         }
 
@@ -127,10 +128,11 @@ private fun TodayRoot(todayViewModel: TodayViewModel, onNavigate: (NavDestinatio
     Column(modifier = Modifier.fillMaxSize()) {
         TodayScreen(
             viewModel = todayViewModel,
-            onTaskClick = { taskId ->
+            onTaskClick = { taskId, scheduledAt ->
                 context.startActivity(
                     Intent(context, TaskDetailActivity::class.java).apply {
                         putExtra("task_id", taskId)
+                        scheduledAt?.let { putExtra("scheduled_at", it) }
                     }
                 )
             },

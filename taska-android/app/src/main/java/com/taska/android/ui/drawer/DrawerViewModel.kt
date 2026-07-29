@@ -2,8 +2,8 @@ package com.taska.android.ui.drawer
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.taska.android.data.api.RetrofitClient
 import com.taska.android.data.model.ProjectDto
+import com.taska.android.data.repository.ProjectRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -16,7 +16,11 @@ data class DrawerUiState(
     val isLoading: Boolean = false
 )
 
-class DrawerViewModel : ViewModel() {
+class DrawerViewModel(
+    private val projectRepo: ProjectRepository,
+) : ViewModel() {
+
+    constructor() : this(ProjectRepository())
 
     private val _uiState = MutableStateFlow(DrawerUiState())
     val uiState: StateFlow<DrawerUiState> = _uiState.asStateFlow()
@@ -29,7 +33,7 @@ class DrawerViewModel : ViewModel() {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
             try {
-                val projects = RetrofitClient.api.getProjects()
+                val projects = projectRepo.getProjects()
                     .filter { it.isInboxProject != true }
                     .sortedBy { it.order }
                 _uiState.update {

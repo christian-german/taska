@@ -16,6 +16,10 @@ import { PageHeaderComponent } from '../../shared/components/page-header/page-he
 import { EmptyStateComponent } from '../../shared/components/atoms/atoms.component';
 import { IconComponent } from '../../shared/components/icon/icon.component';
 
+function todayISO(): string {
+  return new Date().toISOString().slice(0, 10);
+}
+
 @Component({
   selector: 'app-today',
   imports: [TaskListComponent, PageHeaderComponent, EmptyStateComponent, IconComponent],
@@ -131,42 +135,23 @@ export class TodayComponent implements OnInit {
     this.ui.taskDeleted$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(id => {
       this.tasks.update(list => list.filter(t => t.id !== id));
     });
-    this.ui.taskUpdated$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(task => {
-      this.tasks.update(list => {
-        const today = new Date();
-        const tomorrow = new Date(today);
-        tomorrow.setDate(tomorrow.getDate() + 1);
-        const qualifies = !task.isCompleted && !!task.dueAt && (
-          isOverdue(task) ||
-          sameDay(new Date(task.dueAt), today) ||
-          sameDay(new Date(task.dueAt), tomorrow)
-        );
-        const inList = list.some(t => t.id === task.id);
-        if (inList && qualifies) return list.map(t => t.id === task.id ? task : t);
-        if (inList && !qualifies) return list.filter(t => t.id !== task.id);
-        if (!inList && qualifies) return [...list, task];
-        return list;
-      });
-    });
+    this.ui.taskUpdated$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => this.refresh());
   }
 
   private refresh(): void {
-    this.taskService.getTasks({ showCompleted: false }).subscribe(tasks => {
-      const today = new Date();
-      const tomorrow = new Date(today);
-      tomorrow.setDate(tomorrow.getDate() + 1);
-      this.tasks.set(tasks.filter(t =>
-        !!t.dueAt && (
-          isOverdue(t) ||
-          sameDay(new Date(t.dueAt), today) ||
-          sameDay(new Date(t.dueAt), tomorrow)
-        )
-      ));
-    });
+    const today = new Date();
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const from = todayISO();
+    const to = tomorrow.toISOString().slice(0, 10);
+    this.taskService.getTasks({ from, to }).subscribe(tasks => this.tasks.set(tasks));
   }
 
   onToggle(t: Task): void {
-    const op = t.isCompleted ? this.taskService.reopenTask(t.id) : this.taskService.closeTask(t.id);
+    const scheduledAt = t.scheduledAt ?? undefined;
+    const op = t.isCompleted
+      ? this.taskService.reopenTask(t.id, scheduledAt)
+      : this.taskService.closeTask(t.id, scheduledAt);
     op.subscribe(() => this.refresh());
   }
 
@@ -175,15 +160,12 @@ export class TodayComponent implements OnInit {
   }
 
   onUpdate(payload: { id: string; patch: Partial<Task> }): void {
-    this.taskService.updateTask(payload.id, payload.patch).subscribe(updated => {
-      this.tasks.update(list => list.map(x => x.id === updated.id ? updated : x));
-    });
+    this.taskService.updateTask(payload.id, payload.patch).subscribe(() => this.refresh());
   }
 
   private sortTasks(arr: Task[]): Task[] {
     return [...arr].sort((a, b) => {
       if (a.isCompleted !== b.isCompleted) return a.isCompleted ? 1 : -1;
-      // Higher internal priority = higher importance, so descending
       if (a.priority !== b.priority) return b.priority - a.priority;
       if (a.dueAt && b.dueAt) return a.dueAt.localeCompare(b.dueAt);
       return 0;

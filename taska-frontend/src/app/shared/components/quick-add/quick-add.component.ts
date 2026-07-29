@@ -25,11 +25,22 @@ const ESTIMATE_PRESETS = [
   { minutes: 180, label: '3h' },   { minutes: 240, label: '4h' },
 ];
 
+const RRULE_LABELS: Record<string, string> = {
+  'daily': 'quotidien', 'freq=daily': 'quotidien',
+  'weekly': 'hebdomadaire', 'freq=weekly': 'hebdomadaire',
+  'monthly': 'mensuel', 'freq=monthly': 'mensuel',
+  'yearly': 'annuel', 'freq=yearly': 'annuel',
+};
+function rruleToLabel(rule: string): string | undefined {
+  return RRULE_LABELS[rule.toLowerCase()];
+}
+
 const RECURRENCE_OPTIONS = [
   { value: '', label: 'Ne se répète pas', icon: 'x' },
   { value: 'daily', label: 'Quotidien', icon: 'repeat' },
   { value: 'weekly', label: 'Hebdomadaire', icon: 'repeat' },
   { value: 'monthly', label: 'Mensuel', icon: 'repeat' },
+  { value: 'yearly', label: 'Annuel', icon: 'repeat' },
 ] as const;
 
 
@@ -49,7 +60,7 @@ const RECURRENCE_OPTIONS = [
           <div style="position:relative;">
             <div aria-hidden="true"
                  style="position:absolute;inset:0;padding:10px 12px;
-                        font-family:'Caveat',cursive;font-size:22px;line-height:32px;
+                        font-family:inherit;font-size:22px;line-height:32px;font-weight:700;
                         color:var(--ink);white-space:pre-wrap;word-break:break-word;pointer-events:none;">
               @if (input(); as txt) {
                 @for (seg of segments(); track $index) {
@@ -65,7 +76,7 @@ const RECURRENCE_OPTIONS = [
                    (keydown.enter)="$event.preventDefault(); submit()"
                    (keydown.escape)="close.emit()"
                    style="width:100%;padding:10px 12px;
-                          font-family:'Caveat',cursive;font-size:22px;line-height:32px;
+                          font-family:inherit;font-size:22px;line-height:32px;font-weight:700;
                           background:transparent;border:0;outline:none;
                           color:transparent;caret-color:var(--ink);position:relative;z-index:2;" />
           </div>
@@ -559,11 +570,8 @@ export class QuickAddComponent implements OnInit {
   }
 
   recurrenceRowLabel(): string {
-    const map: Record<string, string> = {
-      daily: 'quotidien', weekly: 'hebdomadaire', monthly: 'mensuel',
-    };
     const r = this.effectiveRecurrence();
-    return r ? (map[r] ?? r) : 'ne se répète pas';
+    return r ? (rruleToLabel(r) ?? r) : 'ne se répète pas';
   }
 
   // ── Submit ────────────────────────────────────────────────────────────
@@ -588,7 +596,7 @@ export class QuickAddComponent implements OnInit {
       content: p.title,
       projectId: this.effectiveProjectId() ?? undefined,
       labels: this.effectiveTags(),
-      priority: p.priority ?? 1,
+      priority: p.priority ?? 4,
       dueAt,
       allDay,
       mentionContext: p.context,

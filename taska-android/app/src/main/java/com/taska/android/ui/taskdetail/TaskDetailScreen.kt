@@ -41,6 +41,7 @@ import androidx.compose.material.icons.outlined.FolderOpen
 import androidx.compose.material.icons.outlined.Label
 import androidx.compose.material.icons.outlined.MoreVert
 import androidx.compose.material.icons.outlined.Notifications
+import androidx.compose.material.icons.outlined.Repeat
 import androidx.compose.material.icons.outlined.PlayArrow
 import androidx.compose.material.icons.outlined.Schedule
 import androidx.compose.material.icons.outlined.Timer
@@ -59,6 +60,7 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TimePicker
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
@@ -89,20 +91,24 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import com.taska.android.data.model.LabelDto
 import com.taska.android.data.model.ProjectDto
+import com.taska.android.data.model.RecurrenceScope
 import com.taska.android.data.model.TaskDto
+import com.taska.android.ui.shared.RecurrenceScopeDialog
+import com.taska.android.ui.theme.frostedChrome
+import com.taska.android.ui.theme.opaqueWorkSurface
 import kotlinx.coroutines.delay
 import java.util.Calendar
 import java.util.Locale
 
-private val AppBackground = Color(0xFFEAE5DC)
-private val TextPrimary = Color(0xFF1A1A1A)
-private val TextSecondary = Color(0xFF9A9A9A)
+private val AppBackground = Color(0xFFF6F8FA)
+private val TextPrimary = Color(0xFF17233D)
+private val TextSecondary = Color(0xFF78828F)
 private val OverdueColor = Color(0xFFDD4433)
-private val DividerColor = Color(0xFFD5D0C8)
-private val Orange = Color(0xFFE8763A)
-private val GreenDone = Color(0xFF4CAF50)
+private val DividerColor = Color(0xFFD9E1E8)
+private val Orange = Color(0xFF17233D)
+private val GreenDone = Color(0xFF14B37D)
 
-private enum class ActivePicker { DATE, CALENDAR, TIME, PROJECT, DURATION, LABELS, PRIORITY }
+private enum class ActivePicker { DATE, CALENDAR, TIME, PROJECT, DURATION, LABELS, PRIORITY, RECURRENCE }
 
 @Composable
 fun TaskDetailScreen(
@@ -117,11 +123,12 @@ fun TaskDetailScreen(
     var descEdit by remember(task?.description) { mutableStateOf(task?.description ?: "") }
     var activePicker by remember { mutableStateOf<ActivePicker?>(null) }
     var showDeleteConfirm by remember { mutableStateOf(false) }
+    var pendingDateMillis by remember { mutableStateOf<Long?>(null) }
 
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(AppBackground)
+            .background(MaterialTheme.colorScheme.background)
             .statusBarsPadding()
     ) {
         TopBar(onClose = onClose, onDeleteClick = { showDeleteConfirm = true })
@@ -181,7 +188,7 @@ fun TaskDetailScreen(
         ActivePicker.DATE -> DateShortcutsDialog(
             hasDue = task?.dueAt != null,
             onSelect = { millis ->
-                viewModel.rescheduleAllDay(millis)
+                pendingDateMillis = millis
                 activePicker = ActivePicker.TIME
             },
             onOpenCalendar = { activePicker = ActivePicker.CALENDAR },
@@ -196,9 +203,7 @@ fun TaskDetailScreen(
                 onDismissRequest = { activePicker = null },
                 confirmButton = {
                     TextButton(onClick = {
-                        datePickerState.selectedDateMillis?.let {
-                            viewModel.rescheduleAllDay(it)
-                        }
+                        datePickerState.selectedDateMillis?.let { pendingDateMillis = it }
                         activePicker = ActivePicker.TIME
                     }) { Text("OK") }
                 },
@@ -220,16 +225,16 @@ fun TaskDetailScreen(
                 initialMinute = initialMinute,
                 is24Hour = true
             )
+            val dateMillis = pendingDateMillis ?: viewModel.dueAtToMillis()
             TimePickerDialog(
                 onConfirm = {
-                    viewModel.rescheduleWithTime(
-                        viewModel.dueAtToMillis(),
-                        timeState.hour,
-                        timeState.minute
-                    )
+                    viewModel.requestRescheduleWithTime(dateMillis, timeState.hour, timeState.minute)
                     activePicker = null
                 },
-                onAllDay = { activePicker = null },
+                onAllDay = {
+                    viewModel.requestRescheduleAllDay(dateMillis)
+                    activePicker = null
+                },
                 onDismiss = { activePicker = null }
             ) {
                 TimePicker(state = timeState)
@@ -269,6 +274,14 @@ fun TaskDetailScreen(
             },
             onDismiss = { activePicker = null }
         )
+        ActivePicker.RECURRENCE -> RecurrencePickerDialog(
+            currentRule = task?.recurrenceRule,
+            onSelect = { rule ->
+                viewModel.updateRecurrence(rule)
+                activePicker = null
+            },
+            onDismiss = { activePicker = null }
+        )
         null -> {}
     }
 
@@ -276,6 +289,15 @@ fun TaskDetailScreen(
         DeleteConfirmDialog(
             onConfirm = { viewModel.deleteTask(onClose) },
             onDismiss = { showDeleteConfirm = false }
+        )
+    }
+
+    state.pendingReschedule?.let {
+        RecurrenceScopeDialog(
+            title = "Modifier l'échéance",
+            onThisOnly = { viewModel.confirmReschedule(RecurrenceScope.THIS_ONLY) },
+            onFromThis = { viewModel.confirmReschedule(RecurrenceScope.FROM_THIS) },
+            onDismiss = { viewModel.dismissRescheduleScope() }
         )
     }
 }
@@ -322,7 +344,7 @@ private fun TaskContent(
     val taskLabels = task.labels?.filter { it.isNotBlank() }.orEmpty()
 
     LazyColumn(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier.fillMaxSize().opaqueWorkSurface(),
         contentPadding = PaddingValues(bottom = 16.dp)
     ) {
         // Title
@@ -348,7 +370,7 @@ private fun TaskContent(
                         .fillMaxWidth()
                         .onFocusChanged { if (!it.hasFocus) onTitleSave() },
                     textStyle = TextStyle(
-                        fontFamily = FontFamily.Serif,
+                        fontFamily = com.taska.android.ui.theme.Archivo,
                         fontStyle = FontStyle.Italic,
                         fontSize = 28.sp,
                         fontWeight = FontWeight.Normal,
@@ -399,6 +421,17 @@ private fun TaskContent(
                 value = task.dueAt?.let { formatDueDate(it, task.allDay) },
                 valueColor = if (isOverdue(task.dueAt, task.allDay)) OverdueColor else TextPrimary,
                 onClick = { onPropertyClick(ActivePicker.DATE) }
+            )
+            HorizontalDivider(color = DividerColor)
+        }
+
+        // RÉPÉTITION
+        item {
+            PropertyRow(
+                icon = Icons.Outlined.Repeat,
+                label = "RÉPÉTITION",
+                value = recurrenceLabel(task.recurrenceRule),
+                onClick = { onPropertyClick(ActivePicker.RECURRENCE) }
             )
             HorizontalDivider(color = DividerColor)
         }
@@ -477,7 +510,7 @@ private fun TaskContent(
             Text(
                 text = "SOUS-TÂCHES ($doneCount/${subtasks.size})",
                 style = TextStyle(
-                    fontFamily = FontFamily.Monospace,
+                    fontFamily = com.taska.android.ui.theme.Archivo,
                     fontSize = 11.sp,
                     letterSpacing = 0.8.sp,
                     color = TextSecondary
@@ -674,7 +707,7 @@ private fun BottomBar(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .background(Color.White)
+            .frostedChrome()
             .navigationBarsPadding()
             .padding(horizontal = 16.dp, vertical = 12.dp),
         horizontalArrangement = Arrangement.spacedBy(12.dp),
@@ -1147,6 +1180,65 @@ private fun nextSaturdayMillis(): Long {
         set(Calendar.HOUR_OF_DAY, 0); set(Calendar.MINUTE, 0)
         set(Calendar.SECOND, 0); set(Calendar.MILLISECOND, 0)
     }.timeInMillis
+}
+
+private fun recurrenceLabel(rule: String?): String? = when (rule?.uppercase()) {
+    null, "" -> null
+    "FREQ=DAILY"   -> "Quotidien"
+    "FREQ=WEEKLY"  -> "Hebdomadaire"
+    "FREQ=MONTHLY" -> "Mensuel"
+    "FREQ=YEARLY"  -> "Annuel"
+    else           -> rule
+}
+
+private val RECURRENCE_OPTIONS = listOf(
+    null        to "Pas de répétition",
+    "daily"     to "Quotidien",
+    "weekly"    to "Hebdomadaire",
+    "monthly"   to "Mensuel",
+    "yearly"    to "Annuel",
+)
+
+@Composable
+private fun RecurrencePickerDialog(
+    currentRule: String?,
+    onSelect: (String?) -> Unit,
+    onDismiss: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Répétition") },
+        text = {
+            Column {
+                RECURRENCE_OPTIONS.forEach { (value, label) ->
+                    val isSelected = when {
+                        value == null -> currentRule.isNullOrEmpty()
+                        else -> currentRule?.uppercase() == "FREQ=${value.uppercase()}"
+                    }
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { onSelect(value) }
+                            .padding(vertical = 12.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = label,
+                            style = TextStyle(
+                                fontSize = 15.sp,
+                                color = if (isSelected) Color(0xFFE07B39) else TextPrimary,
+                                fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal
+                            )
+                        )
+                    }
+                }
+            }
+        },
+        confirmButton = {},
+        dismissButton = {
+            TextButton(onClick = onDismiss) { Text("Annuler") }
+        }
+    )
 }
 
 private fun nextMondayMillis(): Long {

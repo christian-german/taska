@@ -9,14 +9,14 @@ import { ProjectDotComponent } from '../../shared/components/atoms/atoms.compone
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @if (data(); as s) {
-      <div class="scroll" style="flex: 1; overflow-y: auto; padding: 32px 40px;">
+      <div class="scroll stats-page" style="flex: 1; overflow-y: auto; padding: 32px 40px;">
         <div class="script" style="font-size: 36px; line-height: 1;">Stats</div>
         <div class="mono" style="font-size: 12px; color: var(--mute); margin-top: 6px;">
           {{ s.totalCompleted }} terminées · streak {{ s.streakDays }}j ·
           {{ s.byProject.length }} projets actifs
         </div>
 
-        <div style="display: grid; grid-template-columns: 1.4fr 1fr; gap: 24px; margin-top: 28px;">
+        <div class="stats-summary-grid" style="display: grid; grid-template-columns: 1.4fr 1fr; gap: 24px; margin-top: 28px;">
           <div style="background: var(--bg-2); border-radius: 14px; padding: 22px;">
             <div class="script" style="font-size: 22px;">Terminées (14 derniers jours)</div>
             <div style="display: flex; align-items: flex-end; gap: 6px; height: 180px; margin-top: 18px;">
@@ -25,7 +25,7 @@ import { ProjectDotComponent } from '../../shared/components/atoms/atoms.compone
                   <div style="flex: 1; display: flex; align-items: flex-end; width: 100%;">
                     <div [style.width.%]="100"
                          [style.height.%]="(d.count / barMax()) * 100"
-                         [style.background]="i === s.last14Days.length - 1 ? 'var(--orange)' : 'var(--ink)'"
+                         [style.background]="i === s.last14Days.length - 1 ? 'var(--accent)' : 'var(--navy-light)'"
                          style="border-radius: 4px; min-height: 2px; transition: height 0.4s ease;"
                          [title]="d.count + ' tâches'"></div>
                   </div>
@@ -38,7 +38,7 @@ import { ProjectDotComponent } from '../../shared/components/atoms/atoms.compone
           <div style="background: var(--bg-2); border-radius: 14px; padding: 22px;">
             <div class="script" style="font-size: 22px;">Streak</div>
             <div style="display: flex; align-items: baseline; gap: 6px; margin-top: 14px;">
-              <span class="script" style="font-size: 72px; line-height: 1; color: var(--orange);">{{ s.streakDays }}</span>
+              <span class="script" style="font-size: 72px; line-height: 1; color: var(--accent-ink);">{{ s.streakDays }}</span>
               <span class="mono" style="font-size: 12px; color: var(--mute);">jours d'affilée</span>
             </div>
           </div>
@@ -66,16 +66,16 @@ import { ProjectDotComponent } from '../../shared/components/atoms/atoms.compone
           </div>
         </div>
 
-        <div style="margin-top: 24px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;">
+        <div class="stats-metrics-grid" style="margin-top: 24px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;">
           <div style="background: var(--bg-2); border-radius: 14px; padding: 18px;">
-            <div class="script" style="font-size: 36px; color: #FF8A3D; line-height: 1;">{{ s.completedThisWeek }}</div>
+            <div class="script" style="font-size: 36px; color: var(--accent-ink); line-height: 1;">{{ s.completedThisWeek }}</div>
             <div class="mono" style="font-size: 11px; color: var(--mute); margin-top: 6px;
                                      text-transform: uppercase; letter-spacing: .08em;">
               Terminées cette semaine
             </div>
           </div>
           <div style="background: var(--bg-2); border-radius: 14px; padding: 18px;">
-            <div class="script" style="font-size: 36px; color: #3AA3FF; line-height: 1;">
+            <div class="script" style="font-size: 36px; color: var(--navy-light); line-height: 1;">
               {{ formatEstimate(s.remainingMinutes) }}
             </div>
             <div class="mono" style="font-size: 11px; color: var(--mute); margin-top: 6px;
@@ -98,6 +98,12 @@ import { ProjectDotComponent } from '../../shared/components/atoms/atoms.compone
       </div>
     }
   `,
+  styles: [`
+    @media (max-width: 700px) {
+      .stats-page { padding: 20px 16px !important; }
+      .stats-summary-grid, .stats-metrics-grid { grid-template-columns: 1fr !important; gap: 14px !important; }
+    }
+  `],
 })
 export class StatsComponent implements OnInit {
   private statsService = inject(StatsService);

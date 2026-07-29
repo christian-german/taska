@@ -39,7 +39,7 @@ export interface TaskGroup {
               {{ group.empty || '—' }}
             </div>
           } @else {
-            @for (task of group.tasks; track task.id) {
+            @for (task of group.tasks; track occurrenceKey(task)) {
               <app-task-row
                 [task]="task"
                 [project]="projectFor(task)"
@@ -74,6 +74,12 @@ export class TaskListComponent {
   projectFor(task: Task): Project | null {
     if (!task.projectId) return null;
     return this.projectMap()[task.projectId] ?? null;
+  }
+
+  occurrenceKey(task: Task): string {
+    if (task.instanceId) return task.instanceId;
+    if (task.scheduledAt) return `${task.id}:${task.scheduledAt}`;
+    return task.id;
   }
 
   getColor = getColor;

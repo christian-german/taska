@@ -26,6 +26,7 @@
         "title": "Taska",
         "width": 1280,
         "height": 800,
+        "backgroundColor": "#F6F8FA",
         "resizable": true,
         "fullscreen": false,
         "devtools": true

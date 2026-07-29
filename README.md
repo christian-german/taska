@@ -18,7 +18,7 @@ docker compose up -d --build
 ```
 
 - **Frontend**: http://localhost:4200
-- **Backend API**: http://localhost:8080/api/v1
+- **Backend API**: http://localhost:8080
 
 ## Development
 
@@ -43,13 +43,26 @@ npm start          # dev server on :4200 with API proxy
 
 ## REST API
 
-### Projects  `GET/POST /api/v1/projects`
-### Sections  `GET/POST /api/v1/sections?project_id=`
-### Tasks     `GET/POST /api/v1/tasks?project_id=&filter=today|overdue|upcoming`
-### Labels    `GET/POST /api/v1/labels`
-### Comments  `GET/POST /api/v1/comments?task_id=`
+### Projects  `GET/POST /projects`
+### Sections  `GET/POST /sections?project_id=`
+### Tasks     `GET/POST /tasks?project_id=&filter=today|overdue|upcoming`
+### Labels    `GET/POST /labels`
+### Comments  `GET/POST /comments?task_id=`
 
-Task lifecycle: `POST /api/v1/tasks/{id}/close` · `POST /api/v1/tasks/{id}/reopen`
+Task lifecycle: `POST /tasks/{id}/close` · `POST /tasks/{id}/reopen`
+
+## MCP Server
+
+The Spring backend exposes a stateless Streamable HTTP [Model Context Protocol](https://modelcontextprotocol.io/) endpoint at `POST /mcp`.
+
+Every MCP request, including initialization and tool discovery, requires the same OAuth2 bearer JWT used by the REST API. Taska is currently a mono-user application: a valid token grants access to its one shared workspace and does not create a separate user or data partition.
+
+The first release exposes these tools:
+
+- Projects: `list_projects`, `get_project`, `create_project`, `update_project`
+- Tasks: `list_tasks`, `get_task`, `create_task`, `update_task`, `complete_task`, `reopen_task`
+
+Task and project tools call the backend application services directly, so they follow the same validation, inbox defaults, and recurring-task behavior as the REST API. Destructive delete and reorder actions are intentionally not exposed.
 
 ## Features
 

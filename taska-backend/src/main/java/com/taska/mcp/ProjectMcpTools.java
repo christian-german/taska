@@ -25,10 +25,10 @@ public class ProjectMcpTools {
 
     @McpTool(name = "list_projects", description = "List all Taska projects in their display order.", generateOutputSchema = true)
     public McpSchema.CallToolResult listProjects() {
-        return McpToolResponses.execute(() -> projectService.findAll().stream()
+        return McpToolResponses.execute(() -> new ProjectListOutput(projectService.findAll().stream()
                 .map(projectMapper::toDto)
                 .map(ProjectOutput::from)
-                .toList());
+                .toList()));
     }
 
     @McpTool(name = "get_project", description = "Get a Taska project by its UUID.", generateOutputSchema = true)
@@ -72,6 +72,10 @@ public class ProjectMcpTools {
 
     public record ProjectUpdateInput(String name, String color, UUID parentId, Boolean clearParent,
                                      Integer order, Boolean isFavorite, ViewStyle viewStyle) {
+    }
+
+    /** Object-root structured result required by current MCP clients. */
+    public record ProjectListOutput(List<ProjectOutput> projects) {
     }
 
     public record ProjectOutput(UUID id, String name, String color, UUID parentId, Integer order,

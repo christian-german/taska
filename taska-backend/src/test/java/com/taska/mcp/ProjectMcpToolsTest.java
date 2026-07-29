@@ -32,7 +32,8 @@ class ProjectMcpToolsTest {
         McpSchema.CallToolResult result = tools.listProjects();
 
         assertThat(result.isError()).isFalse();
-        assertThat(result.structuredContent()).isEqualTo(List.of());
+        assertThat(result.structuredContent())
+                .isEqualTo(new ProjectMcpTools.ProjectListOutput(List.of()));
         verify(projectService).findAll();
     }
 

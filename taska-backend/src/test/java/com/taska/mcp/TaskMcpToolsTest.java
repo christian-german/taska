@@ -31,6 +31,18 @@ class TaskMcpToolsTest {
     @InjectMocks private TaskMcpTools tools;
 
     @Test
+    void listTasksUsesAnObjectAsStructuredContentRoot() {
+        when(taskService.findAll(null, null, null, null, false)).thenReturn(List.of());
+
+        McpSchema.CallToolResult result = tools.listTasks(
+                new TaskMcpTools.TaskListInput(null, null, null, null, false));
+
+        assertThat(result.isError()).isFalse();
+        assertThat(result.structuredContent())
+                .isEqualTo(new TaskMcpTools.TaskListOutput(List.of()));
+    }
+
+    @Test
     void createTaskPassesNullProjectAndParentToPreserveInboxDefault() {
         Task task = new Task();
         TaskDto taskDto = taskDto();

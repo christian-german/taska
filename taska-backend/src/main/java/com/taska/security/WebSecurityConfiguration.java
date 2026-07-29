@@ -1,5 +1,6 @@
 package com.taska.security;
 
+import com.taska.config.TaskaProperties;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.NonNull;
@@ -27,6 +28,7 @@ import java.time.Duration;
 public class WebSecurityConfiguration {
 
     private final OAuth2ResourceServerProperties oAuth2ResourceServerProperties;
+    private final TaskaProperties taskaProperties;
 
     /**
      * Configures the main security filter chain. CSRF is disabled (stateless API), CORS is

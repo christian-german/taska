@@ -58,6 +58,10 @@ class McpEndpointIntegrationTest {
     private static final String LIST_PROJECTS = """
             {"jsonrpc":"2.0","id":3,"method":"tools/call","params":{"name":"list_projects","arguments":{}}}
             """;
+    private static final String LIST_TASKS = """
+            {"jsonrpc":"2.0","id":4,"method":"tools/call","params":{"name":"list_tasks","arguments":{
+              "input":{"projectId":null,"sectionId":null,"label":null,"filter":null,"showCompleted":false}}}}
+            """;
 
     @LocalServerPort
     private int port;
@@ -86,7 +90,16 @@ class McpEndpointIntegrationTest {
         HttpResponse<String> response = post(LIST_PROJECTS, "test-token");
 
         assertThat(response.statusCode()).isEqualTo(200);
-        assertThat(response.body()).contains("Operation completed successfully").doesNotContain("isError\":true");
+        assertThat(response.body()).contains("Operation completed successfully", "\"structuredContent\":{\"projects\":[]}")
+                .doesNotContain("isError\":true");
+    }
+
+    @Test
+    void taskListUsesAnObjectAsTheStructuredContentRoot() throws Exception {
+        HttpResponse<String> response = post(LIST_TASKS, "test-token");
+
+        assertThat(response.statusCode()).isEqualTo(200);
+        assertThat(response.body()).contains("\"structuredContent\":{\"tasks\":[]}");
     }
 
     private HttpResponse<String> post(String body, String token) throws Exception {
@@ -114,7 +127,9 @@ class McpEndpointIntegrationTest {
 
         @Bean
         TaskMcpTools taskMcpTools() {
-            return new TaskMcpTools(mock(TaskService.class), mock(TaskMapper.class));
+            TaskService taskService = mock(TaskService.class);
+            org.mockito.Mockito.when(taskService.findAll(null, null, null, null, false)).thenReturn(List.of());
+            return new TaskMcpTools(taskService, mock(TaskMapper.class));
         }
     }
 

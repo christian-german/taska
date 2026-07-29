@@ -27,9 +27,9 @@ public class TaskMcpTools {
     @McpTool(name = "list_tasks", description = "List Taska tasks with optional project, section, label, completion, or named date filters.", generateOutputSchema = true)
     public McpSchema.CallToolResult listTasks(
             @McpToolParam(required = true, description = "Optional filters. Use null for filters not needed.") TaskListInput input) {
-        return McpToolResponses.execute(() -> taskService.findAll(
+        return McpToolResponses.execute(() -> new TaskListOutput(taskService.findAll(
                         input.projectId(), input.sectionId(), input.label(), input.filter(), input.showCompleted())
-                .stream().map(taskMapper::toDto).map(TaskOutput::from).toList());
+                .stream().map(taskMapper::toDto).map(TaskOutput::from).toList()));
     }
 
     @McpTool(name = "get_task", description = "Get a Taska task by its UUID.", generateOutputSchema = true)
@@ -120,6 +120,10 @@ public class TaskMcpTools {
     }
 
     public record TaskListInput(UUID projectId, UUID sectionId, String label, String filter, boolean showCompleted) {
+    }
+
+    /** Object-root structured result required by current MCP clients. */
+    public record TaskListOutput(List<TaskOutput> tasks) {
     }
 
     public record TaskCreateInput(String content, String description, UUID projectId, UUID sectionId, UUID parentId,

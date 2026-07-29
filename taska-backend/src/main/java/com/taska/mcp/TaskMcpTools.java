@@ -119,7 +119,12 @@ public class TaskMcpTools {
         Instant scheduledAt();
     }
 
-    public record TaskListInput(UUID projectId, UUID sectionId, String label, String filter, boolean showCompleted) {
+    public record TaskListInput(
+            @McpToolParam(required = false) UUID projectId,
+            @McpToolParam(required = false) UUID sectionId,
+            @McpToolParam(required = false) String label,
+            @McpToolParam(required = false) String filter,
+            @McpToolParam(required = false) boolean showCompleted) {
     }
 
     /** Object-root structured result required by current MCP clients. */

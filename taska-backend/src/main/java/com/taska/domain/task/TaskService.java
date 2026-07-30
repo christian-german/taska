@@ -169,6 +169,7 @@ public class TaskService {
     public Task create(TaskRequest taskRequest) {
         Task t = new Task();
         t.setContent(taskRequest.content());
+        t.setType(taskRequest.type() != null ? taskRequest.type() : TaskType.TODO);
         t.setDescription(taskRequest.description());
         t.setSectionId(taskRequest.sectionId());
         t.setParentId(taskRequest.parentId());
@@ -252,6 +253,7 @@ public class TaskService {
 
                 Task cloned = new Task();
                 cloned.setContent(taskRequest.content() != null ? taskRequest.content() : task.getContent());
+                cloned.setType(taskRequest.type() != null ? taskRequest.type() : task.getType());
                 cloned.setDescription(taskRequest.description() != null ? taskRequest.description() : task.getDescription());
                 cloned.setProjectId(task.getProjectId());
                 cloned.setSectionId(task.getSectionId());
@@ -476,6 +478,7 @@ public class TaskService {
      */
     private void applyPatch(Task task, TaskRequest taskRequest) {
         if (taskRequest.content() != null) task.setContent(taskRequest.content());
+        if (taskRequest.type() != null) task.setType(taskRequest.type());
         if (taskRequest.description() != null) task.setDescription(taskRequest.description());
         if (taskRequest.projectId() != null) task.setProjectId(taskRequest.projectId());
         if (taskRequest.sectionId() != null) task.setSectionId(taskRequest.sectionId());

@@ -2,6 +2,7 @@ package com.taska.android.data.model
 
 data class TaskRequest(
     val content: String,
+    val type: String? = null,
     val description: String? = null,
     val projectId: String? = null,
     val parentId: String? = null,

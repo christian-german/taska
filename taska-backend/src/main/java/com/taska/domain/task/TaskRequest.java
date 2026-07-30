@@ -58,5 +58,17 @@ public record  TaskRequest(
         String mentionContext,
         String recurrenceRule,
         RecurrenceScope scope,
-        Instant scheduledAt
-) {}
+        Instant scheduledAt,
+        TaskType type
+) {
+    /** Compatibility constructor for clients and tests that omit the optional task type. */
+    public TaskRequest(String content, String description, UUID projectId, UUID sectionId,
+                       UUID parentId, Integer order, Integer priority, List<String> labels,
+                       Instant dueAt, Boolean allDay, Boolean isRecurring, Integer estimateMinutes,
+                       String mentionContext, String recurrenceRule, RecurrenceScope scope,
+                       Instant scheduledAt) {
+        this(content, description, projectId, sectionId, parentId, order, priority, labels, dueAt,
+                allDay, isRecurring, estimateMinutes, mentionContext, recurrenceRule, scope,
+                scheduledAt, null);
+    }
+}

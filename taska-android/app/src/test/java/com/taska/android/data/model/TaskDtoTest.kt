@@ -34,9 +34,11 @@ class TaskDtoTest {
         allDay: Boolean = false,
         priority: Int? = 3,
         recurrenceRule: String? = null,
+        type: String? = "TODO",
     ) = TaskDto(
         id = id,
         content = content,
+        type = type,
         description = description,
         projectId = null,
         sectionId = null,
@@ -241,6 +243,16 @@ class TaskDtoTest {
         val task = buildTaskDto(allDay = false)
 
         assertFalse(task.allDay)
+    }
+
+    @Test
+    fun `givenMeetingType_whenAccessed_thenTypeIsPreserved`() {
+        assertEquals("MEETING", buildTaskDto(type = "MEETING").type)
+    }
+
+    @Test
+    fun `givenLegacyTaskWithoutType_whenCreated_thenTypeDefaultsToTodo`() {
+        assertEquals("TODO", buildTaskDto(type = null).type ?: "TODO")
     }
 
     // -------------------------------------------------------------------------

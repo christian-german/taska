@@ -60,5 +60,19 @@ public record TaskDto(
         UUID instanceId,
         Instant scheduledAt,
         Boolean isVirtual,
-        Instant rruleEndsAt
-) {}
+        Instant rruleEndsAt,
+        TaskType type
+) {
+    /** Compatibility constructor for callers compiled before task type was introduced. */
+    public TaskDto(UUID id, String content, String description, UUID projectId, UUID sectionId,
+                   UUID parentId, Integer order, Integer priority, List<String> labels,
+                   Boolean isCompleted, Instant dueAt, Boolean allDay, Boolean isRecurring,
+                   Integer estimateMinutes, String mentionContext, String recurrenceRule,
+                   Instant createdAt, Instant updatedAt, Instant completedAt, UUID instanceId,
+                   Instant scheduledAt, Boolean isVirtual, Instant rruleEndsAt) {
+        this(id, content, description, projectId, sectionId, parentId, order, priority, labels,
+                isCompleted, dueAt, allDay, isRecurring, estimateMinutes, mentionContext,
+                recurrenceRule, createdAt, updatedAt, completedAt, instanceId, scheduledAt,
+                isVirtual, rruleEndsAt, TaskType.TODO);
+    }
+}

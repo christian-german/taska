@@ -31,6 +31,11 @@ public class Task {
     @Column(nullable = false, length = 1000)
     private String content;
 
+    /** Whether this item is work to complete or a meeting to attend. */
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 16)
+    private TaskType type = TaskType.TODO;
+
     /** Optional longer description stored as an unbounded TEXT column. */
     @Column(columnDefinition = "TEXT")
     private String description;

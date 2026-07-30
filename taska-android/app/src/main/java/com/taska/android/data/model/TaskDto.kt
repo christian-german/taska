@@ -5,6 +5,7 @@ import com.google.gson.annotations.SerializedName
 data class TaskDto(
     val id: String,
     val content: String,
+    val type: String? = "TODO",
     val description: String?,
     val projectId: String?,
     val sectionId: String?,

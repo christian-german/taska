@@ -199,6 +199,16 @@ fun AddTaskBottomSheet(
                     selected = state.estimateMinutes != null,
                     onClick = { showDurationPicker = true }
                 )
+                TaskChip(
+                    icon = Icons.Outlined.Event,
+                    text = if (state.taskType == "MEETING") "Réunion" else "À faire",
+                    selected = state.taskType == "MEETING",
+                    onClick = {
+                        viewModel.updateTaskType(
+                            if (state.taskType == "MEETING") "TODO" else "MEETING"
+                        )
+                    }
+                )
             }
 
             Spacer(Modifier.height(16.dp))

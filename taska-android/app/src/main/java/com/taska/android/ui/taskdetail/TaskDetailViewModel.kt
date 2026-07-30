@@ -100,6 +100,7 @@ class TaskDetailViewModel(
         val task = _uiState.value.task ?: return
         val base = TaskRequest(
             content = task.content,
+            type = task.type ?: "TODO",
             description = task.description,
             projectId = task.projectId,
             priority = task.priority,
@@ -125,6 +126,8 @@ class TaskDetailViewModel(
     }
 
     fun updateDescription(desc: String) = applyUpdate { copy(description = desc.ifEmpty { null }) }
+
+    fun updateTaskType(type: String) = applyUpdate { copy(type = type) }
 
     fun requestRescheduleAllDay(millis: Long) {
         val task = _uiState.value.task ?: return

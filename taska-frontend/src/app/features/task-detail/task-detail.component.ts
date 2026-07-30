@@ -9,6 +9,7 @@ import {
   Project,
   RecurrenceScope,
   Task,
+  TaskType,
   fmtDateShort,
   fmtEstimate,
   fmtRel,
@@ -105,6 +106,10 @@ export class TaskDetailComponent implements OnChanges {
     { value: 2, label: PRIORITY_LABELS[2] },
     { value: 1, label: PRIORITY_LABELS[1] },
   ];
+  readonly taskTypeOptions: { value: TaskType; label: string }[] = [
+    { value: 'TODO', label: 'À faire' },
+    { value: 'MEETING', label: 'Réunion' },
+  ];
 
   subtasks = signal<Task[]>([]);
   comments = signal<Comment[]>([]);
@@ -119,6 +124,7 @@ export class TaskDetailComponent implements OnChanges {
   completedSubs = computed(() => this.subtasks().filter(s => s.isCompleted).length);
 
   priorityLabel = computed(() => PRIORITY_LABELS[this.task().priority] ?? '');
+  taskTypeLabel = computed(() => this.task().type === 'MEETING' ? 'Réunion' : 'À faire');
 
   filteredLabels = computed(() => {
     const q = this.tagSearch().toLowerCase();
@@ -213,6 +219,10 @@ export class TaskDetailComponent implements OnChanges {
   setPriority(priority: 1 | 2 | 3 | 4): void {
     this.showPriorityMenu.set(false);
     this.save({ priority });
+  }
+
+  setTaskType(type: TaskType): void {
+    if (this.task().type !== type) this.save({ type });
   }
 
   toggleProjectMenu(e: Event): void {

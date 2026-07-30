@@ -1,6 +1,7 @@
 package com.taska.domain.task;
 
 import com.taska.domain.project.ProjectRepository;
+import com.taska.domain.project.Project;
 import com.taska.exception.ResourceNotFoundException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -699,5 +700,36 @@ class TaskServiceMutationTest {
 
         assertThrows(ResourceNotFoundException.class,
                 () -> service.delete(taskId, null));
+    }
+
+    @Test
+    void create_missingTypeDefaultsToTodo_andExplicitMeetingIsPreserved() {
+        Project inbox = new Project();
+        inbox.setId(randomId());
+        when(projectRepository.findByIsInboxProjectTrue()).thenReturn(Optional.of(inbox));
+        when(taskRepository.save(any(Task.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        Task todo = service.create(req("Legacy-compatible task", null, null));
+        Task meeting = service.create(new TaskRequest("Planning", null, null, null, null, null,
+                null, null, null, null, null, null, null, null, null, null, TaskType.MEETING));
+
+        assertThat(todo.getType()).isEqualTo(TaskType.TODO);
+        assertThat(meeting.getType()).isEqualTo(TaskType.MEETING);
+    }
+
+    @Test
+    void update_changesTaskTypeWithoutChangingContent() {
+        UUID taskId = randomId();
+        Task task = buildNonRecurringTask(taskId);
+        task.setType(TaskType.TODO);
+        when(taskRepository.findById(taskId)).thenReturn(Optional.of(task));
+        when(taskRepository.save(task)).thenReturn(task);
+        when(taskMapper.toDto(task)).thenReturn(anyDto());
+
+        service.update(taskId, new TaskRequest(null, null, null, null, null, null, null, null,
+                null, null, null, null, null, null, null, null, TaskType.MEETING));
+
+        assertThat(task.getType()).isEqualTo(TaskType.MEETING);
+        assertThat(task.getContent()).isEqualTo("Non-recurring task");
     }
 }

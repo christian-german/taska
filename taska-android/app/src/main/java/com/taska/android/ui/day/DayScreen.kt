@@ -10,8 +10,11 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.CalendarToday
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -33,6 +36,8 @@ import com.taska.android.data.model.ProjectDto
 import com.taska.android.data.model.RecurrenceScope
 import com.taska.android.data.model.TaskDto
 import com.taska.android.ui.shared.RecurrenceScopeDialog
+import com.taska.android.ui.shared.isMeetingTask
+import com.taska.android.ui.shared.taskTypeAccessibilityLabel
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
@@ -232,12 +237,15 @@ private fun DayHeader(
                             .clickable { onTaskClick(task.id, task.scheduledAt) }
                             .padding(horizontal = 3.dp, vertical = 2.dp)
                     ) {
-                        Text(
-                            text = task.content,
-                            style = TextStyle(fontSize = 9.sp, color = Color.White),
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
-                        )
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            if (isMeetingTask(task.type)) {
+                                Icon(Icons.Outlined.CalendarToday, taskTypeAccessibilityLabel(task.type),
+                                    tint = Color.White, modifier = Modifier.size(10.dp))
+                                Spacer(Modifier.width(2.dp))
+                            }
+                            Text(task.content, style = TextStyle(fontSize = 9.sp, color = Color.White),
+                                maxLines = 1, overflow = TextOverflow.Ellipsis)
+                        }
                     }
                 }
                 if (allDayTasks.size > 5) {
@@ -367,6 +375,14 @@ private fun SingleDayColumn(
                     maxLines = if (blockH >= HOUR_HEIGHT * 0.7f) 3 else 2,
                     overflow = TextOverflow.Ellipsis
                 )
+                if (isMeetingTask(block.task.type)) {
+                    Icon(
+                        Icons.Outlined.CalendarToday,
+                        taskTypeAccessibilityLabel(block.task.type),
+                        tint = Color.White,
+                        modifier = Modifier.align(Alignment.TopEnd).padding(2.dp).size(11.dp)
+                    )
+                }
                 Box(modifier = Modifier.align(Alignment.BottomCenter).fillMaxWidth().height(3.dp).background(Color.White.copy(alpha = 0.35f)))
             }
         }

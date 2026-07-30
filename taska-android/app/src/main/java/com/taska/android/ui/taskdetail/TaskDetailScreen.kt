@@ -162,6 +162,9 @@ fun TaskDetailScreen(
                         if (descEdit != (task.description ?: ""))
                             viewModel.updateDescription(descEdit)
                     },
+                    onTaskTypeToggle = {
+                        viewModel.updateTaskType(if (task.type == "MEETING") "TODO" else "MEETING")
+                    },
                     onPropertyClick = { picker ->
                         focusManager.clearFocus()
                         activePicker = picker
@@ -334,6 +337,7 @@ private fun TaskContent(
     descEdit: String,
     onDescChange: (String) -> Unit,
     onDescSave: () -> Unit,
+    onTaskTypeToggle: () -> Unit,
     onPropertyClick: (ActivePicker) -> Unit,
     onToggleSubtask: (TaskDto) -> Unit,
     onAddSubtask: (String) -> Unit
@@ -412,6 +416,17 @@ private fun TaskContent(
         }
 
         item { HorizontalDivider(color = DividerColor) }
+
+        item {
+            PropertyRow(
+                icon = Icons.Outlined.Event,
+                label = "TYPE",
+                value = if (task.type == "MEETING") "Réunion" else "À faire",
+                valueColor = TextPrimary,
+                onClick = onTaskTypeToggle
+            )
+            HorizontalDivider(color = DividerColor)
+        }
 
         // ÉCHÉANCE
         item {

@@ -47,10 +47,13 @@ export interface Section {
 }
 
 export type RecurrenceScope = 'THIS_ONLY' | 'FROM_THIS';
+export type TaskType = 'TODO' | 'MEETING';
 
 export interface Task {
   id: string;
   content: string;
+  /** Missing only for responses from servers predating task types. */
+  type?: TaskType;
   description?: string;
   projectId?: string;
   sectionId?: string;

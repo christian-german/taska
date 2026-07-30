@@ -69,7 +69,8 @@ public interface TaskMapper {
                 instanceId,
                 scheduledAt,
                 isVirtual,
-                task.getRruleEndsAt()
+                task.getRruleEndsAt(),
+                task.getType() == null ? TaskType.TODO : task.getType()
         );
     }
 }

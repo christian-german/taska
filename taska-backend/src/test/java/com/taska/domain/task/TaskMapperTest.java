@@ -161,4 +161,13 @@ class TaskMapperTest {
 
         assertThat(dto.scheduledAt()).isEqualTo(scheduledAt);
     }
+
+    @Test
+    void toOccurrenceDto_missingLegacyType_defaultsToTodo() {
+        Task task = buildTask("Legacy task", 4);
+        task.setType(null);
+
+        assertThat(mapper.toOccurrenceDto(task, null, Instant.parse("2026-05-20T10:00:00Z")).type())
+                .isEqualTo(TaskType.TODO);
+    }
 }

@@ -15,6 +15,7 @@ import java.util.Calendar
 
 data class AddTaskUiState(
     val content: String = "",
+    val taskType: String = "TODO",
     val dueDateMillis: Long? = null,
     val dueTimeMinutes: Int? = null,
     val selectedProject: ProjectDto? = null,
@@ -49,6 +50,7 @@ class AddTaskViewModel(
     }
 
     fun updateContent(content: String) = _state.update { it.copy(content = content) }
+    fun updateTaskType(type: String) = _state.update { it.copy(taskType = type) }
     fun updateDueDate(millis: Long?) = _state.update { it.copy(dueDateMillis = millis, dueTimeMinutes = null) }
     fun updateTime(totalMinutes: Int) = _state.update { it.copy(dueTimeMinutes = totalMinutes) }
     fun clearTime() = _state.update { it.copy(dueTimeMinutes = null) }
@@ -69,6 +71,7 @@ class AddTaskViewModel(
                 val allDay = if (current.dueDateMillis != null) current.dueTimeMinutes == null else null
                 val request = TaskRequest(
                     content = current.content.trim(),
+                    type = current.taskType,
                     projectId = current.selectedProject?.id,
                     priority = current.priority.takeIf { it < 4 },
                     dueAt = dueAt,

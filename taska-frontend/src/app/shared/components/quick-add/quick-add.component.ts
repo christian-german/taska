@@ -10,7 +10,7 @@ import { LabelService } from '../../../core/services/label.service';
 import { UiStateService } from '../../../core/services/ui-state.service';
 import { NlParserService, NlParsed } from '../../../core/services/nl-parser.service';
 import {
-  Label, Project, fmtRel, fmtTime, fmtEstimate, hexToRgba, getColor,
+  Label, Project, TaskType, fmtRel, fmtTime, fmtEstimate, hexToRgba, getColor,
 } from '../../../core/models';
 import { IconComponent } from '../icon/icon.component';
 import { DatetimePickerComponent } from '../datetime-picker/datetime-picker.component';
@@ -104,6 +104,18 @@ const RECURRENCE_OPTIONS = [
           }
 
           <div style="display:flex;flex-direction:column;gap:2px;color:var(--ink-2);">
+
+            <div style="display:flex;gap:6px;padding:6px 8px;" role="group" aria-label="Type de tâche">
+              @for (option of taskTypes; track option.value) {
+                <button type="button" (click)="taskType.set(option.value)"
+                        [attr.aria-pressed]="taskType() === option.value"
+                        [style.background]="taskType() === option.value ? 'var(--orange)' : 'transparent'"
+                        [style.color]="taskType() === option.value ? '#fff' : 'var(--ink-2)'"
+                        style="border:1px solid var(--line);border-radius:14px;padding:3px 9px;cursor:pointer;font-size:12px;">
+                  {{ option.label }}
+                </button>
+              }
+            </div>
 
             <!-- ── DATE ─────────────────────────────────────────────── -->
             <div style="position:relative;">
@@ -371,6 +383,7 @@ export class QuickAddComponent implements OnInit {
   manualTags = signal<Set<string> | null>(null);
   manualEstimate = signal<number | null>(null);
   manualRecurrence = signal<string | null>(null); // '' = explicitly none
+  taskType = signal<TaskType>('TODO');
 
   // Picker search inputs
   projectSearch = signal('');
@@ -379,6 +392,10 @@ export class QuickAddComponent implements OnInit {
   // Static data
   readonly estimatePresets = ESTIMATE_PRESETS;
   readonly recurrenceOptions = RECURRENCE_OPTIONS;
+  readonly taskTypes: { value: TaskType; label: string }[] = [
+    { value: 'TODO', label: 'À faire' },
+    { value: 'MEETING', label: 'Réunion' },
+  ];
 
   // ── Derived ──────────────────────────────────────────────────────────
 
@@ -603,6 +620,7 @@ export class QuickAddComponent implements OnInit {
       estimateMinutes: this.effectiveEstimate() ?? undefined,
       recurrenceRule: this.effectiveRecurrence() || undefined,
       isRecurring: !!(this.effectiveRecurrence()),
+      type: this.taskType(),
     } as any).subscribe(created => {
       this.ui.taskCreated$.next(created);
       this.close.emit();

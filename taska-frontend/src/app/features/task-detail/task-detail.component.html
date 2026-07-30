@@ -31,6 +31,14 @@
     </div>
 
     <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; align-items: center; position: relative;">
+      <div style="display: flex; gap: 3px;" role="group" aria-label="Type de tâche">
+        @for (option of taskTypeOptions; track option.value) {
+          <button class="btn btn-ghost" style="padding: 4px 8px;"
+                  [attr.aria-pressed]="task().type === option.value"
+                  [style.background]="task().type === option.value ? 'var(--bg-3)' : ''"
+                  (click)="setTaskType(option.value)">{{ option.label }}</button>
+        }
+      </div>
       <button class="btn btn-ghost" (click)="toggleProjectMenu($event)" style="padding: 4px 8px;">
         @if (currentProject(); as p) {
           <span style="display: inline-flex; align-items: center; gap: 5px; font-size: 13px;">

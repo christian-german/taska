@@ -7,6 +7,7 @@ export class UiStateService {
   showQuickAdd = signal(false);
   showPalette = signal(false);
   showHelp = signal(false);
+  showAbout = signal(false);
   sidebarOpen = signal(false);
   selectedTask = signal<Task | null>(null);
   defaultProjectId = signal<string | null>(null);
@@ -32,6 +33,7 @@ export class UiStateService {
     this.showQuickAdd.set(false);
     this.showPalette.set(false);
     this.showHelp.set(false);
+    this.showAbout.set(false);
     this.selectedTask.set(null);
   }
 }

@@ -8,10 +8,8 @@ import { LabelService } from '../../core/services/label.service';
 import { FilterService } from '../../core/services/filter.service';
 import { TaskService } from '../../core/services/task.service';
 import { ThemeService } from '../../core/services/theme.service';
-import { VersionService } from '../../core/services/version.service';
 import { UiStateService } from '../../core/services/ui-state.service';
 import { Filter, Label, Project, Task, getColor, isOverdue } from '../../core/models';
-import { APP_VERSION } from '../../core/constants/app-version';
 import { IconComponent } from '../../shared/components/icon/icon.component';
 import { ProjectDotComponent, TagChipComponent } from '../../shared/components/atoms/atoms.component';
 import { AddProjectModalComponent } from '../../shared/components/add-project-modal/add-project-modal.component';
@@ -56,7 +54,6 @@ export class SidebarComponent implements OnInit {
   private labelService = inject(LabelService);
   private filterService = inject(FilterService);
   private taskService = inject(TaskService);
-  private versionService = inject(VersionService);
   ui = inject(UiStateService);
   themeService = inject(ThemeService);
 
@@ -68,14 +65,9 @@ export class SidebarComponent implements OnInit {
   projects = toSignal(this.projectService.projects$, { initialValue: [] as Project[] });
   labels = toSignal(this.labelService.labels$, { initialValue: [] as Label[] });
   filters = toSignal(this.filterService.filters$, { initialValue: [] as Filter[] });
-  apiVersion = toSignal(this.versionService.getVersion(), { initialValue: '...' });
-
-  readonly frontendVersion = APP_VERSION;
-
   showProjectModal = signal(false);
   editingProject = signal<Project | null>(null);
   showUserMenu = signal(false);
-  showAboutModal = signal(false);
   hoveredProjectId = signal<string | null>(null);
   activeMenuId = signal<string | null>(null);
   deletingProject = signal<Project | null>(null);
@@ -236,7 +228,7 @@ export class SidebarComponent implements OnInit {
 
   openAbout(): void {
     this.showUserMenu.set(false);
-    this.showAboutModal.set(true);
+    this.ui.showAbout.set(true);
   }
 
   userName = computed(() => {

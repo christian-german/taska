@@ -15,11 +15,12 @@ import {attachConsole} from '@tauri-apps/plugin-log';
 import {onOpenUrl} from '@tauri-apps/plugin-deep-link';
 import {UpdateService} from './core/services/update.service';
 import {UpdateDialogComponent} from './layout/update-dialog/UpdateDialogComponent';
+import {AboutDialogComponent} from './layout/about-dialog/about-dialog.component';
 import {interval} from 'rxjs';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, IconComponent, SidebarComponent, QuickAddComponent, TaskDetailComponent, CommandPaletteComponent, ShortcutsModalComponent, UpdateDialogComponent],
+  imports: [RouterOutlet, IconComponent, SidebarComponent, QuickAddComponent, TaskDetailComponent, CommandPaletteComponent, ShortcutsModalComponent, UpdateDialogComponent, AboutDialogComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @if (ui.sidebarOpen()) {
@@ -57,6 +58,9 @@ import {interval} from 'rxjs';
     }
     @if (ui.showHelp()) {
       <app-shortcuts-modal (close)="ui.showHelp.set(false)"/>
+    }
+    @if (ui.showAbout()) {
+      <app-about-dialog (close)="ui.showAbout.set(false)"/>
     }
     <app-update-dialog/>
   `,

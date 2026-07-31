@@ -1,9 +1,12 @@
 package com.taska.domain.task;
 
+import com.taska.domain.priority.TaskPriorityEvaluationDto;
+import com.taska.domain.priority.TaskPriorityEvaluationService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
@@ -17,6 +20,7 @@ public class TaskController {
 
     private final TaskService taskService;
     private final TaskMapper taskMapper;
+    private final TaskPriorityEvaluationService priorityEvaluationService;
 
     /**
      * Lists tasks with optional filtering. When {@code date} is provided, returns all occurrences
@@ -76,6 +80,13 @@ public class TaskController {
     @GetMapping("/{id}")
     public TaskDto getById(@PathVariable UUID id) {
         return taskMapper.toDto(taskService.findById(id));
+    }
+
+    @GetMapping("/{id}/priority-evaluation")
+    public ResponseEntity<TaskPriorityEvaluationDto> getPriorityEvaluation(@PathVariable UUID id) {
+        return priorityEvaluationService.findForTask(id)
+                .map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.noContent().build());
     }
 
     /**

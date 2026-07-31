@@ -2,6 +2,7 @@ package com.taska.domain.task;
 
 import com.taska.domain.project.ProjectRepository;
 import com.taska.domain.project.Project;
+import com.taska.domain.priority.TaskPriorityEvaluationRepository;
 import com.taska.exception.ResourceNotFoundException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -36,6 +37,7 @@ class TaskServiceMutationTest {
     @Mock private RecurrenceService       recurrenceService;
     @Mock private TaskMapper              taskMapper;
     @Mock private ProjectRepository       projectRepository;
+    @Mock private TaskPriorityEvaluationRepository priorityEvaluationRepository;
 
     @InjectMocks
     private TaskService service;

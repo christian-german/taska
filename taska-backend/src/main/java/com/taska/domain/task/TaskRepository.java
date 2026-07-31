@@ -1,5 +1,6 @@
 package com.taska.domain.task;
 
+import com.taska.domain.priority.TaskPriorityEvaluation;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -8,6 +9,12 @@ import java.util.List;
 import java.util.UUID;
 
 public interface TaskRepository extends JpaRepository<Task, UUID> {
+
+    @Query("""
+            SELECT t FROM Task t WHERE t.isCompleted = false AND t.isRecurring = false AND t.type = com.taska.domain.task.TaskType.TODO
+            AND NOT EXISTS (SELECT e FROM TaskPriorityEvaluation e WHERE e.taskId = t.id) ORDER BY t.createdAt ASC
+            """)
+    List<Task> findEligibleTasksWithoutPriorityEvaluation(org.springframework.data.domain.Pageable pageable);
 
     /** Returns all incomplete tasks in the given project, ordered by position. */
     List<Task> findByProjectIdAndIsCompletedFalseOrderByPositionAsc(UUID projectId);

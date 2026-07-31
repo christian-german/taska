@@ -1,6 +1,7 @@
 package com.taska.domain.task;
 
 import com.taska.domain.project.ProjectRepository;
+import com.taska.domain.priority.TaskPriorityEvaluationRepository;
 import com.taska.exception.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -26,6 +27,7 @@ public class TaskService {
     private final RecurrenceService recurrenceService;
     private final TaskMapper taskMapper;
     private final ProjectRepository projectRepository;
+    private final TaskPriorityEvaluationRepository priorityEvaluationRepository;
 
     /**
      * Returns a filtered list of tasks based on the provided criteria.
@@ -228,7 +230,9 @@ public class TaskService {
         // Simple patch is applied for non-recurring tasks or when scope is null.
         if (taskRequest.scope() == null || !Boolean.TRUE.equals(task.getIsRecurring())) {
             applyPatch(task, taskRequest);
-            return taskMapper.toDto(taskRepository.save(task));
+            Task saved = taskRepository.save(task);
+            priorityEvaluationRepository.deleteByTaskId(taskId);
+            return taskMapper.toDto(saved);
         }
 
         // Recurring task update logic.
@@ -295,6 +299,7 @@ public class TaskService {
         Task task = getOrThrow(taskId);
 
         if (taskDeleteRequest == null || taskDeleteRequest.scope() == null || !Boolean.TRUE.equals(task.getIsRecurring())) {
+            priorityEvaluationRepository.deleteByTaskId(taskId);
             taskRepository.delete(task);
             return;
         }
@@ -354,7 +359,9 @@ public class TaskService {
         if (!Boolean.TRUE.equals(task.getIsRecurring()) || scheduledAt == null) {
             task.setIsCompleted(true);
             task.setCompletedAt(Instant.now());
-            return taskMapper.toDto(taskRepository.save(task));
+            Task saved = taskRepository.save(task);
+            priorityEvaluationRepository.deleteByTaskId(taskId);
+            return taskMapper.toDto(saved);
         }
 
         // For recurring tasks, a TaskInstance is created or updated with status DONE for the given occurrence.

@@ -201,11 +201,11 @@ fun AddTaskBottomSheet(
                 )
                 TaskChip(
                     icon = Icons.Outlined.Event,
-                    text = if (state.taskType == "MEETING") "Réunion" else "À faire",
-                    selected = state.taskType == "MEETING",
+                    text = if (state.taskType == "APPOINTMENT") "Rendez-vous" else "À faire",
+                    selected = state.taskType == "APPOINTMENT",
                     onClick = {
                         viewModel.updateTaskType(
-                            if (state.taskType == "MEETING") "TODO" else "MEETING"
+                            if (state.taskType == "APPOINTMENT") "TODO" else "APPOINTMENT"
                         )
                     }
                 )

@@ -108,7 +108,7 @@ export class TaskDetailComponent implements OnChanges {
   ];
   readonly taskTypeOptions: { value: TaskType; label: string }[] = [
     { value: 'TODO', label: 'À faire' },
-    { value: 'MEETING', label: 'Réunion' },
+    { value: 'APPOINTMENT', label: 'Rendez-vous' },
   ];
 
   subtasks = signal<Task[]>([]);
@@ -124,7 +124,7 @@ export class TaskDetailComponent implements OnChanges {
   completedSubs = computed(() => this.subtasks().filter(s => s.isCompleted).length);
 
   priorityLabel = computed(() => PRIORITY_LABELS[this.task().priority] ?? '');
-  taskTypeLabel = computed(() => this.task().type === 'MEETING' ? 'Réunion' : 'À faire');
+  taskTypeLabel = computed(() => this.task().type === 'APPOINTMENT' ? 'Rendez-vous' : 'À faire');
 
   filteredLabels = computed(() => {
     const q = this.tagSearch().toLowerCase();

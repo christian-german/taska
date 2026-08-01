@@ -1,0 +1,3 @@
+UPDATE tasks
+SET type = 'APPOINTMENT'
+WHERE type = 'MEETING';

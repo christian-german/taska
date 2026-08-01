@@ -246,8 +246,8 @@ class TaskDtoTest {
     }
 
     @Test
-    fun `givenMeetingType_whenAccessed_thenTypeIsPreserved`() {
-        assertEquals("MEETING", buildTaskDto(type = "MEETING").type)
+    fun `givenAppointmentType_whenAccessed_thenTypeIsPreserved`() {
+        assertEquals("APPOINTMENT", buildTaskDto(type = "APPOINTMENT").type)
     }
 
     @Test

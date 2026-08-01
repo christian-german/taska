@@ -12,7 +12,7 @@ The system SHALL support one current priority evaluation for each incomplete, no
 - **THEN** it SHALL store one current evaluation linked to that task with a score, criteria JSON document, and computation timestamp
 
 #### Scenario: Ineligible task is not evaluated
-- **WHEN** a task is recurring, completed, or has type `MEETING`
+- **WHEN** a task is recurring, completed, or has type `APPOINTMENT`
 - **THEN** the system SHALL not create a priority evaluation for that task
 
 ### Requirement: Evaluations explain four assessed criteria
@@ -40,14 +40,14 @@ The system SHALL assess impact as the value created by completing a task and ris
 - **THEN** the impact explanation SHALL address the value of completion and the risk explanation SHALL address the consequence of delay or non-completion
 
 ### Requirement: Task changes invalidate evaluations
-The system SHALL remove an existing priority evaluation when its task is updated, completed, deleted, or changed from `TODO` to `MEETING`. Creating a non-recurring `TODO` SHALL not synchronously create an evaluation.
+The system SHALL remove an existing priority evaluation when its task is updated, completed, deleted, or changed from `TODO` to `APPOINTMENT`. Creating a non-recurring `TODO` SHALL not synchronously create an evaluation.
 
 #### Scenario: Eligible task is updated
 - **WHEN** an incomplete, non-recurring `TODO` with an evaluation is updated
 - **THEN** the system SHALL remove its current evaluation
 
-#### Scenario: Task becomes a meeting
-- **WHEN** a task with an evaluation is changed from `TODO` to `MEETING`
+#### Scenario: Task becomes an appointment
+- **WHEN** a task with an evaluation is changed from `TODO` to `APPOINTMENT`
 - **THEN** the system SHALL remove its current evaluation
 
 #### Scenario: Task is completed or deleted
@@ -70,7 +70,7 @@ The system SHALL use a scheduled background process to find eligible tasks witho
 - **THEN** the system SHALL not persist an evaluation for that task, SHALL persist other validated current results from the batch, and SHALL leave the skipped task eligible for a later scheduled retry
 
 #### Scenario: Task changes during evaluation
-- **WHEN** a task is updated, completed, deleted, becomes recurring, or becomes a meeting after it is selected for a batch and before its result is stored
+- **WHEN** a task is updated, completed, deleted, becomes recurring, or becomes an appointment after it is selected for a batch and before its result is stored
 - **THEN** the system SHALL discard that stale result and SHALL not create an evaluation for the task
 
 ### Requirement: Scores are snapshot-based in V1

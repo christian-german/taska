@@ -73,10 +73,10 @@ import { CheckboxComponent, PriorityFlagComponent, ProjectDotComponent, TagChipC
                   style="font-size: 17px; line-height: 1.2; cursor: pointer;"
                   (dblclick)="startEdit($event)">{{ task().content }}</span>
           }
-          @if (task().type === 'MEETING') {
-            <span class="chip" aria-label="Réunion"
+          @if (task().type === 'APPOINTMENT') {
+            <span class="chip" aria-label="Rendez-vous"
                   style="background: rgba(58, 163, 255, .15); color: #1877B8; font-size: 10.5px;">
-              <app-icon name="calendar" [size]="10" /> réunion
+              <app-icon name="calendar" [size]="10" /> rendez-vous
             </span>
           }
           @if (suggested()) {

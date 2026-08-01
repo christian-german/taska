@@ -6,8 +6,8 @@ import org.junit.Test
 class TaskItemTest {
 
     @Test
-    fun `meeting task has an accessible meeting label`() {
-        assertEquals("Réunion", taskTypeAccessibilityLabel("MEETING"))
+    fun `appointment task has an accessible appointment label`() {
+        assertEquals("Rendez-vous", taskTypeAccessibilityLabel("APPOINTMENT"))
     }
 
     @Test
@@ -17,9 +17,9 @@ class TaskItemTest {
     }
 
     @Test
-    fun `only meeting type uses the meeting icon`() {
-        org.junit.Assert.assertTrue(isMeetingTask("MEETING"))
-        org.junit.Assert.assertFalse(isMeetingTask("TODO"))
-        org.junit.Assert.assertFalse(isMeetingTask(null))
+    fun `only appointment type uses the appointment icon`() {
+        org.junit.Assert.assertTrue(isAppointmentTask("APPOINTMENT"))
+        org.junit.Assert.assertFalse(isAppointmentTask("TODO"))
+        org.junit.Assert.assertFalse(isAppointmentTask(null))
     }
 }

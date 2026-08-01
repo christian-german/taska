@@ -76,6 +76,19 @@ class TaskPriorityEvaluationServiceTest {
         verifyNoInteractions(evaluationRepository);
     }
 
+    @Test void appointmentTaskDoesNotPersistResult() {
+        Task selected = task(), appointment = task();
+        appointment.setId(selected.getId());
+        appointment.setUpdatedAt(selected.getUpdatedAt());
+        appointment.setType(TaskType.APPOINTMENT);
+        when(assessmentClient.assess(any())).thenReturn(new PriorityEvaluationBatchResponse(List.of(assessment(selected.getId()))));
+        when(taskRepository.findById(selected.getId())).thenReturn(Optional.of(appointment));
+
+        service.evaluate(List.of(selected));
+
+        verifyNoInteractions(evaluationRepository);
+    }
+
     private Task task() {
         Task task = new Task(); task.setId(UUID.randomUUID()); task.setContent("Call doctor"); task.setType(TaskType.TODO);
         task.setIsCompleted(false); task.setIsRecurring(false); task.setUpdatedAt(Instant.now()); task.setCreatedAt(Instant.now()); return task;

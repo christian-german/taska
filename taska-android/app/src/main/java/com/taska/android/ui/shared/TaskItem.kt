@@ -168,7 +168,7 @@ fun TaskItem(
                         textDecoration = if (visuallyCompleted) TextDecoration.LineThrough else TextDecoration.None
                     )
                 )
-                if (task.type == "MEETING") {
+                if (task.type == "APPOINTMENT") {
                     Spacer(modifier = Modifier.width(6.dp))
                     Icon(
                         imageVector = Icons.Outlined.CalendarToday,
@@ -236,9 +236,9 @@ fun TaskItem(
 }
 
 internal fun taskTypeAccessibilityLabel(type: String?): String =
-    if (type == "MEETING") "Réunion" else "À faire"
+    if (type == "APPOINTMENT") "Rendez-vous" else "À faire"
 
-internal fun isMeetingTask(type: String?): Boolean = type == "MEETING"
+internal fun isAppointmentTask(type: String?): Boolean = type == "APPOINTMENT"
 
 fun priorityFlagColor(priority: Int?): Color? = when (priority) {
     1 -> PriorityUrgentColor

@@ -36,7 +36,7 @@ import com.taska.android.data.model.ProjectDto
 import com.taska.android.data.model.RecurrenceScope
 import com.taska.android.data.model.TaskDto
 import com.taska.android.ui.shared.RecurrenceScopeDialog
-import com.taska.android.ui.shared.isMeetingTask
+import com.taska.android.ui.shared.isAppointmentTask
 import com.taska.android.ui.shared.taskTypeAccessibilityLabel
 import java.text.SimpleDateFormat
 import java.util.Calendar
@@ -238,7 +238,7 @@ private fun DayHeader(
                             .padding(horizontal = 3.dp, vertical = 2.dp)
                     ) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            if (isMeetingTask(task.type)) {
+                            if (isAppointmentTask(task.type)) {
                                 Icon(Icons.Outlined.CalendarToday, taskTypeAccessibilityLabel(task.type),
                                     tint = Color.White, modifier = Modifier.size(10.dp))
                                 Spacer(Modifier.width(2.dp))
@@ -375,7 +375,7 @@ private fun SingleDayColumn(
                     maxLines = if (blockH >= HOUR_HEIGHT * 0.7f) 3 else 2,
                     overflow = TextOverflow.Ellipsis
                 )
-                if (isMeetingTask(block.task.type)) {
+                if (isAppointmentTask(block.task.type)) {
                     Icon(
                         Icons.Outlined.CalendarToday,
                         taskTypeAccessibilityLabel(block.task.type),

@@ -163,7 +163,7 @@ fun TaskDetailScreen(
                             viewModel.updateDescription(descEdit)
                     },
                     onTaskTypeToggle = {
-                        viewModel.updateTaskType(if (task.type == "MEETING") "TODO" else "MEETING")
+                        viewModel.updateTaskType(if (task.type == "APPOINTMENT") "TODO" else "APPOINTMENT")
                     },
                     onPropertyClick = { picker ->
                         focusManager.clearFocus()
@@ -421,7 +421,7 @@ private fun TaskContent(
             PropertyRow(
                 icon = Icons.Outlined.Event,
                 label = "TYPE",
-                value = if (task.type == "MEETING") "Réunion" else "À faire",
+                value = if (task.type == "APPOINTMENT") "Rendez-vous" else "À faire",
                 valueColor = TextPrimary,
                 onClick = onTaskTypeToggle
             )

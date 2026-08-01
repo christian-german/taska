@@ -6,12 +6,12 @@ import org.junit.Test
 class TaskRequestTest {
 
     @Test
-    fun `meeting creation request includes meeting type`() {
-        assertEquals("MEETING", TaskRequest(content = "Planning", type = "MEETING").type)
+    fun `appointment creation request includes appointment type`() {
+        assertEquals("APPOINTMENT", TaskRequest(content = "Planning", type = "APPOINTMENT").type)
     }
 
     @Test
-    fun `task update request can change a meeting back to todo`() {
+    fun `task update request can change an appointment back to todo`() {
         assertEquals("TODO", TaskRequest(content = "Planning", type = "TODO").type)
     }
 }

@@ -170,4 +170,13 @@ class TaskMapperTest {
         assertThat(mapper.toOccurrenceDto(task, null, Instant.parse("2026-05-20T10:00:00Z")).type())
                 .isEqualTo(TaskType.TODO);
     }
+
+    @Test
+    void toOccurrenceDto_appointmentType_isPreserved() {
+        Task task = buildTask("Doctor visit", 4);
+        task.setType(TaskType.APPOINTMENT);
+
+        assertThat(mapper.toOccurrenceDto(task, null, Instant.parse("2026-05-20T10:00:00Z")).type())
+                .isEqualTo(TaskType.APPOINTMENT);
+    }
 }

@@ -1,8 +1,4 @@
-## Purpose
-
-Classify tasks as to-dos or appointments so clients can create, update, and clearly present both kinds of work.
-
-## Requirements
+## MODIFIED Requirements
 
 ### Requirement: Tasks have a persisted type
 The system SHALL classify every task as either a `TODO` or an `APPOINTMENT`. The classification SHALL be stored with the task and included in task representations returned to supported clients and integrations. Existing persisted `MEETING` classifications SHALL be migrated to `APPOINTMENT` without changing the task's other data.

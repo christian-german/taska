@@ -47,7 +47,7 @@ export interface Section {
 }
 
 export type RecurrenceScope = 'THIS_ONLY' | 'FROM_THIS';
-export type TaskType = 'TODO' | 'MEETING';
+export type TaskType = 'TODO' | 'APPOINTMENT';
 
 export interface Task {
   id: string;

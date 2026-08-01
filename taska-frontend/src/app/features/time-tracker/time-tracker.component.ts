@@ -316,8 +316,8 @@ interface DayInfo {
                    [style.padding-top.px]="itemHeight(item) >= 18 ? 7 : 3">
                 <div style="display:flex; align-items:center; font-weight:600; white-space:nowrap; overflow:hidden; line-height:1.3;">
                   @if (item.kind === 'task') {
-                    @if (item.task!.type === 'MEETING') {
-                      <span role="img" aria-label="Réunion" style="display:inline-flex; flex-shrink:0; margin-right:3px;">
+                    @if (item.task!.type === 'APPOINTMENT') {
+                      <span role="img" aria-label="Rendez-vous" style="display:inline-flex; flex-shrink:0; margin-right:3px;">
                         <app-icon name="calendar" [size]="10" />
                       </span>
                     } @else { ☐ }

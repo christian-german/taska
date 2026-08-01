@@ -5,5 +5,5 @@ package com.taska.domain.task;
  */
 public enum TaskType {
     TODO,
-    MEETING
+    APPOINTMENT
 }

@@ -705,18 +705,18 @@ class TaskServiceMutationTest {
     }
 
     @Test
-    void create_missingTypeDefaultsToTodo_andExplicitMeetingIsPreserved() {
+    void create_missingTypeDefaultsToTodo_andExplicitAppointmentIsPreserved() {
         Project inbox = new Project();
         inbox.setId(randomId());
         when(projectRepository.findByIsInboxProjectTrue()).thenReturn(Optional.of(inbox));
         when(taskRepository.save(any(Task.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         Task todo = service.create(req("Legacy-compatible task", null, null));
-        Task meeting = service.create(new TaskRequest("Planning", null, null, null, null, null,
-                null, null, null, null, null, null, null, null, null, null, TaskType.MEETING));
+        Task appointment = service.create(new TaskRequest("Planning", null, null, null, null, null,
+                null, null, null, null, null, null, null, null, null, null, TaskType.APPOINTMENT));
 
         assertThat(todo.getType()).isEqualTo(TaskType.TODO);
-        assertThat(meeting.getType()).isEqualTo(TaskType.MEETING);
+        assertThat(appointment.getType()).isEqualTo(TaskType.APPOINTMENT);
     }
 
     @Test
@@ -729,9 +729,9 @@ class TaskServiceMutationTest {
         when(taskMapper.toDto(task)).thenReturn(anyDto());
 
         service.update(taskId, new TaskRequest(null, null, null, null, null, null, null, null,
-                null, null, null, null, null, null, null, null, TaskType.MEETING));
+                null, null, null, null, null, null, null, null, TaskType.APPOINTMENT));
 
-        assertThat(task.getType()).isEqualTo(TaskType.MEETING);
+        assertThat(task.getType()).isEqualTo(TaskType.APPOINTMENT);
         assertThat(task.getContent()).isEqualTo("Non-recurring task");
     }
 }

@@ -394,7 +394,7 @@ export class QuickAddComponent implements OnInit {
   readonly recurrenceOptions = RECURRENCE_OPTIONS;
   readonly taskTypes: { value: TaskType; label: string }[] = [
     { value: 'TODO', label: 'À faire' },
-    { value: 'MEETING', label: 'Réunion' },
+    { value: 'APPOINTMENT', label: 'Rendez-vous' },
   ];
 
   // ── Derived ──────────────────────────────────────────────────────────

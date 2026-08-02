@@ -31,6 +31,7 @@ class TaskDtoTest {
         instanceId: String? = null,
         occurrenceScheduledAt: String? = null,
         scheduledAt: String? = null,
+        dueAt: String? = null,
         allDay: Boolean = false,
         priority: Int? = 3,
         recurrenceRule: String? = null,
@@ -48,6 +49,7 @@ class TaskDtoTest {
         labels = null,
         isCompleted = isCompleted,
         scheduledAt = scheduledAt,
+        dueAt = dueAt,
         allDay = allDay,
         isRecurring = isRecurring,
         recurrenceRule = recurrenceRule,
@@ -59,6 +61,17 @@ class TaskDtoTest {
         occurrenceScheduledAt = occurrenceScheduledAt,
         isVirtual = isVirtual,
     )
+
+    @Test
+    fun `givenDueAt_whenCreated_thenDeadlineIsKeptSeparateFromSchedule`() {
+        val task = buildTaskDto(
+            scheduledAt = "2026-05-20T09:00:00Z",
+            dueAt = "2026-05-21T17:00:00Z"
+        )
+
+        assertEquals("2026-05-20T09:00:00Z", task.scheduledAt)
+        assertEquals("2026-05-21T17:00:00Z", task.dueAt)
+    }
 
     // -------------------------------------------------------------------------
     // 1.1 — Tâche normale : champs de récurrence à leurs valeurs neutres

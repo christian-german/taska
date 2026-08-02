@@ -15,7 +15,6 @@ import {
   fmtRel,
   fmtTime,
   getColor,
-  getTaskDueDate,
   isTaskAllDay,
 } from '../../core/models';
 
@@ -56,7 +55,7 @@ import {
   TagChipComponent,
 } from '../../shared/components/atoms/atoms.component';
 
-type DetailPicker = 'date' | 'tags' | 'estimate' | 'recurrence' | null;
+type DetailPicker = 'date' | 'due' | 'tags' | 'estimate' | 'recurrence' | null;
 
 @Component({
   selector: 'app-task-detail',
@@ -119,7 +118,14 @@ export class TaskDetailComponent implements OnChanges {
   currentProject = computed(() =>
     this.projects().find(p => p.id === this.task().projectId) ?? null
   );
-  dueDate = computed(() => getTaskDueDate(this.task()));
+  scheduledDate = computed(() => {
+    const scheduledAt = this.task().scheduledAt;
+    return scheduledAt ? new Date(scheduledAt) : null;
+  });
+  dueDate = computed(() => {
+    const dueAt = this.task().dueAt;
+    return dueAt ? new Date(dueAt) : null;
+  });
 
   completedSubs = computed(() => this.subtasks().filter(s => s.isCompleted).length);
 
@@ -139,8 +145,8 @@ export class TaskDetailComponent implements OnChanges {
   );
 
   dateRowLabel = computed(() => {
-    const d = this.dueDate();
-    if (!d) return 'Ajouter une date';
+    const d = this.scheduledDate();
+    if (!d) return 'Planifier';
     return fmtRel(d) + (!isTaskAllDay(this.task()) ? ' · ' + fmtTime(d) : '');
   });
 
@@ -248,6 +254,7 @@ export class TaskDetailComponent implements OnChanges {
   }
 
   datePickerValue = computed(() => this.task().scheduledAt ?? '');
+  dueDatePickerValue = computed(() => this.task().dueAt ?? '');
 
   onDatetimeChange(value: string): void {
     const hasTime = value.includes('T');
@@ -260,6 +267,11 @@ export class TaskDetailComponent implements OnChanges {
     this.activeDetailPicker.set(null);
     this.taskService.updateTask(this.task().id, { scheduledAt: null as any, allDay: false })
       .subscribe(t => this.taskUpdated.emit({ ...t, scheduledAt: null }));
+  }
+
+  onDueDateChange(value: string): void {
+    const dueAt = value.includes('T') ? value : value + 'T00:00:00Z';
+    this.save({ dueAt });
   }
 
   toggleTag(name: string, e: Event): void {

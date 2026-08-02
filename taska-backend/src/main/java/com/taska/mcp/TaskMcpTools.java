@@ -74,8 +74,8 @@ public class TaskMcpTools {
 
     private static TaskRequest toRequest(TaskInput input) {
         return new TaskRequest(input.content(), input.description(), input.projectId(), input.sectionId(), input.parentId(),
-                input.order(), input.priority(), input.labels(), input.scheduledAt(), input.allDay(), input.isRecurring(),
-                input.estimateMinutes(), input.mentionContext(), input.recurrenceRule(), input.scope(), input.occurrenceScheduledAt());
+                input.order(), input.priority(), input.labels(), input.scheduledAt(), input.dueAt(), input.allDay(), input.isRecurring(),
+                input.estimateMinutes(), input.mentionContext(), input.recurrenceRule(), input.scope(), input.occurrenceScheduledAt(), null);
     }
 
     private static void requireContent(String content) {
@@ -115,6 +115,8 @@ public class TaskMcpTools {
 
         Instant scheduledAt();
 
+        Instant dueAt();
+
         Boolean allDay();
 
         Boolean isRecurring();
@@ -144,27 +146,43 @@ public class TaskMcpTools {
     }
 
     public record TaskCreateInput(String content, String description, UUID projectId, UUID sectionId, UUID parentId,
-                                  Integer order, Integer priority, List<String> labels, Instant scheduledAt, Boolean allDay,
+                                  Integer order, Integer priority, List<String> labels, Instant scheduledAt, Instant dueAt, Boolean allDay,
                                   Boolean isRecurring, Integer estimateMinutes, String mentionContext,
                                   String recurrenceRule, RecurrenceScope scope,
                                   Instant occurrenceScheduledAt) implements TaskInput {
+        public TaskCreateInput(String content, String description, UUID projectId, UUID sectionId, UUID parentId,
+                               Integer order, Integer priority, List<String> labels, Instant scheduledAt, Boolean allDay,
+                               Boolean isRecurring, Integer estimateMinutes, String mentionContext,
+                               String recurrenceRule, RecurrenceScope scope, Instant occurrenceScheduledAt) {
+            this(content, description, projectId, sectionId, parentId, order, priority, labels, scheduledAt, null,
+                    allDay, isRecurring, estimateMinutes, mentionContext, recurrenceRule, scope, occurrenceScheduledAt);
+        }
     }
 
     public record TaskUpdateInput(String content, String description, UUID projectId, UUID sectionId, UUID parentId,
-                                  Integer order, Integer priority, List<String> labels, Instant scheduledAt, Boolean allDay,
+                                  Integer order, Integer priority, List<String> labels, Instant scheduledAt, Instant dueAt, Boolean allDay,
                                   Boolean isRecurring, Integer estimateMinutes, String mentionContext,
                                   String recurrenceRule, RecurrenceScope scope,
                                   Instant occurrenceScheduledAt, Boolean clearPriority) implements TaskInput {
+        public TaskUpdateInput(String content, String description, UUID projectId, UUID sectionId, UUID parentId,
+                               Integer order, Integer priority, List<String> labels, Instant scheduledAt, Boolean allDay,
+                               Boolean isRecurring, Integer estimateMinutes, String mentionContext,
+                               String recurrenceRule, RecurrenceScope scope, Instant occurrenceScheduledAt,
+                               Boolean clearPriority) {
+            this(content, description, projectId, sectionId, parentId, order, priority, labels, scheduledAt, null,
+                    allDay, isRecurring, estimateMinutes, mentionContext, recurrenceRule, scope,
+                    occurrenceScheduledAt, clearPriority);
+        }
     }
 
     public record TaskOutput(UUID id, String content, String description, UUID projectId, UUID sectionId, UUID parentId,
-                             Integer order, Integer priority, List<String> labels, Boolean isCompleted, Instant scheduledAt,
+                             Integer order, Integer priority, List<String> labels, Boolean isCompleted, Instant scheduledAt, Instant dueAt,
                              Boolean allDay, Boolean isRecurring, Integer estimateMinutes, String mentionContext,
                              String recurrenceRule, Instant createdAt, Instant updatedAt, Instant completedAt,
                              UUID instanceId, Instant occurrenceScheduledAt, Boolean isVirtual, Instant rruleEndsAt) {
         static TaskOutput from(TaskDto task) {
             return new TaskOutput(task.id(), task.content(), task.description(), task.projectId(), task.sectionId(), task.parentId(),
-                    task.order(), task.priority(), task.labels(), task.isCompleted(), task.scheduledAt(), task.allDay(),
+                    task.order(), task.priority(), task.labels(), task.isCompleted(), task.scheduledAt(), task.dueAt(), task.allDay(),
                     task.isRecurring(), task.estimateMinutes(), task.mentionContext(), task.recurrenceRule(),
                     task.createdAt(), task.updatedAt(), task.completedAt(), task.instanceId(), task.occurrenceScheduledAt(),
                     task.isVirtual(), task.rruleEndsAt());

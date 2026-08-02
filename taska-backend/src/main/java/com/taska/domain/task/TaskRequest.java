@@ -30,6 +30,7 @@ import java.util.UUID;
  *                        no manual priority is assigned; supplied values must be between 1 and 4
  * @param labels          list of label names to attach; replaces the existing label list on update
  * @param scheduledAt     planned schedule time in UTC; {@code null} means the task is unscheduled
+ * @param dueAt           deadline in UTC; {@code null} means the task has no deadline
  * @param allDay          when {@code true} the scheduled time has no specific time component; defaults to {@code false}
  * @param isRecurring     whether the task repeats; defaults to {@code false} on create
  * @param estimateMinutes optional time estimate in minutes; must be positive
@@ -53,6 +54,7 @@ public record  TaskRequest(
         Integer priority,
         List<String> labels,
         Instant scheduledAt,
+        Instant dueAt,
         Boolean allDay,
         Boolean isRecurring,
         @Positive
@@ -69,8 +71,19 @@ public record  TaskRequest(
                        Instant scheduledAt, Boolean allDay, Boolean isRecurring, Integer estimateMinutes,
                        String mentionContext, String recurrenceRule, RecurrenceScope scope,
                        Instant occurrenceScheduledAt) {
-        this(content, description, projectId, sectionId, parentId, order, priority, labels, scheduledAt,
+        this(content, description, projectId, sectionId, parentId, order, priority, labels, scheduledAt, null,
                 allDay, isRecurring, estimateMinutes, mentionContext, recurrenceRule, scope,
                 occurrenceScheduledAt, null);
+    }
+
+    /** Compatibility constructor for callers that provide a task type but no due date. */
+    public TaskRequest(String content, String description, UUID projectId, UUID sectionId,
+                       UUID parentId, Integer order, Integer priority, List<String> labels,
+                       Instant scheduledAt, Boolean allDay, Boolean isRecurring, Integer estimateMinutes,
+                       String mentionContext, String recurrenceRule, RecurrenceScope scope,
+                       Instant occurrenceScheduledAt, TaskType type) {
+        this(content, description, projectId, sectionId, parentId, order, priority, labels, scheduledAt, null,
+                allDay, isRecurring, estimateMinutes, mentionContext, recurrenceRule, scope,
+                occurrenceScheduledAt, type);
     }
 }

@@ -41,6 +41,8 @@ public interface TaskMapper {
                 ? instance.getPriority() : task.getPriority();
         Instant scheduledAt = instance != null && instance.getScheduledAt() != null
                 ? instance.getScheduledAt() : occurrenceScheduledAt;
+        Instant dueAt = instance != null && instance.getDueAt() != null
+                ? instance.getDueAt() : task.getDueAt();
         boolean isCompleted = instance != null && instance.getStatus() == TaskInstanceStatus.DONE;
         Instant completedAt = instance != null ? instance.getCompletedAt() : null;
         UUID instanceId = instance != null ? instance.getId() : null;
@@ -58,6 +60,7 @@ public interface TaskMapper {
                 task.getLabels(),
                 isCompleted,
                 scheduledAt,
+                dueAt,
                 task.isAllDay(),
                 true,
                 task.getEstimateMinutes(),

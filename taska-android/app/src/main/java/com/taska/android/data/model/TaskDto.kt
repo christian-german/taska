@@ -15,6 +15,7 @@ data class TaskDto(
     val labels: List<String>?,
     @SerializedName("isCompleted") val isCompleted: Boolean?,
     val scheduledAt: String?,
+    val dueAt: String? = null,
     val allDay: Boolean = false,
     @SerializedName("isRecurring") val isRecurring: Boolean?,
     val recurrenceRule: String? = null,

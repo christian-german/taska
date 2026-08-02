@@ -16,7 +16,7 @@ import { IconComponent } from '../icon/icon.component';
 import { DatetimePickerComponent } from '../datetime-picker/datetime-picker.component';
 
 interface DetectedChip { k: string; v: string; color: string; }
-type PickerName = 'date' | 'project' | 'tags' | 'estimate' | 'recurrence';
+type PickerName = 'date' | 'due' | 'project' | 'tags' | 'estimate' | 'recurrence';
 
 const ESTIMATE_PRESETS = [
   { minutes: 15, label: '15 min' }, { minutes: 30, label: '30 min' },
@@ -138,6 +138,30 @@ const RECURRENCE_OPTIONS = [
                     [value]="datePickerValue()"
                     [withTime]="true"
                     (valueChange)="onDatetimeChange($event)" />
+                </div>
+              }
+            </div>
+
+            <!-- ── DUE DATE ─────────────────────────────────────────── -->
+            <div style="position:relative;">
+              <button style="width:100%;display:flex;align-items:center;gap:10px;font-size:13px;background:transparent;border:0;padding:6px 8px;cursor:pointer;text-align:left;border-radius:7px;color:inherit;" (click)="togglePicker('due')">
+                <app-icon name="flag" [size]="14" color="#FF8A3D" />
+                <span style="flex:1;" [style.color]="manualDueAt() ? 'var(--ink)' : 'var(--ink-2)'">
+                  {{ dueDateRowLabel() }}
+                </span>
+                @if (manualDueAt()) {
+                  <span (click)="clearManual($event,'due')"
+                        style="color:var(--mute);font-size:15px;line-height:1;cursor:pointer;">×</span>
+                }
+              </button>
+
+              @if (activePicker() === 'due') {
+                <div style="position:absolute;left:0;top:calc(100% + 4px);z-index:56;background:var(--bg);border:1px solid var(--line);border-radius:10px;box-shadow:0 6px 24px rgba(0,0,0,.14);padding:12px;min-width:260px;"
+                     (click)="$event.stopPropagation()">
+                  <app-datetime-picker
+                    [value]="dueDatePickerValue()"
+                    [withTime]="true"
+                    (valueChange)="onDueDateChange($event)" />
                 </div>
               }
             </div>
@@ -379,6 +403,7 @@ export class QuickAddComponent implements OnInit {
 
   // Manual overrides — null means "use NL-detected value"
   manualDatetime = signal<string | null>(null);
+  manualDueAt = signal<string | null>(null);
   manualProjectId = signal<string | null>(null);
   manualTags = signal<Set<string> | null>(null);
   manualEstimate = signal<number | null>(null);
@@ -433,6 +458,8 @@ export class QuickAddComponent implements OnInit {
     if (p.scheduledAt) return p.scheduledAt;
     return '';
   });
+
+  dueDatePickerValue = computed(() => this.manualDueAt() ?? '');
 
   effectiveProjectId = computed(() => this.manualProjectId() ?? this.ui.defaultProjectId() ?? this.inboxProject()?.id ?? null);
 
@@ -503,6 +530,7 @@ export class QuickAddComponent implements OnInit {
     e.stopPropagation();
     switch (field) {
       case 'date':       this.manualDatetime.set(null); break;
+      case 'due':        this.manualDueAt.set(null); break;
       case 'project':    this.manualProjectId.set(null); break;
       case 'tags':       this.manualTags.set(null); break;
       case 'estimate':   this.manualEstimate.set(null); break;
@@ -514,6 +542,10 @@ export class QuickAddComponent implements OnInit {
 
   onDatetimeChange(value: string): void {
     this.manualDatetime.set(value);
+  }
+
+  onDueDateChange(value: string): void {
+    this.manualDueAt.set(value);
   }
 
   // ── Project ───────────────────────────────────────────────────────────
@@ -576,6 +608,14 @@ export class QuickAddComponent implements OnInit {
     return fmtRel(d) + (p.hasTime ? ' · ' + fmtTime(d) : '');
   }
 
+  dueDateRowLabel(): string {
+    const dueAt = this.manualDueAt();
+    if (!dueAt) return 'pas d\'échéance';
+    const hasTime = dueAt.includes('T');
+    const date = new Date(hasTime ? dueAt : dueAt + 'T00:00:00');
+    return 'à faire avant ' + fmtRel(date) + (hasTime ? ' · ' + fmtTime(date) : '');
+  }
+
   tagRowLabel(): string {
     const tags = this.effectiveTags();
     return tags.length ? tags.map(t => '#' + t).join(' ') : 'pas de tag';
@@ -600,6 +640,8 @@ export class QuickAddComponent implements OnInit {
     const hasTime = manual ? manual.includes('T') : false;
 
     let scheduledAt: string | null = null;
+    const manualDueAt = this.manualDueAt();
+    const dueAt = manualDueAt ? (manualDueAt.includes('T') ? manualDueAt : manualDueAt + 'T00:00:00Z') : null;
     let allDay = false;
     if (manual) {
       scheduledAt = hasTime ? manual : manual + 'T00:00:00Z';
@@ -615,6 +657,7 @@ export class QuickAddComponent implements OnInit {
       labels: this.effectiveTags(),
       priority: p.priority,
       scheduledAt,
+      dueAt,
       allDay,
       mentionContext: p.context,
       estimateMinutes: this.effectiveEstimate() ?? undefined,

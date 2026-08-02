@@ -121,6 +121,21 @@ class TaskMapperTest {
         assertThat(dto.scheduledAt()).isEqualTo(movedScheduledAt);
     }
 
+    @Test
+    void toOccurrenceDto_dueAtInheritsFromTaskAndCanBeOverriddenByInstance() {
+        Task task = buildTask("Task", 2);
+        Instant occurrenceScheduledAt = Instant.parse("2026-05-20T10:00:00Z");
+        Instant parentDueAt = Instant.parse("2026-05-21T17:00:00Z");
+        Instant overrideDueAt = Instant.parse("2026-05-20T17:00:00Z");
+        task.setDueAt(parentDueAt);
+
+        assertThat(mapper.toOccurrenceDto(task, null, occurrenceScheduledAt).dueAt()).isEqualTo(parentDueAt);
+
+        TaskInstance instance = buildInstance(task.getId(), occurrenceScheduledAt, TaskInstanceStatus.MODIFIED);
+        instance.setDueAt(overrideDueAt);
+        assertThat(mapper.toOccurrenceDto(task, instance, occurrenceScheduledAt).dueAt()).isEqualTo(overrideDueAt);
+    }
+
     // ── 6.5 ──────────────────────────────────────────────────────────────────
 
     @Test

@@ -46,6 +46,10 @@ public class TaskInstance {
     @Column(name = "scheduled_at")
     private Instant scheduledAt;
 
+    /** Optional deadline override for this recurring occurrence. */
+    @Column(name = "due_at")
+    private Instant dueAt;
+
     /** Current state of this occurrence: {@code DONE}, {@code SKIPPED}, or {@code MODIFIED}. */
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)

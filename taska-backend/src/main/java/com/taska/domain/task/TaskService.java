@@ -180,6 +180,7 @@ public class TaskService {
         t.setPriority(taskRequest.priority());
         t.setLabels(taskRequest.labels() != null ? taskRequest.labels() : new ArrayList<>());
         t.setScheduledAt(taskRequest.scheduledAt());
+        t.setDueAt(taskRequest.dueAt());
         t.setAllDay(taskRequest.allDay() != null ? taskRequest.allDay() : false);
         t.setIsRecurring(taskRequest.isRecurring() != null ? taskRequest.isRecurring() : false);
         t.setEstimateMinutes(taskRequest.estimateMinutes());
@@ -204,7 +205,7 @@ public class TaskService {
      *   <li><b>No scope (or non-recurring task)</b> – a standard patch is applied directly to the
      *       task entity; only non-null request fields overwrite existing values.</li>
      *   <li><b>{@code THIS_ONLY}</b> – creates or updates a {@link TaskInstance} for the specified
-     *       occurrence, overriding only {@code content}, {@code priority}, and {@code scheduledAt};
+     *       occurrence, overriding only {@code content}, {@code priority}, {@code scheduledAt}, and {@code dueAt};
      *       all other occurrences remain unchanged.</li>
      *   <li><b>{@code FROM_THIS}</b> – truncates the original series one second before
      *       {@code occurrenceScheduledAt}, then creates a new recurring task starting at that instant
@@ -264,6 +265,7 @@ public class TaskService {
                 if (taskRequest.content() != null) instance.setTitle(taskRequest.content());
                 if (priorityProvided && taskRequest.priority() != null) instance.setPriority(taskRequest.priority());
                 if (taskRequest.scheduledAt() != null) instance.setScheduledAt(taskRequest.scheduledAt());
+                if (taskRequest.dueAt() != null) instance.setDueAt(taskRequest.dueAt());
                 yield taskMapper.toOccurrenceDto(task, taskInstanceRepository.save(instance), occurrenceScheduledAt);
             }
             case FROM_THIS -> {
@@ -281,6 +283,7 @@ public class TaskService {
                 cloned.setPriority(priorityProvided ? taskRequest.priority() : task.getPriority());
                 cloned.setLabels(taskRequest.labels() != null ? taskRequest.labels() : task.getLabels());
                 cloned.setScheduledAt(occurrenceScheduledAt);
+                cloned.setDueAt(taskRequest.dueAt() != null ? taskRequest.dueAt() : task.getDueAt());
                 cloned.setAllDay(task.isAllDay());
                 cloned.setIsRecurring(true);
                 cloned.setEstimateMinutes(taskRequest.estimateMinutes() != null ? taskRequest.estimateMinutes() : task.getEstimateMinutes());
@@ -513,6 +516,7 @@ public class TaskService {
         if (taskRequest.estimateMinutes() != null) task.setEstimateMinutes(taskRequest.estimateMinutes());
         if (taskRequest.mentionContext() != null) task.setMentionContext(taskRequest.mentionContext());
         if (taskRequest.recurrenceRule() != null) task.setRecurrenceRule(normalizeRRule(taskRequest.recurrenceRule()));
+        if (taskRequest.dueAt() != null) task.setDueAt(taskRequest.dueAt());
         if (taskRequest.scheduledAt() != null) {
             if (!taskRequest.scheduledAt().equals(task.getScheduledAt())) {
                 task.setIsNotified(false);

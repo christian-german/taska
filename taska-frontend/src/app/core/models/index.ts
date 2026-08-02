@@ -64,6 +64,8 @@ export interface Task {
   labels: string[];
   isCompleted: boolean;
   scheduledAt: string | null;
+  /** Deadline by which the task should be completed; independent of calendar scheduling. */
+  dueAt: string | null;
   allDay: boolean;
   isRecurring: boolean;
   estimateMinutes?: number;

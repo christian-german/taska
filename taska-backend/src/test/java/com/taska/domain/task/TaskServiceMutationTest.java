@@ -147,6 +147,24 @@ class TaskServiceMutationTest {
         assertThat(task.getPriority()).isNull();
     }
 
+    @Test
+    void update_dueAtChangesDeadlineWithoutChangingScheduledAt() {
+        UUID taskId = randomId();
+        Task task = buildNonRecurringTask(taskId);
+        Instant scheduledAt = Instant.parse("2026-05-20T09:00:00Z");
+        Instant dueAt = Instant.parse("2026-05-21T17:00:00Z");
+        task.setScheduledAt(scheduledAt);
+        when(taskRepository.findById(taskId)).thenReturn(Optional.of(task));
+        when(taskRepository.save(task)).thenReturn(task);
+        when(taskMapper.toDto(task)).thenReturn(anyDto());
+
+        service.update(taskId, new TaskRequest(null, null, null, null, null, null, null, null,
+                null, dueAt, null, null, null, null, null, null, null, null));
+
+        assertThat(task.getDueAt()).isEqualTo(dueAt);
+        assertThat(task.getScheduledAt()).isEqualTo(scheduledAt);
+    }
+
     // ═════════════════════════════════════════════════════════════════════════
     // close() — section 3
     // ═════════════════════════════════════════════════════════════════════════

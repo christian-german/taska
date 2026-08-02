@@ -1,0 +1,5 @@
+ALTER TABLE tasks
+    ADD COLUMN due_at TIMESTAMPTZ;
+
+ALTER TABLE task_instances
+    ADD COLUMN due_at TIMESTAMPTZ;

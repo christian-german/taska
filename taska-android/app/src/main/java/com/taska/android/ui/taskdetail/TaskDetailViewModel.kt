@@ -106,6 +106,7 @@ class TaskDetailViewModel(
             priority = task.priority,
             labels = task.labels,
             scheduledAt = task.scheduledAt,
+            dueAt = task.dueAt,
             allDay = task.allDay,
             estimateMinutes = task.estimateMinutes,
             isRecurring = task.isRecurring,
@@ -166,6 +167,7 @@ class TaskDetailViewModel(
             priority = task.priority,
             labels = task.labels,
             scheduledAt = millisToApiDateTime(millis, timeMinutes),
+            dueAt = task.dueAt,
             allDay = timeMinutes == null,
             estimateMinutes = task.estimateMinutes,
             isRecurring = task.isRecurring,
@@ -183,6 +185,8 @@ class TaskDetailViewModel(
     }
 
     fun clearDue() = applyUpdate { copy(scheduledAt = null, allDay = null) }
+
+    fun updateDueAt(millis: Long) = applyUpdate { copy(dueAt = millisToApiDateTime(millis, null)) }
 
     fun updateProject(projectId: String?) = applyUpdate { copy(projectId = projectId) }
 
@@ -275,6 +279,15 @@ class TaskDetailViewModel(
             SimpleDateFormat("yyyy-MM-dd", Locale.US)
                 .apply { timeZone = TimeZone.getTimeZone("UTC") }
                 .parse(scheduledAt.take(10))?.time ?: todayMillis()
+        } catch (_: Exception) { todayMillis() }
+    }
+
+    fun dueAtToMillis(): Long {
+        val dueAt = _uiState.value.task?.dueAt ?: return todayMillis()
+        return try {
+            SimpleDateFormat("yyyy-MM-dd", Locale.US)
+                .apply { timeZone = TimeZone.getTimeZone("UTC") }
+                .parse(dueAt.take(10))?.time ?: todayMillis()
         } catch (_: Exception) { todayMillis() }
     }
 

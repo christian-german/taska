@@ -123,6 +123,30 @@
         }
       </div>
 
+      <!-- Due date row -->
+      <div style="position: relative;">
+        <button class="btn btn-ghost"
+                style="width: 100%; display: flex; align-items: center; gap: 8px; padding: 7px 8px; border-radius: 6px; text-align: left;"
+                (click)="openPicker('due', $event)">
+          <app-icon name="flag" [size]="14" [color]="dueDate() ? 'var(--orange)' : 'var(--mute)'" />
+          <span class="mono" style="font-size: 12px; flex: 1;"
+                [style.color]="dueDate() ? 'var(--orange)' : 'var(--mute)'">
+            {{ dueDate() ? 'À faire avant le ' + formatShort(task().dueAt!) : 'Ajouter une échéance' }}
+          </span>
+        </button>
+        @if (activeDetailPicker() === 'due') {
+          <div (click)="$event.stopPropagation()"
+               style="position: absolute; top: calc(100% + 4px); left: 0; z-index: 20;
+                      background: var(--bg); border: 1px solid var(--line);
+                      border-radius: 10px; box-shadow: var(--shadow-soft); padding: 12px; min-width: 260px;">
+            <app-datetime-picker
+              [value]="dueDatePickerValue()"
+              [withTime]="true"
+              (valueChange)="onDueDateChange($event)" />
+          </div>
+        }
+      </div>
+
       <!-- Tags row -->
       <div style="position: relative;">
         <button class="btn btn-ghost"

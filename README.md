@@ -67,7 +67,9 @@ Task and project tools call the backend application services directly, so they f
 ## Features
 
 - **Views**: Inbox · Today · Upcoming · Project (List + Kanban Board)
-- **Tasks**: optional priority (p1–p4), scheduled times (`scheduledAt`), labels, sub-tasks, comments
+- **Tasks**: optional priority (p1–p4), calendar scheduling (`scheduledAt`), independent deadlines (`dueAt`), labels, sub-tasks, comments
+
+`scheduledAt` (`scheduled_at` in storage) controls calendar placement, date-based views, recurrence scheduling, and notifications. `dueAt` (`due_at`) is the optional deadline by which a task should be completed; it does not reschedule a task or affect notifications. REST and MCP task create/update responses accept and return both fields independently.
 - **Projects**: colors, favorites, nested projects, sections
 - **Quick Add**: press `Q` — supports `#project`, `@label`, `p1–p4`, `today/tomorrow`
 - **Drag & Drop**: reorder tasks within sections (Angular CDK)

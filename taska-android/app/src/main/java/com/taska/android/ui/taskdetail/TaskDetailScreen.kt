@@ -108,7 +108,7 @@ private val DividerColor = Color(0xFFD9E1E8)
 private val Orange = Color(0xFF17233D)
 private val GreenDone = Color(0xFF14B37D)
 
-private enum class ActivePicker { DATE, CALENDAR, TIME, PROJECT, DURATION, LABELS, PRIORITY, RECURRENCE }
+private enum class ActivePicker { DATE, CALENDAR, TIME, DUE_DATE, DUE_CALENDAR, PROJECT, DURATION, LABELS, PRIORITY, RECURRENCE }
 
 @Composable
 fun TaskDetailScreen(
@@ -198,6 +198,16 @@ fun TaskDetailScreen(
             onClear = { viewModel.clearDue(); activePicker = null },
             onDismiss = { activePicker = null }
         )
+        ActivePicker.DUE_DATE -> DateShortcutsDialog(
+            hasDue = false,
+            onSelect = { millis ->
+                viewModel.updateDueAt(millis)
+                activePicker = null
+            },
+            onOpenCalendar = { activePicker = ActivePicker.DUE_CALENDAR },
+            onClear = {},
+            onDismiss = { activePicker = null }
+        )
         ActivePicker.CALENDAR -> {
             val datePickerState = rememberDatePickerState(
                 initialSelectedDateMillis = viewModel.scheduledAtToMillis()
@@ -208,6 +218,23 @@ fun TaskDetailScreen(
                     TextButton(onClick = {
                         datePickerState.selectedDateMillis?.let { pendingDateMillis = it }
                         activePicker = ActivePicker.TIME
+                    }) { Text("OK") }
+                },
+                dismissButton = {
+                    TextButton(onClick = { activePicker = null }) { Text("Annuler") }
+                }
+            ) { DatePicker(state = datePickerState) }
+        }
+        ActivePicker.DUE_CALENDAR -> {
+            val datePickerState = rememberDatePickerState(
+                initialSelectedDateMillis = viewModel.dueAtToMillis()
+            )
+            DatePickerDialog(
+                onDismissRequest = { activePicker = null },
+                confirmButton = {
+                    TextButton(onClick = {
+                        datePickerState.selectedDateMillis?.let(viewModel::updateDueAt)
+                        activePicker = null
                     }) { Text("OK") }
                 },
                 dismissButton = {
@@ -428,14 +455,25 @@ private fun TaskContent(
             HorizontalDivider(color = DividerColor)
         }
 
-        // ÉCHÉANCE
+        // PLANIFICATION
         item {
             PropertyRow(
                 icon = Icons.Outlined.Schedule,
-                label = "ÉCHÉANCE",
+                label = "PLANIFIÉ",
                 value = task.scheduledAt?.let { formatDueDate(it, task.allDay) },
                 valueColor = if (isOverdue(task.scheduledAt, task.allDay)) OverdueColor else TextPrimary,
                 onClick = { onPropertyClick(ActivePicker.DATE) }
+            )
+            HorizontalDivider(color = DividerColor)
+        }
+
+        item {
+            PropertyRow(
+                icon = Icons.Outlined.Event,
+                label = "ÉCHÉANCE",
+                value = task.dueAt?.let { formatDueDate(it, false) },
+                valueColor = task.dueAt?.let { isOverdue(it, false) }?.let { if (it) OverdueColor else TextPrimary } ?: TextSecondary,
+                onClick = { onPropertyClick(ActivePicker.DUE_DATE) }
             )
             HorizontalDivider(color = DividerColor)
         }

@@ -84,6 +84,10 @@ public class Task {
     @Column(name = "scheduled_at")
     private Instant scheduledAt;
 
+    /** Deadline in UTC; {@code null} when the task has no due date. */
+    @Column(name = "due_at")
+    private Instant dueAt;
+
     /** When {@code true}, the scheduled time represents an all-day event with no specific time. */
     @Column(name = "all_day", nullable = false)
     private boolean allDay = false;

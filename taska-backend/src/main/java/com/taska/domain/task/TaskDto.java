@@ -21,6 +21,7 @@ import java.util.UUID;
  * @param labels          list of label names attached to the task
  * @param isCompleted     whether the task has been completed
  * @param scheduledAt     planned schedule time in UTC; {@code null} when the task is unscheduled
+ * @param dueAt           deadline in UTC; {@code null} when the task has no deadline
  * @param allDay          when {@code true} the scheduled time has no specific time component
  * @param isRecurring     whether the task repeats according to a recurrence rule
  * @param estimateMinutes optional time estimate in minutes
@@ -50,6 +51,7 @@ public record TaskDto(
         List<String> labels,
         Boolean isCompleted,
         Instant scheduledAt,
+        Instant dueAt,
         Boolean allDay,
         Boolean isRecurring,
         Integer estimateMinutes,
@@ -72,7 +74,7 @@ public record TaskDto(
                    Instant createdAt, Instant updatedAt, Instant completedAt, UUID instanceId,
                    Instant occurrenceScheduledAt, Boolean isVirtual, Instant rruleEndsAt) {
         this(id, content, description, projectId, sectionId, parentId, order, priority, labels,
-                isCompleted, scheduledAt, allDay, isRecurring, estimateMinutes, mentionContext,
+                isCompleted, scheduledAt, null, allDay, isRecurring, estimateMinutes, mentionContext,
                 recurrenceRule, createdAt, updatedAt, completedAt, instanceId, occurrenceScheduledAt,
                 isVirtual, rruleEndsAt, TaskType.TODO);
     }

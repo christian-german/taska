@@ -5,7 +5,6 @@ import com.taska.domain.project.ProjectService;
 import com.taska.domain.task.TaskMapper;
 import com.taska.domain.task.TaskService;
 import org.junit.jupiter.api.Test;
-import org.springframework.ai.mcp.annotation.McpTool;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -15,8 +14,8 @@ import org.springframework.context.annotation.Import;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
-import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.BadJwtException;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.web.SecurityFilterChain;
 
@@ -26,7 +25,6 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Instant;
 import java.util.List;
-import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
@@ -60,7 +58,7 @@ class McpEndpointIntegrationTest {
             """;
     private static final String LIST_TASKS = """
             {"jsonrpc":"2.0","id":4,"method":"tools/call","params":{"name":"list_tasks","arguments":{
-              "input":{"projectId":null,"sectionId":null,"label":null,"filter":null,"showCompleted":false}}}}
+              "taskListInput":{"projectId":null,"sectionId":null,"label":null,"filter":null,"showCompleted":false}}}}
             """;
 
     @LocalServerPort
@@ -136,7 +134,7 @@ class McpEndpointIntegrationTest {
     static class TestSecurityConfiguration {
 
         @Bean
-        SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        SecurityFilterChain securityFilterChain(HttpSecurity http) {
             return http.csrf(AbstractHttpConfigurer::disable)
                     .authorizeHttpRequests(auth -> auth.anyRequest().authenticated())
                     .oauth2ResourceServer(oauth2 -> oauth2.jwt(Customizer.withDefaults()))
@@ -154,7 +152,7 @@ class McpEndpointIntegrationTest {
                         .subject("taska-user")
                         .issuedAt(Instant.now())
                         .expiresAt(Instant.now().plusSeconds(300))
-                        .claims(claims -> claims.putAll(Map.of("scope", "taska")))
+                        .claims(claims -> claims.put("scope", "taska"))
                         .build();
             };
         }

@@ -27,9 +27,9 @@ public class TaskMcpTools {
     private final TaskMapper taskMapper;
 
     @McpTool(name = "list_tasks", description = "List Taska tasks with optional project, section, label, completion, or named date filters.", generateOutputSchema = true)
-    public McpSchema.CallToolResult listTasks(@McpToolParam(description = "Optional filters. Use null for filters not needed.") TaskListInput input) {
+    public McpSchema.CallToolResult listTasks(@McpToolParam(description = "Optional filters. Use null for filters not needed.") TaskListInput taskListInput) {
         return McpToolResponses.execute(() -> new TaskListOutput(taskService.findAll(
-                        input.projectId(), input.sectionId(), input.label(), input.filter(), input.showCompleted())
+                        taskListInput.projectId(), taskListInput.sectionId(), taskListInput.label(), taskListInput.filter(), taskListInput.showCompleted())
                 .stream().map(taskMapper::toDto).map(TaskOutput::from).toList()));
     }
 
@@ -39,24 +39,24 @@ public class TaskMcpTools {
     }
 
     @McpTool(name = "create_task", description = "Create a Taska task. Omit projectId and parentId to create it in Inbox.", generateOutputSchema = true)
-    public McpSchema.CallToolResult createTask(@McpToolParam(description = "New task details.") TaskCreateInput input) {
+    public McpSchema.CallToolResult createTask(@McpToolParam(description = "New task details.") TaskCreateInput taskCreateInput) {
         return McpToolResponses.execute(() -> {
-            requireContent(input.content());
-            validatePriority(input.priority());
-            validateEstimate(input.estimateMinutes());
-            TaskDto task = taskMapper.toDto(taskService.create(toRequest(input)));
+            requireContent(taskCreateInput.content());
+            validatePriority(taskCreateInput.priority());
+            validateEstimate(taskCreateInput.estimateMinutes());
+            TaskDto task = taskMapper.toDto(taskService.create(toRequest(taskCreateInput)));
             return TaskOutput.from(task);
         });
     }
 
     @McpTool(name = "update_task", description = "Update fields on a Taska task. For recurring task occurrences, provide scope and occurrenceScheduledAt. Set clearPriority to true to remove a manual priority.", generateOutputSchema = true)
     public McpSchema.CallToolResult updateTask(@McpToolParam(description = "Task UUID.") UUID taskId,
-                                               @McpToolParam(description = "Task fields to update. Omitted fields are unchanged.") TaskUpdateInput input) {
+                                               @McpToolParam(description = "Task fields to update. Omitted fields are unchanged.") TaskUpdateInput taskUpdateInput) {
         return McpToolResponses.execute(() -> {
-            if (input.content() != null) requireContent(input.content());
-            validatePriority(input.priority());
-            validateEstimate(input.estimateMinutes());
-            return TaskOutput.from(taskService.update(taskId, toRequest(input), Boolean.TRUE.equals(input.clearPriority())));
+            if (taskUpdateInput.content() != null) requireContent(taskUpdateInput.content());
+            validatePriority(taskUpdateInput.priority());
+            validateEstimate(taskUpdateInput.estimateMinutes());
+            return TaskOutput.from(taskService.update(taskId, toRequest(taskUpdateInput), Boolean.TRUE.equals(taskUpdateInput.clearPriority())));
         });
     }
 
@@ -72,10 +72,10 @@ public class TaskMcpTools {
         return McpToolResponses.execute(() -> TaskOutput.from(taskService.reopen(taskId, new TaskCloseReopenRequest(occurrenceScheduledAt))));
     }
 
-    private static TaskRequest toRequest(TaskInput input) {
-        return new TaskRequest(input.content(), input.description(), input.projectId(), input.sectionId(), input.parentId(),
-                input.order(), input.priority(), input.labels(), input.scheduledAt(), input.dueAt(), input.allDay(), input.isRecurring(),
-                input.estimateMinutes(), input.mentionContext(), input.recurrenceRule(), input.scope(), input.occurrenceScheduledAt(), null);
+    private static TaskRequest toRequest(TaskInput taskInput) {
+        return new TaskRequest(taskInput.content(), taskInput.description(), taskInput.projectId(), taskInput.sectionId(), taskInput.parentId(),
+                taskInput.order(), taskInput.priority(), taskInput.labels(), taskInput.scheduledAt(), taskInput.dueAt(), taskInput.allDay(), taskInput.isRecurring(),
+                taskInput.estimateMinutes(), taskInput.mentionContext(), taskInput.recurrenceRule(), taskInput.scope(), taskInput.occurrenceScheduledAt(), null);
     }
 
     private static void requireContent(String content) {
@@ -145,11 +145,24 @@ public class TaskMcpTools {
     public record TaskListOutput(List<TaskOutput> tasks) {
     }
 
-    public record TaskCreateInput(String content, String description, UUID projectId, UUID sectionId, UUID parentId,
-                                  Integer order, Integer priority, List<String> labels, Instant scheduledAt, Instant dueAt, Boolean allDay,
-                                  Boolean isRecurring, Integer estimateMinutes, String mentionContext,
-                                  String recurrenceRule, RecurrenceScope scope,
-                                  Instant occurrenceScheduledAt) implements TaskInput {
+    public record TaskCreateInput(
+            @McpToolParam(description = "Task title.") String content,
+            @McpToolParam(required = false, description = "Optional longer task description.") String description,
+            @McpToolParam(required = false, description = "Project UUID. Omit with parentId to create the task in Inbox.") UUID projectId,
+            @McpToolParam(required = false, description = "Section UUID within the project.") UUID sectionId,
+            @McpToolParam(required = false, description = "Parent task UUID for a subtask.") UUID parentId,
+            @McpToolParam(required = false, description = "Display position.") Integer order,
+            @McpToolParam(required = false, description = "Manual priority from 1 (urgent) through 4.") Integer priority,
+            @McpToolParam(required = false, description = "Label names to attach.") List<String> labels,
+            @McpToolParam(required = false, description = "Planned timestamp in ISO-8601 UTC format.") Instant scheduledAt,
+            @McpToolParam(required = false, description = "Deadline timestamp in ISO-8601 UTC format.") Instant dueAt,
+            @McpToolParam(required = false, description = "Whether scheduledAt is all-day.") Boolean allDay,
+            @McpToolParam(required = false, description = "Whether the task recurs.") Boolean isRecurring,
+            @McpToolParam(required = false, description = "Positive time estimate in minutes.") Integer estimateMinutes,
+            @McpToolParam(required = false, description = "Context captured from an @-mention.") String mentionContext,
+            @McpToolParam(required = false, description = "Recurrence rule.") String recurrenceRule,
+            @McpToolParam(required = false, description = "Recurring-update scope; not needed for ordinary creation.") RecurrenceScope scope,
+            @McpToolParam(required = false, description = "Recurring occurrence timestamp in ISO-8601 UTC format.") Instant occurrenceScheduledAt) implements TaskInput {
         public TaskCreateInput(String content, String description, UUID projectId, UUID sectionId, UUID parentId,
                                Integer order, Integer priority, List<String> labels, Instant scheduledAt, Boolean allDay,
                                Boolean isRecurring, Integer estimateMinutes, String mentionContext,
@@ -159,11 +172,25 @@ public class TaskMcpTools {
         }
     }
 
-    public record TaskUpdateInput(String content, String description, UUID projectId, UUID sectionId, UUID parentId,
-                                  Integer order, Integer priority, List<String> labels, Instant scheduledAt, Instant dueAt, Boolean allDay,
-                                  Boolean isRecurring, Integer estimateMinutes, String mentionContext,
-                                  String recurrenceRule, RecurrenceScope scope,
-                                  Instant occurrenceScheduledAt, Boolean clearPriority) implements TaskInput {
+    public record TaskUpdateInput(
+            @McpToolParam(required = false, description = "Replacement task title.") String content,
+            @McpToolParam(required = false, description = "Replacement longer task description.") String description,
+            @McpToolParam(required = false, description = "Project UUID.") UUID projectId,
+            @McpToolParam(required = false, description = "Section UUID within the project.") UUID sectionId,
+            @McpToolParam(required = false, description = "Parent task UUID.") UUID parentId,
+            @McpToolParam(required = false, description = "Display position.") Integer order,
+            @McpToolParam(required = false, description = "Manual priority from 1 (urgent) through 4.") Integer priority,
+            @McpToolParam(required = false, description = "Replacement label names.") List<String> labels,
+            @McpToolParam(required = false, description = "Planned timestamp in ISO-8601 UTC format.") Instant scheduledAt,
+            @McpToolParam(required = false, description = "Deadline timestamp in ISO-8601 UTC format.") Instant dueAt,
+            @McpToolParam(required = false, description = "Whether scheduledAt is all-day.") Boolean allDay,
+            @McpToolParam(required = false, description = "Whether the task recurs.") Boolean isRecurring,
+            @McpToolParam(required = false, description = "Positive time estimate in minutes.") Integer estimateMinutes,
+            @McpToolParam(required = false, description = "Context captured from an @-mention.") String mentionContext,
+            @McpToolParam(required = false, description = "Recurrence rule.") String recurrenceRule,
+            @McpToolParam(required = false, description = "Scope for a recurring occurrence update.") RecurrenceScope scope,
+            @McpToolParam(required = false, description = "Recurring occurrence timestamp in ISO-8601 UTC format.") Instant occurrenceScheduledAt,
+            @McpToolParam(required = false, description = "Remove the manual priority.") Boolean clearPriority) implements TaskInput {
         public TaskUpdateInput(String content, String description, UUID projectId, UUID sectionId, UUID parentId,
                                Integer order, Integer priority, List<String> labels, Instant scheduledAt, Boolean allDay,
                                Boolean isRecurring, Integer estimateMinutes, String mentionContext,

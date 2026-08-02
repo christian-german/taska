@@ -38,10 +38,10 @@ class TodayViewModelTest {
     private lateinit var viewModel: TodayViewModel
 
     // Dates futures pour éviter tout problème de timezone dans les filtres overdue.
-    private val scheduledAt = "2027-06-15T10:00:00Z"
-    private val dueAtEarly = "2027-06-15T08:00:00Z"
-    private val dueAtMid   = "2027-06-15T13:00:00Z"
-    private val dueAtLate  = "2027-06-15T19:00:00Z"
+    private val occurrenceScheduledAt = "2027-06-15T10:00:00Z"
+    private val scheduledAtEarly = "2027-06-15T08:00:00Z"
+    private val scheduledAtMid   = "2027-06-15T13:00:00Z"
+    private val scheduledAtLate  = "2027-06-15T19:00:00Z"
 
     @Before
     fun setUp() {
@@ -62,39 +62,39 @@ class TodayViewModelTest {
         isRecurring: Boolean? = false,
         isVirtual: Boolean? = null,
         instanceId: String? = null,
+        occurrenceScheduledAt: String? = null,
         scheduledAt: String? = null,
-        dueAt: String? = null,
     ) = TaskDto(
         id = id, content = content, description = null, projectId = null,
         sectionId = null, parentId = null, order = null, priority = 3,
-        labels = null, isCompleted = isCompleted, dueAt = dueAt, allDay = false,
+        labels = null, isCompleted = isCompleted, scheduledAt = scheduledAt, allDay = false,
         isRecurring = isRecurring, recurrenceRule = null, estimateMinutes = null,
         createdAt = null, updatedAt = null, completedAt = null,
-        instanceId = instanceId, scheduledAt = scheduledAt, isVirtual = isVirtual,
+        instanceId = instanceId, occurrenceScheduledAt = occurrenceScheduledAt, isVirtual = isVirtual,
     )
 
     // =========================================================================
     // Section 2 / 3a — closeTask
     // =========================================================================
 
-    // 2.1 / 3.1 — Tâche non récurrente : repository.closeTask appelé avec scheduledAt=null
+    // 2.1 / 3.1 — Tâche non récurrente : repository.closeTask appelé avec occurrenceScheduledAt=null
     @Test
-    fun `givenNonRecurringTask_whenCloseTask_thenRepositoryCalledWithNullScheduledAt`() = runTest {
-        val task = buildTask(isRecurring = false, scheduledAt = null)
+    fun `givenNonRecurringTask_whenCloseTask_thenRepositoryCalledWithNullOccurrenceScheduledAt`() = runTest {
+        val task = buildTask(isRecurring = false, occurrenceScheduledAt = null)
 
         viewModel.closeTask(task)
 
         coVerify(exactly = 1) { taskRepo.closeTask(task.id, null) }
     }
 
-    // 2.2 — Tâche récurrente : repository.closeTask appelé avec le scheduledAt de l'occurrence
+    // 2.2 — Tâche récurrente : repository.closeTask appelé avec le occurrenceScheduledAt de l'occurrence
     @Test
-    fun `givenRecurringTask_whenCloseTask_thenRepositoryCalledWithOccurrenceScheduledAt`() = runTest {
-        val task = buildTask(isRecurring = true, scheduledAt = scheduledAt)
+    fun `givenRecurringTask_whenCloseTask_thenRepositoryCalledWithOccurrenceOccurrenceScheduledAt`() = runTest {
+        val task = buildTask(isRecurring = true, occurrenceScheduledAt = occurrenceScheduledAt)
 
         viewModel.closeTask(task)
 
-        coVerify(exactly = 1) { taskRepo.closeTask(task.id, scheduledAt) }
+        coVerify(exactly = 1) { taskRepo.closeTask(task.id, occurrenceScheduledAt) }
     }
 
     // NOTE — Le dialog de scope sur closeTask n'est pas implémenté.
@@ -103,7 +103,7 @@ class TodayViewModelTest {
     // 3.6 — closeTask succès : l'occurrence est mise à jour dans todayTasks
     @Test
     fun `givenCloseTaskSucceeds_whenCloseTask_thenTodayTaskReplacedWithClosedVersion`() = runTest {
-        val task = buildTask(id = "t1", isRecurring = false, dueAt = dueAtEarly)
+        val task = buildTask(id = "t1", isRecurring = false, scheduledAt = scheduledAtEarly)
         val closed = task.copy(isCompleted = true)
 
         coEvery { taskRepo.getTasks(any(), any(), any(), any(), any()) } returns listOf(task)
@@ -160,13 +160,13 @@ class TodayViewModelTest {
     }
 
     // =========================================================================
-    // Section 3c — requestDeleteTask : routing selon isRecurring + scheduledAt
+    // Section 3c — requestDeleteTask : routing selon isRecurring + occurrenceScheduledAt
     // =========================================================================
 
     // 3.15 — Tâche non récurrente : appel direct au repository, pas de dialog
     @Test
     fun `givenNonRecurringTask_whenRequestDeleteTask_thenRepositoryCalledDirectly`() = runTest {
-        val task = buildTask(isRecurring = false, scheduledAt = null)
+        val task = buildTask(isRecurring = false, occurrenceScheduledAt = null)
 
         viewModel.requestDeleteTask(task)
 
@@ -175,17 +175,17 @@ class TodayViewModelTest {
 
     @Test
     fun `givenNonRecurringTask_whenRequestDeleteTask_thenPendingDeleteTaskNull`() = runTest {
-        val task = buildTask(isRecurring = false, scheduledAt = null)
+        val task = buildTask(isRecurring = false, occurrenceScheduledAt = null)
 
         viewModel.requestDeleteTask(task)
 
         assertNull(viewModel.uiState.value.pendingDeleteTask)
     }
 
-    // 3.16 — Tâche récurrente avec scheduledAt : dialog requis (pendingDeleteTask set)
+    // 3.16 — Tâche récurrente avec occurrenceScheduledAt : dialog requis (pendingDeleteTask set)
     @Test
-    fun `givenRecurringTaskWithScheduledAt_whenRequestDeleteTask_thenPendingDeleteTaskSet`() = runTest {
-        val task = buildTask(isRecurring = true, scheduledAt = scheduledAt)
+    fun `givenRecurringTaskWithOccurrenceScheduledAt_whenRequestDeleteTask_thenPendingDeleteTaskSet`() = runTest {
+        val task = buildTask(isRecurring = true, occurrenceScheduledAt = occurrenceScheduledAt)
 
         viewModel.requestDeleteTask(task)
 
@@ -193,18 +193,18 @@ class TodayViewModelTest {
     }
 
     @Test
-    fun `givenRecurringTaskWithScheduledAt_whenRequestDeleteTask_thenRepositoryNotCalledYet`() = runTest {
-        val task = buildTask(isRecurring = true, scheduledAt = scheduledAt)
+    fun `givenRecurringTaskWithOccurrenceScheduledAt_whenRequestDeleteTask_thenRepositoryNotCalledYet`() = runTest {
+        val task = buildTask(isRecurring = true, occurrenceScheduledAt = occurrenceScheduledAt)
 
         viewModel.requestDeleteTask(task)
 
         coVerify(exactly = 0) { taskRepo.deleteTask(any(), any(), any()) }
     }
 
-    // 5.3 — Tâche récurrente sans scheduledAt : traité comme non-récurrente (pas de dialog)
+    // 5.3 — Tâche récurrente sans occurrenceScheduledAt : traité comme non-récurrente (pas de dialog)
     @Test
-    fun `givenRecurringTaskWithNullScheduledAt_whenRequestDeleteTask_thenDirectDeleteNoDialog`() = runTest {
-        val task = buildTask(isRecurring = true, scheduledAt = null)
+    fun `givenRecurringTaskWithNullOccurrenceScheduledAt_whenRequestDeleteTask_thenDirectDeleteNoDialog`() = runTest {
+        val task = buildTask(isRecurring = true, occurrenceScheduledAt = null)
 
         viewModel.requestDeleteTask(task)
 
@@ -216,27 +216,27 @@ class TodayViewModelTest {
     // Section 2.6–2.8 / 3.17–3.18 — confirmDeleteTask : scope transmis au repository
     // =========================================================================
 
-    // 2.6 / 3.17 — THIS_ONLY : scope + scheduledAt passés au repository
+    // 2.6 / 3.17 — THIS_ONLY : scope + occurrenceScheduledAt passés au repository
     @Test
     fun `givenThisOnly_whenConfirmDeleteTask_thenRepositoryCalledWithThisOnlyScope`() = runTest {
-        val task = buildTask(isRecurring = true, scheduledAt = scheduledAt)
+        val task = buildTask(isRecurring = true, occurrenceScheduledAt = occurrenceScheduledAt)
 
         viewModel.confirmDeleteTask(task, RecurrenceScope.THIS_ONLY)
 
-        coVerify(exactly = 1) { taskRepo.deleteTask(task.id, RecurrenceScope.THIS_ONLY, scheduledAt) }
+        coVerify(exactly = 1) { taskRepo.deleteTask(task.id, RecurrenceScope.THIS_ONLY, occurrenceScheduledAt) }
     }
 
-    // 2.7 / 3.18 — FROM_THIS : scope + scheduledAt passés au repository
+    // 2.7 / 3.18 — FROM_THIS : scope + occurrenceScheduledAt passés au repository
     @Test
     fun `givenFromThis_whenConfirmDeleteTask_thenRepositoryCalledWithFromThisScope`() = runTest {
-        val task = buildTask(isRecurring = true, scheduledAt = scheduledAt)
+        val task = buildTask(isRecurring = true, occurrenceScheduledAt = occurrenceScheduledAt)
 
         viewModel.confirmDeleteTask(task, RecurrenceScope.FROM_THIS)
 
-        coVerify(exactly = 1) { taskRepo.deleteTask(task.id, RecurrenceScope.FROM_THIS, scheduledAt) }
+        coVerify(exactly = 1) { taskRepo.deleteTask(task.id, RecurrenceScope.FROM_THIS, occurrenceScheduledAt) }
     }
 
-    // 2.8 — scope null (tâche non récurrente) : repository appelé sans scope ni scheduledAt
+    // 2.8 — scope null (tâche non récurrente) : repository appelé sans scope ni occurrenceScheduledAt
     @Test
     fun `givenNullScope_whenConfirmDeleteTask_thenRepositoryCalledWithNullScope`() = runTest {
         val task = buildTask(isRecurring = false)
@@ -249,7 +249,7 @@ class TodayViewModelTest {
     // confirmDeleteTask efface toujours pendingDeleteTask avant l'appel au repository
     @Test
     fun `whenConfirmDeleteTask_thenPendingDeleteTaskClearedBeforeRepositoryCall`() = runTest {
-        val task = buildTask(isRecurring = true, scheduledAt = scheduledAt)
+        val task = buildTask(isRecurring = true, occurrenceScheduledAt = occurrenceScheduledAt)
         viewModel.requestDeleteTask(task)
         assertNotNull(viewModel.uiState.value.pendingDeleteTask)
 
@@ -261,7 +261,7 @@ class TodayViewModelTest {
     // 3.19 — dismissDeleteScope : pendingDeleteTask vidé, aucun appel au repository
     @Test
     fun `givenPendingDelete_whenDismissDeleteScope_thenPendingClearedNoRepositoryCall`() = runTest {
-        val task = buildTask(isRecurring = true, scheduledAt = scheduledAt)
+        val task = buildTask(isRecurring = true, occurrenceScheduledAt = occurrenceScheduledAt)
         viewModel.requestDeleteTask(task)
         assertEquals(task, viewModel.uiState.value.pendingDeleteTask)
 
@@ -285,7 +285,7 @@ class TodayViewModelTest {
     // 3.21 — FROM_THIS succès : load() appelé (la liste est rechargée depuis l'API)
     @Test
     fun `givenFromThisDeleteSucceeds_whenConfirmDeleteTask_thenListReloadedFromRepository`() = runTest {
-        val task = buildTask(isRecurring = true, scheduledAt = scheduledAt)
+        val task = buildTask(isRecurring = true, occurrenceScheduledAt = occurrenceScheduledAt)
         coEvery { taskRepo.getTasks(any(), any(), any(), any(), any()) } returns emptyList()
 
         viewModel.confirmDeleteTask(task, RecurrenceScope.FROM_THIS)
@@ -309,17 +309,17 @@ class TodayViewModelTest {
     // =========================================================================
 
     @Test
-    fun `givenRecurringTask_whenReopenTask_thenRepositoryCalledWithScheduledAt`() = runTest {
-        val task = buildTask(isRecurring = true, scheduledAt = scheduledAt, isCompleted = true)
+    fun `givenRecurringTask_whenReopenTask_thenRepositoryCalledWithOccurrenceScheduledAt`() = runTest {
+        val task = buildTask(isRecurring = true, occurrenceScheduledAt = occurrenceScheduledAt, isCompleted = true)
 
         viewModel.reopenTask(task)
 
-        coVerify(exactly = 1) { taskRepo.reopenTask(task.id, scheduledAt) }
+        coVerify(exactly = 1) { taskRepo.reopenTask(task.id, occurrenceScheduledAt) }
     }
 
     @Test
-    fun `givenNonRecurringTask_whenReopenTask_thenRepositoryCalledWithNullScheduledAt`() = runTest {
-        val task = buildTask(isRecurring = false, scheduledAt = null, isCompleted = true)
+    fun `givenNonRecurringTask_whenReopenTask_thenRepositoryCalledWithNullOccurrenceScheduledAt`() = runTest {
+        val task = buildTask(isRecurring = false, occurrenceScheduledAt = null, isCompleted = true)
 
         viewModel.reopenTask(task)
 
@@ -334,7 +334,7 @@ class TodayViewModelTest {
     @Test
     fun `givenMixedTasks_whenLoad_thenAllPresentInTodayTasks`() = runTest {
         val normal  = buildTask(id = "normal-1", isRecurring = false)
-        val virtual = buildTask(id = "virtual-1", isRecurring = true, isVirtual = true, scheduledAt = scheduledAt)
+        val virtual = buildTask(id = "virtual-1", isRecurring = true, isVirtual = true, occurrenceScheduledAt = occurrenceScheduledAt)
 
         coEvery { taskRepo.getTasks(any(), any(), any(), any(), any()) } returns listOf(normal, virtual)
         viewModel.load()
@@ -347,7 +347,7 @@ class TodayViewModelTest {
     // 4.2 — Occurrence virtuelle : isVirtual=true accessible depuis la liste
     @Test
     fun `givenVirtualOccurrenceInList_whenLoad_thenIsVirtualTrueInState`() = runTest {
-        val virtual = buildTask(id = "v-1", isRecurring = true, isVirtual = true, scheduledAt = scheduledAt)
+        val virtual = buildTask(id = "v-1", isRecurring = true, isVirtual = true, occurrenceScheduledAt = occurrenceScheduledAt)
 
         coEvery { taskRepo.getTasks(any(), any(), any(), any(), any()) } returns listOf(virtual)
         viewModel.load()
@@ -359,8 +359,8 @@ class TodayViewModelTest {
     // 4.3 — Instance DONE : présente dans la liste, triée après les tâches ouvertes
     @Test
     fun `givenDoneTask_whenLoad_thenPresentInTodayTasksSortedAfterOpen`() = runTest {
-        val done = buildTask(id = "done-1", isCompleted = true,  dueAt = dueAtEarly)
-        val open = buildTask(id = "open-1", isCompleted = false, dueAt = dueAtMid)
+        val done = buildTask(id = "done-1", isCompleted = true,  scheduledAt = scheduledAtEarly)
+        val open = buildTask(id = "open-1", isCompleted = false, scheduledAt = scheduledAtMid)
 
         coEvery { taskRepo.getTasks(any(), any(), any(), any(), any()) } returns listOf(done, open)
         viewModel.load()
@@ -375,8 +375,8 @@ class TodayViewModelTest {
     // 4.4 — Deux occurrences du même jour (deux tâches récurrentes distinctes) : toutes deux présentes
     @Test
     fun `givenTwoRecurringOccurrencesSameDay_whenLoad_thenBothPresent`() = runTest {
-        val occ1 = buildTask(id = "occ-1", isRecurring = true, isVirtual = true, scheduledAt = dueAtEarly)
-        val occ2 = buildTask(id = "occ-2", isRecurring = true, isVirtual = true, scheduledAt = dueAtLate)
+        val occ1 = buildTask(id = "occ-1", isRecurring = true, isVirtual = true, occurrenceScheduledAt = scheduledAtEarly)
+        val occ2 = buildTask(id = "occ-2", isRecurring = true, isVirtual = true, occurrenceScheduledAt = scheduledAtLate)
 
         coEvery { taskRepo.getTasks(any(), any(), any(), any(), any()) } returns listOf(occ1, occ2)
         viewModel.load()
@@ -402,12 +402,12 @@ class TodayViewModelTest {
         assertNull(state.error)
     }
 
-    // 4.7 — Tri chronologique sur dueAt (tâches non-complètes triées par dueAt ASC)
+    // 4.7 — Tri chronologique sur scheduledAt (tâches non-complètes triées par scheduledAt ASC)
     @Test
-    fun `givenTasksWithDifferentDueAt_whenLoad_thenTodayTasksSortedChronologically`() = runTest {
-        val early = buildTask(id = "early", dueAt = dueAtEarly)
-        val late  = buildTask(id = "late",  dueAt = dueAtLate)
-        val mid   = buildTask(id = "mid",   dueAt = dueAtMid)
+    fun `givenTasksWithDifferentScheduledAt_whenLoad_thenTodayTasksSortedChronologically`() = runTest {
+        val early = buildTask(id = "early", scheduledAt = scheduledAtEarly)
+        val late  = buildTask(id = "late",  scheduledAt = scheduledAtLate)
+        val mid   = buildTask(id = "mid",   scheduledAt = scheduledAtMid)
 
         coEvery { taskRepo.getTasks(any(), any(), any(), any(), any()) } returns listOf(late, early, mid)
         viewModel.load()

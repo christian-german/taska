@@ -2,6 +2,8 @@ package com.taska.domain.task;
 
 import com.taska.domain.priority.TaskPriorityEvaluationDto;
 import com.taska.domain.priority.TaskPriorityEvaluationService;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -21,6 +23,7 @@ public class TaskController {
     private final TaskService taskService;
     private final TaskMapper taskMapper;
     private final TaskPriorityEvaluationService priorityEvaluationService;
+    private final ObjectMapper objectMapper;
 
     /**
      * Lists tasks with optional filtering. When {@code date} is provided, returns all occurrences
@@ -93,12 +96,14 @@ public class TaskController {
      * Updates an existing task. Supports scope-based updates for recurring tasks via the request body.
      *
      * @param id          the task UUID
-     * @param taskRequest the update payload
+     * @param payload the update payload. Supplying {@code "priority": null} explicitly clears the
+     *                manual priority; omitting {@code priority} leaves it unchanged.
      * @return the updated task DTO
      */
     @PutMapping("/{id}")
-    public TaskDto update(@PathVariable UUID id, @RequestBody TaskRequest taskRequest) {
-        return taskService.update(id, taskRequest);
+    public TaskDto update(@PathVariable UUID id, @RequestBody JsonNode payload) {
+        TaskRequest taskRequest = objectMapper.convertValue(payload, TaskRequest.class);
+        return taskService.update(id, taskRequest, payload.has("priority"));
     }
 
     /**
@@ -116,7 +121,7 @@ public class TaskController {
     }
 
     /**
-     * Marks a task as completed. For recurring tasks, a {@code scheduledAt} in the body
+     * Marks a task as completed. For recurring tasks, a {@code occurrenceScheduledAt} in the body
      * identifies which occurrence to close.
      *
      * @param taskId the task UUID
@@ -130,7 +135,7 @@ public class TaskController {
     }
 
     /**
-     * Reopens a previously completed task. For recurring tasks, a {@code scheduledAt} in the body
+     * Reopens a previously completed task. For recurring tasks, a {@code occurrenceScheduledAt} in the body
      * identifies which occurrence to reopen by removing its DONE instance record.
      *
      * @param taskId the task UUID

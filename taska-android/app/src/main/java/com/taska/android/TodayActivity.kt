@@ -128,11 +128,11 @@ private fun TodayRoot(todayViewModel: TodayViewModel, onNavigate: (NavDestinatio
     Column(modifier = Modifier.fillMaxSize()) {
         TodayScreen(
             viewModel = todayViewModel,
-            onTaskClick = { taskId, scheduledAt ->
+            onTaskClick = { taskId, occurrenceScheduledAt ->
                 context.startActivity(
                     Intent(context, TaskDetailActivity::class.java).apply {
                         putExtra("task_id", taskId)
-                        scheduledAt?.let { putExtra("scheduled_at", it) }
+                        occurrenceScheduledAt?.let { putExtra("scheduled_at", it) }
                     }
                 )
             },

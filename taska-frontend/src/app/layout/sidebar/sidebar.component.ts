@@ -112,9 +112,9 @@ export class SidebarComponent implements OnInit {
   counts = computed<SidebarCount>(() => {
     const tasks = this.allTasks();
     const todayStr = new Date().toISOString().split('T')[0];
-    const inWeek = (dueAt?: string | null) => {
-      if (!dueAt) return false;
-      const d = new Date(dueAt).getTime();
+    const inWeek = (scheduledAt?: string | null) => {
+      if (!scheduledAt) return false;
+      const d = new Date(scheduledAt).getTime();
       const now = Date.now();
       return d >= now - 86400000 && d <= now + 7 * 86400000;
     };
@@ -123,10 +123,10 @@ export class SidebarComponent implements OnInit {
     const inbox = tasks.filter(t => !t.isCompleted && t.projectId === inboxId).length;
     const today = tasks.filter(t =>
       !t.isCompleted &&
-      t.dueAt &&
-      (t.dueAt.slice(0, 10) <= todayStr || isOverdue(t))
+      t.scheduledAt &&
+      (t.scheduledAt.slice(0, 10) <= todayStr || isOverdue(t))
     ).length;
-    const week = tasks.filter(t => !t.isCompleted && inWeek(t.dueAt)).length;
+    const week = tasks.filter(t => !t.isCompleted && inWeek(t.scheduledAt)).length;
     const done = tasks.filter(t => t.isCompleted).length;
 
     const byProject: Record<string, number> = {};

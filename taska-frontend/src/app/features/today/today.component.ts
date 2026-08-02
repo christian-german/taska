@@ -64,11 +64,11 @@ export class TodayComponent implements OnInit {
 
     const tasks = this.tasks();
     const overdue = tasks.filter(t => isOverdue(t));
-    const todayDue = tasks.filter(t => t.dueAt && sameDay(new Date(t.dueAt), today));
+    const todayDue = tasks.filter(t => t.scheduledAt && sameDay(new Date(t.scheduledAt), today));
     const tomorrowDue = tasks.filter(t =>
       !t.isCompleted &&
-      t.dueAt &&
-      sameDay(new Date(t.dueAt), tomorrow)
+      t.scheduledAt &&
+      sameDay(new Date(t.scheduledAt), tomorrow)
     );
 
     const groups: TaskGroup[] = [];
@@ -99,16 +99,16 @@ export class TodayComponent implements OnInit {
   suggestedIds = computed(() => {
     const today = new Date();
     const candidates = this.tasks()
-      .filter(t => !t.isCompleted && t.dueAt && sameDay(new Date(t.dueAt), today))
+      .filter(t => !t.isCompleted && t.scheduledAt && sameDay(new Date(t.scheduledAt), today))
       .sort((a, b) =>
-        (b.priority - a.priority) || ((b.estimateMinutes || 0) - (a.estimateMinutes || 0))
+        ((b.priority ?? 0) - (a.priority ?? 0)) || ((b.estimateMinutes || 0) - (a.estimateMinutes || 0))
       );
     return new Set(candidates.slice(0, 2).map(t => t.id));
   });
 
   subtitle = computed(() => {
     const today = new Date();
-    const todayDue = this.tasks().filter(t => t.dueAt && sameDay(new Date(t.dueAt), today));
+    const todayDue = this.tasks().filter(t => t.scheduledAt && sameDay(new Date(t.scheduledAt), today));
     const overdue = this.tasks().filter(t => isOverdue(t));
     const totalEst = todayDue.filter(t => !t.isCompleted).reduce((a, b) => a + (b.estimateMinutes || 0), 0);
     let s = `${fmtDateLong(today)} · ${todayDue.filter(t => !t.isCompleted).length} tâches`;
@@ -125,10 +125,10 @@ export class TodayComponent implements OnInit {
       const today = new Date();
       const tomorrow = new Date(today);
       tomorrow.setDate(tomorrow.getDate() + 1);
-      const qualifies = !task.isCompleted && !!task.dueAt && (
+      const qualifies = !task.isCompleted && !!task.scheduledAt && (
         isOverdue(task) ||
-        sameDay(new Date(task.dueAt), today) ||
-        sameDay(new Date(task.dueAt), tomorrow)
+        sameDay(new Date(task.scheduledAt), today) ||
+        sameDay(new Date(task.scheduledAt), tomorrow)
       );
       if (qualifies) this.tasks.update(list => [...list, task]);
     });
@@ -148,10 +148,10 @@ export class TodayComponent implements OnInit {
   }
 
   onToggle(t: Task): void {
-    const scheduledAt = t.scheduledAt ?? undefined;
+    const occurrenceScheduledAt = t.occurrenceScheduledAt ?? undefined;
     const op = t.isCompleted
-      ? this.taskService.reopenTask(t.id, scheduledAt)
-      : this.taskService.closeTask(t.id, scheduledAt);
+      ? this.taskService.reopenTask(t.id, occurrenceScheduledAt)
+      : this.taskService.closeTask(t.id, occurrenceScheduledAt);
     op.subscribe(() => this.refresh());
   }
 
@@ -166,8 +166,8 @@ export class TodayComponent implements OnInit {
   private sortTasks(arr: Task[]): Task[] {
     return [...arr].sort((a, b) => {
       if (a.isCompleted !== b.isCompleted) return a.isCompleted ? 1 : -1;
-      if (a.priority !== b.priority) return b.priority - a.priority;
-      if (a.dueAt && b.dueAt) return a.dueAt.localeCompare(b.dueAt);
+      if (a.priority !== b.priority) return (b.priority ?? 0) - (a.priority ?? 0);
+      if (a.scheduledAt && b.scheduledAt) return a.scheduledAt.localeCompare(b.scheduledAt);
       return 0;
     });
   }

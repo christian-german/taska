@@ -171,7 +171,7 @@ fun ProjectScreen(
 
                         items(uiState.tasks, key = { it.id }) { task ->
                             val isOverdue = task.isCompleted != true &&
-                                task.dueAt != null && task.dueAt.substring(0, 10) < todayStr
+                                task.scheduledAt != null && task.scheduledAt.substring(0, 10) < todayStr
 
                             // Le projet n'est pas affiché (redondant dans la vue projet)
                             TaskItem(

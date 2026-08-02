@@ -23,7 +23,7 @@ class SnoozeReceiver : BroadcastReceiver() {
         CoroutineScope(Dispatchers.IO).launch {
             try {
                 val task = RetrofitClient.api.getTask(taskId)
-                val newDueAt = task.dueAt?.let { addMinutes(it, 15) } ?: return@launch
+                val newScheduledAt = task.scheduledAt?.let { addMinutes(it, 15) } ?: return@launch
 
                 RetrofitClient.api.updateTask(
                     taskId,
@@ -33,7 +33,7 @@ class SnoozeReceiver : BroadcastReceiver() {
                         projectId = task.projectId,
                         priority = task.priority,
                         labels = task.labels,
-                        dueAt = newDueAt,
+                        scheduledAt = newScheduledAt,
                         allDay = task.allDay,
                         estimateMinutes = task.estimateMinutes
                     )
@@ -48,7 +48,7 @@ class SnoozeReceiver : BroadcastReceiver() {
         }
     }
 
-    private fun addMinutes(dueAt: String, minutes: Int): String = try {
-        java.time.Instant.parse(dueAt).plusSeconds(minutes * 60L).toString()
-    } catch (_: Exception) { dueAt }
+    private fun addMinutes(scheduledAt: String, minutes: Int): String = try {
+        java.time.Instant.parse(scheduledAt).plusSeconds(minutes * 60L).toString()
+    } catch (_: Exception) { scheduledAt }
 }

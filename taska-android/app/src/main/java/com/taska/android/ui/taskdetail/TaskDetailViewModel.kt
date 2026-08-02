@@ -55,7 +55,7 @@ class TaskDetailViewModel(
     )
 
     private val taskId: String = checkNotNull(savedStateHandle["task_id"])
-    private val instanceScheduledAt: String? = savedStateHandle["scheduled_at"]
+    private val instanceOccurrenceScheduledAt: String? = savedStateHandle["scheduled_at"]
 
     private val _uiState = MutableStateFlow(TaskDetailUiState())
     val uiState: StateFlow<TaskDetailUiState> = _uiState.asStateFlow()
@@ -74,7 +74,7 @@ class TaskDetailViewModel(
                 val labelsDef = async { labelRepo.getLabels() }
 
                 val rawTask = taskDef.await()
-                val task = if (instanceScheduledAt != null) rawTask.copy(dueAt = instanceScheduledAt) else rawTask
+                val task = if (instanceOccurrenceScheduledAt != null) rawTask.copy(scheduledAt = instanceOccurrenceScheduledAt) else rawTask
                 val subtasks = subtasksDef.await()
                 val projects = projectsDef.await()
                 val labels = labelsDef.await()
@@ -105,7 +105,7 @@ class TaskDetailViewModel(
             projectId = task.projectId,
             priority = task.priority,
             labels = task.labels,
-            dueAt = task.dueAt,
+            scheduledAt = task.scheduledAt,
             allDay = task.allDay,
             estimateMinutes = task.estimateMinutes,
             isRecurring = task.isRecurring,
@@ -131,7 +131,7 @@ class TaskDetailViewModel(
 
     fun requestRescheduleAllDay(millis: Long) {
         val task = _uiState.value.task ?: return
-        if (task.isRecurring == true && instanceScheduledAt != null) {
+        if (task.isRecurring == true && instanceOccurrenceScheduledAt != null) {
             _uiState.update { it.copy(pendingReschedule = PendingReschedule(millis, null)) }
         } else {
             doReschedule(millis, null, scope = null)
@@ -140,7 +140,7 @@ class TaskDetailViewModel(
 
     fun requestRescheduleWithTime(millis: Long, hour: Int, minute: Int) {
         val task = _uiState.value.task ?: return
-        if (task.isRecurring == true && instanceScheduledAt != null) {
+        if (task.isRecurring == true && instanceOccurrenceScheduledAt != null) {
             _uiState.update { it.copy(pendingReschedule = PendingReschedule(millis, hour * 60 + minute)) }
         } else {
             doReschedule(millis, hour * 60 + minute, scope = null)
@@ -165,13 +165,13 @@ class TaskDetailViewModel(
             projectId = task.projectId,
             priority = task.priority,
             labels = task.labels,
-            dueAt = millisToApiDateTime(millis, timeMinutes),
+            scheduledAt = millisToApiDateTime(millis, timeMinutes),
             allDay = timeMinutes == null,
             estimateMinutes = task.estimateMinutes,
             isRecurring = task.isRecurring,
             recurrenceRule = task.recurrenceRule,
             scope = scope?.name,
-            scheduledAt = instanceScheduledAt
+            occurrenceScheduledAt = instanceOccurrenceScheduledAt
         )
         viewModelScope.launch {
             try {
@@ -182,7 +182,7 @@ class TaskDetailViewModel(
         }
     }
 
-    fun clearDue() = applyUpdate { copy(dueAt = null, allDay = null) }
+    fun clearDue() = applyUpdate { copy(scheduledAt = null, allDay = null) }
 
     fun updateProject(projectId: String?) = applyUpdate { copy(projectId = projectId) }
 
@@ -269,12 +269,12 @@ class TaskDetailViewModel(
         }
     }
 
-    fun dueAtToMillis(): Long {
-        val dueAt = _uiState.value.task?.dueAt ?: return todayMillis()
+    fun scheduledAtToMillis(): Long {
+        val scheduledAt = _uiState.value.task?.scheduledAt ?: return todayMillis()
         return try {
             SimpleDateFormat("yyyy-MM-dd", Locale.US)
                 .apply { timeZone = TimeZone.getTimeZone("UTC") }
-                .parse(dueAt.take(10))?.time ?: todayMillis()
+                .parse(scheduledAt.take(10))?.time ?: todayMillis()
         } catch (_: Exception) { todayMillis() }
     }
 

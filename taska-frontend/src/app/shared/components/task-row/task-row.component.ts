@@ -172,7 +172,7 @@ export class TaskRowComponent {
 
   hasMeta = computed(() => {
     const t = this.task();
-    return !!(t.dueAt || t.estimateMinutes || t.recurrenceRule || t.isRecurring || this.project() ||
+    return !!(t.scheduledAt || t.estimateMinutes || t.recurrenceRule || t.isRecurring || this.project() ||
               t.mentionContext || (t.labels && t.labels.length > 0));
   });
 

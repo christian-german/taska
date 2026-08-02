@@ -78,7 +78,7 @@ export class TaskListComponent {
 
   occurrenceKey(task: Task): string {
     if (task.instanceId) return task.instanceId;
-    if (task.scheduledAt) return `${task.id}:${task.scheduledAt}`;
+    if (task.occurrenceScheduledAt) return `${task.id}:${task.occurrenceScheduledAt}`;
     return task.id;
   }
 

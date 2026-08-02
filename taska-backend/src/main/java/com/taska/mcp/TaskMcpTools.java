@@ -49,33 +49,33 @@ public class TaskMcpTools {
         });
     }
 
-    @McpTool(name = "update_task", description = "Update fields on a Taska task. For recurring task occurrences, provide scope and scheduledAt.", generateOutputSchema = true)
+    @McpTool(name = "update_task", description = "Update fields on a Taska task. For recurring task occurrences, provide scope and occurrenceScheduledAt. Set clearPriority to true to remove a manual priority.", generateOutputSchema = true)
     public McpSchema.CallToolResult updateTask(@McpToolParam(description = "Task UUID.") UUID taskId,
                                                @McpToolParam(description = "Task fields to update. Omitted fields are unchanged.") TaskUpdateInput input) {
         return McpToolResponses.execute(() -> {
             if (input.content() != null) requireContent(input.content());
             validatePriority(input.priority());
             validateEstimate(input.estimateMinutes());
-            return TaskOutput.from(taskService.update(taskId, toRequest(input)));
+            return TaskOutput.from(taskService.update(taskId, toRequest(input), Boolean.TRUE.equals(input.clearPriority())));
         });
     }
 
-    @McpTool(name = "complete_task", description = "Complete a Taska task. scheduledAt is required for recurring task occurrences.", generateOutputSchema = true)
+    @McpTool(name = "complete_task", description = "Complete a Taska task. occurrenceScheduledAt is required for recurring task occurrences.", generateOutputSchema = true)
     public McpSchema.CallToolResult completeTask(@McpToolParam(description = "Task UUID.") UUID taskId,
-                                                 @McpToolParam(required = false, description = "Scheduled occurrence timestamp for recurring tasks, in ISO-8601 UTC format.") Instant scheduledAt) {
-        return McpToolResponses.execute(() -> TaskOutput.from(taskService.close(taskId, new TaskCloseReopenRequest(scheduledAt))));
+                                                 @McpToolParam(required = false, description = "Scheduled occurrence timestamp for recurring tasks, in ISO-8601 UTC format.") Instant occurrenceScheduledAt) {
+        return McpToolResponses.execute(() -> TaskOutput.from(taskService.close(taskId, new TaskCloseReopenRequest(occurrenceScheduledAt))));
     }
 
-    @McpTool(name = "reopen_task", description = "Reopen a Taska task. scheduledAt identifies a recurring task occurrence.", generateOutputSchema = true)
+    @McpTool(name = "reopen_task", description = "Reopen a Taska task. occurrenceScheduledAt identifies a recurring task occurrence.", generateOutputSchema = true)
     public McpSchema.CallToolResult reopenTask(@McpToolParam(description = "Task UUID.") UUID taskId,
-                                               @McpToolParam(required = false, description = "Scheduled occurrence timestamp for recurring tasks, in ISO-8601 UTC format.") Instant scheduledAt) {
-        return McpToolResponses.execute(() -> TaskOutput.from(taskService.reopen(taskId, new TaskCloseReopenRequest(scheduledAt))));
+                                               @McpToolParam(required = false, description = "Scheduled occurrence timestamp for recurring tasks, in ISO-8601 UTC format.") Instant occurrenceScheduledAt) {
+        return McpToolResponses.execute(() -> TaskOutput.from(taskService.reopen(taskId, new TaskCloseReopenRequest(occurrenceScheduledAt))));
     }
 
     private static TaskRequest toRequest(TaskInput input) {
         return new TaskRequest(input.content(), input.description(), input.projectId(), input.sectionId(), input.parentId(),
-                input.order(), input.priority(), input.labels(), input.dueAt(), input.allDay(), input.isRecurring(),
-                input.estimateMinutes(), input.mentionContext(), input.recurrenceRule(), input.scope(), input.scheduledAt());
+                input.order(), input.priority(), input.labels(), input.scheduledAt(), input.allDay(), input.isRecurring(),
+                input.estimateMinutes(), input.mentionContext(), input.recurrenceRule(), input.scope(), input.occurrenceScheduledAt());
     }
 
     private static void requireContent(String content) {
@@ -113,7 +113,7 @@ public class TaskMcpTools {
 
         List<String> labels();
 
-        Instant dueAt();
+        Instant scheduledAt();
 
         Boolean allDay();
 
@@ -127,7 +127,7 @@ public class TaskMcpTools {
 
         RecurrenceScope scope();
 
-        Instant scheduledAt();
+        Instant occurrenceScheduledAt();
     }
 
     public record TaskListInput(@McpToolParam(required = false) UUID projectId,
@@ -144,29 +144,29 @@ public class TaskMcpTools {
     }
 
     public record TaskCreateInput(String content, String description, UUID projectId, UUID sectionId, UUID parentId,
-                                  Integer order, Integer priority, List<String> labels, Instant dueAt, Boolean allDay,
+                                  Integer order, Integer priority, List<String> labels, Instant scheduledAt, Boolean allDay,
                                   Boolean isRecurring, Integer estimateMinutes, String mentionContext,
                                   String recurrenceRule, RecurrenceScope scope,
-                                  Instant scheduledAt) implements TaskInput {
+                                  Instant occurrenceScheduledAt) implements TaskInput {
     }
 
     public record TaskUpdateInput(String content, String description, UUID projectId, UUID sectionId, UUID parentId,
-                                  Integer order, Integer priority, List<String> labels, Instant dueAt, Boolean allDay,
+                                  Integer order, Integer priority, List<String> labels, Instant scheduledAt, Boolean allDay,
                                   Boolean isRecurring, Integer estimateMinutes, String mentionContext,
                                   String recurrenceRule, RecurrenceScope scope,
-                                  Instant scheduledAt) implements TaskInput {
+                                  Instant occurrenceScheduledAt, Boolean clearPriority) implements TaskInput {
     }
 
     public record TaskOutput(UUID id, String content, String description, UUID projectId, UUID sectionId, UUID parentId,
-                             Integer order, Integer priority, List<String> labels, Boolean isCompleted, Instant dueAt,
+                             Integer order, Integer priority, List<String> labels, Boolean isCompleted, Instant scheduledAt,
                              Boolean allDay, Boolean isRecurring, Integer estimateMinutes, String mentionContext,
                              String recurrenceRule, Instant createdAt, Instant updatedAt, Instant completedAt,
-                             UUID instanceId, Instant scheduledAt, Boolean isVirtual, Instant rruleEndsAt) {
+                             UUID instanceId, Instant occurrenceScheduledAt, Boolean isVirtual, Instant rruleEndsAt) {
         static TaskOutput from(TaskDto task) {
             return new TaskOutput(task.id(), task.content(), task.description(), task.projectId(), task.sectionId(), task.parentId(),
-                    task.order(), task.priority(), task.labels(), task.isCompleted(), task.dueAt(), task.allDay(),
+                    task.order(), task.priority(), task.labels(), task.isCompleted(), task.scheduledAt(), task.allDay(),
                     task.isRecurring(), task.estimateMinutes(), task.mentionContext(), task.recurrenceRule(),
-                    task.createdAt(), task.updatedAt(), task.completedAt(), task.instanceId(), task.scheduledAt(),
+                    task.createdAt(), task.updatedAt(), task.completedAt(), task.instanceId(), task.occurrenceScheduledAt(),
                     task.isVirtual(), task.rruleEndsAt());
         }
     }

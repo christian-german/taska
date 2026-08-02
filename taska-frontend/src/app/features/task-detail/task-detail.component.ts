@@ -123,7 +123,10 @@ export class TaskDetailComponent implements OnChanges {
 
   completedSubs = computed(() => this.subtasks().filter(s => s.isCompleted).length);
 
-  priorityLabel = computed(() => PRIORITY_LABELS[this.task().priority] ?? '');
+  priorityLabel = computed(() => {
+    const priority = this.task().priority;
+    return priority == null ? 'Non définie' : PRIORITY_LABELS[priority] ?? '';
+  });
   taskTypeLabel = computed(() => this.task().type === 'APPOINTMENT' ? 'Rendez-vous' : 'À faire');
 
   filteredLabels = computed(() => {
@@ -196,11 +199,11 @@ export class TaskDetailComponent implements OnChanges {
   }
 
   toggleComplete(): void {
-    const scheduledAt = this.task().scheduledAt ?? undefined;
+    const occurrenceScheduledAt = this.task().occurrenceScheduledAt ?? undefined;
     if (this.task().isCompleted) {
-      this.taskService.reopenTask(this.task().id, scheduledAt).subscribe(t => this.taskUpdated.emit(t));
+      this.taskService.reopenTask(this.task().id, occurrenceScheduledAt).subscribe(t => this.taskUpdated.emit(t));
     } else {
-      this.taskService.closeTask(this.task().id, scheduledAt).subscribe(t => this.taskUpdated.emit(t));
+      this.taskService.closeTask(this.task().id, occurrenceScheduledAt).subscribe(t => this.taskUpdated.emit(t));
     }
   }
 
@@ -244,19 +247,19 @@ export class TaskDetailComponent implements OnChanges {
     if (name === 'tags') this.tagSearch.set('');
   }
 
-  datePickerValue = computed(() => this.task().dueAt ?? '');
+  datePickerValue = computed(() => this.task().scheduledAt ?? '');
 
   onDatetimeChange(value: string): void {
     const hasTime = value.includes('T');
-    const dueAt = hasTime ? value : value + 'T00:00:00Z';
-    this.save({ dueAt, allDay: !hasTime });
+    const scheduledAt = hasTime ? value : value + 'T00:00:00Z';
+    this.save({ scheduledAt, allDay: !hasTime });
   }
 
   clearDate(e: Event): void {
     e.stopPropagation();
     this.activeDetailPicker.set(null);
-    this.taskService.updateTask(this.task().id, { dueAt: null as any, allDay: false })
-      .subscribe(t => this.taskUpdated.emit({ ...t, dueAt: null }));
+    this.taskService.updateTask(this.task().id, { scheduledAt: null as any, allDay: false })
+      .subscribe(t => this.taskUpdated.emit({ ...t, scheduledAt: null }));
   }
 
   toggleTag(name: string, e: Event): void {
@@ -316,7 +319,7 @@ export class TaskDetailComponent implements OnChanges {
   }
 
   deleteTask(): void {
-    if (this.task().isRecurring && this.task().scheduledAt) {
+    if (this.task().isRecurring && this.task().occurrenceScheduledAt) {
       this.showDeleteScopeDialog.set(true);
     } else {
       this.showDeleteConfirm.set(true);
@@ -332,8 +335,8 @@ export class TaskDetailComponent implements OnChanges {
 
   onDeleteScope(scope: RecurrenceScope): void {
     this.showDeleteScopeDialog.set(false);
-    const scheduledAt = this.task().scheduledAt ?? undefined;
-    this.taskService.deleteTask(this.task().id, scope, scheduledAt).subscribe(() => {
+    const occurrenceScheduledAt = this.task().occurrenceScheduledAt ?? undefined;
+    this.taskService.deleteTask(this.task().id, scope, occurrenceScheduledAt).subscribe(() => {
       this.taskDeleted.emit(this.task().id);
     });
   }
@@ -343,8 +346,8 @@ export class TaskDetailComponent implements OnChanges {
     const patch = this.pendingPatch();
     if (!patch) return;
     this.pendingPatch.set(null);
-    const scheduledAt = this.task().scheduledAt ?? undefined;
-    this.taskService.updateTask(this.task().id, { ...patch, scope, scheduledAt })
+    const occurrenceScheduledAt = this.task().occurrenceScheduledAt ?? undefined;
+    this.taskService.updateTask(this.task().id, { ...patch, scope, occurrenceScheduledAt })
       .subscribe(updated => this.taskUpdated.emit(updated));
   }
 
@@ -362,7 +365,7 @@ export class TaskDetailComponent implements OnChanges {
   }
 
   private save(patch: Partial<Task>): void {
-    if (this.task().isRecurring && this.task().scheduledAt) {
+    if (this.task().isRecurring && this.task().occurrenceScheduledAt) {
       this.pendingPatch.set(patch);
       this.showModifyScopeDialog.set(true);
     } else {

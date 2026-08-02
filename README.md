@@ -67,7 +67,7 @@ Task and project tools call the backend application services directly, so they f
 ## Features
 
 - **Views**: Inbox · Today · Upcoming · Project (List + Kanban Board)
-- **Tasks**: priority (p1–p4), due dates, labels, sub-tasks, comments
+- **Tasks**: optional priority (p1–p4), scheduled times (`scheduledAt`), labels, sub-tasks, comments
 - **Projects**: colors, favorites, nested projects, sections
 - **Quick Add**: press `Q` — supports `#project`, `@label`, `p1–p4`, `today/tomorrow`
 - **Drag & Drop**: reorder tasks within sections (Angular CDK)

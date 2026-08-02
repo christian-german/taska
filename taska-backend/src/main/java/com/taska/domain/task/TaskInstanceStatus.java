@@ -13,7 +13,7 @@ public enum TaskInstanceStatus {
 
     /**
      * The occurrence has been edited via a {@code THIS_ONLY} update.
-     * The instance holds override values for {@code title}, {@code priority}, and/or {@code dueAt}.
+     * The instance holds override values for {@code title}, {@code priority}, and/or {@code scheduledAt}.
      */
     MODIFIED
 }

@@ -24,7 +24,7 @@ data class DayTaskBlock(
     val totalCols: Int
 )
 
-data class PendingReschedule(val task: TaskDto, val newDueAt: String, val newEstimateMinutes: Int)
+data class PendingReschedule(val task: TaskDto, val newScheduledAt: String, val newEstimateMinutes: Int)
 
 data class DayUiState(
     val dayOffset: Int = 0,
@@ -54,25 +54,25 @@ class DayViewModel(
     fun nextDay() = loadForOffset(_uiState.value.dayOffset + 1)
     fun prevDay() = loadForOffset(_uiState.value.dayOffset - 1)
 
-    fun requestRescheduleTask(task: TaskDto, newDueAt: String, newEstimateMinutes: Int) {
-        if (task.isRecurring == true && task.scheduledAt != null) {
-            _uiState.update { it.copy(pendingReschedule = PendingReschedule(task, newDueAt, newEstimateMinutes)) }
+    fun requestRescheduleTask(task: TaskDto, newScheduledAt: String, newEstimateMinutes: Int) {
+        if (task.isRecurring == true && task.occurrenceScheduledAt != null) {
+            _uiState.update { it.copy(pendingReschedule = PendingReschedule(task, newScheduledAt, newEstimateMinutes)) }
         } else {
-            executeReschedule(task, newDueAt, newEstimateMinutes, scope = null)
+            executeReschedule(task, newScheduledAt, newEstimateMinutes, scope = null)
         }
     }
 
     fun confirmRescheduleTask(scope: RecurrenceScope?) {
         val pending = _uiState.value.pendingReschedule ?: return
         _uiState.update { it.copy(pendingReschedule = null) }
-        executeReschedule(pending.task, pending.newDueAt, pending.newEstimateMinutes, scope)
+        executeReschedule(pending.task, pending.newScheduledAt, pending.newEstimateMinutes, scope)
     }
 
     fun dismissRescheduleScope() {
         _uiState.update { it.copy(pendingReschedule = null) }
     }
 
-    private fun executeReschedule(task: TaskDto, newDueAt: String, newEstimateMinutes: Int, scope: RecurrenceScope?) {
+    private fun executeReschedule(task: TaskDto, newScheduledAt: String, newEstimateMinutes: Int, scope: RecurrenceScope?) {
         viewModelScope.launch {
             try {
                 taskRepo.updateTask(
@@ -83,11 +83,11 @@ class DayViewModel(
                         projectId = task.projectId,
                         priority = task.priority,
                         labels = task.labels,
-                        dueAt = newDueAt,
+                        scheduledAt = newScheduledAt,
                         allDay = false,
                         estimateMinutes = newEstimateMinutes,
                         scope = scope?.name,
-                        scheduledAt = task.scheduledAt
+                        occurrenceScheduledAt = task.occurrenceScheduledAt
                     )
                 )
                 loadForOffset(_uiState.value.dayOffset)
@@ -105,7 +105,7 @@ class DayViewModel(
                 val projectsDef = async { projectRepo.getProjects() }
                 val tasks = tasksDef.await()
                 val projectMap = projectsDef.await().associateBy { it.id }
-                val timedBlocks = computeLayout(tasks.filter { !it.allDay && it.dueAt != null })
+                val timedBlocks = computeLayout(tasks.filter { !it.allDay && it.scheduledAt != null })
                 val allDayTasks = tasks.filter { it.allDay }
                 _uiState.update {
                     it.copy(
@@ -139,8 +139,8 @@ class DayViewModel(
         if (tasks.isEmpty()) return emptyList()
         data class Raw(val task: TaskDto, val startMin: Int, val endMin: Int)
         val raws = tasks.mapNotNull { task ->
-            val dueAt = task.dueAt ?: return@mapNotNull null
-            val (h, m) = dueAtLocalHourMinute(dueAt) ?: return@mapNotNull null
+            val scheduledAt = task.scheduledAt ?: return@mapNotNull null
+            val (h, m) = scheduledAtLocalHourMinute(scheduledAt) ?: return@mapNotNull null
             val start = h * 60 + m
             Raw(task, start, start + (task.estimateMinutes ?: 60))
         }.sortedBy { it.startMin }
@@ -165,8 +165,8 @@ class DayViewModel(
     }
 }
 
-private fun dueAtLocalHourMinute(dueAt: String): Pair<Int, Int>? = try {
-    val instant = java.time.Instant.parse(dueAt)
+private fun scheduledAtLocalHourMinute(scheduledAt: String): Pair<Int, Int>? = try {
+    val instant = java.time.Instant.parse(scheduledAt)
     val zoned = instant.atZone(java.time.ZoneId.systemDefault())
     Pair(zoned.hour, zoned.minute)
 } catch (_: Exception) { null }

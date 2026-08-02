@@ -23,6 +23,7 @@ import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class TaskPriorityEvaluationServiceTest {
+
     @Mock TaskRepository taskRepository;
     @Mock TaskPriorityEvaluationRepository evaluationRepository;
     @Mock OpenAiPriorityAssessmentClient assessmentClient;
@@ -42,7 +43,7 @@ class TaskPriorityEvaluationServiceTest {
         var saved = ArgumentCaptor.forClass(TaskPriorityEvaluation.class);
         verify(evaluationRepository).save(saved.capture());
         assertThat(saved.getValue().getScore()).isEqualTo(95);
-        assertThat(saved.getValue().getComponents().get("impact").get("source").asText()).isEqualTo("LLM");
+        assertThat(saved.getValue().getComponents().get("impact").get("source").asString()).isEqualTo("LLM");
     }
 
     @Test void invalidEnvelopeDoesNotPersistAnyResult() {

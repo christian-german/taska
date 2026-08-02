@@ -189,7 +189,7 @@ fun TaskDetailScreen(
 
     when (activePicker) {
         ActivePicker.DATE -> DateShortcutsDialog(
-            hasDue = task?.dueAt != null,
+            hasDue = task?.scheduledAt != null,
             onSelect = { millis ->
                 pendingDateMillis = millis
                 activePicker = ActivePicker.TIME
@@ -200,7 +200,7 @@ fun TaskDetailScreen(
         )
         ActivePicker.CALENDAR -> {
             val datePickerState = rememberDatePickerState(
-                initialSelectedDateMillis = viewModel.dueAtToMillis()
+                initialSelectedDateMillis = viewModel.scheduledAtToMillis()
             )
             DatePickerDialog(
                 onDismissRequest = { activePicker = null },
@@ -216,10 +216,10 @@ fun TaskDetailScreen(
             ) { DatePicker(state = datePickerState) }
         }
         ActivePicker.TIME -> {
-            val dueAt = task?.dueAt
-            val (initialHour, initialMinute) = if (dueAt != null && task.allDay == false) {
+            val scheduledAt = task?.scheduledAt
+            val (initialHour, initialMinute) = if (scheduledAt != null && task.allDay == false) {
                 try {
-                    val zoned = java.time.Instant.parse(dueAt).atZone(java.time.ZoneId.systemDefault())
+                    val zoned = java.time.Instant.parse(scheduledAt).atZone(java.time.ZoneId.systemDefault())
                     Pair(zoned.hour, zoned.minute)
                 } catch (_: Exception) { Pair(9, 0) }
             } else Pair(9, 0)
@@ -228,7 +228,7 @@ fun TaskDetailScreen(
                 initialMinute = initialMinute,
                 is24Hour = true
             )
-            val dateMillis = pendingDateMillis ?: viewModel.dueAtToMillis()
+            val dateMillis = pendingDateMillis ?: viewModel.scheduledAtToMillis()
             TimePickerDialog(
                 onConfirm = {
                     viewModel.requestRescheduleWithTime(dateMillis, timeState.hour, timeState.minute)
@@ -433,8 +433,8 @@ private fun TaskContent(
             PropertyRow(
                 icon = Icons.Outlined.Schedule,
                 label = "ÉCHÉANCE",
-                value = task.dueAt?.let { formatDueDate(it, task.allDay) },
-                valueColor = if (isOverdue(task.dueAt, task.allDay)) OverdueColor else TextPrimary,
+                value = task.scheduledAt?.let { formatDueDate(it, task.allDay) },
+                valueColor = if (isOverdue(task.scheduledAt, task.allDay)) OverdueColor else TextPrimary,
                 onClick = { onPropertyClick(ActivePicker.DATE) }
             )
             HorizontalDivider(color = DividerColor)
@@ -1057,7 +1057,7 @@ private fun PriorityPickerDialog(
                 modifier = Modifier.padding(horizontal = 20.dp, vertical = 12.dp)
             )
             options.forEach { (priority, label, color) ->
-                val isSelected = priority == (currentPriority ?: 4)
+                val isSelected = priority == currentPriority
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -1108,7 +1108,8 @@ private fun priorityLabel(priority: Int?): String = when (priority) {
     1 -> "Urgente"
     2 -> "Haute"
     3 -> "Moyenne"
-    else -> "Normale"
+    4 -> "Normale"
+    else -> "Non définie"
 }
 
 private fun formatDuration(minutes: Int): String {
@@ -1121,9 +1122,9 @@ private fun formatDuration(minutes: Int): String {
     }
 }
 
-private fun formatDueDate(dueAt: String, allDay: Boolean): String {
+private fun formatDueDate(scheduledAt: String, allDay: Boolean): String {
     return try {
-        val zoned = java.time.Instant.parse(dueAt).atZone(java.time.ZoneId.systemDefault())
+        val zoned = java.time.Instant.parse(scheduledAt).atZone(java.time.ZoneId.systemDefault())
         val cal = Calendar.getInstance().apply {
             set(zoned.year, zoned.monthValue - 1, zoned.dayOfMonth, 0, 0, 0)
             set(Calendar.MILLISECOND, 0)
@@ -1157,14 +1158,14 @@ private fun formatDueDate(dueAt: String, allDay: Boolean): String {
             dayPart
         }
     } catch (_: Exception) {
-        dueAt.substringBefore('T')
+        scheduledAt.substringBefore('T')
     }
 }
 
-private fun isOverdue(dueAt: String?, allDay: Boolean): Boolean {
-    dueAt ?: return false
+private fun isOverdue(scheduledAt: String?, allDay: Boolean): Boolean {
+    scheduledAt ?: return false
     return try {
-        val zoned = java.time.Instant.parse(dueAt).atZone(java.time.ZoneId.systemDefault())
+        val zoned = java.time.Instant.parse(scheduledAt).atZone(java.time.ZoneId.systemDefault())
         val cal = Calendar.getInstance().apply {
             set(zoned.year, zoned.monthValue - 1, zoned.dayOfMonth,
                 if (allDay) 23 else zoned.hour,

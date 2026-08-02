@@ -12,9 +12,11 @@ import java.util.UUID;
 /**
  * Request payload for creating or updating a task.
  * All fields except {@code content} are optional; null values are ignored on update
- * (only non-null fields are applied via {@code applyPatch}).
+ * (only non-null fields are applied via {@code applyPatch}). A task's planned time is
+ * {@code scheduledAt}; {@code occurrenceScheduledAt} is separate and only selects a generated
+ * recurring occurrence for a scoped update.
  * <p>
- * For recurring task updates, {@code scope} and {@code scheduledAt} control which
+ * For recurring task updates, {@code scope} and {@code occurrenceScheduledAt} control which
  * occurrences are affected.
  *
  * @param content         required task title; must not be blank
@@ -24,11 +26,11 @@ import java.util.UUID;
  * @param sectionId       section within the project; {@code null} places the task outside any section
  * @param parentId        parent task UUID to create this as a subtask
  * @param order           display position within its container; defaults to 0 on create
- * @param priority        urgency level 1–4 (1 = urgent, 4 = normal); defaults to 4 on create;
- *                        must be between 1 and 4
+ * @param priority        optional urgency level 1–4 (1 = urgent, 4 = normal); {@code null} means
+ *                        no manual priority is assigned; supplied values must be between 1 and 4
  * @param labels          list of label names to attach; replaces the existing label list on update
- * @param dueAt           due date/time in UTC; {@code null} means no due date
- * @param allDay          when {@code true} the due date has no specific time component; defaults to {@code false}
+ * @param scheduledAt     planned schedule time in UTC; {@code null} means the task is unscheduled
+ * @param allDay          when {@code true} the scheduled time has no specific time component; defaults to {@code false}
  * @param isRecurring     whether the task repeats; defaults to {@code false} on create
  * @param estimateMinutes optional time estimate in minutes; must be positive
  * @param mentionContext  raw context string captured when the task is created via @-mention
@@ -36,8 +38,8 @@ import java.util.UUID;
  *                        aliases are normalised to their RRULE equivalents on save
  * @param scope           for recurring task updates: {@code THIS_ONLY} modifies only the specified
  *                        occurrence; {@code FROM_THIS} truncates the series and creates a new one
- *                        from {@code scheduledAt} onwards; {@code null} treats the task as non-recurring
- * @param scheduledAt     for recurring task updates, identifies the specific occurrence to act on;
+ *                        from {@code occurrenceScheduledAt} onwards; {@code null} treats the task as non-recurring
+ * @param occurrenceScheduledAt for recurring task updates, identifies the specific generated occurrence to act on;
  *                        required when {@code scope} is set
  */
 public record  TaskRequest(
@@ -50,7 +52,7 @@ public record  TaskRequest(
         @Min(1) @Max(4)
         Integer priority,
         List<String> labels,
-        Instant dueAt,
+        Instant scheduledAt,
         Boolean allDay,
         Boolean isRecurring,
         @Positive
@@ -58,17 +60,17 @@ public record  TaskRequest(
         String mentionContext,
         String recurrenceRule,
         RecurrenceScope scope,
-        Instant scheduledAt,
+        Instant occurrenceScheduledAt,
         TaskType type
 ) {
     /** Compatibility constructor for clients and tests that omit the optional task type. */
     public TaskRequest(String content, String description, UUID projectId, UUID sectionId,
                        UUID parentId, Integer order, Integer priority, List<String> labels,
-                       Instant dueAt, Boolean allDay, Boolean isRecurring, Integer estimateMinutes,
+                       Instant scheduledAt, Boolean allDay, Boolean isRecurring, Integer estimateMinutes,
                        String mentionContext, String recurrenceRule, RecurrenceScope scope,
-                       Instant scheduledAt) {
-        this(content, description, projectId, sectionId, parentId, order, priority, labels, dueAt,
+                       Instant occurrenceScheduledAt) {
+        this(content, description, projectId, sectionId, parentId, order, priority, labels, scheduledAt,
                 allDay, isRecurring, estimateMinutes, mentionContext, recurrenceRule, scope,
-                scheduledAt, null);
+                occurrenceScheduledAt, null);
     }
 }

@@ -12,7 +12,7 @@ public interface TaskMapper {
 
     /**
      * Maps a {@link Task} entity to a {@link TaskDto}. The {@code position} field is exposed as
-     * {@code order}. Occurrence-specific fields ({@code instanceId}, {@code scheduledAt},
+     * {@code order}. Occurrence-specific fields ({@code instanceId}, {@code occurrenceScheduledAt},
      * {@code isVirtual}) are left null; use {@link #toOccurrenceDto} for recurring occurrences.
      *
      * @param task the task entity
@@ -20,27 +20,27 @@ public interface TaskMapper {
      */
     @Mapping(target = "order", source = "position")
     @Mapping(target = "instanceId", ignore = true)
-    @Mapping(target = "scheduledAt", ignore = true)
+    @Mapping(target = "occurrenceScheduledAt", ignore = true)
     @Mapping(target = "isVirtual", ignore = true)
     TaskDto toDto(Task task);
 
     /**
      * Builds a DTO representing a single occurrence of a recurring task. The instance, when
-     * non-null, may override the title, priority, due date, and completion state coming from the
+     * non-null, may override the title, priority, planned scheduled time, and completion state coming from the
      * base task. A null instance indicates a virtual (unmodified) occurrence.
      *
      * @param task        the recurring task template
      * @param instance    optional persisted instance with override values or completion status
-     * @param scheduledAt the exact instant this occurrence falls on according to the RRULE
+     * @param occurrenceScheduledAt the exact instant this occurrence falls on according to the RRULE
      * @return a fully populated DTO representing the occurrence
      */
-    default TaskDto toOccurrenceDto(Task task, TaskInstance instance, Instant scheduledAt) {
+    default TaskDto toOccurrenceDto(Task task, TaskInstance instance, Instant occurrenceScheduledAt) {
         String content = instance != null && instance.getTitle() != null
                 ? instance.getTitle() : task.getContent();
         Integer priority = instance != null && instance.getPriority() != null
                 ? instance.getPriority() : task.getPriority();
-        Instant dueAt = instance != null && instance.getDueAt() != null
-                ? instance.getDueAt() : scheduledAt;
+        Instant scheduledAt = instance != null && instance.getScheduledAt() != null
+                ? instance.getScheduledAt() : occurrenceScheduledAt;
         boolean isCompleted = instance != null && instance.getStatus() == TaskInstanceStatus.DONE;
         Instant completedAt = instance != null ? instance.getCompletedAt() : null;
         UUID instanceId = instance != null ? instance.getId() : null;
@@ -57,7 +57,7 @@ public interface TaskMapper {
                 priority,
                 task.getLabels(),
                 isCompleted,
-                dueAt,
+                scheduledAt,
                 task.isAllDay(),
                 true,
                 task.getEstimateMinutes(),
@@ -67,7 +67,7 @@ public interface TaskMapper {
                 task.getUpdatedAt(),
                 completedAt,
                 instanceId,
-                scheduledAt,
+                occurrenceScheduledAt,
                 isVirtual,
                 task.getRruleEndsAt(),
                 task.getType() == null ? TaskType.TODO : task.getType()

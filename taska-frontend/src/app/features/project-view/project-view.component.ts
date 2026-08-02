@@ -146,8 +146,8 @@ export class ProjectViewComponent implements OnInit {
 
   private sortTasks(arr: Task[]): Task[] {
     return [...arr].sort((a, b) => {
-      if (a.priority !== b.priority) return b.priority - a.priority;
-      if (a.dueAt && b.dueAt) return a.dueAt.localeCompare(b.dueAt);
+      if (a.priority !== b.priority) return (b.priority ?? 0) - (a.priority ?? 0);
+      if (a.scheduledAt && b.scheduledAt) return a.scheduledAt.localeCompare(b.scheduledAt);
       return 0;
     });
   }

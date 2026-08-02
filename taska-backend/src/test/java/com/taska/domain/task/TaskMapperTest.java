@@ -15,11 +15,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 class TaskMapperTest {
 
     // Use an anonymous implementation so the default method runs without Spring context.
-    private final TaskMapper mapper = new TaskMapper() {
-        @Override
-        public TaskDto toDto(Task task) {
-            throw new UnsupportedOperationException("not used in these tests");
-        }
+    private final TaskMapper mapper = _ -> {
+        throw new UnsupportedOperationException("not used in these tests");
     };
 
     // ── Helpers ──────────────────────────────────────────────────────────────
@@ -31,16 +28,16 @@ class TaskMapperTest {
         t.setPriority(priority);
         t.setIsRecurring(true);
         t.setRecurrenceRule("FREQ=DAILY");
-        t.setDueAt(Instant.parse("2026-05-01T10:00:00Z"));
+        t.setScheduledAt(Instant.parse("2026-05-01T10:00:00Z"));
         t.setLabels(List.of());
         return t;
     }
 
-    private TaskInstance buildInstance(UUID taskId, Instant scheduledAt, TaskInstanceStatus status) {
+    private TaskInstance buildInstance(UUID taskId, Instant occurrenceScheduledAt, TaskInstanceStatus status) {
         TaskInstance i = new TaskInstance();
         i.setId(UUID.randomUUID());
         i.setTaskId(taskId);
-        i.setScheduledAt(scheduledAt);
+        i.setOccurrenceScheduledAt(occurrenceScheduledAt);
         i.setStatus(status);
         return i;
     }
@@ -50,9 +47,9 @@ class TaskMapperTest {
     @Test
     void toOccurrenceDto_noInstance_isVirtualTrueInstanceIdNull() {
         Task task = buildTask("My task", 2);
-        Instant scheduledAt = Instant.parse("2026-05-20T10:00:00Z");
+        Instant occurrenceScheduledAt = Instant.parse("2026-05-20T10:00:00Z");
 
-        TaskDto dto = mapper.toOccurrenceDto(task, null, scheduledAt);
+        TaskDto dto = mapper.toOccurrenceDto(task, null, occurrenceScheduledAt);
 
         assertThat(dto.isVirtual()).isTrue();
         assertThat(dto.instanceId()).isNull();
@@ -65,11 +62,11 @@ class TaskMapperTest {
     @Test
     void toOccurrenceDto_doneInstance_isCompletedTrueIsVirtualFalse() {
         Task task = buildTask("My task", 2);
-        Instant scheduledAt = Instant.parse("2026-05-20T10:00:00Z");
-        TaskInstance instance = buildInstance(task.getId(), scheduledAt, TaskInstanceStatus.DONE);
+        Instant occurrenceScheduledAt = Instant.parse("2026-05-20T10:00:00Z");
+        TaskInstance instance = buildInstance(task.getId(), occurrenceScheduledAt, TaskInstanceStatus.DONE);
         instance.setCompletedAt(Instant.parse("2026-05-20T11:00:00Z"));
 
-        TaskDto dto = mapper.toOccurrenceDto(task, instance, scheduledAt);
+        TaskDto dto = mapper.toOccurrenceDto(task, instance, occurrenceScheduledAt);
 
         assertThat(dto.isCompleted()).isTrue();
         assertThat(dto.isVirtual()).isFalse();
@@ -82,12 +79,12 @@ class TaskMapperTest {
     @Test
     void toOccurrenceDto_modifiedInstanceWithTitleAndPriority_usesInstanceValues() {
         Task task = buildTask("Original title", 4);
-        Instant scheduledAt = Instant.parse("2026-05-20T10:00:00Z");
-        TaskInstance instance = buildInstance(task.getId(), scheduledAt, TaskInstanceStatus.MODIFIED);
+        Instant occurrenceScheduledAt = Instant.parse("2026-05-20T10:00:00Z");
+        TaskInstance instance = buildInstance(task.getId(), occurrenceScheduledAt, TaskInstanceStatus.MODIFIED);
         instance.setTitle("Modified title");
         instance.setPriority(1);
 
-        TaskDto dto = mapper.toOccurrenceDto(task, instance, scheduledAt);
+        TaskDto dto = mapper.toOccurrenceDto(task, instance, occurrenceScheduledAt);
 
         assertThat(dto.content()).isEqualTo("Modified title");
         assertThat(dto.priority()).isEqualTo(1);
@@ -98,12 +95,12 @@ class TaskMapperTest {
     @Test
     void toOccurrenceDto_modifiedInstanceNullTitle_inheritsParentContent() {
         Task task = buildTask("Parent content", 3);
-        Instant scheduledAt = Instant.parse("2026-05-20T10:00:00Z");
-        TaskInstance instance = buildInstance(task.getId(), scheduledAt, TaskInstanceStatus.MODIFIED);
+        Instant occurrenceScheduledAt = Instant.parse("2026-05-20T10:00:00Z");
+        TaskInstance instance = buildInstance(task.getId(), occurrenceScheduledAt, TaskInstanceStatus.MODIFIED);
         instance.setTitle(null);
         instance.setPriority(2);
 
-        TaskDto dto = mapper.toOccurrenceDto(task, instance, scheduledAt);
+        TaskDto dto = mapper.toOccurrenceDto(task, instance, occurrenceScheduledAt);
 
         assertThat(dto.content()).isEqualTo("Parent content");
         assertThat(dto.priority()).isEqualTo(2);
@@ -112,16 +109,16 @@ class TaskMapperTest {
     // ── 2.7 ──────────────────────────────────────────────────────────────────
 
     @Test
-    void toOccurrenceDto_modifiedInstanceWithDueAt_usesInstanceDueAt() {
+    void toOccurrenceDto_modifiedInstanceWithScheduledAt_usesInstanceScheduledAt() {
         Task task = buildTask("Task", 2);
-        Instant scheduledAt = Instant.parse("2026-05-20T10:00:00Z");
-        Instant movedDueAt  = Instant.parse("2026-05-20T14:00:00Z");
-        TaskInstance instance = buildInstance(task.getId(), scheduledAt, TaskInstanceStatus.MODIFIED);
-        instance.setDueAt(movedDueAt);
+        Instant occurrenceScheduledAt = Instant.parse("2026-05-20T10:00:00Z");
+        Instant movedScheduledAt = Instant.parse("2026-05-20T14:00:00Z");
+        TaskInstance instance = buildInstance(task.getId(), occurrenceScheduledAt, TaskInstanceStatus.MODIFIED);
+        instance.setScheduledAt(movedScheduledAt);
 
-        TaskDto dto = mapper.toOccurrenceDto(task, instance, scheduledAt);
+        TaskDto dto = mapper.toOccurrenceDto(task, instance, occurrenceScheduledAt);
 
-        assertThat(dto.dueAt()).isEqualTo(movedDueAt);
+        assertThat(dto.scheduledAt()).isEqualTo(movedScheduledAt);
     }
 
     // ── 6.5 ──────────────────────────────────────────────────────────────────
@@ -129,37 +126,37 @@ class TaskMapperTest {
     @Test
     void toOccurrenceDto_modifiedInstanceAllOverrideFieldsNull_allInheritedFromParent() {
         Task task = buildTask("Parent content", 3);
-        Instant scheduledAt = Instant.parse("2026-05-20T10:00:00Z");
-        TaskInstance instance = buildInstance(task.getId(), scheduledAt, TaskInstanceStatus.MODIFIED);
-        // title, priority and dueAt are all null — every field falls back to the parent
+        Instant occurrenceScheduledAt = Instant.parse("2026-05-20T10:00:00Z");
+        TaskInstance instance = buildInstance(task.getId(), occurrenceScheduledAt, TaskInstanceStatus.MODIFIED);
+        // title, priority and scheduledAt are all null — every field falls back to the parent
 
-        TaskDto dto = mapper.toOccurrenceDto(task, instance, scheduledAt);
+        TaskDto dto = mapper.toOccurrenceDto(task, instance, occurrenceScheduledAt);
 
         assertThat(dto.content()).isEqualTo("Parent content");
         assertThat(dto.priority()).isEqualTo(3);
-        assertThat(dto.dueAt()).isEqualTo(scheduledAt); // falls back to scheduledAt when no dueAt override
+        assertThat(dto.scheduledAt()).isEqualTo(occurrenceScheduledAt); // falls back to occurrenceScheduledAt when no scheduledAt override
     }
 
-    // ── isRecurring / scheduledAt always set ─────────────────────────────────
+    // ── isRecurring / occurrenceScheduledAt always set ─────────────────────────────────
 
     @Test
     void toOccurrenceDto_alwaysSetsIsRecurringTrue() {
         Task task = buildTask("Task", 2);
-        Instant scheduledAt = Instant.parse("2026-05-20T10:00:00Z");
+        Instant occurrenceScheduledAt = Instant.parse("2026-05-20T10:00:00Z");
 
-        TaskDto dto = mapper.toOccurrenceDto(task, null, scheduledAt);
+        TaskDto dto = mapper.toOccurrenceDto(task, null, occurrenceScheduledAt);
 
         assertThat(dto.isRecurring()).isTrue();
     }
 
     @Test
-    void toOccurrenceDto_scheduledAtPropagatedToDto() {
+    void toOccurrenceDto_occurrenceScheduledAtPropagatedToDto() {
         Task task = buildTask("Task", 2);
-        Instant scheduledAt = Instant.parse("2026-05-20T10:00:00Z");
+        Instant occurrenceScheduledAt = Instant.parse("2026-05-20T10:00:00Z");
 
-        TaskDto dto = mapper.toOccurrenceDto(task, null, scheduledAt);
+        TaskDto dto = mapper.toOccurrenceDto(task, null, occurrenceScheduledAt);
 
-        assertThat(dto.scheduledAt()).isEqualTo(scheduledAt);
+        assertThat(dto.occurrenceScheduledAt()).isEqualTo(occurrenceScheduledAt);
     }
 
     @Test

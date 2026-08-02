@@ -423,14 +423,14 @@ export class QuickAddComponent implements OnInit {
 
   effectiveDueDate = computed(() => {
     const m = this.manualDatetime();
-    return m ? m.slice(0, 10) : (this.parsed().dueAt?.slice(0, 10) ?? null);
+    return m ? m.slice(0, 10) : (this.parsed().scheduledAt?.slice(0, 10) ?? null);
   });
 
   datePickerValue = computed(() => {
     const m = this.manualDatetime();
     if (m) return m;
     const p = this.parsed();
-    if (p.dueAt) return p.dueAt;
+    if (p.scheduledAt) return p.scheduledAt;
     return '';
   });
 
@@ -571,8 +571,8 @@ export class QuickAddComponent implements OnInit {
       return fmtRel(d) + (hasTime ? ' · ' + fmtTime(d) : '');
     }
     const p = this.parsed();
-    if (!p.dueAt) return 'pas de date';
-    const d = new Date(p.dueAt);
+    if (!p.scheduledAt) return 'pas de date';
+    const d = new Date(p.scheduledAt);
     return fmtRel(d) + (p.hasTime ? ' · ' + fmtTime(d) : '');
   }
 
@@ -599,13 +599,13 @@ export class QuickAddComponent implements OnInit {
     const manual = this.manualDatetime();
     const hasTime = manual ? manual.includes('T') : false;
 
-    let dueAt: string | null = null;
+    let scheduledAt: string | null = null;
     let allDay = false;
     if (manual) {
-      dueAt = hasTime ? manual : manual + 'T00:00:00Z';
+      scheduledAt = hasTime ? manual : manual + 'T00:00:00Z';
       allDay = !hasTime;
-    } else if (p.dueAt) {
-      dueAt = p.dueAt;
+    } else if (p.scheduledAt) {
+      scheduledAt = p.scheduledAt;
       allDay = p.allDay;
     }
 
@@ -613,8 +613,8 @@ export class QuickAddComponent implements OnInit {
       content: p.title,
       projectId: this.effectiveProjectId() ?? undefined,
       labels: this.effectiveTags(),
-      priority: p.priority ?? 4,
-      dueAt,
+      priority: p.priority,
+      scheduledAt,
       allDay,
       mentionContext: p.context,
       estimateMinutes: this.effectiveEstimate() ?? undefined,

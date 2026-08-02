@@ -12,7 +12,7 @@ export interface NlToken {
 export interface NlParsed {
   title: string;
   /** ISO 8601 UTC string (with Z) for timed tasks, or YYYY-MM-DD for all-day */
-  dueAt?: string;
+  scheduledAt?: string;
   /** true when no specific time was set (date-only) */
   allDay: boolean;
   hasTime: boolean;
@@ -66,7 +66,7 @@ export class NlParserService {
     const today = anchor ? new Date(anchor) : new Date();
     const tokens: NlToken[] = [];
 
-    let dueAt: string | undefined;
+    let scheduledAt: string | undefined;
     let allDay = true;
     let hasTime = false;
     const tags: string[] = [];
@@ -183,17 +183,17 @@ export class NlParserService {
     if (baseDate) {
       if (time) {
         baseDate.setHours(time.h, time.m, 0, 0);
-        dueAt = localIso(baseDate);
+        scheduledAt = localIso(baseDate);
         allDay = false;
       } else {
         baseDate.setHours(0, 0, 0, 0);
-        dueAt = localIso(baseDate);
+        scheduledAt = localIso(baseDate);
         allDay = true;
       }
     } else if (time) {
       const d = new Date(today);
       d.setHours(time.h, time.m, 0, 0);
-      dueAt = localIso(d);
+      scheduledAt = localIso(d);
       allDay = false;
       hasTime = true;
     }
@@ -210,7 +210,7 @@ export class NlParserService {
 
     return {
       title,
-      dueAt,
+      scheduledAt,
       allDay,
       hasTime,
       projectName,

@@ -43,7 +43,7 @@ class TaskMcpToolsTest {
     }
 
     @Test
-    void createTaskPassesNullProjectAndParentToPreserveInboxDefault() {
+    void createTaskWithoutScheduleOrPriorityPreservesInboxAndNullableFields() {
         Task task = new Task();
         TaskDto taskDto = taskDto();
         when(taskService.create(any())).thenReturn(task);
@@ -57,6 +57,8 @@ class TaskMcpToolsTest {
         verify(taskService).create(request.capture());
         assertThat(request.getValue().projectId()).isNull();
         assertThat(request.getValue().parentId()).isNull();
+        assertThat(request.getValue().priority()).isNull();
+        assertThat(request.getValue().scheduledAt()).isNull();
         assertThat(result.isError()).isFalse();
         assertThat(result.structuredContent()).isInstanceOf(TaskMcpTools.TaskOutput.class);
     }
@@ -64,12 +66,12 @@ class TaskMcpToolsTest {
     @Test
     void completeTaskPassesRecurringOccurrenceTimestampToTaskService() {
         UUID taskId = UUID.randomUUID();
-        Instant scheduledAt = Instant.parse("2026-07-29T09:00:00Z");
-        when(taskService.close(taskId, new TaskCloseReopenRequest(scheduledAt))).thenReturn(taskDto());
+        Instant occurrenceScheduledAt = Instant.parse("2026-07-29T09:00:00Z");
+        when(taskService.close(taskId, new TaskCloseReopenRequest(occurrenceScheduledAt))).thenReturn(taskDto());
 
-        McpSchema.CallToolResult result = tools.completeTask(taskId, scheduledAt);
+        McpSchema.CallToolResult result = tools.completeTask(taskId, occurrenceScheduledAt);
 
-        verify(taskService).close(taskId, new TaskCloseReopenRequest(scheduledAt));
+        verify(taskService).close(taskId, new TaskCloseReopenRequest(occurrenceScheduledAt));
         assertThat(result.isError()).isFalse();
     }
 
@@ -81,6 +83,20 @@ class TaskMcpToolsTest {
 
         assertThat(result.isError()).isTrue();
         assertThat(result.content().getFirst().toString()).contains("priority must be between 1 and 4");
+    }
+
+    @Test
+    void updateTaskCanExplicitlyClearManualPriority() {
+        UUID taskId = UUID.randomUUID();
+        when(taskService.update(any(), any(), org.mockito.ArgumentMatchers.eq(true))).thenReturn(taskDto());
+
+        McpSchema.CallToolResult result = tools.updateTask(taskId, new TaskMcpTools.TaskUpdateInput(
+                null, null, null, null, null, null, null, null, null, null, null,
+                null, null, null, null, null, true));
+
+        verify(taskService).update(org.mockito.ArgumentMatchers.eq(taskId), any(TaskRequest.class),
+                org.mockito.ArgumentMatchers.eq(true));
+        assertThat(result.isError()).isFalse();
     }
 
     private TaskDto taskDto() {

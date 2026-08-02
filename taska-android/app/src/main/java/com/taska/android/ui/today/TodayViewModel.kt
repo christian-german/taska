@@ -60,15 +60,15 @@ class TodayViewModel(
                 val tomorrowAll = tomorrowDeferred.await()
 
                 val overdue = taskRepo.getTasks(showCompleted = false)
-                    .filter { it.isCompleted != true && it.isRecurring != true && it.dueAt != null && dueAtLocalDate(it.dueAt) < todayStr }
-                    .sortedBy { it.dueAt }
+                    .filter { it.isCompleted != true && it.isRecurring != true && it.scheduledAt != null && scheduledAtLocalDate(it.scheduledAt) < todayStr }
+                    .sortedBy { it.scheduledAt }
 
                 val today = todayAll
-                    .sortedWith(compareBy({ it.isCompleted == true }, { it.dueAt }))
+                    .sortedWith(compareBy({ it.isCompleted == true }, { it.scheduledAt }))
 
                 val tomorrow = tomorrowAll
                     .filter { it.isCompleted != true }
-                    .sortedBy { it.dueAt }
+                    .sortedBy { it.scheduledAt }
 
                 _uiState.update {
                     it.copy(
@@ -88,14 +88,14 @@ class TodayViewModel(
     fun closeTask(task: TaskDto) {
         viewModelScope.launch {
             try {
-                val closed = taskRepo.closeTask(task.id, task.scheduledAt)
+                val closed = taskRepo.closeTask(task.id, task.occurrenceScheduledAt)
                 _uiState.update { state ->
                     state.copy(
-                        overdueTasks = state.overdueTasks.filter { it.id != task.id || it.scheduledAt != task.scheduledAt },
+                        overdueTasks = state.overdueTasks.filter { it.id != task.id || it.occurrenceScheduledAt != task.occurrenceScheduledAt },
                         todayTasks = state.todayTasks.map {
-                            if (it.id == task.id && it.scheduledAt == task.scheduledAt) closed else it
+                            if (it.id == task.id && it.occurrenceScheduledAt == task.occurrenceScheduledAt) closed else it
                         },
-                        tomorrowTasks = state.tomorrowTasks.filter { it.id != task.id || it.scheduledAt != task.scheduledAt }
+                        tomorrowTasks = state.tomorrowTasks.filter { it.id != task.id || it.occurrenceScheduledAt != task.occurrenceScheduledAt }
                     )
                 }
             } catch (e: Exception) {
@@ -107,11 +107,11 @@ class TodayViewModel(
     fun reopenTask(task: TaskDto) {
         viewModelScope.launch {
             try {
-                val reopened = taskRepo.reopenTask(task.id, task.scheduledAt)
+                val reopened = taskRepo.reopenTask(task.id, task.occurrenceScheduledAt)
                 _uiState.update { state ->
                     state.copy(
                         todayTasks = state.todayTasks.map {
-                            if (it.id == task.id && it.scheduledAt == task.scheduledAt) reopened else it
+                            if (it.id == task.id && it.occurrenceScheduledAt == task.occurrenceScheduledAt) reopened else it
                         }
                     )
                 }
@@ -122,7 +122,7 @@ class TodayViewModel(
     }
 
     fun requestDeleteTask(task: TaskDto) {
-        if (task.isRecurring == true && task.scheduledAt != null) {
+        if (task.isRecurring == true && task.occurrenceScheduledAt != null) {
             _uiState.update { it.copy(pendingDeleteTask = task) }
         } else {
             confirmDeleteTask(task, scope = null)
@@ -133,7 +133,7 @@ class TodayViewModel(
         _uiState.update { it.copy(pendingDeleteTask = null) }
         viewModelScope.launch {
             try {
-                taskRepo.deleteTask(task.id, scope, task.scheduledAt)
+                taskRepo.deleteTask(task.id, scope, task.occurrenceScheduledAt)
                 load()
             } catch (e: Exception) {
                 _uiState.update { it.copy(error = e.message) }
@@ -146,8 +146,8 @@ class TodayViewModel(
     }
 }
 
-private fun dueAtLocalDate(dueAt: String): String = try {
-    val instant = java.time.Instant.parse(dueAt)
+private fun scheduledAtLocalDate(scheduledAt: String): String = try {
+    val instant = java.time.Instant.parse(scheduledAt)
     val zoned = instant.atZone(java.time.ZoneId.systemDefault())
     "%04d-%02d-%02d".format(zoned.year, zoned.monthValue, zoned.dayOfMonth)
-} catch (_: Exception) { dueAt.take(10) }
+} catch (_: Exception) { scheduledAt.take(10) }

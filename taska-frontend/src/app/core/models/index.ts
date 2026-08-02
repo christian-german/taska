@@ -59,10 +59,11 @@ export interface Task {
   sectionId?: string;
   parentId?: string;
   order: number;
-  priority: 1 | 2 | 3 | 4;
+  /** Optional manual priority; null means no manual priority is assigned. */
+  priority: 1 | 2 | 3 | 4 | null;
   labels: string[];
   isCompleted: boolean;
-  dueAt: string | null;
+  scheduledAt: string | null;
   allDay: boolean;
   isRecurring: boolean;
   estimateMinutes?: number;
@@ -72,7 +73,7 @@ export interface Task {
   updatedAt: string;
   completedAt?: string;
   instanceId?: string | null;
-  scheduledAt?: string | null;
+  occurrenceScheduledAt?: string | null;
   isVirtual?: boolean;
   rruleEndsAt?: string | null;
 }
@@ -170,7 +171,7 @@ export function hexToRgba(hex: string | undefined, a: number): string {
   return `rgba(${r},${g},${b},${a})`;
 }
 
-export function isOverdue(taskOrDate: Pick<Task, 'dueAt' | 'allDay' | 'isCompleted'> | string | undefined): boolean {
+export function isOverdue(taskOrDate: Pick<Task, 'scheduledAt' | 'allDay' | 'isCompleted'> | string | undefined): boolean {
   if (!taskOrDate) return false;
   const todayMidnight = new Date();
   todayMidnight.setHours(0, 0, 0, 0);
@@ -179,15 +180,15 @@ export function isOverdue(taskOrDate: Pick<Task, 'dueAt' | 'allDay' | 'isComplet
     d.setHours(0, 0, 0, 0);
     return d < todayMidnight;
   }
-  if (!taskOrDate.dueAt || taskOrDate.isCompleted) return false;
-  const d = new Date(taskOrDate.dueAt);
+  if (!taskOrDate.scheduledAt || taskOrDate.isCompleted) return false;
+  const d = new Date(taskOrDate.scheduledAt);
   d.setHours(0, 0, 0, 0);
   return d < todayMidnight;
 }
 
-export function formatDueDate(dueAt?: string | null): string {
-  if (!dueAt) return '';
-  const date = new Date(dueAt);
+export function formatDueDate(scheduledAt?: string | null): string {
+  if (!scheduledAt) return '';
+  const date = new Date(scheduledAt);
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   const tomorrow = new Date(today);
@@ -213,9 +214,9 @@ export const PRIORITY_TEXT_COLORS: Record<number, string> = {
   4: 'text-red-500',
 };
 
-export function isToday(dueAt?: string | null): boolean {
-  if (!dueAt) return false;
-  const d = new Date(dueAt);
+export function isToday(scheduledAt?: string | null): boolean {
+  if (!scheduledAt) return false;
+  const d = new Date(scheduledAt);
   const t = new Date();
   return d.getFullYear() === t.getFullYear() && d.getMonth() === t.getMonth() && d.getDate() === t.getDate();
 }
@@ -274,8 +275,8 @@ export function fmtEstimate(min?: number | null): string {
   return h ? (m ? `${h}h${m.toString().padStart(2, '0')}` : `${h}h`) : `${m}min`;
 }
 
-export function getTaskDueDate(task: Pick<Task, 'dueAt'>): Date | null {
-  return task.dueAt ? new Date(task.dueAt) : null;
+export function getTaskDueDate(task: Pick<Task, 'scheduledAt'>): Date | null {
+  return task.scheduledAt ? new Date(task.scheduledAt) : null;
 }
 
 export function isTaskAllDay(task: Pick<Task, 'allDay'>): boolean {

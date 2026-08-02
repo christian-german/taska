@@ -29,8 +29,8 @@ class TaskDtoTest {
         isRecurring: Boolean? = false,
         isVirtual: Boolean? = null,
         instanceId: String? = null,
+        occurrenceScheduledAt: String? = null,
         scheduledAt: String? = null,
-        dueAt: String? = null,
         allDay: Boolean = false,
         priority: Int? = 3,
         recurrenceRule: String? = null,
@@ -47,7 +47,7 @@ class TaskDtoTest {
         priority = priority,
         labels = null,
         isCompleted = isCompleted,
-        dueAt = dueAt,
+        scheduledAt = scheduledAt,
         allDay = allDay,
         isRecurring = isRecurring,
         recurrenceRule = recurrenceRule,
@@ -56,7 +56,7 @@ class TaskDtoTest {
         updatedAt = null,
         completedAt = null,
         instanceId = instanceId,
-        scheduledAt = scheduledAt,
+        occurrenceScheduledAt = occurrenceScheduledAt,
         isVirtual = isVirtual,
     )
 
@@ -86,10 +86,10 @@ class TaskDtoTest {
     }
 
     @Test
-    fun `givenNonRecurringTask_whenCreated_thenScheduledAtNull`() {
-        val task = buildTaskDto(isRecurring = false, scheduledAt = null)
+    fun `givenNonRecurringTask_whenCreated_thenOccurrenceScheduledAtNull`() {
+        val task = buildTaskDto(isRecurring = false, occurrenceScheduledAt = null)
 
-        assertNull(task.scheduledAt)
+        assertNull(task.occurrenceScheduledAt)
     }
 
     // -------------------------------------------------------------------------
@@ -118,10 +118,10 @@ class TaskDtoTest {
     }
 
     @Test
-    fun `givenVirtualOccurrence_whenCreated_thenScheduledAtPresent`() {
-        val task = buildTaskDto(isRecurring = true, isVirtual = true, scheduledAt = "2026-05-20T09:00:00Z")
+    fun `givenVirtualOccurrence_whenCreated_thenOccurrenceScheduledAtPresent`() {
+        val task = buildTaskDto(isRecurring = true, isVirtual = true, occurrenceScheduledAt = "2026-05-20T09:00:00Z")
 
-        assertNotNull(task.scheduledAt)
+        assertNotNull(task.occurrenceScheduledAt)
     }
 
     // -------------------------------------------------------------------------
@@ -151,73 +151,73 @@ class TaskDtoTest {
     }
 
     // -------------------------------------------------------------------------
-    // 1.5 — scheduledAt présent : doit être parseable en Instant
+    // 1.5 — occurrenceScheduledAt présent : doit être parseable en Instant
     // -------------------------------------------------------------------------
 
     @Test
-    fun `givenScheduledAtISO8601_whenParsed_thenNoException`() {
-        val task = buildTaskDto(isRecurring = true, scheduledAt = "2026-05-20T09:00:00Z")
+    fun `givenOccurrenceScheduledAtISO8601_whenParsed_thenNoException`() {
+        val task = buildTaskDto(isRecurring = true, occurrenceScheduledAt = "2026-05-20T09:00:00Z")
 
-        assertDoesNotThrow { java.time.Instant.parse(task.scheduledAt!!) }
+        assertDoesNotThrow { java.time.Instant.parse(task.occurrenceScheduledAt!!) }
     }
 
     @Test
-    fun `givenScheduledAtISO8601_whenAccessed_thenValuePreserved`() {
+    fun `givenOccurrenceScheduledAtISO8601_whenAccessed_thenValuePreserved`() {
         val raw = "2026-05-20T09:00:00Z"
+        val task = buildTaskDto(occurrenceScheduledAt = raw)
+
+        assertEquals(raw, task.occurrenceScheduledAt)
+    }
+
+    // -------------------------------------------------------------------------
+    // 1.6 — occurrenceScheduledAt null sur tâche non récurrente
+    // -------------------------------------------------------------------------
+
+    @Test
+    fun `givenNonRecurringTaskWithNullOccurrenceScheduledAt_whenCreated_thenNoException`() {
+        assertDoesNotThrow {
+            buildTaskDto(isRecurring = false, occurrenceScheduledAt = null)
+        }
+    }
+
+    // -------------------------------------------------------------------------
+    // 1.7 — occurrenceScheduledAt null sur tâche récurrente
+    //        Le DTO l'accepte ; c'est le ViewModel qui gère ce cas en ne montrant
+    //        pas le dialog de scope (requestDeleteTask vérifie occurrenceScheduledAt != null).
+    // -------------------------------------------------------------------------
+
+    @Test
+    fun `givenRecurringTaskWithNullOccurrenceScheduledAt_whenCreated_thenFieldIsNull`() {
+        val task = buildTaskDto(isRecurring = true, occurrenceScheduledAt = null)
+
+        assertTrue(task.isRecurring == true)
+        assertNull(task.occurrenceScheduledAt)
+    }
+
+    // -------------------------------------------------------------------------
+    // 1.8 — scheduledAt présent : format ISO 8601 préservé
+    // -------------------------------------------------------------------------
+
+    @Test
+    fun `givenScheduledAtISO8601_whenAccessed_thenValuePreserved`() {
+        val raw = "2026-05-20T08:00:00Z"
         val task = buildTaskDto(scheduledAt = raw)
 
         assertEquals(raw, task.scheduledAt)
     }
 
-    // -------------------------------------------------------------------------
-    // 1.6 — scheduledAt null sur tâche non récurrente
-    // -------------------------------------------------------------------------
-
     @Test
-    fun `givenNonRecurringTaskWithNullScheduledAt_whenCreated_thenNoException`() {
-        assertDoesNotThrow {
-            buildTaskDto(isRecurring = false, scheduledAt = null)
-        }
+    fun `givenScheduledAtISO8601_whenParsed_thenNoException`() {
+        val task = buildTaskDto(scheduledAt = "2026-05-20T08:00:00Z")
+
+        assertDoesNotThrow { java.time.Instant.parse(task.scheduledAt!!) }
     }
 
-    // -------------------------------------------------------------------------
-    // 1.7 — scheduledAt null sur tâche récurrente
-    //        Le DTO l'accepte ; c'est le ViewModel qui gère ce cas en ne montrant
-    //        pas le dialog de scope (requestDeleteTask vérifie scheduledAt != null).
-    // -------------------------------------------------------------------------
-
     @Test
-    fun `givenRecurringTaskWithNullScheduledAt_whenCreated_thenFieldIsNull`() {
-        val task = buildTaskDto(isRecurring = true, scheduledAt = null)
+    fun `givenNullScheduledAt_whenAccessed_thenNull`() {
+        val task = buildTaskDto(scheduledAt = null)
 
-        assertTrue(task.isRecurring == true)
         assertNull(task.scheduledAt)
-    }
-
-    // -------------------------------------------------------------------------
-    // 1.8 — dueAt présent : format ISO 8601 préservé
-    // -------------------------------------------------------------------------
-
-    @Test
-    fun `givenDueAtISO8601_whenAccessed_thenValuePreserved`() {
-        val raw = "2026-05-20T08:00:00Z"
-        val task = buildTaskDto(dueAt = raw)
-
-        assertEquals(raw, task.dueAt)
-    }
-
-    @Test
-    fun `givenDueAtISO8601_whenParsed_thenNoException`() {
-        val task = buildTaskDto(dueAt = "2026-05-20T08:00:00Z")
-
-        assertDoesNotThrow { java.time.Instant.parse(task.dueAt!!) }
-    }
-
-    @Test
-    fun `givenNullDueAt_whenAccessed_thenNull`() {
-        val task = buildTaskDto(dueAt = null)
-
-        assertNull(task.dueAt)
     }
 
     // -------------------------------------------------------------------------

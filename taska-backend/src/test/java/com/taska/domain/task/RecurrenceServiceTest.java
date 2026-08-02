@@ -20,11 +20,11 @@ class RecurrenceServiceTest {
         service = new RecurrenceService();
     }
 
-    private Task taskWith(String rrule, String dueAt) {
+    private Task taskWith(String rrule, String scheduledAt) {
         Task t = new Task();
         t.setIsRecurring(true);
         t.setRecurrenceRule(rrule);
-        t.setDueAt(Instant.parse(dueAt));
+        t.setScheduledAt(Instant.parse(scheduledAt));
         return t;
     }
 
@@ -38,7 +38,7 @@ class RecurrenceServiceTest {
 
         List<Instant> occ = service.getOccurrencesInRange(task, dayStart("2026-05-18"), dayStart("2026-05-19"));
         assertThat(occ).hasSize(1);
-        assertThat(occ.get(0)).isEqualTo(Instant.parse("2026-05-18T10:00:00Z"));
+        assertThat(occ.getFirst()).isEqualTo(Instant.parse("2026-05-18T10:00:00Z"));
     }
 
     @Test
@@ -157,13 +157,13 @@ class RecurrenceServiceTest {
     // ── 1.8 ──────────────────────────────────────────────────────────────────
 
     @Test
-    void single_day_window_equal_to_due_at_returns_one_occurrence() {
+    void single_day_window_equal_to_scheduled_at_returns_one_occurrence() {
         Task task = taskWith("FREQ=DAILY", "2026-05-18T10:00:00Z");
 
         List<Instant> occ = service.getOccurrencesInRange(task, dayStart("2026-05-18"), dayStart("2026-05-19"));
 
         assertThat(occ).hasSize(1);
-        assertThat(occ.get(0)).isEqualTo(Instant.parse("2026-05-18T10:00:00Z"));
+        assertThat(occ.getFirst()).isEqualTo(Instant.parse("2026-05-18T10:00:00Z"));
     }
 
     // ── 1.9 ──────────────────────────────────────────────────────────────────
@@ -175,7 +175,7 @@ class RecurrenceServiceTest {
         Task task = new Task();
         task.setIsRecurring(true);
         task.setRecurrenceRule(null);
-        task.setDueAt(Instant.parse("2026-05-01T10:00:00Z"));
+        task.setScheduledAt(Instant.parse("2026-05-01T10:00:00Z"));
 
         assertThatThrownBy(() ->
                 service.getOccurrencesInRange(task, dayStart("2026-05-18"), dayStart("2026-05-19")))
@@ -197,16 +197,16 @@ class RecurrenceServiceTest {
 
     // ── 6.2 ──────────────────────────────────────────────────────────────────
 
-    // dueAt is in May 2024 (same DST context as the May 2026 window), so the
+    // scheduledAt is in May 2024 (same DST context as the May 2026 window), so the
     // projected UTC time is stable across the two dates.
     @Test
-    void due_at_in_far_past_future_window_still_generates_occurrences() {
+    void scheduled_at_in_far_past_future_window_still_generates_occurrences() {
         Task task = taskWith("FREQ=DAILY", "2024-05-01T10:00:00Z");
 
         List<Instant> occ = service.getOccurrencesInRange(task, dayStart("2026-05-20"), dayStart("2026-05-21"));
 
         assertThat(occ).hasSize(1);
-        assertThat(occ.get(0)).isEqualTo(Instant.parse("2026-05-20T10:00:00Z"));
+        assertThat(occ.getFirst()).isEqualTo(Instant.parse("2026-05-20T10:00:00Z"));
     }
 
     // ── 6.3 ──────────────────────────────────────────────────────────────────

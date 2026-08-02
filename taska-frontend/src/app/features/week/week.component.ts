@@ -91,8 +91,8 @@ export class WeekComponent implements OnInit {
       days.push({ key: 'd' + i, label, tasks: [] });
     }
     for (const t of this.tasks()) {
-      if (!t.dueAt || t.isCompleted) continue;
-      const due = new Date(t.dueAt);
+      if (!t.scheduledAt || t.isCompleted) continue;
+      const due = new Date(t.scheduledAt);
       const diff = daysDiff(start, due);
       if (diff >= 0 && diff < 7) days[diff].tasks.push(t);
     }
@@ -131,10 +131,10 @@ export class WeekComponent implements OnInit {
   }
 
   onToggle(t: Task): void {
-    const scheduledAt = t.scheduledAt ?? undefined;
+    const occurrenceScheduledAt = t.occurrenceScheduledAt ?? undefined;
     const op = t.isCompleted
-      ? this.taskService.reopenTask(t.id, scheduledAt)
-      : this.taskService.closeTask(t.id, scheduledAt);
+      ? this.taskService.reopenTask(t.id, occurrenceScheduledAt)
+      : this.taskService.closeTask(t.id, occurrenceScheduledAt);
     op.subscribe(() => this.refresh());
   }
 

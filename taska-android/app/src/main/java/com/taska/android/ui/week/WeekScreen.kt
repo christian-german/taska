@@ -82,7 +82,7 @@ private data class BlockDragState(val blockId: String, val mode: DragMode, val d
 @Composable
 fun WeekScreen(
     viewModel: WeekViewModel,
-    onTaskClick: (taskId: String, scheduledAt: String?) -> Unit,
+    onTaskClick: (taskId: String, occurrenceScheduledAt: String?) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -209,7 +209,7 @@ private fun WeekHeader(
     allDayTasksByDay: List<List<TaskDto>>,
     projects: Map<String, ProjectDto>,
     todayStr: String,
-    onTaskClick: (taskId: String, scheduledAt: String?) -> Unit
+    onTaskClick: (taskId: String, occurrenceScheduledAt: String?) -> Unit
 ) {
     if (weekDays.isEmpty()) {
         Spacer(modifier = Modifier.height(60.dp))
@@ -292,7 +292,7 @@ private fun WeekHeader(
                                 .padding(bottom = 1.dp)
                                 .clip(RoundedCornerShape(2.dp))
                                 .background(color.copy(alpha = 0.85f))
-                                .clickable { onTaskClick(task.id, task.scheduledAt) }
+                                .clickable { onTaskClick(task.id, task.occurrenceScheduledAt) }
                                 .padding(horizontal = 2.dp, vertical = 1.dp)
                         ) {
                             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -325,8 +325,8 @@ private fun DayColumn(
     blocks: List<TaskBlock>,
     projects: Map<String, ProjectDto>,
     currentMinutes: Int,
-    onTaskClick: (taskId: String, scheduledAt: String?) -> Unit,
-    onReschedule: (task: TaskDto, newDueAt: String, newEstimateMinutes: Int) -> Unit,
+    onTaskClick: (taskId: String, occurrenceScheduledAt: String?) -> Unit,
+    onReschedule: (task: TaskDto, newScheduledAt: String, newEstimateMinutes: Int) -> Unit,
     modifier: Modifier = Modifier
 ) {
     var dragState by remember { mutableStateOf<BlockDragState?>(null) }
@@ -404,7 +404,7 @@ private fun DayColumn(
                     .height(blockH)
                     .clip(RoundedCornerShape(3.dp))
                     .background(blockColor.copy(alpha = if (isDragging) 0.95f else 0.85f))
-                    .clickable { onTaskClick(block.task.id, block.task.scheduledAt) }
+                    .clickable { onTaskClick(block.task.id, block.task.occurrenceScheduledAt) }
                     .pointerInput(block.task.id) {
                         detectDragGesturesAfterLongPress(
                             onDragStart = { startOffset ->
@@ -427,21 +427,21 @@ private fun DayColumn(
                                 val finalDs = dragState
                                 if (finalDs != null) {
                                     val deltaMin = (finalDs.deltaY / hourHeightPx * 60f).roundToInt()
-                                    val (newDueAt, newDuration) = when (finalDs.mode) {
+                                    val (newScheduledAt, newDuration) = when (finalDs.mode) {
                                         DragMode.MOVE -> {
                                             val newStart = snapToQuarter((block.startMin + deltaMin).coerceIn(0, 23 * 60))
-                                            formatDueAt(day, newStart) to (block.endMin - block.startMin)
+                                            formatScheduledAt(day, newStart) to (block.endMin - block.startMin)
                                         }
                                         DragMode.TOP -> {
                                             val newStart = snapToQuarter((block.startMin + deltaMin).coerceIn(0, block.endMin - 15))
-                                            formatDueAt(day, newStart) to (block.endMin - newStart)
+                                            formatScheduledAt(day, newStart) to (block.endMin - newStart)
                                         }
                                         DragMode.BOTTOM -> {
                                             val newEnd = snapToQuarter((block.endMin + deltaMin).coerceAtLeast(block.startMin + 15).coerceAtMost(24 * 60))
-                                            formatDueAt(day, block.startMin) to (newEnd - block.startMin)
+                                            formatScheduledAt(day, block.startMin) to (newEnd - block.startMin)
                                         }
                                     }
-                                    onReschedule(block.task, newDueAt, newDuration.coerceAtLeast(15))
+                                    onReschedule(block.task, newScheduledAt, newDuration.coerceAtLeast(15))
                                 }
                                 dragState = null
                             },
@@ -495,7 +495,7 @@ private fun DayColumn(
 private fun snapToQuarter(min: Int): Int =
     ((min.toFloat() / 15f).roundToInt() * 15).coerceIn(0, 23 * 60)
 
-private fun formatDueAt(day: Calendar, startMin: Int): String {
+private fun formatScheduledAt(day: Calendar, startMin: Int): String {
     val cal = Calendar.getInstance().apply {
         set(day.get(Calendar.YEAR), day.get(Calendar.MONTH), day.get(Calendar.DAY_OF_MONTH),
             startMin / 60, startMin % 60, 0)

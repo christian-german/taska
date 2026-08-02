@@ -58,7 +58,7 @@ Elle n'est ni extraite dans une classe dédiée, ni réutilisable depuis d'autre
 > **3.2** — Tâche récurrente : appel `closeTask` → Émet un événement `ShowRecurrenceScopeDialog`
 > **avant** d'appeler le repository
 >
-> **3.3** — Dialog confirme `THIS_ONLY` → Appelle `repository.closeTask(id, scheduledAt)`
+> **3.3** — Dialog confirme `THIS_ONLY` → Appelle `repository.closeTask(id, occurrenceScheduledAt)`
 >
 > **3.5** — Dialog annulé → Aucun appel repository, état UI inchangé
 
@@ -67,7 +67,7 @@ Elle n'est ni extraite dans une classe dédiée, ni réutilisable depuis d'autre
 ```kotlin
 fun closeTask(task: TaskDto) {
     viewModelScope.launch {
-        val body = CloseReopenRequest(scheduledAt = task.scheduledAt)
+        val body = CloseReopenRequest(occurrenceScheduledAt = task.occurrenceScheduledAt)
         val closed = RetrofitClient.api.closeTask(task.id, body)
         // ...
     }
@@ -87,8 +87,8 @@ l'appel réseau.
 | Cas | Attendu |
 |-----|---------|
 | 3.9 | Tâche récurrente → émet `ShowRecurrenceScopeDialog` |
-| 3.10 | THIS_ONLY → `repository.updateTask` avec `scope=THIS_ONLY` et `scheduledAt` |
-| 3.11 | FROM_THIS → `repository.updateTask` avec `scope=FROM_THIS` et `scheduledAt` |
+| 3.10 | THIS_ONLY → `repository.updateTask` avec `scope=THIS_ONLY` et `occurrenceScheduledAt` |
+| 3.11 | FROM_THIS → `repository.updateTask` avec `scope=FROM_THIS` et `occurrenceScheduledAt` |
 | 3.12 | Dialog annulé → aucun appel repository |
 | 3.13 | THIS_ONLY succès → occurrence mise à jour dans la liste |
 | 3.14 | FROM_THIS succès → la liste est rechargée |
@@ -105,9 +105,9 @@ private fun applyUpdate(transform: TaskRequest.() -> TaskRequest) {
 }
 ```
 
-`updateTask` est toujours appelé sans `scope` ni `scheduledAt`, quelle que soit la nature
+`updateTask` est toujours appelé sans `scope` ni `occurrenceScheduledAt`, quelle que soit la nature
 de la tâche (récurrente ou non). Aucun dialog de scope n'est déclenché. La `TaskRequest`
-envoie systématiquement `scope = null` et `scheduledAt = null`.
+envoie systématiquement `scope = null` et `occurrenceScheduledAt = null`.
 
 ---
 
@@ -134,17 +134,17 @@ de façon optimiste : l'occurrence n'est pas retirée avant la réponse du serve
 
 ---
 
-### 2.4 Cas 1.7 — `scheduledAt` null sur récurrent ne lève pas d'erreur
+### 2.4 Cas 1.7 — `occurrenceScheduledAt` null sur récurrent ne lève pas d'erreur
 
 **Règle (prompt §1) :**
-> **1.7** — `scheduledAt` null sur une tâche `isRecurring=true` → Lève une exception de
+> **1.7** — `occurrenceScheduledAt` null sur une tâche `isRecurring=true` → Lève une exception de
 > mapping ou retourne un état d'erreur
 
 **Réalité (`TodayViewModel.requestDeleteTask`) :**
 
 ```kotlin
 fun requestDeleteTask(task: TaskDto) {
-    if (task.isRecurring == true && task.scheduledAt != null) {
+    if (task.isRecurring == true && task.occurrenceScheduledAt != null) {
         _uiState.update { it.copy(pendingDeleteTask = task) }
     } else {
         confirmDeleteTask(task, scope = null) // traité silencieusement comme non-récurrent
@@ -152,7 +152,7 @@ fun requestDeleteTask(task: TaskDto) {
 }
 ```
 
-Quand `isRecurring=true` et `scheduledAt=null`, la tâche est traitée silencieusement comme
+Quand `isRecurring=true` et `occurrenceScheduledAt=null`, la tâche est traitée silencieusement comme
 une tâche non-récurrente. Aucune erreur n'est levée, aucun état d'erreur n'est exposé à
 l'UI. Ce comportement masque une incohérence dans les données reçues du backend.
 
@@ -257,7 +257,7 @@ projet. Les tests d'interaction avec l'API sont couverts indirectement dans
 | Comportement | Dialog scope sur close | ✗ Non implémenté |
 | Comportement | Update avec scope (THIS_ONLY / FROM_THIS) | ✗ Non implémenté |
 | Comportement | Suppression optimiste après THIS_ONLY | ✗ Non implémenté |
-| Comportement | Erreur si `scheduledAt` null sur récurrent | ✗ Non levée |
+| Comportement | Erreur si `occurrenceScheduledAt` null sur récurrent | ✗ Non levée |
 | Comportement | Debounce double-tap | ✗ Non implémenté |
 | Comportement | Garde pendant chargement | ✗ Non implémenté |
 | Tests | `confirmVerified()` | ✗ Non utilisé |

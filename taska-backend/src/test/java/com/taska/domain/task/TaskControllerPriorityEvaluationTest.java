@@ -16,7 +16,7 @@ class TaskControllerPriorityEvaluationTest {
     private final TaskService taskService = mock(TaskService.class);
     private final TaskMapper taskMapper = mock(TaskMapper.class);
     private final TaskPriorityEvaluationService evaluationService = mock(TaskPriorityEvaluationService.class);
-    private final TaskController controller = new TaskController(taskService, taskMapper, evaluationService);
+    private final TaskController controller = new TaskController(taskService, taskMapper, evaluationService, new ObjectMapper());
 
     @Test void returnsEvaluationWhenPresent() {
         UUID id = UUID.randomUUID();

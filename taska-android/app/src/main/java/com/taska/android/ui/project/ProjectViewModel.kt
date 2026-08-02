@@ -53,12 +53,12 @@ class ProjectViewModel(
                 val todayStr = SimpleDateFormat("yyyy-MM-dd", Locale.US)
                     .format(Calendar.getInstance().time)
                 val overdueCount = tasks.count {
-                    it.isCompleted != true && it.dueAt != null && it.dueAt.substring(0, 10) < todayStr
+                    it.isCompleted != true && it.scheduledAt != null && it.scheduledAt.substring(0, 10) < todayStr
                 }
 
                 val sorted = tasks.sortedWith(
-                    compareByDescending<TaskDto> { it.dueAt != null && it.dueAt.substring(0, 10) < todayStr }
-                        .thenBy { it.dueAt }
+                    compareByDescending<TaskDto> { it.scheduledAt != null && it.scheduledAt.substring(0, 10) < todayStr }
+                        .thenBy { it.scheduledAt }
                 )
 
                 _uiState.update {

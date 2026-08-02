@@ -28,16 +28,16 @@ class TaskRepository(private val api: TaskaApi) {
 
     suspend fun updateTask(id: String, request: TaskRequest): TaskDto = api.updateTask(id, request)
 
-    suspend fun closeTask(taskId: String, scheduledAt: String? = null): TaskDto =
-        api.closeTask(taskId, CloseReopenRequest(scheduledAt))
+    suspend fun closeTask(taskId: String, occurrenceScheduledAt: String? = null): TaskDto =
+        api.closeTask(taskId, CloseReopenRequest(occurrenceScheduledAt))
 
-    suspend fun reopenTask(taskId: String, scheduledAt: String? = null): TaskDto =
-        api.reopenTask(taskId, CloseReopenRequest(scheduledAt))
+    suspend fun reopenTask(taskId: String, occurrenceScheduledAt: String? = null): TaskDto =
+        api.reopenTask(taskId, CloseReopenRequest(occurrenceScheduledAt))
 
-    suspend fun deleteTask(id: String, scope: RecurrenceScope? = null, scheduledAt: String? = null) {
+    suspend fun deleteTask(id: String, scope: RecurrenceScope? = null, occurrenceScheduledAt: String? = null) {
         val body = when (scope) {
-            RecurrenceScope.THIS_ONLY -> DeleteTaskBody("THIS_ONLY", scheduledAt)
-            RecurrenceScope.FROM_THIS -> DeleteTaskBody("FROM_THIS", scheduledAt)
+            RecurrenceScope.THIS_ONLY -> DeleteTaskBody("THIS_ONLY", occurrenceScheduledAt)
+            RecurrenceScope.FROM_THIS -> DeleteTaskBody("FROM_THIS", occurrenceScheduledAt)
             null -> DeleteTaskBody()
         }
         api.deleteTask(id, body)

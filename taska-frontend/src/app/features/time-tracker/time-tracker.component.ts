@@ -739,10 +739,10 @@ export class TimeTrackerComponent implements OnInit, AfterViewInit {
         this.taskService.getTasks().subscribe(all => {
           this.tasks.set(all.filter(t =>
             !t.isCompleted &&
-            !!t.dueAt &&
+            !!t.scheduledAt &&
             !t.allDay &&
-            localDay(t.dueAt) >= days[0].iso &&
-            localDay(t.dueAt) <= days[days.length - 1].iso &&
+            localDay(t.scheduledAt) >= days[0].iso &&
+            localDay(t.scheduledAt) <= days[days.length - 1].iso &&
             (!pid || t.projectId === pid)
           ));
         });
@@ -862,11 +862,11 @@ export class TimeTrackerComponent implements OnInit, AfterViewInit {
     }
 
     if (ia.task) {
-      const dueAt           = localDateAndMinToIso(ia.curDate, ia.curStartMin);
+      const scheduledAt           = localDateAndMinToIso(ia.curDate, ia.curStartMin);
       const estimateMinutes = ia.curEndMin - ia.curStartMin;
-      const optimistic: Task = { ...ia.task, dueAt, allDay: false, estimateMinutes };
+      const optimistic: Task = { ...ia.task, scheduledAt, allDay: false, estimateMinutes };
       this.tasks.update(list => list.map(t => t.id === ia.task!.id ? optimistic : t));
-      this.taskService.updateTask(ia.task.id, { dueAt, allDay: false, estimateMinutes }).subscribe({
+      this.taskService.updateTask(ia.task.id, { scheduledAt, allDay: false, estimateMinutes }).subscribe({
         next:  saved => this.tasks.update(list => list.map(t => t.id === saved.id ? saved : t)),
         error: ()    => this.tasks.update(list => list.map(t => t.id === ia.task!.id ? ia.task! : t)),
       });
@@ -1056,7 +1056,7 @@ export class TimeTrackerComponent implements OnInit, AfterViewInit {
 
   gridItemsForDay(iso: string): GridItem[] {
     const entries = this.entries().filter(e => localDay(e.startAt) === iso);
-    const tasks   = this.tasks().filter(t => !t.allDay && t.dueAt && localDay(t.dueAt) === iso);
+    const tasks   = this.tasks().filter(t => !t.allDay && t.scheduledAt && localDay(t.scheduledAt) === iso);
 
     const raw: Omit<GridItem, 'lane' | 'totalLanes'>[] = [
       ...entries.map(e => ({
@@ -1067,7 +1067,7 @@ export class TimeTrackerComponent implements OnInit, AfterViewInit {
         entry: e,
       })),
       ...tasks.map(t => {
-        const startMin = dtToMin(t.dueAt!);
+        const startMin = dtToMin(t.scheduledAt!);
         return {
           kind: 'task' as const,
           id: t.id,
@@ -1143,8 +1143,8 @@ export class TimeTrackerComponent implements OnInit, AfterViewInit {
 
   convertTaskToEntry(task: Task): void {
     this.taskPopup.set(null);
-    if (!task.dueAt || task.allDay || !task.projectId) return;
-    const startAt     = task.dueAt;
+    if (!task.scheduledAt || task.allDay || !task.projectId) return;
+    const startAt     = task.scheduledAt;
     const startMin    = dtToMin(startAt);
     const endMin      = startMin + (task.estimateMinutes ?? 30);
     const endAt       = localDateAndMinToIso(localDay(startAt), endMin);
@@ -1160,8 +1160,8 @@ export class TimeTrackerComponent implements OnInit, AfterViewInit {
   }
 
   taskTimeRange(task: Task): string {
-    if (!task.dueAt || task.allDay) return '';
-    const startMin = dtToMin(task.dueAt);
+    if (!task.scheduledAt || task.allDay) return '';
+    const startMin = dtToMin(task.scheduledAt);
     const endMin   = startMin + (task.estimateMinutes ?? 30);
     return `${minToHHMM(startMin)}–${minToHHMM(endMin)}`;
   }

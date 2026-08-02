@@ -109,16 +109,16 @@ public class FilterService {
 
         if (projectId != null && hasDate != null) {
             return hasDate
-                    ? taskRepo.findByProjectIdAndDueAtIsNotNullAndIsCompletedFalseOrderByDueAtAsc(projectId)
-                    : taskRepo.findByProjectIdAndDueAtIsNullAndIsCompletedFalseOrderByPositionAsc(projectId);
+                    ? taskRepo.findByProjectIdAndScheduledAtIsNotNullAndIsCompletedFalseOrderByScheduledAtAsc(projectId)
+                    : taskRepo.findByProjectIdAndScheduledAtIsNullAndIsCompletedFalseOrderByPositionAsc(projectId);
         }
         if (projectId != null) {
             return taskRepo.findByProjectIdAndIsCompletedFalseOrderByPositionAsc(projectId);
         }
         if (hasDate != null) {
             return hasDate
-                    ? taskRepo.findAllWithDueAtNotCompleted()
-                    : taskRepo.findAllWithNoDueAtNotCompleted();
+                    ? taskRepo.findAllWithScheduledAtNotCompleted()
+                    : taskRepo.findAllWithNoScheduledAtNotCompleted();
         }
         return taskRepo.findAll().stream().filter(t -> !t.getIsCompleted()).toList();
     }

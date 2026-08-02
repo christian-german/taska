@@ -67,14 +67,14 @@ class AddTaskViewModel(
         viewModelScope.launch {
             _state.update { it.copy(isSubmitting = true) }
             try {
-                val dueAt = current.dueDateMillis?.let { millisToApiDateTime(it, current.dueTimeMinutes) }
+                val scheduledAt = current.dueDateMillis?.let { millisToApiDateTime(it, current.dueTimeMinutes) }
                 val allDay = if (current.dueDateMillis != null) current.dueTimeMinutes == null else null
                 val request = TaskRequest(
                     content = current.content.trim(),
                     type = current.taskType,
                     projectId = current.selectedProject?.id,
                     priority = current.priority.takeIf { it < 4 },
-                    dueAt = dueAt,
+                    scheduledAt = scheduledAt,
                     allDay = allDay,
                     estimateMinutes = current.estimateMinutes,
                     isRecurring = if (current.recurrenceRule != null) true else null,

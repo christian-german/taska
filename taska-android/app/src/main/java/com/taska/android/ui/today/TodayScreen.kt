@@ -50,7 +50,7 @@ private val OverdueRed = Color(0xFFDD4433)
 @Composable
 fun TodayScreen(
     viewModel: TodayViewModel,
-    onTaskClick: (taskId: String, scheduledAt: String?) -> Unit = { _, _ -> },
+    onTaskClick: (taskId: String, occurrenceScheduledAt: String?) -> Unit = { _, _ -> },
     modifier: Modifier = Modifier
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -160,7 +160,7 @@ private fun TodayHeader(overdueCount: Int, todayCount: Int) {
 @Composable
 private fun TodayList(
     uiState: TodayUiState,
-    onTaskClick: (taskId: String, scheduledAt: String?) -> Unit,
+    onTaskClick: (taskId: String, occurrenceScheduledAt: String?) -> Unit,
     onTaskToggle: (TaskDto) -> Unit
 ) {
     LazyColumn(modifier = Modifier.fillMaxSize()) {
@@ -174,7 +174,7 @@ private fun TodayList(
                     project = task.projectId?.let { uiState.projects[it] },
                     isOverdue = true,
                     onToggle = { onTaskToggle(task) },
-                    onClick = { onTaskClick(task.id, task.scheduledAt) }
+                    onClick = { onTaskClick(task.id, task.occurrenceScheduledAt) }
                 )
                 HorizontalDivider(color = DividerColor, thickness = 0.5.dp)
             }
@@ -191,7 +191,7 @@ private fun TodayList(
                     project = task.projectId?.let { uiState.projects[it] },
                     isOverdue = false,
                     onToggle = { onTaskToggle(task) },
-                    onClick = { onTaskClick(task.id, task.scheduledAt) }
+                    onClick = { onTaskClick(task.id, task.occurrenceScheduledAt) }
                 )
                 HorizontalDivider(color = DividerColor, thickness = 0.5.dp)
             }
@@ -208,7 +208,7 @@ private fun TodayList(
                     project = task.projectId?.let { uiState.projects[it] },
                     isOverdue = false,
                     onToggle = { onTaskToggle(task) },
-                    onClick = { onTaskClick(task.id, task.scheduledAt) }
+                    onClick = { onTaskClick(task.id, task.occurrenceScheduledAt) }
                 )
                 HorizontalDivider(color = DividerColor, thickness = 0.5.dp)
             }
@@ -233,4 +233,4 @@ private fun SectionHeader(title: String, count: Int, titleColor: Color) {
 }
 
 private fun occurrenceKey(task: TaskDto): String =
-    task.instanceId ?: if (task.scheduledAt != null) "${task.id}:${task.scheduledAt}" else task.id
+    task.instanceId ?: if (task.occurrenceScheduledAt != null) "${task.id}:${task.occurrenceScheduledAt}" else task.id

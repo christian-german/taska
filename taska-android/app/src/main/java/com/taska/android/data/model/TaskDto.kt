@@ -14,7 +14,7 @@ data class TaskDto(
     val priority: Int?,
     val labels: List<String>?,
     @SerializedName("isCompleted") val isCompleted: Boolean?,
-    val dueAt: String?,
+    val scheduledAt: String?,
     val allDay: Boolean = false,
     @SerializedName("isRecurring") val isRecurring: Boolean?,
     val recurrenceRule: String? = null,
@@ -23,7 +23,7 @@ data class TaskDto(
     val updatedAt: String?,
     val completedAt: String?,
     val instanceId: String? = null,
-    val scheduledAt: String? = null,
+    val occurrenceScheduledAt: String? = null,
     @SerializedName("isVirtual") val isVirtual: Boolean? = null,
     val rruleEndsAt: String? = null
 )

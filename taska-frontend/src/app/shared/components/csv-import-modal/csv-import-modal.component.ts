@@ -17,7 +17,7 @@ interface ParsedTask {
   content: string;
   description?: string;
   priority: 1 | 2 | 3 | 4;
-  dueAt?: string;
+  scheduledAt?: string;
 }
 
 const EN_MONTHS: Record<string, number> = {
@@ -83,7 +83,7 @@ function parseTodoistCsv(text: string): ParsedTask[] {
         content: row[1] ?? '',
         description: row[2] || undefined,
         priority,
-        dueAt: parsedDate ? parsedDate + 'T00:00:00' : undefined,
+        scheduledAt: parsedDate ? parsedDate + 'T00:00:00' : undefined,
       };
       if (current.content.trim()) tasks.push(current);
     } else if (type === 'note' && current) {
@@ -149,9 +149,9 @@ function parseTodoistCsv(text: string): ParsedTask[] {
                     <div style="color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
                       {{ t.content }}
                     </div>
-                    @if (t.dueAt) {
+                    @if (t.scheduledAt) {
                       <div class="mono" style="font-size: 10.5px; color: var(--mute); margin-top: 2px;">
-                        {{ t.dueAt.slice(0, 10) }}
+                        {{ t.scheduledAt.slice(0, 10) }}
                       </div>
                     }
                   </div>
@@ -247,8 +247,8 @@ export class CsvImportModalComponent {
         content: t.content,
         description: t.description,
         priority: t.priority,
-        dueAt: t.dueAt ?? null,
-        allDay: !!t.dueAt,
+        scheduledAt: t.scheduledAt ?? null,
+        allDay: !!t.scheduledAt,
         projectId: this.projectId(),
         labels: [],
       }))

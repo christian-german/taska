@@ -14,7 +14,7 @@ import java.util.UUID;
  * Most occurrences of a recurring task are <em>virtual</em> — generated on the fly from the
  * task's RRULE — and have no corresponding row here. A {@code TaskInstance} is created only when
  * an occurrence is explicitly acted on: completed ({@code DONE}), skipped ({@code SKIPPED}), or
- * modified ({@code MODIFIED}). The combination of {@link #taskId} and {@link #scheduledAt} is
+ * modified ({@code MODIFIED}). The combination of {@link #taskId} and {@link #occurrenceScheduledAt} is
  * effectively a unique key identifying a specific occurrence.
  */
 @Entity
@@ -36,15 +36,15 @@ public class TaskInstance {
      * The RRULE-generated instant this instance corresponds to.
      * Together with {@link #taskId}, this uniquely identifies a single occurrence.
      */
-    @Column(name = "scheduled_at", nullable = false)
-    private Instant scheduledAt;
+    @Column(name = "occurrence_scheduled_at", nullable = false)
+    private Instant occurrenceScheduledAt;
 
     /**
-     * Override for the occurrence's due time; non-null only when the occurrence was modified
-     * via a {@code THIS_ONLY} update that changed the due date.
+     * Override for the occurrence's planned schedule time; non-null only when the occurrence was modified
+     * via a {@code THIS_ONLY} update that changed the task's {@code scheduledAt}.
      */
-    @Column(name = "due_at")
-    private Instant dueAt;
+    @Column(name = "scheduled_at")
+    private Instant scheduledAt;
 
     /** Current state of this occurrence: {@code DONE}, {@code SKIPPED}, or {@code MODIFIED}. */
     @Enumerated(EnumType.STRING)

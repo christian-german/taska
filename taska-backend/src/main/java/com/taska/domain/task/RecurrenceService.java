@@ -37,7 +37,7 @@ public class RecurrenceService {
         if (!Boolean.TRUE.equals(task.getIsRecurring()) || task.getRecurrenceRule() == null) {
             throw new IllegalStateException("Task " + task.getId() + " is_recurring=false or has no recurrence_rule");
         }
-        if (task.getDueAt() == null || task.getDueAt().compareTo(periodEnd) >= 0) {
+        if (task.getScheduledAt() == null || task.getScheduledAt().compareTo(periodEnd) >= 0) {
             return List.of();
         }
         if (task.getRruleEndsAt() != null && task.getRruleEndsAt().compareTo(periodStart) < 0) {
@@ -51,7 +51,7 @@ public class RecurrenceService {
             throw new IllegalArgumentException("Invalid recurrence_rule for task " + task.getId() + ": " + task.getRecurrenceRule(), e);
         }
 
-        DateTime dtStart = new DateTime(Date.from(task.getDueAt()));
+        DateTime dtStart = new DateTime(Date.from(task.getScheduledAt()));
         DateTime from = new DateTime(Date.from(periodStart));
         DateTime to = new DateTime(Date.from(periodEnd));
 

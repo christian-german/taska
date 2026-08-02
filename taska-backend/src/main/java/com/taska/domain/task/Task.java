@@ -60,11 +60,11 @@ public class Task {
     private Integer position = 0;
 
     /**
-     * Urgency level: 1 = urgent, 2 = high, 3 = medium, 4 = normal.
-     * Defaults to 4 (normal) both in the database column and in the Java field.
+     * Optional urgency level: 1 = urgent, 2 = high, 3 = medium, 4 = normal.
+     * A {@code null} value means no manual priority has been assigned.
      */
-    @Column(nullable = false)
-    private Integer priority = 4;
+    @Column
+    private Integer priority;
 
     /**
      * Label names attached to this task.
@@ -80,11 +80,11 @@ public class Task {
     @Column(name = "is_completed", nullable = false)
     private Boolean isCompleted = false;
 
-    /** Due date/time in UTC; {@code null} when no due date is set. */
-    @Column(name = "due_at")
-    private Instant dueAt;
+    /** Planned schedule time in UTC; {@code null} when the task is unscheduled. */
+    @Column(name = "scheduled_at")
+    private Instant scheduledAt;
 
-    /** When {@code true}, the due date represents an all-day event with no specific time. */
+    /** When {@code true}, the scheduled time represents an all-day event with no specific time. */
     @Column(name = "all_day", nullable = false)
     private boolean allDay = false;
 
@@ -133,7 +133,7 @@ public class Task {
     /**
      * Guards against duplicate push notifications.
      * Set to {@code true} after a notification is sent; reset to {@code false}
-     * whenever {@link #dueAt} is changed so the task can fire a new notification.
+     * whenever {@link #scheduledAt} is changed so the task can fire a new notification.
      */
     @Column(name = "is_notified", nullable = false)
     private Boolean isNotified = false;

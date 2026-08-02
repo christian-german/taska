@@ -41,21 +41,21 @@ export class TaskService {
     return this.http.post<Task>(this.base, data);
   }
 
-  updateTask(id: string, data: Partial<Task> & { scope?: RecurrenceScope; scheduledAt?: string | null }): Observable<Task> {
+  updateTask(id: string, data: Partial<Task> & { scope?: RecurrenceScope; occurrenceScheduledAt?: string | null }): Observable<Task> {
     return this.http.put<Task>(`${this.base}/${id}`, data);
   }
 
-  deleteTask(id: string, scope?: RecurrenceScope, scheduledAt?: string): Observable<void> {
-    const body = scope ? {scope, scheduledAt} : undefined;
+  deleteTask(id: string, scope?: RecurrenceScope, occurrenceScheduledAt?: string): Observable<void> {
+    const body = scope ? {scope, occurrenceScheduledAt} : undefined;
     return this.http.delete<void>(`${this.base}/${id}`, {body});
   }
 
-  closeTask(id: string, scheduledAt?: string): Observable<Task> {
-    return this.http.post<Task>(`${this.base}/${id}/close`, scheduledAt ? {scheduledAt} : {});
+  closeTask(id: string, occurrenceScheduledAt?: string): Observable<Task> {
+    return this.http.post<Task>(`${this.base}/${id}/close`, occurrenceScheduledAt ? {occurrenceScheduledAt} : {});
   }
 
-  reopenTask(id: string, scheduledAt?: string): Observable<Task> {
-    return this.http.post<Task>(`${this.base}/${id}/reopen`, scheduledAt ? {scheduledAt} : {});
+  reopenTask(id: string, occurrenceScheduledAt?: string): Observable<Task> {
+    return this.http.post<Task>(`${this.base}/${id}/reopen`, occurrenceScheduledAt ? {occurrenceScheduledAt} : {});
   }
 
   getSubtasks(parentId: string): Observable<Task[]> {

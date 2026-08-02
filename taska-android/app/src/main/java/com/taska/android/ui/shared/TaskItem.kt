@@ -192,8 +192,8 @@ fun TaskItem(
             }
 
             val accentColor = if (isOverdue) OverdueRed else TextSecondary
-            val dateStr = task.dueAt?.let { formatDate(it) }
-            val timeStr = if (!task.allDay) task.dueAt?.let { formatTime(it) } else null
+            val dateStr = task.scheduledAt?.let { formatDate(it) }
+            val timeStr = if (!task.allDay) task.scheduledAt?.let { formatTime(it) } else null
             val estimateStr = task.estimateMinutes?.let { formatEstimate(it) }
 
             if (dateStr != null || timeStr != null || estimateStr != null) {

@@ -11,9 +11,9 @@ public record PriorityEvaluationBatchRequest(List<TaskInput> tasks) {
         return new PriorityEvaluationBatchRequest(tasks.stream().map(TaskInput::from).toList());
     }
 
-    public record TaskInput(UUID taskId, String content, String description, Instant dueAt, Instant createdAt) {
+    public record TaskInput(UUID taskId, String content, String description, Instant scheduledAt, Instant createdAt) {
         static TaskInput from(Task task) {
-            return new TaskInput(task.getId(), task.getContent(), task.getDescription(), task.getDueAt(), task.getCreatedAt());
+            return new TaskInput(task.getId(), task.getContent(), task.getDescription(), task.getScheduledAt(), task.getCreatedAt());
         }
     }
 }

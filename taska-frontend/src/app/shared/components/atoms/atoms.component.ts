@@ -23,7 +23,7 @@ import { hexToRgba } from '../../../core/models';
 export class CheckboxComponent {
   checked = input<boolean>(false);
   /** internal priority 1=lowest..4=highest */
-  priority = input<number>(1);
+  priority = input<number | null>(null);
   size = input<number>(20);
   toggled = output<MouseEvent>();
 
@@ -55,10 +55,11 @@ export class CheckboxComponent {
 })
 export class PriorityFlagComponent {
   /** internal priority 1=highest..4=lowest */
-  priority = input<number>(4);
+  /** A null priority is intentionally rendered without a flag. */
+  priority = input<number | null>(null);
   size = input<number>(13);
 
-  display = computed(() => this.priority() || 4);
+  display = computed(() => this.priority() ?? 0);
   color = computed(() => {
     const p = this.display();
     return p === 1 ? 'var(--p1)' : p === 2 ? 'var(--p2)' : p === 3 ? 'var(--p3)' : 'var(--p4)';

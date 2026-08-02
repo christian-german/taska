@@ -48,7 +48,7 @@ public class StatsService {
 
         long completed = taskRepo.countByIsCompletedTrue();
         long active = taskRepo.countByIsCompletedFalse();
-        long overdue = taskRepo.countByIsCompletedFalseAndDueAtBefore(today.atStartOfDay(zone).toInstant());
+        long overdue = taskRepo.countByIsCompletedFalseAndScheduledAtBefore(today.atStartOfDay(zone).toInstant());
 
         Instant since = today.minusDays(14).atStartOfDay(zone).toInstant();
         List<Task> recentDone = taskRepo.findByCompletedAtAfterOrderByCompletedAtAsc(since);
@@ -96,7 +96,7 @@ public class StatsService {
         Map<UUID, long[]> byProject = new HashMap<>();
         for (Task t : taskRepo.findAll()) {
             if (t.getProjectId() == null) continue;
-            long[] arr = byProject.computeIfAbsent(t.getProjectId(), k -> new long[2]);
+            long[] arr = byProject.computeIfAbsent(t.getProjectId(), _ -> new long[2]);
             arr[0]++;
             if (Boolean.TRUE.equals(t.getIsCompleted())) arr[1]++;
         }

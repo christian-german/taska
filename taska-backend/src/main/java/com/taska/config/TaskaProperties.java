@@ -5,6 +5,8 @@ import lombok.Setter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
+import java.time.ZoneId;
+
 @Configuration
 @ConfigurationProperties(prefix = "taska")
 @Getter
@@ -14,6 +16,7 @@ public class TaskaProperties {
     private final Firebase firebase = new Firebase();
     private final Security security = new Security();
     private final Notification notification = new Notification();
+    private final Calendar calendar = new Calendar();
 
     @Getter
     @Setter
@@ -55,5 +58,15 @@ public class TaskaProperties {
          * Delay in milliseconds between notification checks.
          */
         private long schedulerDelay = 15_000;
+    }
+
+    @Getter
+    @Setter
+    public static class Calendar {
+
+        /**
+         * Time zone used to turn calendar dates into query boundaries.
+         */
+        private ZoneId timeZone = ZoneId.of("Europe/Paris");
     }
 }

@@ -1,5 +1,7 @@
 package com.taska.domain.task;
 
+import com.taska.config.TaskaProperties;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -8,6 +10,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.util.List;
 import java.util.UUID;
@@ -28,6 +31,8 @@ class TaskServiceQueryTest {
     @Mock private TaskInstanceRepository  taskInstanceRepository;
     @Mock private RecurrenceService       recurrenceService;
     @Mock private TaskMapper              taskMapper;
+    @Mock private TaskaProperties         taskaProperties;
+    @Mock private TaskaProperties.Calendar calendarProperties;
 
     @InjectMocks
     private TaskService service;
@@ -37,6 +42,12 @@ class TaskServiceQueryTest {
     private static final LocalDate DATE  = LocalDate.parse("2026-05-20");
     private static final Instant   START = DATE.atStartOfDay(ZoneOffset.UTC).toInstant();
     private static final Instant   END   = DATE.plusDays(1).atStartOfDay(ZoneOffset.UTC).toInstant();
+
+    @BeforeEach
+    void useUtcForExistingQueryScenarios() {
+        when(taskaProperties.getCalendar()).thenReturn(calendarProperties);
+        when(calendarProperties.getTimeZone()).thenReturn(ZoneOffset.UTC);
+    }
 
     // ── Helpers ──────────────────────────────────────────────────────────────
 
@@ -79,6 +90,56 @@ class TaskServiceQueryTest {
     @SuppressWarnings("SameParameterValue")
     private void givenNoRecurringTasks(Instant start, Instant end) {
         when(taskRepository.findActiveRecurringTasksForPeriod(start, end)).thenReturn(List.of());
+    }
+
+    private void useCalendarZone(ZoneId zone) {
+        when(calendarProperties.getTimeZone()).thenReturn(zone);
+    }
+
+    @Test
+    void findAll_todayUsesConfiguredCalendarZoneBoundaries() {
+        ZoneId paris = ZoneId.of("Europe/Paris");
+        useCalendarZone(paris);
+        LocalDate today = LocalDate.now(paris);
+        Instant start = today.atStartOfDay(paris).toInstant();
+        Instant end = today.plusDays(1).atStartOfDay(paris).toInstant();
+
+        service.findAll(null, null, null, "today", false);
+
+        verify(taskRepository).findByScheduledAtBetweenAndIsCompletedFalseOrderByScheduledAtAsc(start, end);
+    }
+
+    @Test
+    void findOccurrencesForDateRange_usesConfiguredLocalDateBoundaries() {
+        ZoneId paris = ZoneId.of("Europe/Paris");
+        useCalendarZone(paris);
+        Instant start = Instant.parse("2026-05-19T22:00:00Z");
+        Instant end = Instant.parse("2026-05-20T22:00:00Z");
+
+        when(taskRepository.findNonRecurringTasksInPeriod(start, end)).thenReturn(List.of());
+        givenNoRecurringTasks(start, end);
+
+        List<TaskDto> result = service.findOccurrencesForDateRange(DATE, DATE);
+
+        assertThat(result).isEmpty();
+        verify(taskRepository).findNonRecurringTasksInPeriod(start, end);
+    }
+
+    @Test
+    void findOccurrencesForDateRange_dstDayUsesSuccessiveLocalMidnights() {
+        ZoneId paris = ZoneId.of("Europe/Paris");
+        useCalendarZone(paris);
+        LocalDate dstStart = LocalDate.parse("2026-03-29");
+        Instant start = Instant.parse("2026-03-28T23:00:00Z");
+        Instant end = Instant.parse("2026-03-29T22:00:00Z");
+
+        when(taskRepository.findNonRecurringTasksInPeriod(start, end)).thenReturn(List.of());
+        givenNoRecurringTasks(start, end);
+
+        service.findOccurrencesForDateRange(dstStart, dstStart);
+
+        verify(taskRepository).findNonRecurringTasksInPeriod(start, end);
+        assertThat(end).isEqualTo(start.plusSeconds(23 * 60 * 60));
     }
 
     // ── 2.1 ──────────────────────────────────────────────────────────────────

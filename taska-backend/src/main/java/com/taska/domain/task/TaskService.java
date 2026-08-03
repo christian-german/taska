@@ -1,5 +1,6 @@
 package com.taska.domain.task;
 
+import com.taska.config.TaskaProperties;
 import com.taska.domain.project.ProjectRepository;
 import com.taska.domain.priority.TaskPriorityEvaluationRepository;
 import com.taska.exception.ResourceNotFoundException;
@@ -9,7 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.time.LocalDate;
-import java.time.ZoneOffset;
+import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
@@ -28,6 +29,7 @@ public class TaskService {
     private final TaskMapper taskMapper;
     private final ProjectRepository projectRepository;
     private final TaskPriorityEvaluationRepository priorityEvaluationRepository;
+    private final TaskaProperties taskaProperties;
 
     /**
      * Returns a filtered list of tasks based on the provided criteria.
@@ -45,15 +47,17 @@ public class TaskService {
     @Transactional(readOnly = true)
     public List<Task> findAll(UUID projectId, UUID sectionId, String label, String filter, boolean showCompleted) {
         if (filter != null) {
-            Instant startOfToday = LocalDate.now(ZoneOffset.UTC).atStartOfDay(ZoneOffset.UTC).toInstant();
-            Instant startOfTomorrow = LocalDate.now(ZoneOffset.UTC).plusDays(1).atStartOfDay(ZoneOffset.UTC).toInstant();
+            ZoneId calendarZone = taskaProperties.getCalendar().getTimeZone();
+            LocalDate today = LocalDate.now(calendarZone);
+            Instant startOfToday = today.atStartOfDay(calendarZone).toInstant();
+            Instant startOfTomorrow = today.plusDays(1).atStartOfDay(calendarZone).toInstant();
             return switch (filter) {
                 case "today" ->
                         taskRepository.findByScheduledAtBetweenAndIsCompletedFalseOrderByScheduledAtAsc(startOfToday, startOfTomorrow);
                 case "overdue" ->
                         taskRepository.findByScheduledAtBeforeAndIsCompletedFalseAndIsRecurringFalseOrderByScheduledAtAsc(startOfToday);
                 case "upcoming" -> taskRepository.findByScheduledAtBetweenAndIsCompletedFalseOrderByScheduledAtAsc(
-                        startOfTomorrow, LocalDate.now(ZoneOffset.UTC).plusDays(14).atStartOfDay(ZoneOffset.UTC).toInstant());
+                        startOfTomorrow, today.plusDays(14).atStartOfDay(calendarZone).toInstant());
                 default -> taskRepository.findAll();
             };
         }
@@ -90,9 +94,9 @@ public class TaskService {
      */
     @Transactional(readOnly = true)
     public List<TaskDto> findOccurrencesForDateRange(LocalDate from, LocalDate to) {
-        ZoneOffset utc = ZoneOffset.UTC;
-        Instant periodStart = from.atStartOfDay(utc).toInstant();
-        Instant periodEnd = to.plusDays(1).atStartOfDay(utc).toInstant();
+        ZoneId calendarZone = taskaProperties.getCalendar().getTimeZone();
+        Instant periodStart = from.atStartOfDay(calendarZone).toInstant();
+        Instant periodEnd = to.plusDays(1).atStartOfDay(calendarZone).toInstant();
 
         List<Task> nonRecurring = taskRepository.findNonRecurringTasksInPeriod(periodStart, periodEnd);
         List<TaskDto> result = new ArrayList<>(nonRecurring.stream().map(taskMapper::toDto).toList());

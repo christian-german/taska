@@ -2,6 +2,7 @@ package com.taska.domain.task;
 
 import com.taska.domain.priority.TaskPriorityEvaluationDto;
 import com.taska.domain.priority.TaskPriorityEvaluationService;
+import com.taska.domain.notification.TaskChangePublisher;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 import jakarta.validation.Valid;
@@ -9,6 +10,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
@@ -24,6 +27,7 @@ public class TaskController {
     private final TaskMapper taskMapper;
     private final TaskPriorityEvaluationService priorityEvaluationService;
     private final ObjectMapper objectMapper;
+    private final TaskChangePublisher taskChangePublisher;
 
     /**
      * Lists tasks with optional filtering. When {@code date} is provided, returns all occurrences
@@ -70,8 +74,10 @@ public class TaskController {
      */
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public TaskDto create(@Valid @RequestBody TaskRequest taskRequest) {
-        return taskMapper.toDto(taskService.create(taskRequest));
+    public TaskDto create(@Valid @RequestBody TaskRequest taskRequest, @AuthenticationPrincipal Jwt jwt) {
+        TaskDto result = taskMapper.toDto(taskService.create(taskRequest));
+        taskChangePublisher.publishFor(jwt.getSubject());
+        return result;
     }
 
     /**
@@ -101,9 +107,11 @@ public class TaskController {
      * @return the updated task DTO
      */
     @PutMapping("/{id}")
-    public TaskDto update(@PathVariable UUID id, @RequestBody JsonNode payload) {
+    public TaskDto update(@PathVariable UUID id, @RequestBody JsonNode payload, @AuthenticationPrincipal Jwt jwt) {
         TaskRequest taskRequest = objectMapper.convertValue(payload, TaskRequest.class);
-        return taskService.update(id, taskRequest, payload.has("priority"));
+        TaskDto result = taskService.update(id, taskRequest, payload.has("priority"));
+        taskChangePublisher.publishFor(jwt.getSubject());
+        return result;
     }
 
     /**
@@ -116,8 +124,10 @@ public class TaskController {
     @DeleteMapping("/{taskId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void delete(@PathVariable UUID taskId,
-                       @RequestBody(required = false) TaskDeleteRequest body) {
+                       @RequestBody(required = false) TaskDeleteRequest body,
+                       @AuthenticationPrincipal Jwt jwt) {
         taskService.delete(taskId, body);
+        taskChangePublisher.publishFor(jwt.getSubject());
     }
 
     /**
@@ -130,8 +140,11 @@ public class TaskController {
      */
     @PostMapping("/{taskId}/close")
     public TaskDto close(@PathVariable UUID taskId,
-                         @RequestBody(required = false) TaskCloseReopenRequest body) {
-        return taskService.close(taskId, body);
+                         @RequestBody(required = false) TaskCloseReopenRequest body,
+                         @AuthenticationPrincipal Jwt jwt) {
+        TaskDto result = taskService.close(taskId, body);
+        taskChangePublisher.publishFor(jwt.getSubject());
+        return result;
     }
 
     /**
@@ -144,8 +157,11 @@ public class TaskController {
      */
     @PostMapping("/{taskId}/reopen")
     public TaskDto reopen(@PathVariable UUID taskId,
-                          @RequestBody(required = false) TaskCloseReopenRequest body) {
-        return taskService.reopen(taskId, body);
+                          @RequestBody(required = false) TaskCloseReopenRequest body,
+                          @AuthenticationPrincipal Jwt jwt) {
+        TaskDto result = taskService.reopen(taskId, body);
+        taskChangePublisher.publishFor(jwt.getSubject());
+        return result;
     }
 
     /**

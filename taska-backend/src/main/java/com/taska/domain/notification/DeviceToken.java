@@ -31,6 +31,10 @@ public class DeviceToken {
     @Column(nullable = false, length = 512)
     private String token;
 
+    /** OAuth2 JWT subject of the account that registered this device. */
+    @Column(name = "account_subject", length = 255)
+    private String accountSubject;
+
     /** Timestamp when the token was first registered; set by {@link #onCreate()} and never updated. */
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;

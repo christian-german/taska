@@ -106,6 +106,22 @@
         <receiver
                 android:name=".SnoozeReceiver"
                 android:exported="false"/>
+
+        <receiver
+                android:name=".widget.TaskWidgetProvider"
+                android:exported="false"
+                android:label="@string/task_widget_name">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE"/>
+            </intent-filter>
+            <meta-data
+                    android:name="android.appwidget.provider"
+                    android:resource="@xml/task_widget_info"/>
+        </receiver>
+
+        <receiver
+                android:name=".widget.TaskWidgetCompletionReceiver"
+                android:exported="false"/>
     </application>
 
 </manifest>

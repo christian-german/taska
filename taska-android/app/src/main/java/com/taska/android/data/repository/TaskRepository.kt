@@ -7,6 +7,7 @@ import com.taska.android.data.model.DeleteTaskBody
 import com.taska.android.data.model.RecurrenceScope
 import com.taska.android.data.model.TaskDto
 import com.taska.android.data.model.TaskRequest
+import com.taska.android.widget.TaskWidgetRefresh
 
 class TaskRepository(private val api: TaskaApi) {
 
@@ -24,15 +25,15 @@ class TaskRepository(private val api: TaskaApi) {
 
     suspend fun getSubtasks(taskId: String): List<TaskDto> = api.getSubtasks(taskId)
 
-    suspend fun createTask(request: TaskRequest): TaskDto = api.createTask(request)
+    suspend fun createTask(request: TaskRequest): TaskDto = api.createTask(request).also { refreshWidgets() }
 
-    suspend fun updateTask(id: String, request: TaskRequest): TaskDto = api.updateTask(id, request)
+    suspend fun updateTask(id: String, request: TaskRequest): TaskDto = api.updateTask(id, request).also { refreshWidgets() }
 
     suspend fun closeTask(taskId: String, occurrenceScheduledAt: String? = null): TaskDto =
-        api.closeTask(taskId, CloseReopenRequest(occurrenceScheduledAt))
+        api.closeTask(taskId, CloseReopenRequest(occurrenceScheduledAt)).also { refreshWidgets() }
 
     suspend fun reopenTask(taskId: String, occurrenceScheduledAt: String? = null): TaskDto =
-        api.reopenTask(taskId, CloseReopenRequest(occurrenceScheduledAt))
+        api.reopenTask(taskId, CloseReopenRequest(occurrenceScheduledAt)).also { refreshWidgets() }
 
     suspend fun deleteTask(id: String, scope: RecurrenceScope? = null, occurrenceScheduledAt: String? = null) {
         val body = when (scope) {
@@ -41,5 +42,8 @@ class TaskRepository(private val api: TaskaApi) {
             null -> DeleteTaskBody()
         }
         api.deleteTask(id, body)
+        refreshWidgets()
     }
+
+    private fun refreshWidgets() = TaskWidgetRefresh.request(RetrofitClient.applicationContext)
 }

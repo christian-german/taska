@@ -25,11 +25,13 @@ public class RegisterDeviceController {
      * @param req the registration payload containing the FCM device token
      */
     @PostMapping
-    public void registerDevice(@Valid @RequestBody RegisterDeviceRequest req) {
+    public void registerDevice(@Valid @RequestBody RegisterDeviceRequest req,
+                               @AuthenticationPrincipal Jwt jwt) {
         log.debug("Registering device token: {}", req.token());
         DeviceToken deviceToken = deviceTokenRepository.findByToken(req.token())
                 .orElseGet(DeviceToken::new);
         deviceToken.setToken(req.token());
+        deviceToken.setAccountSubject(jwt.getSubject());
         deviceTokenRepository.save(deviceToken);
         log.debug("Device token registered successfully");
     }

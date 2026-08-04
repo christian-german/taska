@@ -13,6 +13,9 @@ import retrofit2.converter.gson.GsonConverterFactory
 object RetrofitClient {
     private lateinit var appContext: Context
 
+    val applicationContext: Context
+        get() = appContext
+
     fun init(context: Context) {
         appContext = context.applicationContext
     }

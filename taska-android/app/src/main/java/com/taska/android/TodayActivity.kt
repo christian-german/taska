@@ -33,6 +33,7 @@ import com.taska.android.ui.drawer.WithDrawer
 import com.taska.android.ui.shared.BottomNavBar
 import com.taska.android.ui.shared.NavDestination
 import com.taska.android.ui.theme.TaskaTheme
+import com.taska.android.widget.TaskWidgetRefresh
 import com.taska.android.ui.today.TodayScreen
 import com.taska.android.ui.today.TodayViewModel
 import kotlinx.coroutines.launch
@@ -44,6 +45,7 @@ class TodayActivity : ComponentActivity() {
     override fun onResume() {
         super.onResume()
         todayViewModel.load()
+        TaskWidgetRefresh.request(this)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {

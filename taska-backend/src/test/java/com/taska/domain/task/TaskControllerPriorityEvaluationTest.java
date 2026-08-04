@@ -2,6 +2,7 @@ package com.taska.domain.task;
 
 import com.taska.domain.priority.TaskPriorityEvaluationDto;
 import com.taska.domain.priority.TaskPriorityEvaluationService;
+import com.taska.domain.notification.TaskChangePublisher;
 import org.junit.jupiter.api.Test;
 import tools.jackson.databind.ObjectMapper;
 
@@ -16,7 +17,8 @@ class TaskControllerPriorityEvaluationTest {
     private final TaskService taskService = mock(TaskService.class);
     private final TaskMapper taskMapper = mock(TaskMapper.class);
     private final TaskPriorityEvaluationService evaluationService = mock(TaskPriorityEvaluationService.class);
-    private final TaskController controller = new TaskController(taskService, taskMapper, evaluationService, new ObjectMapper());
+    private final TaskChangePublisher taskChangePublisher = mock(TaskChangePublisher.class);
+    private final TaskController controller = new TaskController(taskService, taskMapper, evaluationService, new ObjectMapper(), taskChangePublisher);
 
     @Test void returnsEvaluationWhenPresent() {
         UUID id = UUID.randomUUID();

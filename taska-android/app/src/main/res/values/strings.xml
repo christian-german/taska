@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">Taska</string>
+    <string name="task_widget_name">Taska week</string>
 </resources>

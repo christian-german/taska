@@ -14,15 +14,34 @@ import androidx.core.app.NotificationManagerCompat
 import androidx.core.app.TaskStackBuilder
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
+import com.taska.android.data.api.RetrofitClient
+import com.taska.android.data.model.RegisterDeviceRequest
+import com.taska.android.data.repository.DeviceRepository
+import com.taska.android.widget.TaskWidgetRefresh
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 class TaskaFirebaseMessagingService : FirebaseMessagingService() {
 
     override fun onNewToken(token: String) {
         Log.d("FCM", "Nouveau token: $token")
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                RetrofitClient.init(this@TaskaFirebaseMessagingService)
+                DeviceRepository().registerDevice(RegisterDeviceRequest(token))
+            } catch (exception: Exception) {
+                Log.w("FCM", "Échec de l'enregistrement du token", exception)
+            }
+        }
     }
 
     @RequiresPermission(Manifest.permission.POST_NOTIFICATIONS)
     override fun onMessageReceived(message: RemoteMessage) {
+        if (message.data["event"] == "tasks_changed") {
+            TaskWidgetRefresh.request(this)
+            return
+        }
         ensureChannel()
 
         val title = message.data["title"] ?: message.notification?.title ?: "Tâche"

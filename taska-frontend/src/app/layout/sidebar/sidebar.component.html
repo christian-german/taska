@@ -22,6 +22,10 @@
   </div>
 
   <div class="sb-section">
+    <div class="h"><a routerLink="/planning-calendars" routerLinkActive="active" style="text-decoration:none;color:inherit;">Calendriers</a></div>
+  </div>
+
+  <div class="sb-section">
     <div class="h">Vues</div>
     @for (it of viewItems(); track it.id) {
       <a [routerLink]="it.route" routerLinkActive="active" class="sb-item">
@@ -137,22 +141,6 @@
   </div>
 
   </div><!-- end scrollable -->
-
-  @if (showProjectModal()) {
-    <app-add-project-modal [project]="editingProject()" (close)="showProjectModal.set(false)" />
-  }
-
-  @if (importProjectId()) {
-    <app-csv-import-modal [projectId]="importProjectId()!" (close)="importProjectId.set(null)" />
-  }
-
-  @if (deletingProject()) {
-    <app-confirm-dialog
-      [title]="'Supprimer « ' + deletingProject()!.name + ' » ?'"
-      message="Le projet et toutes ses tâches seront supprimés définitivement."
-      (confirmed)="confirmDeleteProject()"
-      (cancelled)="deletingProject.set(null)" />
-  }
 
   <div style="flex-shrink: 0; position: relative; padding: 12px; border-top: 1px solid var(--line);
               display: flex; align-items: center; gap: 10px;">

@@ -1,8 +1,4 @@
-## Purpose
-
-Define the application-level time zone used to determine calendar availability.
-
-## Requirements
+## MODIFIED Requirements
 
 ### Requirement: Calendar availability has a configured application time zone
 The system SHALL define `taska.calendar.time-zone` in the backend `application.properties` as an IANA time-zone identifier. The configured value SHALL be bound as a `ZoneId` and the application SHALL fail to start when it is invalid. The default configured value SHALL be `Europe/Paris`. Calendar date queries and recurring planning-calendar availability rules SHALL use this same time zone to interpret local dates and local times.

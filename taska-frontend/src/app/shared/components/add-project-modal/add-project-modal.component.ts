@@ -13,7 +13,9 @@ import {
 import { FormsModule } from '@angular/forms';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ProjectService } from '../../../core/services/project.service';
+import { PlanningCalendarService } from '../../../core/services/planning-calendar.service';
 import { Project, PROJECT_COLORS, ViewStyle, getColor } from '../../../core/models';
+import { PlanningCalendar } from '../../../core/models';
 import { IconComponent } from '../icon/icon.component';
 
 const COLOR_KEYS = Object.keys(PROJECT_COLORS) as (keyof typeof PROJECT_COLORS)[];
@@ -96,6 +98,14 @@ const COLOR_KEYS = Object.keys(PROJECT_COLORS) as (keyof typeof PROJECT_COLORS)[
 
           <!-- Vue -->
           <div style="margin-bottom: 14px;">
+            <label style="display:block;font-size:12px;font-weight:500;color:var(--mute);text-transform:uppercase;letter-spacing:.04em;margin-bottom:5px;">Calendrier de planification</label>
+            <select [ngModel]="planningCalendarId()" (ngModelChange)="planningCalendarId.set($event)" style="width:100%;background:var(--bg);border:1px solid var(--line);padding:8px 10px;border-radius:7px;color:var(--ink);">
+              @for (calendar of calendars(); track calendar.id) { <option [value]="calendar.id">{{ calendar.name }}</option> }
+            </select>
+          </div>
+
+          <!-- Vue -->
+          <div style="margin-bottom: 14px;">
             <label style="display: block; font-size: 12px; font-weight: 500; color: var(--mute);
                            text-transform: uppercase; letter-spacing: .04em; margin-bottom: 8px;">
               Vue par défaut
@@ -160,12 +170,15 @@ export class AddProjectModalComponent implements OnInit {
 
   private projectService = inject(ProjectService);
   private allProjects = toSignal(this.projectService.projects$, { initialValue: [] as Project[] });
+  private planningCalendarService = inject(PlanningCalendarService);
+  calendars = toSignal(this.planningCalendarService.list(), { initialValue: [] as PlanningCalendar[] });
 
   name = signal('');
   color = signal('#808080');
   parentId = signal('');
   viewStyle = signal<ViewStyle>('LIST');
   isFavorite = signal(false);
+  planningCalendarId = signal('');
 
   colorKeys = COLOR_KEYS;
   PROJECT_COLORS = PROJECT_COLORS;
@@ -190,6 +203,7 @@ export class AddProjectModalComponent implements OnInit {
       this.parentId.set(p.parentId ?? '');
       this.viewStyle.set(p.viewStyle ?? 'LIST');
       this.isFavorite.set(p.isFavorite ?? false);
+      this.planningCalendarId.set(p.planningCalendarId ?? '');
     }
     setTimeout(() => this.nameInput?.nativeElement.focus(), 0);
   }
@@ -205,6 +219,7 @@ export class AddProjectModalComponent implements OnInit {
         parentId: this.parentId() || undefined,
         viewStyle: this.viewStyle(),
         isFavorite: this.isFavorite(),
+        planningCalendarId: this.planningCalendarId() || undefined,
       }).subscribe(() => this.close.emit());
     } else {
       this.projectService.createProject({
@@ -213,6 +228,7 @@ export class AddProjectModalComponent implements OnInit {
         parentId: this.parentId() || undefined,
         viewStyle: this.viewStyle(),
         isFavorite: this.isFavorite(),
+        planningCalendarId: this.planningCalendarId() || undefined,
       }).subscribe(() => this.close.emit());
     }
   }

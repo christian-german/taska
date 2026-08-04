@@ -26,6 +26,7 @@ public record ProjectDto(
         Boolean isFavorite,
         ViewStyle viewStyle,
         Boolean isInboxProject,
+        UUID planningCalendarId,
         Instant createdAt,
         Instant updatedAt
 ) {}

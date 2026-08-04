@@ -459,14 +459,6 @@ input, textarea { font-family: inherit; color: inherit; }
     box-shadow: 4px 0 28px rgba(0,0,0,.22);
   }
 
-  /* The sidebar's transform becomes the containing block for fixed descendants.
-     Keep dialogs opened from its account menu viewport-sized and centred. */
-  .sb .modal-veil {
-    inset: 0;
-    width: 100vw;
-    height: 100vh;
-  }
-
   /* bouton hamburger */
   .sidebar-toggle {
     display: flex;

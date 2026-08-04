@@ -4,6 +4,7 @@ import com.taska.config.TaskaProperties;
 import com.taska.domain.project.ProjectRepository;
 import com.taska.domain.priority.TaskPriorityEvaluationRepository;
 import com.taska.exception.ResourceNotFoundException;
+import com.taska.domain.planningcalendar.PlanningCalendarService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -30,6 +31,7 @@ public class TaskService {
     private final ProjectRepository projectRepository;
     private final TaskPriorityEvaluationRepository priorityEvaluationRepository;
     private final TaskaProperties taskaProperties;
+    private final PlanningCalendarService planningCalendarService;
 
     /**
      * Returns a filtered list of tasks based on the provided criteria.
@@ -198,6 +200,7 @@ public class TaskService {
                     .getId();
         }
         t.setProjectId(projectId);
+        assertScheduleAllowed(projectId, t.getScheduledAt(), t.isAllDay());
 
         return taskRepository.save(t);
     }
@@ -269,6 +272,7 @@ public class TaskService {
                 if (taskRequest.content() != null) instance.setTitle(taskRequest.content());
                 if (priorityProvided && taskRequest.priority() != null) instance.setPriority(taskRequest.priority());
                 if (taskRequest.scheduledAt() != null) instance.setScheduledAt(taskRequest.scheduledAt());
+                if (taskRequest.scheduledAt() != null) assertScheduleAllowed(task.getProjectId(), taskRequest.scheduledAt(), task.isAllDay());
                 if (taskRequest.dueAt() != null) instance.setDueAt(taskRequest.dueAt());
                 yield taskMapper.toOccurrenceDto(task, taskInstanceRepository.save(instance), occurrenceScheduledAt);
             }
@@ -522,10 +526,23 @@ public class TaskService {
         if (taskRequest.recurrenceRule() != null) task.setRecurrenceRule(normalizeRRule(taskRequest.recurrenceRule()));
         if (taskRequest.dueAt() != null) task.setDueAt(taskRequest.dueAt());
         if (taskRequest.scheduledAt() != null) {
+            UUID effectiveProjectId = taskRequest.projectId() != null ? taskRequest.projectId() : task.getProjectId();
+            boolean effectiveAllDay = taskRequest.allDay() != null ? taskRequest.allDay() : task.isAllDay();
+            assertScheduleAllowed(effectiveProjectId, taskRequest.scheduledAt(), effectiveAllDay);
             if (!taskRequest.scheduledAt().equals(task.getScheduledAt())) {
                 task.setIsNotified(false);
             }
             task.setScheduledAt(taskRequest.scheduledAt());
+        }
+    }
+
+    private void assertScheduleAllowed(UUID projectId, Instant scheduledAt, boolean allDay) {
+        if (scheduledAt == null || projectId == null) return;
+        UUID calendarId = projectRepository.findById(projectId)
+                .orElseThrow(() -> new ResourceNotFoundException("Project not found: " + projectId))
+                .getPlanningCalendarId();
+        if (!planningCalendarService.allows(calendarId, scheduledAt, allDay)) {
+            throw new IllegalArgumentException("Scheduled time is outside the project's planning calendar availability");
         }
     }
 }

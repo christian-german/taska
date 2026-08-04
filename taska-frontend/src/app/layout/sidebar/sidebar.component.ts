@@ -1,4 +1,4 @@
-import {Component, DestroyRef, OnInit, computed, inject, signal, ChangeDetectionStrategy} from '@angular/core';
+import {Component, DestroyRef, OnInit, computed, inject, output, signal, ChangeDetectionStrategy} from '@angular/core';
 import { Router, RouterLink, RouterLinkActive, NavigationEnd } from '@angular/router';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { filter, map } from 'rxjs';
@@ -12,9 +12,6 @@ import { UiStateService } from '../../core/services/ui-state.service';
 import { Filter, Label, Project, Task, getColor, isOverdue } from '../../core/models';
 import { IconComponent } from '../../shared/components/icon/icon.component';
 import { ProjectDotComponent, TagChipComponent } from '../../shared/components/atoms/atoms.component';
-import { AddProjectModalComponent } from '../../shared/components/add-project-modal/add-project-modal.component';
-import { CsvImportModalComponent } from '../../shared/components/csv-import-modal/csv-import-modal.component';
-import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/confirm-dialog.component';
 
 interface SidebarCount {
   inbox: number;
@@ -39,9 +36,6 @@ interface ProjectNode {
     IconComponent,
     ProjectDotComponent,
     TagChipComponent,
-    AddProjectModalComponent,
-    CsvImportModalComponent,
-    ConfirmDialogComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './sidebar.component.html',
@@ -65,13 +59,12 @@ export class SidebarComponent implements OnInit {
   projects = toSignal(this.projectService.projects$, { initialValue: [] as Project[] });
   labels = toSignal(this.labelService.labels$, { initialValue: [] as Label[] });
   filters = toSignal(this.filterService.filters$, { initialValue: [] as Filter[] });
-  showProjectModal = signal(false);
-  editingProject = signal<Project | null>(null);
   showUserMenu = signal(false);
   hoveredProjectId = signal<string | null>(null);
   activeMenuId = signal<string | null>(null);
-  deletingProject = signal<Project | null>(null);
-  importProjectId = signal<string | null>(null);
+  projectModalRequested = output<Project | null>();
+  csvImportRequested = output<string>();
+  projectDeleteRequested = output<Project>();
 
   allTasks = signal<Task[]>([]);
   collapsedProjectIds = signal<Set<string>>(new Set());
@@ -168,37 +161,28 @@ export class SidebarComponent implements OnInit {
   }
 
   openCreateProject(): void {
-    this.editingProject.set(null);
-    this.showProjectModal.set(true);
+    this.projectModalRequested.emit(null);
   }
 
   openEditProject(p: Project, e: Event): void {
     e.stopPropagation();
     e.preventDefault();
     this.activeMenuId.set(null);
-    this.editingProject.set(p);
-    this.showProjectModal.set(true);
+    this.projectModalRequested.emit(p);
   }
 
   openImportCsv(id: string, e: Event): void {
     e.stopPropagation();
     e.preventDefault();
     this.activeMenuId.set(null);
-    this.importProjectId.set(id);
+    this.csvImportRequested.emit(id);
   }
 
   requestDeleteProject(p: Project, e: Event): void {
     e.stopPropagation();
     e.preventDefault();
     this.activeMenuId.set(null);
-    this.deletingProject.set(p);
-  }
-
-  confirmDeleteProject(): void {
-    const p = this.deletingProject();
-    if (!p) return;
-    this.deletingProject.set(null);
-    this.projectService.deleteProject(p.id).subscribe();
+    this.projectDeleteRequested.emit(p);
   }
 
   toggleProjectMenu(id: string, e: Event): void {

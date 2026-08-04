@@ -34,9 +34,13 @@ export interface Project {
   isFavorite: boolean;
   viewStyle: ViewStyle;
   isInboxProject: boolean;
+  planningCalendarId: string;
   createdAt: string;
   updatedAt: string;
 }
+
+export interface PlanningCalendarRule { dayOfWeek: number; startMinute: number; endMinute: number; }
+export interface PlanningCalendar { id: string; name: string; rules: PlanningCalendarRule[]; }
 
 export interface Section {
   id: string;

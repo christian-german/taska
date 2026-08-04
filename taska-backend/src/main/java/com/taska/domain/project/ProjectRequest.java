@@ -25,5 +25,6 @@ public record ProjectRequest(
         Boolean clearParent,
         Integer order,
         Boolean isFavorite,
-        ViewStyle viewStyle
+        ViewStyle viewStyle,
+        UUID planningCalendarId
 ) {}

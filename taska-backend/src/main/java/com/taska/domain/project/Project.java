@@ -64,6 +64,9 @@ public class Project {
     @Column(name = "is_inbox_project", nullable = false)
     private Boolean isInboxProject = false;
 
+    @Column(name = "planning_calendar_id", nullable = false)
+    private UUID planningCalendarId;
+
     /** Timestamp when the project was first persisted; set by {@link #onCreate()} and never updated. */
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;

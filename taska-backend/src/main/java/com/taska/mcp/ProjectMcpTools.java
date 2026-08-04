@@ -43,7 +43,7 @@ public class ProjectMcpTools {
         return McpToolResponses.execute(() -> {
             requireName(input.name());
             Project project = projectService.create(new ProjectRequest(
-                    input.name(), input.color(), input.parentId(), false, input.order(), input.isFavorite(), input.viewStyle()));
+                    input.name(), input.color(), input.parentId(), false, input.order(), input.isFavorite(), input.viewStyle(), null));
             return ProjectOutput.from(projectMapper.toDto(project));
         });
     }
@@ -55,7 +55,7 @@ public class ProjectMcpTools {
         return McpToolResponses.execute(() -> {
             if (input.name() != null) requireName(input.name());
             Project project = projectService.update(projectId, new ProjectRequest(
-                    input.name(), input.color(), input.parentId(), input.clearParent(), input.order(), input.isFavorite(), input.viewStyle()));
+                    input.name(), input.color(), input.parentId(), input.clearParent(), input.order(), input.isFavorite(), input.viewStyle(), null));
             return ProjectOutput.from(projectMapper.toDto(project));
         });
     }

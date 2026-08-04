@@ -1,4 +1,4 @@
-import {ChangeDetectionStrategy, Component, computed, HostListener, inject, OnInit} from '@angular/core';
+import {ChangeDetectionStrategy, Component, computed, HostListener, inject, OnInit, signal} from '@angular/core';
 import {Router, RouterOutlet} from '@angular/router';
 import {IconComponent} from './shared/components/icon/icon.component';
 import {SidebarComponent} from './layout/sidebar/sidebar.component';
@@ -10,17 +10,20 @@ import {ProjectService} from './core/services/project.service';
 import {LabelService} from './core/services/label.service';
 import {FilterService} from './core/services/filter.service';
 import {UiStateService} from './core/services/ui-state.service';
-import {Task} from './core/models';
+import {Project, Task} from './core/models';
 import {attachConsole} from '@tauri-apps/plugin-log';
 import {onOpenUrl} from '@tauri-apps/plugin-deep-link';
 import {UpdateService} from './core/services/update.service';
 import {UpdateDialogComponent} from './layout/update-dialog/UpdateDialogComponent';
 import {AboutDialogComponent} from './layout/about-dialog/about-dialog.component';
+import {AddProjectModalComponent} from './shared/components/add-project-modal/add-project-modal.component';
+import {CsvImportModalComponent} from './shared/components/csv-import-modal/csv-import-modal.component';
+import {ConfirmDialogComponent} from './shared/components/confirm-dialog/confirm-dialog.component';
 import {interval} from 'rxjs';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, IconComponent, SidebarComponent, QuickAddComponent, TaskDetailComponent, CommandPaletteComponent, ShortcutsModalComponent, UpdateDialogComponent, AboutDialogComponent],
+  imports: [RouterOutlet, IconComponent, SidebarComponent, QuickAddComponent, TaskDetailComponent, CommandPaletteComponent, ShortcutsModalComponent, UpdateDialogComponent, AboutDialogComponent, AddProjectModalComponent, CsvImportModalComponent, ConfirmDialogComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @if (ui.sidebarOpen()) {
@@ -34,7 +37,10 @@ import {interval} from 'rxjs';
     </button>
 
     <div class="app" [class.has-detail]="hasDetail()">
-      <app-sidebar/>
+      <app-sidebar
+        (projectModalRequested)="projectModal.set($event)"
+        (csvImportRequested)="csvImportProjectId.set($event)"
+        (projectDeleteRequested)="projectPendingDeletion.set($event)" />
 
       <main class="scroll" (click)="ui.closeTaskDetail()"
             style="overflow-y: auto; display: flex; flex-direction: column;">
@@ -63,6 +69,20 @@ import {interval} from 'rxjs';
       <app-about-dialog (close)="ui.showAbout.set(false)"/>
     }
     <app-update-dialog/>
+
+    @if (projectModal() !== undefined) {
+      <app-add-project-modal [project]="projectModal() ?? null" (close)="projectModal.set(undefined)" />
+    }
+    @if (csvImportProjectId(); as projectId) {
+      <app-csv-import-modal [projectId]="projectId" (close)="csvImportProjectId.set(null)" />
+    }
+    @if (projectPendingDeletion(); as project) {
+      <app-confirm-dialog
+        [title]="'Supprimer « ' + project.name + ' » ?'"
+        message="Le projet et toutes ses tâches seront supprimés définitivement."
+        (confirmed)="deleteProject(project)"
+        (cancelled)="projectPendingDeletion.set(null)" />
+    }
   `,
 })
 export class AppComponent implements OnInit {
@@ -75,6 +95,14 @@ export class AppComponent implements OnInit {
   private updateService = inject(UpdateService);
 
   hasDetail = computed(() => this.ui.selectedTask() !== null);
+  projectModal = signal<Project | null | undefined>(undefined);
+  csvImportProjectId = signal<string | null>(null);
+  projectPendingDeletion = signal<Project | null>(null);
+
+  deleteProject(project: Project): void {
+    this.projectPendingDeletion.set(null);
+    this.projectService.deleteProject(project.id).subscribe();
+  }
 
   ngOnInit(): void {
 

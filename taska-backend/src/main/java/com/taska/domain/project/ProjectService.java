@@ -5,6 +5,8 @@ import com.taska.domain.section.SectionRepository;
 import com.taska.domain.task.Task;
 import com.taska.domain.task.TaskRepository;
 import com.taska.exception.ResourceNotFoundException;
+import com.taska.domain.planningcalendar.PlanningCalendarRepository;
+import com.taska.domain.planningcalendar.PlanningCalendarService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,6 +22,8 @@ public class ProjectService {
     private final ProjectRepository projectRepo;
     private final SectionRepository sectionRepo;
     private final TaskRepository taskRepo;
+    private final PlanningCalendarRepository calendarRepo;
+    private final PlanningCalendarService calendarService;
 
     /**
      * Returns all projects ordered by their position ascending.
@@ -57,6 +61,9 @@ public class ProjectService {
         p.setPosition(req.order() != null ? req.order() : 0);
         p.setIsFavorite(req.isFavorite() != null ? req.isFavorite() : false);
         p.setViewStyle(req.viewStyle() != null ? req.viewStyle() : ViewStyle.LIST);
+        UUID calendarId = req.planningCalendarId() != null ? req.planningCalendarId() : PlanningCalendarService.DEFAULT_ID;
+        if (!calendarRepo.existsById(calendarId)) throw new ResourceNotFoundException("Planning calendar not found: " + calendarId);
+        p.setPlanningCalendarId(calendarId);
         return projectRepo.save(p);
     }
 
@@ -81,6 +88,13 @@ public class ProjectService {
         if (req.order() != null) p.setPosition(req.order());
         if (req.isFavorite() != null) p.setIsFavorite(req.isFavorite());
         if (req.viewStyle() != null) p.setViewStyle(req.viewStyle());
+        if (req.planningCalendarId() != null && !req.planningCalendarId().equals(p.getPlanningCalendarId())) {
+            if (!calendarRepo.existsById(req.planningCalendarId())) throw new ResourceNotFoundException("Planning calendar not found: " + req.planningCalendarId());
+            boolean incompatible = taskRepo.findByProjectIdAndScheduledAtIsNotNullAndIsCompletedFalseOrderByScheduledAtAsc(id).stream()
+                    .anyMatch(t -> !calendarService.allows(req.planningCalendarId(), t.getScheduledAt(), t.isAllDay()));
+            if (incompatible) throw new IllegalArgumentException("Planning calendar does not allow an existing scheduled task");
+            p.setPlanningCalendarId(req.planningCalendarId());
+        }
         return projectRepo.save(p);
     }
 

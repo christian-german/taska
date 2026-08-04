@@ -3,6 +3,7 @@ import {
   ViewChild, computed, inject, output, signal,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { HttpErrorResponse } from '@angular/common/http';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { TaskService } from '../../../core/services/task.service';
 import { ProjectService } from '../../../core/services/project.service';
@@ -366,6 +367,12 @@ const RECURRENCE_OPTIONS = [
 
         <div style="padding:12px 22px;border-top:1px solid var(--line);
                     display:flex;justify-content:space-between;align-items:center;">
+          @if (creationError()) {
+            <div role="alert" aria-live="assertive"
+                 style="margin-right:12px;flex:1;color:var(--p1);font-size:12px;line-height:1.35;">
+              {{ creationError() }}
+            </div>
+          }
           <button class="btn btn-ghost" (click)="close.emit()">
             annuler <span class="kbd" style="margin-left:4px;">esc</span>
           </button>
@@ -395,6 +402,7 @@ export class QuickAddComponent implements OnInit {
   labels = toSignal(this.labelService.labels$, { initialValue: [] as Label[] });
 
   input = signal('');
+  creationError = signal<string | null>(null);
   parsed = computed<NlParsed>(() => this.parser.parse(this.input()));
   segments = computed(() => this.parser.segments(this.input(), this.parsed()));
 
@@ -636,6 +644,7 @@ export class QuickAddComponent implements OnInit {
   submit(): void {
     const p = this.parsed();
     if (!p.title) return;
+    this.creationError.set(null);
     const manual = this.manualDatetime();
     const hasTime = manual ? manual.includes('T') : false;
 
@@ -664,9 +673,23 @@ export class QuickAddComponent implements OnInit {
       recurrenceRule: this.effectiveRecurrence() || undefined,
       isRecurring: !!(this.effectiveRecurrence()),
       type: this.taskType(),
-    } as any).subscribe(created => {
-      this.ui.taskCreated$.next(created);
-      this.close.emit();
+    } as any).subscribe({
+      next: created => {
+        this.ui.taskCreated$.next(created);
+        this.close.emit();
+      },
+      error: error => this.creationError.set(this.creationErrorMessage(error)),
     });
+  }
+
+  private creationErrorMessage(error: unknown): string {
+    const detail = error instanceof HttpErrorResponse && typeof error.error?.detail === 'string'
+      ? error.error.detail
+      : null;
+
+    if (detail === "Scheduled time is outside the project's planning calendar availability") {
+      return 'Le créneau sélectionné n’est pas disponible dans le calendrier de planification de ce projet.';
+    }
+    return detail ?? 'Impossible de créer la tâche. Réessayez.';
   }
 }

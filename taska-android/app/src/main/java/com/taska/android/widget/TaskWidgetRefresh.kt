@@ -38,6 +38,9 @@ object TaskWidgetRefresh {
         val widgetIds = manager.getAppWidgetIds(component)
         if (widgetIds.isEmpty()) return
         val week = currentWeek()
+        widgetIds.forEach {
+            manager.updateAppWidget(it, render(context, emptyList(), week, "Loading scheduled tasks…"))
+        }
         try {
             RetrofitClient.init(context)
             val tasks = filterScheduledTasks(
@@ -46,7 +49,7 @@ object TaskWidgetRefresh {
             )
             widgetIds.forEach { manager.updateAppWidget(it, render(context, tasks, week, null)) }
         } catch (_: Exception) {
-            widgetIds.forEach { manager.updateAppWidget(it, render(context, emptyList(), week, "Unable to refresh")) }
+            widgetIds.forEach { manager.updateAppWidget(it, render(context, emptyList(), week, "Unable to refresh tasks")) }
         }
     }
 

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Widget_TaskTitle">
+        <item name="android:fontFamily">@font/archivo_variable</item>
+        <item name="android:textColor">@color/widget_primary_ink</item>
+        <item name="android:textSize">14sp</item>
+    </style>
+
+    <style name="Widget_Header">
+        <item name="android:fontFamily">@font/archivo_variable</item>
+        <item name="android:textColor">@color/widget_primary_ink</item>
+        <item name="android:textSize">16sp</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <style name="Widget_Status">
+        <item name="android:fontFamily">@font/archivo_variable</item>
+        <item name="android:textColor">@color/widget_secondary_ink</item>
+        <item name="android:textSize">12sp</item>
+    </style>
+</resources>

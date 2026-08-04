@@ -18,4 +18,13 @@ class TaskWidgetManifestTest {
         )
         assertEquals(R.xml.task_widget_info, info.metaData.getInt("android.appwidget.provider"))
     }
+
+    @Test fun `today widget provider is declared with its metadata`() {
+        val context = ApplicationProvider.getApplicationContext<android.content.Context>()
+        val info = context.packageManager.getReceiverInfo(
+            ComponentName(context, TodayTaskWidgetProvider::class.java),
+            android.content.pm.PackageManager.GET_META_DATA
+        )
+        assertEquals(R.xml.today_task_widget_info, info.metaData.getInt("android.appwidget.provider"))
+    }
 }

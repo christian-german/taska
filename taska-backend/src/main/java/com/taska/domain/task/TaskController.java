@@ -57,10 +57,10 @@ public class TaskController {
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to) {
 
         if (date != null) {
-            return taskService.findOccurrencesForDateRange(date, date);
+            return taskService.findOccurrencesForDateRange(date, date, show_completed);
         }
         if (from != null && to != null) {
-            return taskService.findOccurrencesForDateRange(from, to);
+            return taskService.findOccurrencesForDateRange(from, to, show_completed);
         }
         return taskService.findAll(project_id, section_id, label, filter, show_completed)
                 .stream().map(taskMapper::toDto).toList();

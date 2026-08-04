@@ -2,4 +2,5 @@
     <string name="widget_complete_task">Complete task</string>
     <string name="app_name">Taska</string>
     <string name="task_widget_name">Taska week</string>
+    <string name="today_task_widget_name">Taska today</string>
 </resources>

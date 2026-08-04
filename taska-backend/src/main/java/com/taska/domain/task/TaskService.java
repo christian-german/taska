@@ -96,11 +96,21 @@ public class TaskService {
      */
     @Transactional(readOnly = true)
     public List<TaskDto> findOccurrencesForDateRange(LocalDate from, LocalDate to) {
+        return findOccurrencesForDateRange(from, to, false);
+    }
+
+    /**
+     * Returns occurrences in the requested range, optionally retaining completed non-recurring tasks.
+     * Completed recurring occurrences are already represented by their task instances.
+     */
+    public List<TaskDto> findOccurrencesForDateRange(LocalDate from, LocalDate to, boolean showCompleted) {
         ZoneId calendarZone = taskaProperties.getCalendar().getTimeZone();
         Instant periodStart = from.atStartOfDay(calendarZone).toInstant();
         Instant periodEnd = to.plusDays(1).atStartOfDay(calendarZone).toInstant();
 
-        List<Task> nonRecurring = taskRepository.findNonRecurringTasksInPeriod(periodStart, periodEnd);
+        List<Task> nonRecurring = showCompleted
+                ? taskRepository.findNonRecurringTasksIncludingCompletedInPeriod(periodStart, periodEnd)
+                : taskRepository.findNonRecurringTasksInPeriod(periodStart, periodEnd);
         List<TaskDto> result = new ArrayList<>(nonRecurring.stream().map(taskMapper::toDto).toList());
 
         List<Task> recurringTasks = taskRepository.findActiveRecurringTasksForPeriod(periodStart, periodEnd);

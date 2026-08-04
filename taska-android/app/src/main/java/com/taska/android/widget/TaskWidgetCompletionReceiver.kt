@@ -11,14 +11,14 @@ import kotlinx.coroutines.launch
 
 class TaskWidgetCompletionReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
-        if (intent.action != ACTION_COMPLETE) return
+        val action = intent.action
+        if (action != ACTION_COMPLETE && action != ACTION_REOPEN) return
         val taskId = intent.getStringExtra(EXTRA_TASK_ID) ?: return
         val pending = goAsync()
         CoroutineScope(Dispatchers.IO).launch {
             try {
                 RetrofitClient.init(context)
-                TaskRepository().closeTask(taskId, intent.getStringExtra(EXTRA_OCCURRENCE))
-                TaskWidgetRefresh.refresh(context.applicationContext)
+                performAction(TaskRepository(), action, taskId, intent.getStringExtra(EXTRA_OCCURRENCE))
             } finally {
                 pending.finish()
             }
@@ -27,7 +27,20 @@ class TaskWidgetCompletionReceiver : BroadcastReceiver() {
 
     companion object {
         const val ACTION_COMPLETE = "com.taska.android.widget.COMPLETE_TASK"
+        const val ACTION_REOPEN = "com.taska.android.widget.REOPEN_TASK"
         const val EXTRA_TASK_ID = "task_id"
         const val EXTRA_OCCURRENCE = "occurrence_scheduled_at"
+
+        internal suspend fun performAction(
+            repository: TaskRepository,
+            action: String,
+            taskId: String,
+            occurrenceScheduledAt: String?,
+        ) {
+            when (action) {
+                ACTION_COMPLETE -> repository.closeTask(taskId, occurrenceScheduledAt)
+                ACTION_REOPEN -> repository.reopenTask(taskId, occurrenceScheduledAt)
+            }
+        }
     }
 }

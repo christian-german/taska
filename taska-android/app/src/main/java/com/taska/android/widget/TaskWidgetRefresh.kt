@@ -1,10 +1,12 @@
 package com.taska.android.widget
 
+import android.app.AlarmManager
 import android.app.PendingIntent
 import android.appwidget.AppWidgetManager
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
+import android.graphics.Paint
 import android.view.View
 import android.widget.RemoteViews
 import com.taska.android.R
@@ -19,13 +21,23 @@ import java.time.DayOfWeek
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
+import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 
 object TaskWidgetRefresh {
     private const val MAX_ROWS = 8
+    private const val DAY_REFRESH_REQUEST_CODE = 9001
     private val rowIds = intArrayOf(R.id.widget_row_0, R.id.widget_row_1, R.id.widget_row_2, R.id.widget_row_3, R.id.widget_row_4, R.id.widget_row_5, R.id.widget_row_6, R.id.widget_row_7)
     private val checkIds = intArrayOf(R.id.widget_check_0, R.id.widget_check_1, R.id.widget_check_2, R.id.widget_check_3, R.id.widget_check_4, R.id.widget_check_5, R.id.widget_check_6, R.id.widget_check_7)
     private val taskIds = intArrayOf(R.id.widget_task_0, R.id.widget_task_1, R.id.widget_task_2, R.id.widget_task_3, R.id.widget_task_4, R.id.widget_task_5, R.id.widget_task_6, R.id.widget_task_7)
+
+    private enum class WidgetType(
+        val provider: Class<*>,
+        val includeCompleted: Boolean,
+    ) {
+        WEEK(TaskWidgetProvider::class.java, false),
+        TODAY(TodayTaskWidgetProvider::class.java, true),
+    }
 
     fun request(context: Context) {
         val appContext = context.applicationContext
@@ -34,63 +46,133 @@ object TaskWidgetRefresh {
 
     suspend fun refresh(context: Context) {
         val manager = AppWidgetManager.getInstance(context)
-        val component = ComponentName(context, TaskWidgetProvider::class.java)
-        val widgetIds = manager.getAppWidgetIds(component)
-        if (widgetIds.isEmpty()) return
-        val week = currentWeek()
-        widgetIds.forEach {
-            manager.updateAppWidget(it, render(context, emptyList(), week, "Loading scheduled tasks…"))
+        val widgets = WidgetType.entries.associateWith { type ->
+            manager.getAppWidgetIds(ComponentName(context, type.provider))
         }
-        try {
-            RetrofitClient.init(context)
-            val tasks = filterScheduledTasks(
-                TaskRepository().getTasks(from = week.first.toString(), to = week.second.toString()),
-                week
-            )
-            widgetIds.forEach { manager.updateAppWidget(it, render(context, tasks, week, null)) }
-        } catch (_: Exception) {
-            widgetIds.forEach { manager.updateAppWidget(it, render(context, emptyList(), week, "Unable to refresh tasks")) }
+        if (widgets.values.all { it.isEmpty() }) {
+            cancelDayRefresh(context)
+            return
+        }
+        scheduleNextDayRefresh(context)
+        widgets.filterValues { it.isNotEmpty() }.forEach { (type, widgetIds) ->
+            refreshType(context, manager, type, widgetIds)
         }
     }
 
-    private fun render(context: Context, tasks: List<TaskDto>, week: Pair<LocalDate, LocalDate>, error: String?): RemoteViews =
-        RemoteViews(context.packageName, R.layout.task_widget).apply {
-            setTextViewText(R.id.widget_title, "Taska · ${week.first.format(DateTimeFormatter.ofPattern("MMM d"))}–${week.second.format(DateTimeFormatter.ofPattern("MMM d"))}")
-            setTextViewText(R.id.widget_status, error ?: if (tasks.isEmpty()) "No scheduled tasks" else "${tasks.size} scheduled task${if (tasks.size == 1) "" else "s"}")
-            rowIds.indices.forEach { index ->
-                val task = tasks.getOrNull(index)
-                setViewVisibility(rowIds[index], if (task == null) View.GONE else View.VISIBLE)
-                if (task != null) bindTask(context, index, task)
-            }
+    private suspend fun refreshType(
+        context: Context,
+        manager: AppWidgetManager,
+        type: WidgetType,
+        widgetIds: IntArray,
+    ) {
+        val range = if (type == WidgetType.WEEK) currentWeek() else currentDay()
+        try {
+            RetrofitClient.init(context)
+            val tasks = filterScheduledTasks(
+                TaskRepository().getTasks(
+                    showCompleted = type.includeCompleted,
+                    from = range.first.toString(),
+                    to = range.second.toString(),
+                ),
+                range,
+                includeCompleted = type.includeCompleted,
+            )
+            widgetIds.forEach { manager.updateAppWidget(it, render(context, type, tasks, range, null)) }
+        } catch (_: Exception) {
+            widgetIds.forEach { manager.updateAppWidget(it, render(context, type, emptyList(), range, "Unable to refresh tasks")) }
         }
+    }
 
-    private fun RemoteViews.bindTask(context: Context, index: Int, task: TaskDto) {
+    private fun render(
+        context: Context,
+        type: WidgetType,
+        tasks: List<TaskDto>,
+        range: Pair<LocalDate, LocalDate>,
+        error: String?,
+    ): RemoteViews = RemoteViews(context.packageName, R.layout.task_widget).apply {
+        setTextViewText(R.id.widget_title, titleFor(type, range))
+        setTextViewText(R.id.widget_status, error ?: taskStatus(tasks))
+        rowIds.indices.forEach { index ->
+            val task = tasks.getOrNull(index)
+            setViewVisibility(rowIds[index], if (task == null) View.GONE else View.VISIBLE)
+            if (task != null) bindTask(context, index, task, type.includeCompleted)
+        }
+    }
+
+    private fun titleFor(type: WidgetType, range: Pair<LocalDate, LocalDate>): String = when (type) {
+        WidgetType.WEEK -> "Taska · ${range.first.format(DateTimeFormatter.ofPattern("MMM d"))}–${range.second.format(DateTimeFormatter.ofPattern("MMM d"))}"
+        WidgetType.TODAY -> "Taska · Today · ${range.first.format(DateTimeFormatter.ofPattern("MMM d"))}"
+    }
+
+    private fun taskStatus(tasks: List<TaskDto>): String = when (tasks.size) {
+        0 -> "No scheduled tasks"
+        1 -> "1 scheduled task"
+        else -> "${tasks.size} scheduled tasks"
+    }
+
+    private fun RemoteViews.bindTask(context: Context, index: Int, task: TaskDto, canShowCompleted: Boolean) {
         val scheduled = task.scheduledAt!!
         setTextViewText(taskIds[index], "${scheduledDate(scheduled).format(DateTimeFormatter.ofPattern("EEE"))}  ${formatTime(scheduled)}${if (task.allDay) "" else " "}${task.content}")
+        val completed = canShowCompleted && task.isCompleted == true
+        setImageViewResource(checkIds[index], if (completed) R.drawable.widget_completion_checked else R.drawable.widget_completion_empty)
+        setInt(taskIds[index], "setPaintFlags", if (completed) Paint.ANTI_ALIAS_FLAG or Paint.STRIKE_THRU_TEXT_FLAG else Paint.ANTI_ALIAS_FLAG)
+
+        val action = if (completed) TaskWidgetCompletionReceiver.ACTION_REOPEN else TaskWidgetCompletionReceiver.ACTION_COMPLETE
         val completion = Intent(context, TaskWidgetCompletionReceiver::class.java).apply {
-            action = TaskWidgetCompletionReceiver.ACTION_COMPLETE
+            this.action = action
             putExtra(TaskWidgetCompletionReceiver.EXTRA_TASK_ID, task.id)
             putExtra(TaskWidgetCompletionReceiver.EXTRA_OCCURRENCE, task.occurrenceScheduledAt)
-            data = android.net.Uri.parse("taska://widget/complete/${task.id}/${task.occurrenceScheduledAt ?: "single"}")
+            data = android.net.Uri.parse("taska://widget/${if (completed) "reopen" else "complete"}/${task.id}/${task.occurrenceScheduledAt ?: "single"}")
         }
-        setOnClickPendingIntent(checkIds[index], PendingIntent.getBroadcast(context, index, completion, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE))
+        setOnClickPendingIntent(
+            checkIds[index],
+            PendingIntent.getBroadcast(context, index, completion, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE),
+        )
+
         val open = Intent(context, TaskDetailActivity::class.java).apply {
             putExtra("task_id", task.id)
             task.occurrenceScheduledAt?.let { putExtra("scheduled_at", it) }
             data = android.net.Uri.parse("taska://widget/task/${task.id}/${task.occurrenceScheduledAt ?: "single"}")
         }
-        setOnClickPendingIntent(taskIds[index], PendingIntent.getActivity(context, index, open, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE))
+        val pendingOpen = PendingIntent.getActivity(context, index, open, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
+        setOnClickPendingIntent(rowIds[index], pendingOpen)
+        setOnClickPendingIntent(taskIds[index], pendingOpen)
     }
+
+    internal fun currentDay(today: LocalDate = LocalDate.now()): Pair<LocalDate, LocalDate> = today to today
 
     internal fun currentWeek(today: LocalDate = LocalDate.now()): Pair<LocalDate, LocalDate> {
         val monday = today.with(java.time.temporal.TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY))
         return monday to monday.plusDays(6)
     }
 
-    internal fun filterScheduledTasks(tasks: List<TaskDto>, week: Pair<LocalDate, LocalDate>): List<TaskDto> =
-        tasks.filter { it.isCompleted != true && it.scheduledAt != null && scheduledDate(it.scheduledAt) in week.first..week.second }
-            .sortedBy { it.scheduledAt }
-            .take(MAX_ROWS)
+    internal fun filterScheduledTasks(
+        tasks: List<TaskDto>,
+        range: Pair<LocalDate, LocalDate>,
+        includeCompleted: Boolean = false,
+    ): List<TaskDto> = tasks
+        .filter { (includeCompleted || it.isCompleted != true) && it.scheduledAt != null && scheduledDate(it.scheduledAt) in range.first..range.second }
+        .sortedBy { it.scheduledAt }
+        .take(MAX_ROWS)
+
+    internal fun nextLocalDayBoundary(now: ZonedDateTime = ZonedDateTime.now()): Instant =
+        now.toLocalDate().plusDays(1).atStartOfDay(now.zone).toInstant()
+
+    private fun scheduleNextDayRefresh(context: Context) {
+        val alarmManager = context.getSystemService(AlarmManager::class.java)
+        alarmManager.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, nextLocalDayBoundary().toEpochMilli(), dayRefreshIntent(context))
+    }
+
+    private fun cancelDayRefresh(context: Context) {
+        context.getSystemService(AlarmManager::class.java).cancel(dayRefreshIntent(context))
+    }
+
+    private fun dayRefreshIntent(context: Context): PendingIntent = PendingIntent.getBroadcast(
+        context,
+        DAY_REFRESH_REQUEST_CODE,
+        Intent(context, WidgetDayChangeReceiver::class.java).setAction(WidgetDayChangeReceiver.ACTION_REFRESH_FOR_NEW_DAY),
+        PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+    )
 
     private fun scheduledDate(value: String): LocalDate = Instant.parse(value).atZone(ZoneId.systemDefault()).toLocalDate()
     private fun formatTime(value: String): String = Instant.parse(value).atZone(ZoneId.systemDefault()).format(DateTimeFormatter.ofPattern("HH:mm"))

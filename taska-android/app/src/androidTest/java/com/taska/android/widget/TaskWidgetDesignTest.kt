@@ -44,6 +44,15 @@ class TaskWidgetDesignTest {
         )
     }
 
+    @Test fun `today widget reuses the widget card and completed control assets`() {
+        val root = LayoutInflater.from(context).inflate(R.layout.task_widget, null)
+
+        assertNotNull(root.background as GradientDrawable)
+        assertNotNull(context.getDrawable(R.drawable.widget_completion_checked))
+        assertNotNull(context.getDrawable(R.drawable.widget_completion_empty))
+        assertTrue(root.findViewById<View>(R.id.widget_check_0) is ImageView)
+    }
+
     @Test fun `widget color resources adapt between light and dark system themes`() {
         val light = themedContext(Configuration.UI_MODE_NIGHT_NO)
         val dark = themedContext(Configuration.UI_MODE_NIGHT_YES)

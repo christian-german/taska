@@ -160,6 +160,23 @@ class TaskServiceQueryTest {
         verify(taskMapper, never()).toOccurrenceDto(any(), any(), any());
     }
 
+    @Test
+    void findOccurrencesForDateRange_withCompletedTasksUsesCompletedInclusiveQuery() {
+        Task task = buildNonRecurringTask();
+        task.setIsCompleted(true);
+        TaskDto dto = stubDto(task.getId());
+
+        when(taskRepository.findNonRecurringTasksIncludingCompletedInPeriod(START, END)).thenReturn(List.of(task));
+        givenNoRecurringTasks(START, END);
+        when(taskMapper.toDto(task)).thenReturn(dto);
+
+        List<TaskDto> result = service.findOccurrencesForDateRange(DATE, DATE, true);
+
+        assertThat(result).containsExactly(dto);
+        verify(taskRepository).findNonRecurringTasksIncludingCompletedInPeriod(START, END);
+        verify(taskRepository, never()).findNonRecurringTasksInPeriod(START, END);
+    }
+
     // ── 2.2 ──────────────────────────────────────────────────────────────────
 
     @Test

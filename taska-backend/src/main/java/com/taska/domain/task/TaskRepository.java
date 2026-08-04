@@ -137,6 +137,18 @@ public interface TaskRepository extends JpaRepository<Task, UUID> {
     List<Task> findNonRecurringTasksInPeriod(@Param("start") Instant start, @Param("end") Instant end);
 
     /**
+     * Returns all non-recurring tasks whose scheduled date falls within [start, end),
+     * including completed tasks. Used by date-range views that explicitly request them.
+     */
+    @Query("""
+            SELECT t FROM Task t
+            WHERE t.scheduledAt >= :start AND t.scheduledAt < :end
+            AND t.isRecurring = false
+            ORDER BY t.scheduledAt ASC
+            """)
+    List<Task> findNonRecurringTasksIncludingCompletedInPeriod(@Param("start") Instant start, @Param("end") Instant end);
+
+    /**
      * Returns all recurring tasks whose series overlaps the given period.
      * A task is included when its first due date is before the period end and its
      * {@code rruleEndsAt} (if set) has not yet passed the period start.

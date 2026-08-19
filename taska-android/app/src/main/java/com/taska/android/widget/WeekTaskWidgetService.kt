@@ -73,6 +73,12 @@ class WeekTaskWidgetService : RemoteViewsService() {
             }
             is WeekWidgetItem.Task -> RemoteViews(context.packageName, R.layout.week_widget_task_row).apply {
                 setTextViewText(R.id.widget_task_text, WeekWidgetItems.taskText(item.task))
+                val appointment = isAppointmentIndicatorVisible(item.task.type)
+                setViewVisibility(R.id.widget_task_appointment, if (appointment) View.VISIBLE else View.GONE)
+                setContentDescription(
+                    R.id.widget_task_appointment,
+                    if (appointment) context.getString(R.string.widget_appointment) else null,
+                )
                 val completion = Intent().apply {
                     action = TaskWidgetCompletionReceiver.ACTION_COMPLETE
                     putExtra(TaskWidgetCompletionReceiver.EXTRA_TASK_ID, item.task.id)

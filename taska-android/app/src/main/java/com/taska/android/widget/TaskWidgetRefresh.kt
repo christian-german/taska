@@ -77,25 +77,58 @@ object TaskWidgetRefresh {
                 range,
                 includeCompleted = type.includeCompleted,
             )
-            widgetIds.forEach { manager.updateAppWidget(it, render(context, type, tasks, range, null)) }
+            widgetIds.forEach { widgetId ->
+                manager.updateAppWidget(widgetId, render(context, type, widgetId, tasks, range, null))
+                if (type == WidgetType.WEEK) manager.notifyAppWidgetViewDataChanged(widgetId, R.id.widget_week_list)
+            }
         } catch (_: Exception) {
-            widgetIds.forEach { manager.updateAppWidget(it, render(context, type, emptyList(), range, "Unable to refresh tasks")) }
+            widgetIds.forEach { widgetId ->
+                manager.updateAppWidget(widgetId, render(context, type, widgetId, emptyList(), range, "Unable to refresh tasks"))
+                if (type == WidgetType.WEEK) manager.notifyAppWidgetViewDataChanged(widgetId, R.id.widget_week_list)
+            }
         }
     }
 
     private fun render(
         context: Context,
         type: WidgetType,
+        widgetId: Int,
         tasks: List<TaskDto>,
         range: Pair<LocalDate, LocalDate>,
         error: String?,
-    ): RemoteViews = RemoteViews(context.packageName, R.layout.task_widget).apply {
+    ): RemoteViews = if (type == WidgetType.WEEK) renderWeek(context, widgetId, tasks, range, error) else RemoteViews(context.packageName, R.layout.task_widget).apply {
         setTextViewText(R.id.widget_title, titleFor(type, range))
         setTextViewText(R.id.widget_status, error ?: taskStatus(tasks))
         rowIds.indices.forEach { index ->
             val task = tasks.getOrNull(index)
             setViewVisibility(rowIds[index], if (task == null) View.GONE else View.VISIBLE)
             if (task != null) bindTask(context, index, task, type.includeCompleted)
+        }
+    }
+
+    private fun renderWeek(
+        context: Context,
+        widgetId: Int,
+        tasks: List<TaskDto>,
+        range: Pair<LocalDate, LocalDate>,
+        error: String?,
+    ): RemoteViews {
+        WeekWidgetDataStore.save(context, widgetId, tasks)
+        val serviceIntent = Intent(context, WeekTaskWidgetService::class.java).apply {
+            putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, widgetId)
+            data = android.net.Uri.parse("taska://widget/week/$widgetId")
+        }
+        val actionTemplate = Intent(context, TaskWidgetCompletionReceiver::class.java).apply {
+            data = android.net.Uri.parse("taska://widget/week/action/$widgetId")
+        }
+        return RemoteViews(context.packageName, R.layout.week_task_widget).apply {
+            setTextViewText(R.id.widget_title, titleFor(WidgetType.WEEK, range))
+            setTextViewText(R.id.widget_status, error ?: taskStatus(tasks))
+            setRemoteAdapter(R.id.widget_week_list, serviceIntent)
+            setPendingIntentTemplate(
+                R.id.widget_week_list,
+                PendingIntent.getBroadcast(context, widgetId, actionTemplate, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_MUTABLE),
+            )
         }
     }
 
@@ -150,10 +183,12 @@ object TaskWidgetRefresh {
         tasks: List<TaskDto>,
         range: Pair<LocalDate, LocalDate>,
         includeCompleted: Boolean = false,
-    ): List<TaskDto> = tasks
+    ): List<TaskDto> {
+        val filtered = tasks
         .filter { (includeCompleted || it.isCompleted != true) && it.scheduledAt != null && scheduledDate(it.scheduledAt) in range.first..range.second }
         .sortedBy { it.scheduledAt }
-        .take(MAX_ROWS)
+        return if (includeCompleted) filtered.take(MAX_ROWS) else filtered
+    }
 
     internal fun nextLocalDayBoundary(now: ZonedDateTime = ZonedDateTime.now()): Instant =
         now.toLocalDate().plusDays(1).atStartOfDay(now.zone).toInstant()

@@ -25,7 +25,8 @@ class TaskWidgetRefreshTest {
                 task("completed", "2026-08-05T09:00:00Z", completed = true),
                 task("outside", "2026-08-10T09:00:00Z")
             ),
-            week
+            week,
+            today = LocalDate.of(2026, 8, 3),
         )
         assertEquals(listOf("scheduled"), result.map { it.id })
     }
@@ -47,6 +48,7 @@ class TaskWidgetRefreshTest {
                 task("unscheduled", null),
             ),
             today,
+            today = today.first,
             includeCompleted = true,
         )
 
@@ -67,14 +69,61 @@ class TaskWidgetRefreshTest {
         val range = LocalDate.of(2026, 8, 3) to LocalDate.of(2026, 8, 9)
         val tasks = (0..9).map { task("task-$it", "2026-08-05T${it.toString().padStart(2, '0')}:00:00Z") }
 
-        assertEquals(10, TaskWidgetRefresh.filterScheduledTasks(tasks, range).size)
-        assertEquals(8, TaskWidgetRefresh.filterScheduledTasks(tasks, range, includeCompleted = true).size)
+        assertEquals(10, TaskWidgetRefresh.filterScheduledTasks(tasks, range, today = range.first).size)
+        assertEquals(8, TaskWidgetRefresh.filterScheduledTasks(tasks, range, today = range.first, includeCompleted = true).size)
     }
 
-    private fun task(id: String, scheduledAt: String?, completed: Boolean = false) = TaskDto(
+    @Test fun `overdue tasks are incomplete deduplicated and ordered before today`() {
+        val today = LocalDate.of(2026, 8, 5)
+        val occurrence = task("recurring", "2026-08-03T09:00:00Z", occurrence = "2026-08-03T09:00:00Z")
+        val result = TaskWidgetRefresh.filterScheduledTasks(
+            listOf(
+                task("today", "2026-08-05T08:00:00Z"),
+                task("older", "2026-08-01T10:00:00Z"),
+                task("historical-completed", "2026-08-02T10:00:00Z", completed = true),
+                task("deadline-only", null),
+                occurrence,
+                occurrence,
+            ),
+            today to today,
+            today = today,
+            includeCompleted = true,
+            zone = ZoneId.of("UTC"),
+        )
+
+        assertEquals(listOf("older", "recurring", "today"), result.map { it.id })
+    }
+
+    @Test fun `local date determines whether a task is overdue`() {
+        val today = LocalDate.of(2026, 8, 5)
+        val result = TaskWidgetRefresh.filterScheduledTasks(
+            listOf(task("local-today", "2026-08-04T22:30:00Z")),
+            today to today,
+            today = today,
+            zone = ZoneId.of("Europe/Paris"),
+        )
+
+        assertEquals(listOf("local-today"), result.map { it.id })
+    }
+
+    @Test fun `today capacity is selected from overdue first order`() {
+        val today = LocalDate.of(2026, 8, 5)
+        val overdue = (1..8).map { day -> task("overdue-$day", "2026-07-${day.toString().padStart(2, '0')}T09:00:00Z") }
+        val result = TaskWidgetRefresh.filterScheduledTasks(
+            overdue + task("today", "2026-08-05T09:00:00Z"),
+            today to today,
+            today = today,
+            includeCompleted = true,
+            zone = ZoneId.of("UTC"),
+        )
+
+        assertEquals(overdue.map { it.id }, result.map { it.id })
+    }
+
+    private fun task(id: String, scheduledAt: String?, completed: Boolean = false, occurrence: String? = null) = TaskDto(
         id = id, content = id, description = null, projectId = null, sectionId = null,
         parentId = null, order = 0, priority = null, labels = emptyList(), isCompleted = completed,
         scheduledAt = scheduledAt, estimateMinutes = null, isRecurring = false,
-        createdAt = null, updatedAt = null, completedAt = null
+        createdAt = null, updatedAt = null, completedAt = null, occurrenceScheduledAt = occurrence,
     )
 }

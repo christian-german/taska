@@ -66,15 +66,23 @@ object TaskWidgetRefresh {
         widgetIds: IntArray,
     ) {
         val range = if (type == WidgetType.WEEK) currentWeek() else currentDay()
+        val today = LocalDate.now()
         try {
             RetrofitClient.init(context)
-            val tasks = filterScheduledTasks(
-                TaskRepository().getTasks(
+            val repository = TaskRepository()
+            val overdueTasks = repository.getTasks(
+                showCompleted = false,
+                to = today.minusDays(1).toString(),
+            )
+            val currentTasks = repository.getTasks(
                     showCompleted = type.includeCompleted,
                     from = range.first.toString(),
                     to = range.second.toString(),
-                ),
+                )
+            val tasks = filterScheduledTasks(
+                overdueTasks + currentTasks,
                 range,
+                today,
                 includeCompleted = type.includeCompleted,
             )
             widgetIds.forEach { widgetId ->
@@ -182,11 +190,19 @@ object TaskWidgetRefresh {
     internal fun filterScheduledTasks(
         tasks: List<TaskDto>,
         range: Pair<LocalDate, LocalDate>,
+        today: LocalDate = LocalDate.now(),
         includeCompleted: Boolean = false,
+        zone: ZoneId = ZoneId.systemDefault(),
     ): List<TaskDto> {
         val filtered = tasks
-        .filter { (includeCompleted || it.isCompleted != true) && it.scheduledAt != null && scheduledDate(it.scheduledAt) in range.first..range.second }
-        .sortedBy { it.scheduledAt }
+            .distinctBy { it.id to it.occurrenceScheduledAt }
+            .filter { task ->
+                val date = task.scheduledAt?.let { scheduledDate(it, zone) } ?: return@filter false
+                val overdue = date < today && task.isCompleted != true
+                val inRange = date in range.first..range.second && (includeCompleted || task.isCompleted != true)
+                overdue || inRange
+            }
+            .sortedWith(compareBy<TaskDto>({ scheduledDate(it.scheduledAt!!, zone) >= today }, { it.scheduledAt }))
         return if (includeCompleted) filtered.take(MAX_ROWS) else filtered
     }
 
@@ -209,6 +225,6 @@ object TaskWidgetRefresh {
         PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
     )
 
-    private fun scheduledDate(value: String): LocalDate = Instant.parse(value).atZone(ZoneId.systemDefault()).toLocalDate()
+    private fun scheduledDate(value: String, zone: ZoneId = ZoneId.systemDefault()): LocalDate = Instant.parse(value).atZone(zone).toLocalDate()
     private fun formatTime(value: String): String = Instant.parse(value).atZone(ZoneId.systemDefault()).format(DateTimeFormatter.ofPattern("HH:mm"))
 }

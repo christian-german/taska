@@ -18,17 +18,26 @@ import java.time.format.FormatStyle
 import java.util.Locale
 
 internal sealed interface WeekWidgetItem {
+    data object OverdueHeader : WeekWidgetItem
     data class DateHeader(val date: LocalDate) : WeekWidgetItem
     data class Task(val task: TaskDto) : WeekWidgetItem
 }
 
 internal object WeekWidgetItems {
-    fun build(tasks: List<TaskDto>, zone: ZoneId = ZoneId.systemDefault()): List<WeekWidgetItem> {
+    fun build(
+        tasks: List<TaskDto>,
+        zone: ZoneId = ZoneId.systemDefault(),
+        today: LocalDate = LocalDate.now(zone),
+    ): List<WeekWidgetItem> {
         var previousDate: LocalDate? = null
         return buildList {
             tasks.sortedBy { it.scheduledAt }.forEach { task ->
                 val date = Instant.parse(task.scheduledAt!!).atZone(zone).toLocalDate()
-                if (date != previousDate) add(WeekWidgetItem.DateHeader(date))
+                if (date < today) {
+                    if (none { it is WeekWidgetItem.OverdueHeader }) add(WeekWidgetItem.OverdueHeader)
+                } else if (date != previousDate) {
+                    add(WeekWidgetItem.DateHeader(date))
+                }
                 add(WeekWidgetItem.Task(task))
                 previousDate = date
             }
@@ -68,6 +77,9 @@ class WeekTaskWidgetService : RemoteViewsService() {
         override fun onDestroy() = Unit
         override fun getCount() = items.size
         override fun getViewAt(position: Int): RemoteViews = when (val item = items[position]) {
+            WeekWidgetItem.OverdueHeader -> RemoteViews(context.packageName, R.layout.week_widget_date_header).apply {
+                setTextViewText(R.id.widget_date_header, context.getString(R.string.widget_overdue_header))
+            }
             is WeekWidgetItem.DateHeader -> RemoteViews(context.packageName, R.layout.week_widget_date_header).apply {
                 setTextViewText(R.id.widget_date_header, WeekWidgetItems.header(item.date))
             }

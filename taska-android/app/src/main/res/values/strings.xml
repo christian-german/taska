@@ -4,4 +4,5 @@
     <string name="app_name">Taska</string>
     <string name="task_widget_name">Taska week</string>
     <string name="today_task_widget_name">Taska today</string>
+    <string name="widget_overdue_header">Overdue</string>
 </resources>

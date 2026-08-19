@@ -15,6 +15,7 @@ class WeekWidgetItemsTest {
         val items = WeekWidgetItems.build(
             listOf(task("late", "2026-06-18T16:00:00Z"), task("early", "2026-06-17T10:00:00Z"), task("same-day", "2026-06-17T15:00:00Z")),
             utc,
+            LocalDate.of(2026, 6, 17),
         )
 
         assertEquals(
@@ -26,9 +27,40 @@ class WeekWidgetItemsTest {
     @Test fun `grouping uses the supplied device time zone at a date boundary`() {
         val task = task("boundary", "2026-06-17T23:30:00Z")
 
-        val header = WeekWidgetItems.build(listOf(task), ZoneId.of("Europe/Paris")).first() as WeekWidgetItem.DateHeader
+        val header = WeekWidgetItems.build(listOf(task), ZoneId.of("Europe/Paris"), LocalDate.of(2026, 6, 18)).first() as WeekWidgetItem.DateHeader
 
         assertEquals(LocalDate.of(2026, 6, 18), header.date)
+    }
+
+    @Test fun `overdue tasks use one leading header without original date headers`() {
+        val items = WeekWidgetItems.build(
+            listOf(
+                task("today", "2026-06-17T09:00:00Z"),
+                task("oldest", "2026-06-14T09:00:00Z"),
+                task("older", "2026-06-16T09:00:00Z"),
+            ),
+            utc,
+            LocalDate.of(2026, 6, 17),
+        )
+
+        assertEquals(
+            listOf("Overdue", "oldest", "older", "2026-06-17", "today"),
+            items.map {
+                when (it) {
+                    WeekWidgetItem.OverdueHeader -> "Overdue"
+                    is WeekWidgetItem.DateHeader -> it.date.toString()
+                    is WeekWidgetItem.Task -> it.task.id
+                }
+            },
+        )
+    }
+
+    @Test fun `no overdue header is emitted when all tasks are current`() {
+        val items = WeekWidgetItems.build(
+            listOf(task("today", "2026-06-17T09:00:00Z")), utc, LocalDate.of(2026, 6, 17),
+        )
+
+        assertFalse(items.any { it is WeekWidgetItem.OverdueHeader })
     }
 
     @Test fun `header is localized and task rows contain time and title only`() {

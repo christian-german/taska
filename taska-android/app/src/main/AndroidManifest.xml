@@ -103,6 +103,11 @@
             </intent-filter>
         </service>
 
+        <service
+                android:name=".widget.WeekTaskWidgetService"
+                android:exported="false"
+                android:permission="android.permission.BIND_REMOTEVIEWS"/>
+
         <receiver
                 android:name=".SnoozeReceiver"
                 android:exported="false"/>

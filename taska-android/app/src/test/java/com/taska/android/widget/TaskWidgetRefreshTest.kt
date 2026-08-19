@@ -63,6 +63,14 @@ class TaskWidgetRefreshTest {
         )
     }
 
+    @Test fun `week retains more than eight tasks while today keeps its capacity`() {
+        val range = LocalDate.of(2026, 8, 3) to LocalDate.of(2026, 8, 9)
+        val tasks = (0..9).map { task("task-$it", "2026-08-05T${it.toString().padStart(2, '0')}:00:00Z") }
+
+        assertEquals(10, TaskWidgetRefresh.filterScheduledTasks(tasks, range).size)
+        assertEquals(8, TaskWidgetRefresh.filterScheduledTasks(tasks, range, includeCompleted = true).size)
+    }
+
     private fun task(id: String, scheduledAt: String?, completed: Boolean = false) = TaskDto(
         id = id, content = id, description = null, projectId = null, sectionId = null,
         parentId = null, order = 0, priority = null, labels = emptyList(), isCompleted = completed,

@@ -30,6 +30,7 @@ object TaskWidgetRefresh {
     private val rowIds = intArrayOf(R.id.widget_row_0, R.id.widget_row_1, R.id.widget_row_2, R.id.widget_row_3, R.id.widget_row_4, R.id.widget_row_5, R.id.widget_row_6, R.id.widget_row_7)
     private val checkIds = intArrayOf(R.id.widget_check_0, R.id.widget_check_1, R.id.widget_check_2, R.id.widget_check_3, R.id.widget_check_4, R.id.widget_check_5, R.id.widget_check_6, R.id.widget_check_7)
     private val taskIds = intArrayOf(R.id.widget_task_0, R.id.widget_task_1, R.id.widget_task_2, R.id.widget_task_3, R.id.widget_task_4, R.id.widget_task_5, R.id.widget_task_6, R.id.widget_task_7)
+    private val appointmentIds = intArrayOf(R.id.widget_appointment_0, R.id.widget_appointment_1, R.id.widget_appointment_2, R.id.widget_appointment_3, R.id.widget_appointment_4, R.id.widget_appointment_5, R.id.widget_appointment_6, R.id.widget_appointment_7)
 
     private enum class WidgetType(
         val provider: Class<*>,
@@ -149,6 +150,7 @@ object TaskWidgetRefresh {
         val completed = canShowCompleted && task.isCompleted == true
         setImageViewResource(checkIds[index], if (completed) R.drawable.widget_completion_checked else R.drawable.widget_completion_empty)
         setInt(taskIds[index], "setPaintFlags", if (completed) Paint.ANTI_ALIAS_FLAG or Paint.STRIKE_THRU_TEXT_FLAG else Paint.ANTI_ALIAS_FLAG)
+        bindAppointmentIndicator(context, appointmentIds[index], task.type)
 
         val action = if (completed) TaskWidgetCompletionReceiver.ACTION_REOPEN else TaskWidgetCompletionReceiver.ACTION_COMPLETE
         val completion = Intent(context, TaskWidgetCompletionReceiver::class.java).apply {
@@ -170,6 +172,12 @@ object TaskWidgetRefresh {
         val pendingOpen = PendingIntent.getActivity(context, index, open, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
         setOnClickPendingIntent(rowIds[index], pendingOpen)
         setOnClickPendingIntent(taskIds[index], pendingOpen)
+    }
+
+    private fun RemoteViews.bindAppointmentIndicator(context: Context, viewId: Int, type: String?) {
+        val visible = isAppointmentIndicatorVisible(type)
+        setViewVisibility(viewId, if (visible) View.VISIBLE else View.GONE)
+        setContentDescription(viewId, if (visible) context.getString(R.string.widget_appointment) else null)
     }
 
     internal fun currentDay(today: LocalDate = LocalDate.now()): Pair<LocalDate, LocalDate> = today to today
@@ -212,3 +220,5 @@ object TaskWidgetRefresh {
     private fun scheduledDate(value: String): LocalDate = Instant.parse(value).atZone(ZoneId.systemDefault()).toLocalDate()
     private fun formatTime(value: String): String = Instant.parse(value).atZone(ZoneId.systemDefault()).format(DateTimeFormatter.ofPattern("HH:mm"))
 }
+
+internal fun isAppointmentIndicatorVisible(type: String?): Boolean = type == "APPOINTMENT"

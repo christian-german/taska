@@ -4,4 +4,5 @@
     <dimen name="widget_card_padding">12dp</dimen>
     <dimen name="widget_row_min_height">44dp</dimen>
     <dimen name="widget_completion_size">24dp</dimen>
+    <dimen name="widget_appointment_size">14dp</dimen>
 </resources>

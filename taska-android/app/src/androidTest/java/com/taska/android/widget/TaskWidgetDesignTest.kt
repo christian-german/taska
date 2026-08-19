@@ -62,7 +62,19 @@ class TaskWidgetDesignTest {
         assertTrue(root.findViewById<View>(R.id.widget_week_list) is ListView)
         assertEquals(android.view.Gravity.CENTER, header.gravity)
         assertTrue(taskRow.findViewById<View>(R.id.widget_task_check) is ImageView)
+        assertTrue(taskRow.findViewById<View>(R.id.widget_task_appointment) is ImageView)
+        assertEquals(View.GONE, taskRow.findViewById<View>(R.id.widget_task_appointment).visibility)
         assertEquals(2, taskRow.findViewById<TextView>(R.id.widget_task_text).maxLines)
+    }
+
+    @Test fun `today rows provide hidden outlined appointment indicators`() {
+        val root = LayoutInflater.from(context).inflate(R.layout.task_widget, null)
+        val indicator = root.findViewById<ImageView>(R.id.widget_appointment_0)
+
+        assertEquals(View.GONE, indicator.visibility)
+        assertNotNull(indicator.drawable)
+        assertEquals(14f * context.resources.displayMetrics.density, indicator.layoutParams.width.toFloat(), 0.01f)
+        assertEquals("Appointment", context.getString(R.string.widget_appointment))
     }
 
     @Test fun `widget color resources adapt between light and dark system themes`() {

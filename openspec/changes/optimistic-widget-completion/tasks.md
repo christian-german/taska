@@ -13,4 +13,4 @@
 
 - [x] 3.1 Add focused calendar-week widget tests proving immediate checked feedback, successful refresh reconciliation, failed-request rollback, and precise recurring-occurrence targeting.
 - [x] 3.2 Add focused Today-widget tests proving the same incomplete-task completion behavior and unchanged completed-task reopen behavior.
-- [ ] 3.3 Run focused Android widget tests, Android development build/static checks, and strict OpenSpec validation.
+- [x] 3.3 Run focused Android widget tests, Android development build/static checks, and strict OpenSpec validation.

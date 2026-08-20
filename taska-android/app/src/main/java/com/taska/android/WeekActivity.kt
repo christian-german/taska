@@ -20,6 +20,7 @@ import com.taska.android.ui.addtask.AddTaskViewModel
 import com.taska.android.ui.drawer.WithDrawer
 import com.taska.android.ui.shared.BottomNavBar
 import com.taska.android.ui.shared.NavDestination
+import com.taska.android.ui.shared.handleCalendarTaskCreated
 import com.taska.android.ui.theme.TaskaTheme
 import com.taska.android.ui.week.WeekScreen
 import com.taska.android.ui.week.WeekViewModel
@@ -93,7 +94,12 @@ class WeekActivity : ComponentActivity() {
                     AddTaskBottomSheet(
                         viewModel = addTaskViewModel,
                         onDismiss = { showAddTask = false },
-                        onTaskCreated = { showAddTask = false }
+                        onTaskCreated = {
+                            handleCalendarTaskCreated(
+                                dismissTaskCreation = { showAddTask = false },
+                                refreshCalendar = weekViewModel::load,
+                            )
+                        }
                     )
                 }
             }

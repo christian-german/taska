@@ -21,6 +21,7 @@ import com.taska.android.ui.day.DayViewModel
 import com.taska.android.ui.drawer.WithDrawer
 import com.taska.android.ui.shared.BottomNavBar
 import com.taska.android.ui.shared.NavDestination
+import com.taska.android.ui.shared.handleCalendarTaskCreated
 import com.taska.android.ui.theme.TaskaTheme
 
 class DayActivity : ComponentActivity() {
@@ -80,7 +81,12 @@ class DayActivity : ComponentActivity() {
                     AddTaskBottomSheet(
                         viewModel = addTaskViewModel,
                         onDismiss = { showAddTask = false },
-                        onTaskCreated = { showAddTask = false }
+                        onTaskCreated = {
+                            handleCalendarTaskCreated(
+                                dismissTaskCreation = { showAddTask = false },
+                                refreshCalendar = dayViewModel::load,
+                            )
+                        }
                     )
                 }
             }

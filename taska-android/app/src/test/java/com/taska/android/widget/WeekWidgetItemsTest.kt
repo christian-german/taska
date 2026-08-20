@@ -3,6 +3,7 @@ package com.taska.android.widget
 import com.taska.android.data.model.TaskDto
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.time.LocalDate
 import java.time.ZoneId
@@ -71,6 +72,14 @@ class WeekWidgetItemsTest {
         assertEquals("10:00 AM  meeting", text)
         assertFalse(text.contains("Wed"))
         assertFalse(text.contains("17/06"))
+    }
+
+    @Test fun `only incomplete tasks before the device local date are overdue`() {
+        val today = LocalDate.of(2026, 6, 17)
+
+        assertTrue(task("overdue", "2026-06-16T23:59:00Z").isOverdueWidgetTask(today, utc))
+        assertFalse(task("today", "2026-06-17T00:00:00Z").isOverdueWidgetTask(today, utc))
+        assertFalse(task("completed", "2026-06-16T23:59:00Z").copy(isCompleted = true).isOverdueWidgetTask(today, utc))
     }
 
     private fun task(id: String, scheduledAt: String) = TaskDto(

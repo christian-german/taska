@@ -5,5 +5,6 @@
     <color name="widget_secondary_ink">#FFAAB6C5</color>
     <color name="widget_accent">#FF14B37D</color>
     <color name="widget_accent_ink">#FFB5F1DA</color>
+    <color name="widget_overdue_ink">#FFFF8A80</color>
     <color name="widget_divider">#FF31415D</color>
 </resources>

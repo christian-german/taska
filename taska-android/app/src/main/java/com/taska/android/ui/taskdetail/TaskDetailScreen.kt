@@ -80,6 +80,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
@@ -96,6 +97,7 @@ import com.taska.android.data.model.TaskDto
 import com.taska.android.ui.shared.RecurrenceScopeDialog
 import com.taska.android.ui.theme.frostedChrome
 import com.taska.android.ui.theme.opaqueWorkSurface
+import com.taska.android.ui.shared.TaskCreationFeedback
 import kotlinx.coroutines.delay
 import java.util.Calendar
 import java.util.Locale
@@ -117,6 +119,7 @@ fun TaskDetailScreen(
 ) {
     val state by viewModel.uiState.collectAsState()
     val focusManager = LocalFocusManager.current
+    val context = LocalContext.current
     val task = state.task
 
     var titleEdit by remember(task?.content) { mutableStateOf(task?.content ?: "") }
@@ -170,7 +173,9 @@ fun TaskDetailScreen(
                         activePicker = picker
                     },
                     onToggleSubtask = viewModel::toggleSubtask,
-                    onAddSubtask = viewModel::addSubtask
+                    onAddSubtask = { content ->
+                        viewModel.addSubtask(content) { TaskCreationFeedback.show(context) }
+                    }
                 )
             }
         }

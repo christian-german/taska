@@ -20,10 +20,11 @@ import {AddProjectModalComponent} from './shared/components/add-project-modal/ad
 import {CsvImportModalComponent} from './shared/components/csv-import-modal/csv-import-modal.component';
 import {ConfirmDialogComponent} from './shared/components/confirm-dialog/confirm-dialog.component';
 import {interval} from 'rxjs';
+import {TaskCreatedToastComponent} from './shared/components/task-created-toast/task-created-toast.component';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, IconComponent, SidebarComponent, QuickAddComponent, TaskDetailComponent, CommandPaletteComponent, ShortcutsModalComponent, UpdateDialogComponent, AboutDialogComponent, AddProjectModalComponent, CsvImportModalComponent, ConfirmDialogComponent],
+  imports: [RouterOutlet, IconComponent, SidebarComponent, QuickAddComponent, TaskDetailComponent, CommandPaletteComponent, ShortcutsModalComponent, UpdateDialogComponent, AboutDialogComponent, AddProjectModalComponent, CsvImportModalComponent, ConfirmDialogComponent, TaskCreatedToastComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @if (ui.sidebarOpen()) {
@@ -83,6 +84,7 @@ import {interval} from 'rxjs';
         (confirmed)="deleteProject(project)"
         (cancelled)="projectPendingDeletion.set(null)" />
     }
+    <app-task-created-toast/>
   `,
 })
 export class AppComponent implements OnInit {

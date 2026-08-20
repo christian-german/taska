@@ -6,4 +6,5 @@
     <color name="widget_accent">#FF14B37D</color>
     <color name="widget_accent_ink">#FFB5F1DA</color>
     <color name="widget_divider">#FF31415D</color>
+    <color name="widget_overdue">#FFFFB4AB</color>
 </resources>

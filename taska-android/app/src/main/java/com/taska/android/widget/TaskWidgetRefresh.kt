@@ -154,7 +154,9 @@ object TaskWidgetRefresh {
 
     private fun RemoteViews.bindTask(context: Context, index: Int, task: TaskDto, canShowCompleted: Boolean) {
         val scheduled = task.scheduledAt!!
-        setTextViewText(taskIds[index], "${scheduledDate(scheduled).format(DateTimeFormatter.ofPattern("EEE"))}  ${formatTime(scheduled)}${if (task.allDay) "" else " "}${task.content}")
+        val text = "${scheduledDate(scheduled).format(DateTimeFormatter.ofPattern("EEE"))}  ${formatTime(scheduled)}${if (task.allDay) "" else " "}${task.content}"
+        val style = widgetTaskTextStyle(scheduled, task.isCompleted)
+        setTextViewText(taskIds[index], styledWidgetText(text, style, context.getColor(R.color.widget_overdue)))
         val completed = canShowCompleted && task.isCompleted == true
         setImageViewResource(checkIds[index], if (completed) R.drawable.widget_completion_checked else R.drawable.widget_completion_empty)
         setInt(taskIds[index], "setPaintFlags", if (completed) Paint.ANTI_ALIAS_FLAG or Paint.STRIKE_THRU_TEXT_FLAG else Paint.ANTI_ALIAS_FLAG)

@@ -111,7 +111,7 @@ object TaskWidgetRefresh {
         rowIds.indices.forEach { index ->
             val task = tasks.getOrNull(index)
             setViewVisibility(rowIds[index], if (task == null) View.GONE else View.VISIBLE)
-            if (task != null) bindTask(context, index, task, type.includeCompleted)
+            if (task != null) bindTask(context, widgetId, index, task, type.includeCompleted)
         }
     }
 
@@ -152,7 +152,7 @@ object TaskWidgetRefresh {
         else -> "${tasks.size} scheduled tasks"
     }
 
-    private fun RemoteViews.bindTask(context: Context, index: Int, task: TaskDto, canShowCompleted: Boolean) {
+    private fun RemoteViews.bindTask(context: Context, widgetId: Int, index: Int, task: TaskDto, canShowCompleted: Boolean) {
         val scheduled = task.scheduledAt!!
         val text = "${scheduledDate(scheduled).format(DateTimeFormatter.ofPattern("EEE"))}  ${formatTime(scheduled)}${if (task.allDay) "" else " "}${task.content}"
         if (task.isOverdueWidgetTask()) setOverdueText(context, taskIds[index], text) else setTextViewText(taskIds[index], text)
@@ -166,6 +166,9 @@ object TaskWidgetRefresh {
             this.action = action
             putExtra(TaskWidgetCompletionReceiver.EXTRA_TASK_ID, task.id)
             putExtra(TaskWidgetCompletionReceiver.EXTRA_OCCURRENCE, task.occurrenceScheduledAt)
+            putExtra(TaskWidgetCompletionReceiver.EXTRA_WIDGET_ID, widgetId)
+            putExtra(TaskWidgetCompletionReceiver.EXTRA_WIDGET_TYPE, TaskWidgetCompletionReceiver.WIDGET_TYPE_TODAY)
+            putExtra(TaskWidgetCompletionReceiver.EXTRA_CONTROL_ID, checkIds[index])
             data = android.net.Uri.parse("taska://widget/${if (completed) "reopen" else "complete"}/${task.id}/${task.occurrenceScheduledAt ?: "single"}")
         }
         setOnClickPendingIntent(

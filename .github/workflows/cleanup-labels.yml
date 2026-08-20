@@ -33,5 +33,5 @@ jobs:
           for issue in $issues; do
             gh issue edit "$issue" \
               --repo "$GH_REPO" \
-              --remove-label "codex:implementation-review"
+              --remove-label "implementation-review"
           done

@@ -97,6 +97,24 @@ If a product decision is still required:
 
 During implementation, continue unrelated work only when it cannot prejudice the unresolved decision.
 
+## Branch strategy
+
+Each GitHub issue uses a single branch for its complete lifecycle.
+
+When starting specification work:
+
+- create one dedicated issue branch if one does not already exist
+- use `feat/<short-name>` for features and improvements
+- use `fix/<short-name>` for bug fixes
+- create the OpenSpec change and pull request on that branch
+
+When implementing the approved OpenSpec change:
+
+- reuse the existing issue branch and pull request
+- do not create an implementation branch
+- commit implementation changes on the same branch
+- push updates to the existing pull request
+
 ## Workflow labels
 
 - `spec-review`: specification ready for human review

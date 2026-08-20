@@ -74,6 +74,7 @@ function todayIso(): string {
           </div>
           @if (selectedTime()) {
             <button class="btn btn-ghost" style="font-size:11px;padding:2px 8px;"
+                    aria-label="Effacer uniquement l'heure planifiée"
                     (click)="clearTime()">effacer</button>
           }
         </div>

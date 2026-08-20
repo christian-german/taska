@@ -24,7 +24,7 @@ import java.util.Calendar
 import java.util.Locale
 import java.util.TimeZone
 
-data class PendingReschedule(val millis: Long, val timeMinutes: Int?)
+data class PendingReschedule(val millis: Long?, val timeMinutes: Int?)
 
 data class TaskDetailUiState(
     val task: TaskDto? = null,
@@ -151,7 +151,11 @@ class TaskDetailViewModel(
     fun confirmReschedule(scope: RecurrenceScope?) {
         val pending = _uiState.value.pendingReschedule ?: return
         _uiState.update { it.copy(pendingReschedule = null) }
-        doReschedule(pending.millis, pending.timeMinutes, scope)
+        if (pending.millis == null) {
+            doClearSchedule(scope)
+        } else {
+            doReschedule(pending.millis, pending.timeMinutes, scope)
+        }
     }
 
     fun dismissRescheduleScope() {
@@ -162,6 +166,7 @@ class TaskDetailViewModel(
         val task = _uiState.value.task ?: return
         val request = TaskRequest(
             content = task.content,
+            type = task.type,
             description = task.description,
             projectId = task.projectId,
             priority = task.priority,
@@ -184,7 +189,40 @@ class TaskDetailViewModel(
         }
     }
 
-    fun clearDue() = applyUpdate { copy(scheduledAt = null, allDay = null) }
+    fun clearDue() {
+        val task = _uiState.value.task ?: return
+        if (task.isRecurring == true && instanceOccurrenceScheduledAt != null) {
+            _uiState.update { it.copy(pendingReschedule = PendingReschedule(null, null)) }
+        } else {
+            doClearSchedule(scope = null)
+        }
+    }
+
+    private fun doClearSchedule(scope: RecurrenceScope?) {
+        val task = _uiState.value.task ?: return
+        val request = TaskRequest(
+            content = task.content,
+            type = task.type,
+            description = task.description,
+            projectId = task.projectId,
+            priority = task.priority,
+            labels = task.labels,
+            scheduledAt = null,
+            dueAt = task.dueAt,
+            allDay = false,
+            estimateMinutes = task.estimateMinutes,
+            isRecurring = task.isRecurring,
+            recurrenceRule = task.recurrenceRule,
+            scope = scope?.name,
+            occurrenceScheduledAt = instanceOccurrenceScheduledAt
+        )
+        viewModelScope.launch {
+            try {
+                val updated = taskRepo.updateTask(taskId, request)
+                _uiState.update { it.copy(task = updated) }
+            } catch (_: Exception) {}
+        }
+    }
 
     fun updateDueAt(millis: Long) = applyUpdate { copy(dueAt = millisToApiDateTime(millis, null)) }
 

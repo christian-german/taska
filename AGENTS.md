@@ -18,18 +18,24 @@ Implementation must follow the approved OpenSpec change.
 ## GitHub integration
 
 The environment provides:
-
 - `GH_TOKEN`
 - `GH_REPO`
 - GitHub CLI (`gh`)
 
 Before publishing Git changes:
-
 - ensure `origin` exists, using `https://github.com/${GH_REPO}.git` if necessary
 - run `gh auth setup-git --force --hostname github.com`
 - never expose or persist `GH_TOKEN`
 - never push directly to the default branch
 - never force-push unless explicitly requested
+
+For an issue that already has an open pull request:
+- that pull request and its `headRefName` are authoritative
+- never derive a new remote branch name from the local Codex branch or workflow phase
+- never use a stacked pull request for specification → implementation transitions
+
+If an expected existing branch or pull request cannot be found, stop with `blocked`.
+Never recover by creating a replacement branch or pull request.
 
 Use `gh` for GitHub operations.
 
@@ -66,16 +72,21 @@ Execute the implementation workflow:
 
 1. Locate and read the approved OpenSpec change.
 2. Treat it as the implementation contract.
-3. Reuse the existing issue branch and pull request. Do not create an implementation branch or a new pull request.
+3. Locate the existing pull request associated with the issue.
+   - reuse its exact `headRefName` as the target GitHub branch
+   - never create another branch
+   - never create another pull request
+   - if the existing pull request cannot be identified unambiguously, apply `blocked` and stop
 4. Implement all required tasks.
 5. Preserve existing behavior unless explicitly changed by the spec.
 6. Add or update automated tests.
 7. Run relevant tests, static checks, and OpenSpec validation.
 8. Mark tasks complete only after implementation and verification.
-9. Commit and push to the existing pull-request branch. Do not create another pull request.
-10. Replace `spec-review` with `implementation-review` to both the issue and pull request.
+9. Commit the implementation and push it to the existing pull request's `headRefName`.
+10. Replace `spec-review` with `implementation-review` on the pull request and issue.
 
-If the approved specification is materially incomplete or contradictory, follow the blocking rules instead.
+Creating a pull request during implementation is forbidden.
+The pull request is created during specification and reused for the entire issue lifecycle.
 
 ### `explore this issue`
 

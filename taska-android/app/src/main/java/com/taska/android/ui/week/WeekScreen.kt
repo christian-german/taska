@@ -83,6 +83,7 @@ private data class BlockDragState(val blockId: String, val mode: DragMode, val d
 fun WeekScreen(
     viewModel: WeekViewModel,
     onTaskClick: (taskId: String, occurrenceScheduledAt: String?) -> Unit,
+    onSearch: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -143,7 +144,8 @@ fun WeekScreen(
             allDayTasksByDay = uiState.allDayTasksByDay,
             projects = uiState.projects,
             todayStr = todayStr,
-            onTaskClick = onTaskClick
+            onTaskClick = onTaskClick,
+            onSearch = onSearch
         )
         HorizontalDivider(color = DividerColor, thickness = 0.5.dp)
 
@@ -209,7 +211,8 @@ private fun WeekHeader(
     allDayTasksByDay: List<List<TaskDto>>,
     projects: Map<String, ProjectDto>,
     todayStr: String,
-    onTaskClick: (taskId: String, occurrenceScheduledAt: String?) -> Unit
+    onTaskClick: (taskId: String, occurrenceScheduledAt: String?) -> Unit,
+    onSearch: () -> Unit
 ) {
     if (weekDays.isEmpty()) {
         Spacer(modifier = Modifier.height(60.dp))
@@ -218,9 +221,10 @@ private fun WeekHeader(
 
     Column(modifier = Modifier.fillMaxWidth()) {
         // Week label
+        Row(verticalAlignment = Alignment.CenterVertically) {
         Text(
             text = buildWeekLabel(weekDays),
-            modifier = Modifier.padding(start = TIME_GUTTER_W + 4.dp, top = 6.dp, bottom = 2.dp),
+            modifier = Modifier.weight(1f).padding(start = TIME_GUTTER_W + 4.dp, top = 6.dp, bottom = 2.dp),
             style = TextStyle(
                 fontFamily = com.taska.android.ui.theme.Archivo,
                 fontStyle = FontStyle.Italic,
@@ -228,6 +232,8 @@ private fun WeekHeader(
                 color = TextPrimary
             )
         )
+        com.taska.android.ui.shared.SearchAction(onSearch)
+        }
 
         // Day name + number row
         Row(modifier = Modifier.fillMaxWidth()) {

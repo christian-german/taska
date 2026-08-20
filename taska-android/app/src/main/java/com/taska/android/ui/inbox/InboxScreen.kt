@@ -57,6 +57,7 @@ private val DefaultLabelColor = Color(0xFFFF8FAD)
 fun InboxScreen(
     viewModel: InboxViewModel,
     onTaskClick: (String) -> Unit = {},
+    onSearch: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -66,7 +67,7 @@ fun InboxScreen(
             .background(MaterialTheme.colorScheme.background)
             .statusBarsPadding()
     ) {
-        InboxHeader(taskCount = uiState.tasks.size)
+        InboxHeader(taskCount = uiState.tasks.size, onSearch = onSearch)
 
         Box(modifier = Modifier.weight(1f)) {
             when {
@@ -100,7 +101,7 @@ fun InboxScreen(
 }
 
 @Composable
-private fun InboxHeader(taskCount: Int) {
+private fun InboxHeader(taskCount: Int, onSearch: () -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -131,6 +132,7 @@ private fun InboxHeader(taskCount: Int) {
             },
             modifier = Modifier.weight(1f)
         )
+        com.taska.android.ui.shared.SearchAction(onSearch)
         IconButton(onClick = {}) {
             Icon(
                 imageVector = Icons.Outlined.FilterList,

@@ -138,6 +138,7 @@ private fun TodayRoot(todayViewModel: TodayViewModel, onNavigate: (NavDestinatio
                     }
                 )
             },
+            onSearch = { startActivity(Intent(context, SearchActivity::class.java)) },
             modifier = Modifier.weight(1f)
         )
         BottomNavBar(

@@ -55,7 +55,8 @@ Execute the specification workflow:
 8. Commit and push specification-only changes.
 9. Create or update the pull request. Name the pull request the same as the branch name.
 10. Ensure the pull request contains `Closes #<issue-number>`.
-11. Apply `spec-review` on the pull request AND the issue.
+11. Apply `spec-review` to both the issue and pull request.
+12. Remove `ready-for-spec` from both if present.
 
 If product behavior is materially ambiguous, follow the blocking rules instead.
 
@@ -72,17 +73,49 @@ Execute the implementation workflow:
 7. Run relevant tests, static checks, and OpenSpec validation.
 8. Mark tasks complete only after implementation and verification.
 9. Commit and push to the existing pull-request branch. Do not create another pull request.
-10. Replace `spec-review` with `implementation-review` on the pull request AND the issue.
+10. Replace `spec-review` with `implementation-review` to both the issue and pull request.
 
 If the approved specification is materially incomplete or contradictory, follow the blocking rules instead.
 
+### `explore this issue`
+
+Use OpenSpec explore mode to investigate the issue before specification.
+
+1. Read the complete issue and comments.
+2. Inspect relevant code, existing specs, and active changes.
+3. Investigate the problem and its current behavior.
+4. Identify constraints, affected areas, plausible approaches, and trade-offs.
+5. Challenge assumptions when the code or existing specs contradict them.
+6. Do not create an OpenSpec change, branch, pull request, or production code.
+7. Post useful findings and concrete unresolved questions on the GitHub issue.
+
+Exploration is conversational. Do not invent product decisions.
+
+If exploration requires human input:
+- post the concrete questions on the issue
+- apply `input-needed`, do not apply `blocked`
+- stop until new information is provided
+
+When exploration is complete and no further human input is required:
+- remove `input-needed` if present
+- apply `ready-for-spec`
+- state the main conclusions and agreed behavior on the issue
+
 ### `continue`
 
-Resume the previously blocked workflow using the latest issue or pull-request comments.
+Resume the currently pending workflow using the latest issue or pull-request comments.
 
-Remove `blocked` on the pull request AND the issue only when the blocking question is resolved.
+Determine the workflow from the current state:
+- `input-needed` → resume exploration
+- `blocked` during specification → resume specification
+- `blocked` during implementation → resume implementation
+
+Remove `blocked` or `input-needed` only when the corresponding question is resolved.
 
 ## Blocking rules
+
+`blocked` is only for unexpected problems during specification or implementation.
+Never use `blocked` during exploration; use `input-needed` instead.
 
 Investigate before asking for clarification.
 
@@ -108,4 +141,6 @@ When a pull request exists, keep the same workflow label on both the issue and t
 
 - `spec-review`: specification ready for human review
 - `implementation-review`: implementation ready for human review
-- `blocked`: human clarification required
+- `blocked`: unexpected issue prevents specification or implementation from proceeding
+- `input-needed`: exploration requires human input before continuing
+- `ready-for-spec`: exploration is complete and the issue is sufficiently defined to prepare a specification

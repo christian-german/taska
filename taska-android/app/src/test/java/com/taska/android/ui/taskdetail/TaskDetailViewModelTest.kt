@@ -43,6 +43,8 @@ class TaskDetailViewModelTest {
         assertEquals(original.dueAt, request.captured.dueAt)
         assertEquals(original.description, request.captured.description)
         assertEquals(updated, viewModel.uiState.value.task)
+        assertNull(viewModel.uiState.value.task?.scheduledAt)
+        assertEquals(original.dueAt, viewModel.uiState.value.task?.dueAt)
     }
 
     @Test

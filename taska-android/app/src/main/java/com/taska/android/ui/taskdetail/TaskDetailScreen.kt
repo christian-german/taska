@@ -100,7 +100,6 @@ import com.taska.android.ui.theme.opaqueWorkSurface
 import com.taska.android.ui.shared.TaskCreationFeedback
 import kotlinx.coroutines.delay
 import java.util.Calendar
-import java.util.Locale
 
 private val AppBackground = Color(0xFFF6F8FA)
 private val TextPrimary = Color(0xFF17233D)
@@ -465,7 +464,7 @@ private fun TaskContent(
             PropertyRow(
                 icon = Icons.Outlined.Schedule,
                 label = "PLANIFIÉ",
-                value = task.scheduledAt?.let { formatDueDate(it, task.allDay) },
+                value = formatScheduledTaskDetailDate(task.scheduledAt, task.allDay),
                 valueColor = if (isOverdue(task.scheduledAt, task.allDay)) OverdueColor else TextPrimary,
                 onClick = { onPropertyClick(ActivePicker.DATE) }
             )
@@ -476,7 +475,7 @@ private fun TaskContent(
             PropertyRow(
                 icon = Icons.Outlined.Event,
                 label = "ÉCHÉANCE",
-                value = task.dueAt?.let { formatDueDate(it, false) },
+                value = task.dueAt?.let { formatTaskDetailDate(it, includeTime = false) },
                 valueColor = task.dueAt?.let { isOverdue(it, false) }?.let { if (it) OverdueColor else TextPrimary } ?: TextSecondary,
                 onClick = { onPropertyClick(ActivePicker.DUE_DATE) }
             )
@@ -1162,46 +1161,6 @@ private fun formatDuration(minutes: Int): String {
         h == 0 -> "${m}min"
         m == 0 -> "${h}h"
         else -> "${h}h${m}"
-    }
-}
-
-private fun formatDueDate(scheduledAt: String, allDay: Boolean): String {
-    return try {
-        val zoned = java.time.Instant.parse(scheduledAt).atZone(java.time.ZoneId.systemDefault())
-        val cal = Calendar.getInstance().apply {
-            set(zoned.year, zoned.monthValue - 1, zoned.dayOfMonth, 0, 0, 0)
-            set(Calendar.MILLISECOND, 0)
-        }
-        fun zeroed(c: Calendar) = (c.clone() as Calendar).apply {
-            set(Calendar.HOUR_OF_DAY, 0); set(Calendar.MINUTE, 0)
-            set(Calendar.SECOND, 0); set(Calendar.MILLISECOND, 0)
-        }
-        fun sameDay(a: Calendar, b: Calendar) =
-            a.get(Calendar.YEAR) == b.get(Calendar.YEAR) &&
-                    a.get(Calendar.DAY_OF_YEAR) == b.get(Calendar.DAY_OF_YEAR)
-
-        val today = zeroed(Calendar.getInstance())
-        val yesterday = zeroed(Calendar.getInstance().apply { add(Calendar.DAY_OF_YEAR, -1) })
-        val tomorrow = zeroed(Calendar.getInstance().apply { add(Calendar.DAY_OF_YEAR, 1) })
-
-        val dayPart = when {
-            sameDay(cal, today) -> "aujourd'hui"
-            sameDay(cal, yesterday) -> "hier"
-            sameDay(cal, tomorrow) -> "demain"
-            else -> {
-                val month = cal.getDisplayName(Calendar.MONTH, Calendar.SHORT, Locale.FRENCH) ?: ""
-                "${zoned.dayOfMonth} $month"
-            }
-        }
-        if (!allDay) {
-            val h = zoned.hour.toString().padStart(2, '0')
-            val m = zoned.minute.toString().padStart(2, '0')
-            "$dayPart · $h:$m"
-        } else {
-            dayPart
-        }
-    } catch (_: Exception) {
-        scheduledAt.substringBefore('T')
     }
 }
 

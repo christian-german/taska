@@ -1,0 +1,59 @@
+name: Notify workflow review
+
+on:
+  issues:
+    types: [labeled]
+  pull_request:
+    types: [labeled]
+
+permissions:
+  issues: write
+  pull-requests: write
+
+jobs:
+  notify:
+    if: >
+      github.event.label.name == 'spec-review' ||
+      github.event.label.name == 'implementation-review' ||
+      github.event.label.name == 'blocked'
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Notify Christian
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          LABEL: ${{ github.event.label.name }}
+          ISSUE_NUMBER: ${{ github.event.issue.number || github.event.pull_request.number }}
+        run: |
+          case "$LABEL" in
+            spec-review)
+              MESSAGE="@christian-german specification ready for review."
+              ;;
+            implementation-review)
+              MESSAGE="@christian-german implementation ready for review."
+              ;;
+            blocked)
+              MESSAGE="@christian-german Codex is blocked and requires clarification."
+              ;;
+            *)
+              exit 0
+              ;;
+          esac
+
+          # Avoid posting the same notification twice on the same issue/PR.
+          EXISTING=$(gh api \
+            "repos/$GH_REPO/issues/$ISSUE_NUMBER/comments" \
+            --paginate \
+            --jq ".[] | select(.user.login == \"github-actions[bot]\") | .body" \
+            | grep -Fx "$MESSAGE" || true)
+
+          if [ -n "$EXISTING" ]; then
+            echo "Notification already present."
+            exit 0
+          fi
+
+          gh issue comment "$ISSUE_NUMBER" \
+            --repo "$GH_REPO" \
+            --body "$MESSAGE"

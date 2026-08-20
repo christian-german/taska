@@ -109,9 +109,3 @@ When a pull request exists, keep the same workflow label on both the issue and t
 - `spec-review`: specification ready for human review
 - `implementation-review`: implementation ready for human review
 - `blocked`: human clarification required
-
-## Notifications
-
-When posting a GitHub comment that requires human review, clarification, or action, mention `@christian-german` explicitly so GitHub sends a notification.
-
-Do not mention the user for routine informational comments that require no action.

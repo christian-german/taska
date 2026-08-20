@@ -41,18 +41,21 @@ Execute the specification workflow:
 
 1. Read the complete issue and comments.
 2. Inspect relevant code, existing specs, and active changes.
-3. Create or update the appropriate OpenSpec change:
+3. Create one dedicated issue branch if one does not already exist
+   - use `feat/<short-name>` for features and improvements
+   - use `fix/<short-name>` for bug fixes
+4. Create or update the appropriate OpenSpec change:
    - proposal
    - spec deltas
    - design when useful
    - implementation tasks
-4. Make requirements explicit, observable, and testable.
-5. Do not modify production code or future implementation tests.
-6. Validate the OpenSpec change.
-7. Commit and push specification-only changes.
-8. Create or update the pull request.
-9. Ensure the pull request contains `Closes #<issue-number>`.
-10. Apply `spec-review`.
+5. Make requirements explicit, observable, and testable.
+6. Do not modify production code or future implementation tests.
+7. Validate the OpenSpec change.
+8. Commit and push specification-only changes.
+9. Create or update the pull request. Name the pull request the same as the branch name.
+10. Ensure the pull request contains `Closes #<issue-number>`.
+11. Apply `spec-review` on the pull request AND the issue.
 
 If product behavior is materially ambiguous, follow the blocking rules instead.
 
@@ -62,14 +65,14 @@ Execute the implementation workflow:
 
 1. Locate and read the approved OpenSpec change.
 2. Treat it as the implementation contract.
-3. Implement all required tasks.
-4. Preserve existing behavior unless explicitly changed by the spec.
-5. Add or update automated tests.
-6. Run relevant tests, static checks, and OpenSpec validation.
-7. Mark tasks complete only after implementation and verification.
-8. Commit and push to the existing pull-request branch.
-9. Do not create another pull request.
-10. Replace `spec-review` with `implementation-review`.
+3. Reuse the existing issue branch and pull request. Do not create an implementation branch or a new pull request.
+4. Implement all required tasks.
+5. Preserve existing behavior unless explicitly changed by the spec.
+6. Add or update automated tests.
+7. Run relevant tests, static checks, and OpenSpec validation.
+8. Mark tasks complete only after implementation and verification.
+9. Commit and push to the existing pull-request branch. Do not create another pull request.
+10. Replace `spec-review` with `implementation-review` on the pull request AND the issue.
 
 If the approved specification is materially incomplete or contradictory, follow the blocking rules instead.
 
@@ -77,7 +80,7 @@ If the approved specification is materially incomplete or contradictory, follow 
 
 Resume the previously blocked workflow using the latest issue or pull-request comments.
 
-Remove `blocked` only when the blocking question is resolved.
+Remove `blocked` on the pull request AND the issue only when the blocking question is resolved.
 
 ## Blocking rules
 
@@ -91,7 +94,7 @@ If a product decision is still required:
 - identify the exact unresolved decision
 - explain its impact
 - ask a concrete, decision-oriented question
-- apply `blocked`
+- apply `blocked` on the pull request AND the issue
 - do not apply a review label
 - stop the affected work
 
@@ -99,6 +102,16 @@ During implementation, continue unrelated work only when it cannot prejudice the
 
 ## Workflow labels
 
+Workflow labels represent the state of the issue.
+
+When a pull request exists, keep the same workflow label on both the issue and the pull request.
+
 - `spec-review`: specification ready for human review
 - `implementation-review`: implementation ready for human review
 - `blocked`: human clarification required
+
+## Notifications
+
+When posting a GitHub comment that requires human review, clarification, or action, mention `@christian-german` explicitly so GitHub sends a notification.
+
+Do not mention the user for routine informational comments that require no action.

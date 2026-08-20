@@ -35,6 +35,7 @@ data class TaskDetailUiState(
     val isLoading: Boolean = false,
     val error: String? = null,
     val timerStarted: Boolean = false,
+    val isCompletionPending: Boolean = false,
     val pendingReschedule: PendingReschedule? = null
 )
 
@@ -244,6 +245,28 @@ class TaskDetailViewModel(
                 taskRepo.deleteTask(taskId)
                 onDeleted()
             } catch (_: Exception) {}
+        }
+    }
+
+    fun toggleCompletion() {
+        val state = _uiState.value
+        val task = state.task ?: return
+        if (state.isCompletionPending) return
+
+        _uiState.update { it.copy(isCompletionPending = true) }
+        viewModelScope.launch {
+            try {
+                val updated = if (task.isCompleted == true) {
+                    taskRepo.reopenTask(taskId, instanceOccurrenceScheduledAt)
+                } else {
+                    taskRepo.closeTask(taskId, instanceOccurrenceScheduledAt)
+                }
+                _uiState.update { it.copy(task = updated) }
+            } catch (_: Exception) {
+                // Keep the last server-confirmed task when the mutation fails.
+            } finally {
+                _uiState.update { it.copy(isCompletionPending = false) }
+            }
         }
     }
 

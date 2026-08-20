@@ -4,6 +4,7 @@ import android.accounts.AccountManager
 import android.content.Context
 import com.taska.android.BuildConfig
 import com.taska.android.auth.AuthConfig
+import com.google.gson.GsonBuilder
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
@@ -61,7 +62,9 @@ object RetrofitClient {
 
         Retrofit.Builder()
             .baseUrl(BuildConfig.API_URL)
-            .addConverterFactory(GsonConverterFactory.create())
+            // Nullable task fields are meaningful update values (for example,
+            // scheduledAt=null unschedules a task), so they must reach the API.
+            .addConverterFactory(GsonConverterFactory.create(GsonBuilder().serializeNulls().create()))
             .client(
                 OkHttpClient.Builder()
                     .addInterceptor(authInterceptor)

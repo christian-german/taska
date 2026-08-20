@@ -329,7 +329,7 @@ fun TaskDetailScreen(
 
     state.pendingReschedule?.let {
         RecurrenceScopeDialog(
-            title = "Modifier l'échéance",
+            title = "Modifier la planification",
             onThisOnly = { viewModel.confirmReschedule(RecurrenceScope.THIS_ONLY) },
             onFromThis = { viewModel.confirmReschedule(RecurrenceScope.FROM_THIS) },
             onDismiss = { viewModel.dismissRescheduleScope() }

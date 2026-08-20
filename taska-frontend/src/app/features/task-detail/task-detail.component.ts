@@ -265,8 +265,7 @@ export class TaskDetailComponent implements OnChanges {
   clearDate(e: Event): void {
     e.stopPropagation();
     this.activeDetailPicker.set(null);
-    this.taskService.updateTask(this.task().id, { scheduledAt: null as any, allDay: false })
-      .subscribe(t => this.taskUpdated.emit({ ...t, scheduledAt: null }));
+    this.save({ scheduledAt: null, allDay: false });
   }
 
   onDueDateChange(value: string): void {

@@ -98,14 +98,15 @@
         <button class="btn btn-ghost"
                 style="width: 100%; display: flex; align-items: center; gap: 8px; padding: 7px 8px; border-radius: 6px; text-align: left;"
                 (click)="openPicker('date', $event)">
-          <app-icon name="calendar" [size]="14" [color]="dueDate() ? 'var(--orange)' : 'var(--mute)'" />
+          <app-icon name="calendar" [size]="14" [color]="scheduledDate() ? 'var(--orange)' : 'var(--mute)'" />
           <span class="mono" style="font-size: 12px; flex: 1;"
-                [style.color]="dueDate() ? 'var(--orange)' : 'var(--mute)'">
+                [style.color]="scheduledDate() ? 'var(--orange)' : 'var(--mute)'">
             {{ dateRowLabel() }}
           </span>
-          @if (dueDate()) {
-            <span style="display: flex; align-items: center; padding: 2px; border-radius: 4px; color: var(--mute);"
-                  (click)="clearDate($event)">
+          @if (scheduledDate()) {
+            <span role="button" tabindex="0" aria-label="Supprimer la date planifiée"
+                  style="display: flex; align-items: center; padding: 2px; border-radius: 4px; color: var(--mute);"
+                  (click)="clearDate($event)" (keydown.enter)="clearDate($event)" (keydown.space)="clearDate($event)">
               <app-icon name="x" [size]="11" />
             </span>
           }

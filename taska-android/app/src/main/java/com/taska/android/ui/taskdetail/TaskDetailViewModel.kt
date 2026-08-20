@@ -223,7 +223,7 @@ class TaskDetailViewModel(
         }
     }
 
-    fun addSubtask(content: String) {
+    fun addSubtask(content: String, onSuccess: () -> Unit = {}) {
         if (content.isBlank()) return
         viewModelScope.launch {
             try {
@@ -236,6 +236,7 @@ class TaskDetailViewModel(
                 )
                 val updated = taskRepo.getSubtasks(taskId)
                 _uiState.update { it.copy(subtasks = updated) }
+                onSuccess()
             } catch (_: Exception) {}
         }
     }

@@ -64,6 +64,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.TextStyle
@@ -75,6 +76,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import com.taska.android.data.model.ProjectDto
 import com.taska.android.ui.theme.frostedChrome
+import com.taska.android.ui.shared.TaskCreationFeedback
 import kotlinx.coroutines.delay
 import java.util.Calendar
 import java.util.Locale
@@ -93,6 +95,7 @@ fun AddTaskBottomSheet(
     onTaskCreated: () -> Unit
 ) {
     val state by viewModel.state.collectAsState()
+    val context = LocalContext.current
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
     var showDateShortcuts by remember { mutableStateOf(false) }
@@ -249,6 +252,7 @@ fun AddTaskBottomSheet(
                 Button(
                     onClick = {
                         viewModel.createTask(onSuccess = {
+                            TaskCreationFeedback.show(context)
                             viewModel.reset()
                             onTaskCreated()
                         })

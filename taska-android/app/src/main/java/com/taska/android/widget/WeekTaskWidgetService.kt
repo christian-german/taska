@@ -78,13 +78,15 @@ class WeekTaskWidgetService : RemoteViewsService() {
         override fun getCount() = items.size
         override fun getViewAt(position: Int): RemoteViews = when (val item = items[position]) {
             WeekWidgetItem.OverdueHeader -> RemoteViews(context.packageName, R.layout.week_widget_date_header).apply {
-                setTextViewText(R.id.widget_date_header, context.getString(R.string.widget_overdue_header))
+                setOverdueText(context, R.id.widget_date_header, context.getString(R.string.widget_overdue_header))
             }
             is WeekWidgetItem.DateHeader -> RemoteViews(context.packageName, R.layout.week_widget_date_header).apply {
                 setTextViewText(R.id.widget_date_header, WeekWidgetItems.header(item.date))
             }
             is WeekWidgetItem.Task -> RemoteViews(context.packageName, R.layout.week_widget_task_row).apply {
-                setTextViewText(R.id.widget_task_text, WeekWidgetItems.taskText(item.task))
+                val text = WeekWidgetItems.taskText(item.task)
+                if (item.task.isOverdueWidgetTask()) setOverdueText(context, R.id.widget_task_text, text)
+                else setTextViewText(R.id.widget_task_text, text)
                 val appointment = isAppointmentIndicatorVisible(item.task.type)
                 setViewVisibility(R.id.widget_task_appointment, if (appointment) View.VISIBLE else View.GONE)
                 setContentDescription(

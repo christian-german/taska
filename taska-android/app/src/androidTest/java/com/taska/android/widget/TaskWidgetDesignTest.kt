@@ -8,6 +8,11 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.ListView
+import android.graphics.Typeface
+import android.graphics.Color
+import android.text.Spanned
+import android.text.style.ForegroundColorSpan
+import android.text.style.StyleSpan
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.taska.android.R
@@ -87,6 +92,18 @@ class TaskWidgetDesignTest {
         assertEquals(0xFFF6F8FA.toInt(), dark.getColor(R.color.widget_primary_ink))
         assertEquals(0xFF14B37D.toInt(), light.getColor(R.color.widget_accent))
         assertEquals(0xFF14B37D.toInt(), dark.getColor(R.color.widget_accent))
+        assertEquals(0xFFC62828.toInt(), light.getColor(R.color.widget_overdue_ink))
+        assertEquals(0xFFFF8A80.toInt(), dark.getColor(R.color.widget_overdue_ink))
+        assertTrue(contrast(light.getColor(R.color.widget_overdue_ink), light.getColor(R.color.widget_surface)) >= 4.5)
+        assertTrue(contrast(dark.getColor(R.color.widget_overdue_ink), dark.getColor(R.color.widget_surface)) >= 4.5)
+    }
+
+    @Test fun `overdue widget text is red and bold without changing its content`() {
+        val styled = overdueWidgetText(context, "08:30  Follow up") as Spanned
+
+        assertEquals("08:30  Follow up", styled.toString())
+        assertEquals(context.getColor(R.color.widget_overdue_ink), styled.getSpans(0, styled.length, ForegroundColorSpan::class.java).single().foregroundColor)
+        assertEquals(Typeface.BOLD, styled.getSpans(0, styled.length, StyleSpan::class.java).single().style)
     }
 
     private fun themedContext(nightMode: Int): android.content.Context {
@@ -94,5 +111,18 @@ class TaskWidgetDesignTest {
             uiMode = (uiMode and Configuration.UI_MODE_NIGHT_MASK.inv()) or nightMode
         }
         return context.createConfigurationContext(configuration)
+    }
+
+    private fun contrast(foreground: Int, background: Int): Double {
+        fun luminance(color: Int): Double {
+            fun channel(value: Int): Double {
+                val normalized = value / 255.0
+                return if (normalized <= 0.04045) normalized / 12.92 else Math.pow((normalized + 0.055) / 1.055, 2.4)
+            }
+            return 0.2126 * channel(Color.red(color)) + 0.7152 * channel(Color.green(color)) + 0.0722 * channel(Color.blue(color))
+        }
+        val lighter = maxOf(luminance(foreground), luminance(background))
+        val darker = minOf(luminance(foreground), luminance(background))
+        return (lighter + 0.05) / (darker + 0.05)
     }
 }

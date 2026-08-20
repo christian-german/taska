@@ -62,6 +62,7 @@ private data class BlockDragState(val blockId: String, val mode: DragMode, val d
 fun DayScreen(
     viewModel: DayViewModel,
     onTaskClick: (taskId: String, occurrenceScheduledAt: String?) -> Unit,
+    onSearch: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -122,7 +123,8 @@ fun DayScreen(
             allDayTasks = uiState.allDayTasks,
             projects = uiState.projects,
             dayOffset = uiState.dayOffset,
-            onTaskClick = onTaskClick
+            onTaskClick = onTaskClick,
+            onSearch = onSearch
         )
         HorizontalDivider(color = DividerColor, thickness = 0.5.dp)
 
@@ -177,7 +179,8 @@ private fun DayHeader(
     allDayTasks: List<TaskDto>,
     projects: Map<String, ProjectDto>,
     dayOffset: Int,
-    onTaskClick: (taskId: String, occurrenceScheduledAt: String?) -> Unit
+    onTaskClick: (taskId: String, occurrenceScheduledAt: String?) -> Unit,
+    onSearch: () -> Unit
 ) {
     val dayLabel = when (dayOffset) {
         0 -> "Aujourd'hui"
@@ -213,6 +216,8 @@ private fun DayHeader(
                     style = TextStyle(fontFamily = com.taska.android.ui.theme.Archivo, fontSize = 11.sp, color = TextSecondary)
                 )
             }
+            Spacer(modifier = Modifier.weight(1f))
+            com.taska.android.ui.shared.SearchAction(onSearch)
         }
 
         // All-day tasks row

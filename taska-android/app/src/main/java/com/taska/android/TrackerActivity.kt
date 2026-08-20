@@ -9,6 +9,8 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.material3.Text
 import androidx.compose.material3.MaterialTheme
@@ -51,14 +53,19 @@ class TrackerActivity : ComponentActivity() {
                     }
                 ) {
                     Column(modifier = Modifier.fillMaxSize()) {
-                        Box(
+                        Column(
                             modifier = Modifier
                                 .weight(1f)
                                 .fillMaxSize()
                                 .background(MaterialTheme.colorScheme.background)
-                                .statusBarsPadding(),
-                            contentAlignment = Alignment.Center
+                                .statusBarsPadding()
                         ) {
+                            Row(Modifier.fillMaxWidth(), horizontalArrangement = androidx.compose.foundation.layout.Arrangement.End) {
+                                com.taska.android.ui.shared.SearchAction {
+                                    startActivity(Intent(this@TrackerActivity, SearchActivity::class.java))
+                                }
+                            }
+                            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                             Text(
                                 text = "Tracker",
                                 fontFamily = com.taska.android.ui.theme.Archivo,
@@ -66,6 +73,7 @@ class TrackerActivity : ComponentActivity() {
                                 fontSize = 32.sp,
                                 color = MaterialTheme.colorScheme.onBackground
                             )
+                            }
                         }
                         BottomNavBar(
                             current = NavDestination.TRACKER,

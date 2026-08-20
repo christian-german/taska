@@ -60,7 +60,8 @@ class WeekActivity : ComponentActivity() {
                                     }
                                 )
                             },
-                            modifier = Modifier.weight(1f)
+                            onSearch = { startActivity(Intent(this@WeekActivity, SearchActivity::class.java)) },
+            modifier = Modifier.weight(1f)
                         )
                         BottomNavBar(
                             current = NavDestination.WEEK,

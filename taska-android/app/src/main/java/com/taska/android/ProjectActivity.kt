@@ -75,7 +75,8 @@ class ProjectActivity : ComponentActivity() {
                                         .putExtra("task_id", taskId)
                                 )
                             },
-                            modifier = Modifier.weight(1f)
+                            onSearch = { startActivity(Intent(this@ProjectActivity, SearchActivity::class.java)) },
+            modifier = Modifier.weight(1f)
                         )
                         BottomNavBar(
                             current = null,

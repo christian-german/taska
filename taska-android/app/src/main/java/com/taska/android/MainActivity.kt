@@ -99,6 +99,7 @@ private fun InboxRoot(inboxViewModel: InboxViewModel, onNavigate: (NavDestinatio
                     }
                 )
             },
+            onSearch = { startActivity(Intent(context, SearchActivity::class.java)) },
             modifier = Modifier.weight(1f)
         )
         BottomNavBar(

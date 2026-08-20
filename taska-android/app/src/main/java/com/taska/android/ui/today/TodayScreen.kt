@@ -51,6 +51,7 @@ private val OverdueRed = Color(0xFFDD4433)
 fun TodayScreen(
     viewModel: TodayViewModel,
     onTaskClick: (taskId: String, occurrenceScheduledAt: String?) -> Unit = { _, _ -> },
+    onSearch: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -62,7 +63,8 @@ fun TodayScreen(
     ) {
         TodayHeader(
             overdueCount = uiState.overdueTasks.size,
-            todayCount = uiState.todayTasks.size
+            todayCount = uiState.todayTasks.size,
+            onSearch = onSearch
         )
 
         Box(modifier = Modifier.weight(1f)) {
@@ -108,7 +110,7 @@ fun TodayScreen(
 }
 
 @Composable
-private fun TodayHeader(overdueCount: Int, todayCount: Int) {
+private fun TodayHeader(overdueCount: Int, todayCount: Int, onSearch: () -> Unit) {
     val dateStr = SimpleDateFormat("EEE d MMM", Locale.FRENCH).format(Date())
     Row(
         modifier = Modifier
@@ -147,6 +149,7 @@ private fun TodayHeader(overdueCount: Int, todayCount: Int) {
                 )
             }
         }
+        com.taska.android.ui.shared.SearchAction(onSearch)
         IconButton(onClick = {}) {
             Icon(
                 imageVector = Icons.Outlined.MoreHoriz,

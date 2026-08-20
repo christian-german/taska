@@ -59,7 +59,8 @@ class DayActivity : ComponentActivity() {
                                     }
                                 )
                             },
-                            modifier = Modifier.weight(1f)
+                            onSearch = { startActivity(Intent(this@DayActivity, SearchActivity::class.java)) },
+            modifier = Modifier.weight(1f)
                         )
                         BottomNavBar(
                             current = NavDestination.DAY,

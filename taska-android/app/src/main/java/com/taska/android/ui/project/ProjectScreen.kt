@@ -53,6 +53,7 @@ fun ProjectScreen(
     viewModel: ProjectViewModel,
     onBack: () -> Unit,
     onTaskClick: (String) -> Unit = {},
+    onSearch: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -94,6 +95,7 @@ fun ProjectScreen(
                 overflow = TextOverflow.Ellipsis,
                 modifier = Modifier.weight(1f)
             )
+            com.taska.android.ui.shared.SearchAction(onSearch)
             IconButton(onClick = {}) {
                 Icon(
                     imageVector = Icons.Outlined.MoreHoriz,

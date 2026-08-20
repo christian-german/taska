@@ -14,6 +14,8 @@ import io.mockk.coVerify
 import io.mockk.mockk
 import io.mockk.slot
 import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.test.advanceUntilIdle
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
@@ -76,6 +78,71 @@ class TaskDetailViewModelTest {
         assertNull(request.captured.scheduledAt)
         assertEquals("THIS_ONLY", request.captured.scope)
         assertEquals(occurrence, request.captured.occurrenceScheduledAt)
+    }
+
+    @Test
+    fun `active task completion adopts the server response`() = runTest {
+        val original = task()
+        val completed = original.copy(isCompleted = true, completedAt = "2026-08-24T10:00:00Z")
+        prepareLoad(original)
+        coEvery { taskRepo.closeTask("task-1", null) } returns completed
+        val viewModel = viewModel()
+
+        viewModel.toggleCompletion()
+        advanceUntilIdle()
+
+        assertEquals(completed, viewModel.uiState.value.task)
+        assertEquals(false, viewModel.uiState.value.isCompletionPending)
+        coVerify(exactly = 1) { taskRepo.closeTask("task-1", null) }
+        coVerify(exactly = 0) { taskRepo.reopenTask(any(), any()) }
+    }
+
+    @Test
+    fun `completed recurring occurrence is reopened with its occurrence identity`() = runTest {
+        val occurrence = "2026-08-24T09:00:00Z"
+        val original = task(isRecurring = true, occurrenceScheduledAt = occurrence).copy(isCompleted = true)
+        val reopened = original.copy(isCompleted = false, completedAt = null)
+        prepareLoad(original)
+        coEvery { taskRepo.reopenTask("task-1", occurrence) } returns reopened
+        val viewModel = viewModel(occurrence)
+
+        viewModel.toggleCompletion()
+        advanceUntilIdle()
+
+        assertEquals(reopened, viewModel.uiState.value.task)
+        coVerify(exactly = 1) { taskRepo.reopenTask("task-1", occurrence) }
+        coVerify(exactly = 0) { taskRepo.closeTask(any(), any()) }
+    }
+
+    @Test
+    fun `failed completion retains confirmed task`() = runTest {
+        val original = task()
+        prepareLoad(original)
+        coEvery { taskRepo.closeTask("task-1", null) } throws IllegalStateException("rejected")
+        val viewModel = viewModel()
+
+        viewModel.toggleCompletion()
+        advanceUntilIdle()
+
+        assertEquals(original, viewModel.uiState.value.task)
+        assertEquals(false, viewModel.uiState.value.isCompletionPending)
+    }
+
+    @Test
+    fun `second completion tap is ignored while request is pending`() = runTest {
+        val original = task()
+        val response = CompletableDeferred<TaskDto>()
+        prepareLoad(original)
+        coEvery { taskRepo.closeTask("task-1", null) } coAnswers { response.await() }
+        val viewModel = viewModel()
+
+        viewModel.toggleCompletion()
+        viewModel.toggleCompletion()
+        coVerify(exactly = 1) { taskRepo.closeTask("task-1", null) }
+
+        response.complete(original.copy(isCompleted = true))
+        advanceUntilIdle()
+        assertEquals(true, viewModel.uiState.value.task?.isCompleted)
     }
 
     private fun prepareLoad(task: TaskDto) {

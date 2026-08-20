@@ -23,6 +23,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
@@ -30,6 +31,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.outlined.CalendarMonth
 import androidx.compose.material.icons.outlined.CalendarToday
@@ -81,6 +83,11 @@ import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
@@ -167,6 +174,8 @@ fun TaskDetailScreen(
                     onTaskTypeToggle = {
                         viewModel.updateTaskType(if (task.type == "APPOINTMENT") "TODO" else "APPOINTMENT")
                     },
+                    isCompletionPending = state.isCompletionPending,
+                    onToggleCompletion = viewModel::toggleCompletion,
                     onPropertyClick = { picker ->
                         focusManager.clearFocus()
                         activePicker = picker
@@ -369,6 +378,8 @@ private fun TaskContent(
     onDescChange: (String) -> Unit,
     onDescSave: () -> Unit,
     onTaskTypeToggle: () -> Unit,
+    isCompletionPending: Boolean,
+    onToggleCompletion: () -> Unit,
     onPropertyClick: (ActivePicker) -> Unit,
     onToggleSubtask: (TaskDto) -> Unit,
     onAddSubtask: (String) -> Unit
@@ -390,12 +401,12 @@ private fun TaskContent(
                     .padding(horizontal = 20.dp, vertical = 8.dp),
                 verticalAlignment = Alignment.Top
             ) {
-                Box(
-                    modifier = Modifier
-                        .padding(top = 6.dp)
-                        .size(28.dp)
-                        .clip(CircleShape)
-                        .border(2.dp, priorityColor(task.priority), CircleShape)
+                CompletionControl(
+                    completed = task.isCompleted == true,
+                    enabled = !isCompletionPending,
+                    priority = task.priority,
+                    onToggle = onToggleCompletion,
+                    modifier = Modifier.padding(top = 6.dp)
                 )
                 Spacer(Modifier.width(14.dp))
                 BasicTextField(
@@ -403,13 +414,15 @@ private fun TaskContent(
                     onValueChange = onTitleChange,
                     modifier = Modifier
                         .fillMaxWidth()
+                        .testTag("task-detail-title")
                         .onFocusChanged { if (!it.hasFocus) onTitleSave() },
                     textStyle = TextStyle(
                         fontFamily = com.taska.android.ui.theme.Archivo,
                         fontStyle = FontStyle.Italic,
                         fontSize = 28.sp,
                         fontWeight = FontWeight.Normal,
-                        color = TextPrimary,
+                        color = if (task.isCompleted == true) TextSecondary else TextPrimary,
+                        textDecoration = if (task.isCompleted == true) TextDecoration.LineThrough else TextDecoration.None,
                         lineHeight = 36.sp
                     ),
                     cursorBrush = SolidColor(TextPrimary)
@@ -664,6 +677,49 @@ private fun TaskContent(
                     )
                 }
             }
+        }
+    }
+}
+
+@Composable
+internal fun CompletionControl(
+    completed: Boolean,
+    enabled: Boolean,
+    priority: Int?,
+    onToggle: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val action = if (completed) "Reopen task" else "Complete task"
+    Box(
+        modifier = modifier
+            .size(28.dp)
+            .testTag("task-detail-completion")
+            .semantics {
+                contentDescription = action
+                stateDescription = if (completed) "Completed" else "Active"
+            }
+            .toggleable(
+                value = completed,
+                enabled = enabled,
+                role = Role.Checkbox,
+                onValueChange = { onToggle() },
+            ),
+        contentAlignment = Alignment.Center,
+    ) {
+        if (completed) {
+            Icon(
+                imageVector = Icons.Filled.CheckCircle,
+                contentDescription = null,
+                tint = GreenDone,
+                modifier = Modifier.size(28.dp),
+            )
+        } else {
+            Box(
+                modifier = Modifier
+                    .size(28.dp)
+                    .clip(CircleShape)
+                    .border(2.dp, priorityColor(priority), CircleShape),
+            )
         }
     }
 }

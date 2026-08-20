@@ -64,6 +64,23 @@ internal object WeekWidgetDataStore {
     }
 }
 
+internal object WeekWidgetOptimisticState {
+    private const val PREFS = "week_widget_optimistic_completion"
+    private fun key(target: CompletionTarget) = "${target.widgetId}:${target.taskId}:${target.occurrenceScheduledAt.orEmpty()}"
+
+    fun set(context: Context, target: CompletionTarget, checked: Boolean) =
+        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().putBoolean(key(target), checked).apply()
+
+    fun isChecked(context: Context, widgetId: Int, task: TaskDto): Boolean =
+        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getBoolean(
+            "$widgetId:${task.id}:${task.occurrenceScheduledAt.orEmpty()}",
+            false,
+        )
+
+    fun clear(context: Context, target: CompletionTarget) =
+        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().remove(key(target)).apply()
+}
+
 class WeekTaskWidgetService : RemoteViewsService() {
     override fun onGetViewFactory(intent: Intent): RemoteViewsFactory = Factory(
         applicationContext,
@@ -93,10 +110,18 @@ class WeekTaskWidgetService : RemoteViewsService() {
                     R.id.widget_task_appointment,
                     if (appointment) context.getString(R.string.widget_appointment) else null,
                 )
+                setImageViewResource(
+                    R.id.widget_task_check,
+                    if (WeekWidgetOptimisticState.isChecked(context, widgetId, item.task)) R.drawable.widget_completion_checked
+                    else R.drawable.widget_completion_empty,
+                )
                 val completion = Intent().apply {
                     action = TaskWidgetCompletionReceiver.ACTION_COMPLETE
                     putExtra(TaskWidgetCompletionReceiver.EXTRA_TASK_ID, item.task.id)
                     putExtra(TaskWidgetCompletionReceiver.EXTRA_OCCURRENCE, item.task.occurrenceScheduledAt)
+                    putExtra(TaskWidgetCompletionReceiver.EXTRA_WIDGET_ID, widgetId)
+                    putExtra(TaskWidgetCompletionReceiver.EXTRA_WIDGET_TYPE, TaskWidgetCompletionReceiver.WIDGET_TYPE_WEEK)
+                    putExtra(TaskWidgetCompletionReceiver.EXTRA_CONTROL_ID, R.id.widget_task_check)
                 }
                 setOnClickFillInIntent(R.id.widget_task_check, completion)
                 val open = Intent().apply {

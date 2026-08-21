@@ -6,8 +6,20 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import java.time.Instant
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 
 class TodayWidgetGroupsTest {
+    @Test fun `today all-day rows omit the clock time while timed rows retain it`() {
+        val scheduledAt = "2026-06-17T10:00:00Z"
+
+        assertEquals("Wed  holiday", TaskWidgetRefresh.todayTaskText(task("holiday", scheduledAt).copy(allDay = true)))
+        val expectedTime = Instant.parse(scheduledAt).atZone(ZoneId.systemDefault())
+            .format(DateTimeFormatter.ofPattern("HH:mm"))
+        assertEquals("Wed  $expectedTime meeting", TaskWidgetRefresh.todayTaskText(task("meeting", scheduledAt)))
+    }
+
     @Test fun `overdue and today tasks have a label and one boundary divider`() {
         val groups = TodayWidgetGroups.from(
             listOf(task("oldest", "2020-01-01T09:00:00Z"), task("older", "2020-01-02T09:00:00Z"), task("today", "2999-01-01T09:00:00Z")),

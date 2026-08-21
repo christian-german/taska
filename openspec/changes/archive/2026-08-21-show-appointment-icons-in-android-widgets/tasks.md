@@ -13,4 +13,4 @@
 
 - [x] 3.1 Add focused tests that verify appointment-icon visibility, accessible description, and icon consistency for both Android widget render paths.
 - [x] 3.2 Add focused tests that verify to-do rows do not expose the appointment icon or Appointment accessibility description.
-- [ ] 3.3 Run the relevant Android widget tests, Android development build, and OpenSpec validation.
+- [x] 3.3 Run the relevant Android widget tests, Android development build, and OpenSpec validation.

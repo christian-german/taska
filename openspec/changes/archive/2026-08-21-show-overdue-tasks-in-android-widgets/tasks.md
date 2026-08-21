@@ -15,4 +15,4 @@
 - [x] 3.1 Add unit tests for local-date overdue boundaries, exclusion rules, chronological overdue-first ordering, response de-duplication, and recurring occurrences.
 - [x] 3.2 Add Week collection tests for a single leading `Overdue` group, no empty overdue header, no original-date headers inside that group, and normal current-week groups after it.
 - [x] 3.3 Add Today widget tests for overdue-first selection within its existing capacity and unchanged completed-today rendering and actions.
-- [ ] 3.4 Run focused Android widget tests, the Android development build, and OpenSpec validation.
+- [x] 3.4 Run focused Android widget tests, the Android development build, and OpenSpec validation.

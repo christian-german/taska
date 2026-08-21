@@ -14,4 +14,4 @@
 - [x] 3.1 Add focused Week-widget tests for the overdue header and overdue task text color/weight, plus unchanged ordinary date-header and non-overdue row styles.
 - [x] 3.2 Add focused Today-widget tests for overdue task text color/weight, plus unchanged today and completed-today row styles.
 - [x] 3.3 Verify the overdue text remains legible in both light and dark widget themes.
-- [ ] 3.4 Run focused Android widget tests, the Android development build/static checks, and strict OpenSpec validation.
+- [x] 3.4 Run focused Android widget tests, the Android development build/static checks, and strict OpenSpec validation.

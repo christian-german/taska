@@ -12,6 +12,7 @@ jobs:
     if: >
       github.event.label.name == 'spec-review' ||
       github.event.label.name == 'implementation-review' ||
+      github.event.label.name == 'ready-for-merge' ||
       github.event.label.name == 'blocked'
 
     runs-on: ubuntu-latest
@@ -30,6 +31,9 @@ jobs:
               ;;
             implementation-review)
               MESSAGE="@christian-german implementation ready for review."
+              ;;
+            ready-for-merge)
+              MESSAGE="@christian-german implementation ready for merge."
               ;;
             blocked)
               MESSAGE="@christian-german Codex is blocked and requires clarification."

@@ -112,6 +112,35 @@ When exploration is complete and no further human input is required:
 - apply `ready-for-spec`
 - state the main conclusions and agreed behavior on the issue
 
+### `archive the change`
+
+Finalize the implemented and human-approved OpenSpec change.
+
+1. Locate the OpenSpec change associated with the current issue and pull request.
+2. Ensure the implementation is complete and no OpenSpec task remains intentionally pending.
+3. Synchronize the change's delta specs into `openspec/specs/`.
+4. Archive the change with OpenSpec so its spec deltas are synchronized into the canonical specifications.
+5. Validate the resulting OpenSpec state.
+6. Commit only the archive and synchronized specification changes.
+7. Push the commit to the existing pull-request branch.
+8. Do not create another branch or pull request.
+9. Do not merge the pull request.
+
+Always perform the sync before archiving unless explicitly instructed not to.
+
+If archiving reveals a conflict, incomplete requirement, or unexpected spec inconsistency:
+
+- do not resolve product behavior implicitly
+- apply `blocked`
+- explain the exact problem on the issue or pull request
+- stop before committing the archive
+
+After a successful archive:
+
+- remove `implementation-review`
+- apply `ready-for-merge`
+- keep the issue and pull request ready for final CI and merge
+
 ### `continue`
 
 Resume the currently pending workflow using the latest issue or pull-request comments.
@@ -152,6 +181,7 @@ When a pull request exists, keep the same workflow label on both the issue and t
 
 - `spec-review`: specification ready for human review
 - `implementation-review`: implementation ready for human review
+- `ready-for-merge`: implementation and spec are ready for merge
 - `blocked`: unexpected issue prevents specification or implementation from proceeding
 - `input-needed`: exploration requires human input before continuing
 - `ready-for-spec`: exploration is complete and the issue is sufficiently defined to prepare a specification

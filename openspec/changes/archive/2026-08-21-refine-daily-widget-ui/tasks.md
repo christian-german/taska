@@ -11,4 +11,4 @@
 ## 3. Verification
 
 - [x] 3.1 Add focused tests for hidden count status, retained error status, conditional overdue labeling, and the single group-boundary separator.
-- [ ] 3.2 Run focused Android widget tests, the Android development build/static checks, and strict OpenSpec validation.
+- [x] 3.2 Run focused Android widget tests, the Android development build/static checks, and strict OpenSpec validation.

@@ -47,6 +47,7 @@ internal object WeekWidgetItems {
         date.format(DateTimeFormatter.ofPattern("EEE dd/MM", locale))
 
     fun taskText(task: TaskDto, zone: ZoneId = ZoneId.systemDefault(), locale: Locale = Locale.getDefault()): String {
+        if (task.allDay) return task.content
         val time = Instant.parse(task.scheduledAt!!).atZone(zone).format(DateTimeFormatter.ofPattern("HH:mm", locale))
         return "$time  ${task.content}"
     }

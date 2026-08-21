@@ -7,5 +7,5 @@
 ## 2. Verification
 
 - [x] 2.1 Add focused automated regression coverage for successful task-creation callbacks on both calendar activities.
-- [ ] 2.2 Run relevant Android tests and static/build checks.
+- [x] 2.2 Run relevant Android tests and static/build checks.
 - [x] 2.3 Run strict OpenSpec validation for this change.

@@ -7,6 +7,6 @@
 ## 2. Verification
 
 - [x] 2.1 Add an automated resource check that covers the required main and development launcher variants, exact green value, expected resource forms, and unchanged source geometry where practical.
-- [ ] 2.2 Build the main and development Android variants and verify each resolves to its intended launcher resources.
+- [x] 2.2 Build the main and development Android variants and verify each resolves to its intended launcher resources.
 - [x] 2.3 Visually inspect both variants under representative adaptive masks and a legacy launcher, confirming the design is unchanged, green is consistent, and the development variant remains identifiable.
-- [ ] 2.4 Run relevant Android static checks and strict OpenSpec validation.
+- [x] 2.4 Run relevant Android static checks and strict OpenSpec validation.

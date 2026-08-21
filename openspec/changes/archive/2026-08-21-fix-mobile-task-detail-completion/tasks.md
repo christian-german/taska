@@ -12,4 +12,4 @@
 
 - [x] 3.1 Add focused Android view-model tests for close and reopen success, failure, duplicate taps, and recurring-occurrence targeting.
 - [x] 3.2 Add Android UI tests for interaction, checked/unchecked and title presentation, and accessibility semantics.
-- [ ] 3.3 Run relevant Android tests and static checks, then run strict OpenSpec validation for this change.
+- [x] 3.3 Run relevant Android tests and static checks, then run strict OpenSpec validation for this change.

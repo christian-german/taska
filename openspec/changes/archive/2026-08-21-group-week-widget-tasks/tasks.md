@@ -14,4 +14,4 @@
 
 - [x] 3.1 Add unit tests for multi-day grouping, single-header same-day groups, local-date boundaries, locale-aware labels, chronological ordering, and weeks containing more than eight tasks.
 - [x] 3.2 Add resource or instrumentation tests for centered date headers, time-only Week task prefixes, vertical scrolling, task actions, and unchanged Today-widget rendering.
-- [ ] 3.3 Run focused Android widget tests, the Android development build, and OpenSpec validation.
+- [x] 3.3 Run focused Android widget tests, the Android development build, and OpenSpec validation.

@@ -173,8 +173,7 @@ object TaskWidgetRefresh {
     }
 
     private fun RemoteViews.bindTask(context: Context, widgetId: Int, index: Int, task: TaskDto, canShowCompleted: Boolean) {
-        val scheduled = task.scheduledAt!!
-        val text = "${scheduledDate(scheduled).format(DateTimeFormatter.ofPattern("EEE"))}  ${formatTime(scheduled)}${if (task.allDay) "" else " "}${task.content}"
+        val text = todayTaskText(task)
         if (task.isOverdueWidgetTask()) setOverdueText(context, taskIds[index], text) else setTextViewText(taskIds[index], text)
         val completed = canShowCompleted && task.isCompleted == true
         setImageViewResource(checkIds[index], if (completed) R.drawable.widget_completion_checked else R.drawable.widget_completion_empty)
@@ -204,6 +203,12 @@ object TaskWidgetRefresh {
         val pendingOpen = PendingIntent.getActivity(context, index, open, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
         setOnClickPendingIntent(rowIds[index], pendingOpen)
         setOnClickPendingIntent(taskIds[index], pendingOpen)
+    }
+
+    internal fun todayTaskText(task: TaskDto): String {
+        val scheduled = task.scheduledAt!!
+        val day = scheduledDate(scheduled).format(DateTimeFormatter.ofPattern("EEE"))
+        return if (task.allDay) "$day  ${task.content}" else "$day  ${formatTime(scheduled)} ${task.content}"
     }
 
     private fun RemoteViews.bindAppointmentIndicator(context: Context, viewId: Int, type: String?) {

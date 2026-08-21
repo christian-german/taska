@@ -12,5 +12,5 @@
 
 ## 3. Verification
 
-- [ ] 3.1 Run relevant Android unit tests and static checks.
+- [x] 3.1 Run relevant Android unit tests and static checks.
 - [x] 3.2 Run strict OpenSpec validation for this change.

@@ -8,7 +8,9 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 
 class LauncherIconResourceTest {
-    private val projectRoot = File(System.getProperty("user.dir"))
+    private val projectRoot = File(System.getProperty("user.dir")).let { workingDirectory ->
+        if (workingDirectory.name == "app") requireNotNull(workingDirectory.parentFile) else workingDirectory
+    }
 
     @Test
     fun `launcher resources use the approved signal green in every variant`() {
@@ -42,7 +44,7 @@ class LauncherIconResourceTest {
 
         assertEquals(expectedRasterHashes.keys, actualRasterPaths)
         expectedRasterHashes.forEach { (relativePath, expectedHash) ->
-            assertEquals(expectedHash, projectRoot.resolve(relativePath).sha256(), relativePath)
+            assertEquals(relativePath, expectedHash, projectRoot.resolve(relativePath).sha256())
         }
 
         val background = projectRoot.resolve("app/src/main/res/drawable/ic_launcher_background.xml").readText()
@@ -54,8 +56,8 @@ class LauncherIconResourceTest {
     fun `adaptive and legacy resources preserve established forms and variant geometry`() {
         listOf("ic_launcher.xml", "ic_launcher_round.xml").forEach { name ->
             val adaptiveIcon = projectRoot.resolve("app/src/main/res/mipmap-anydpi-v26/$name").readText()
-            assertTrue(adaptiveIcon.contains("@drawable/ic_launcher_background"), name)
-            assertTrue(adaptiveIcon.contains("@drawable/ic_launcher_foreground"), name)
+            assertTrue(name, adaptiveIcon.contains("@drawable/ic_launcher_background"))
+            assertTrue(name, adaptiveIcon.contains("@drawable/ic_launcher_foreground"))
         }
 
         val mainForeground = projectRoot.resolve("app/src/main/res/drawable/ic_launcher_foreground.xml").readText()
@@ -63,7 +65,7 @@ class LauncherIconResourceTest {
         val checkmarkPath = "M40.5,56.25 L50.625,66.375 L67.5,45"
         assertTrue(mainForeground.contains(checkmarkPath))
         assertTrue(devForeground.contains(checkmarkPath))
-        assertTrue(devForeground.contains("#FFD600"), "The development badge must remain identifiable")
+        assertTrue("The development badge must remain identifiable", devForeground.contains("#FFD600"))
     }
 
     private fun File.sha256(): String = MessageDigest.getInstance("SHA-256")

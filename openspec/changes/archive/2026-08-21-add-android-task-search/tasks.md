@@ -17,5 +17,5 @@
 ## 4. Verification
 
 - [x] 4.1 Add Android unit tests for case-insensitive content substring matching, completed-task inclusion, content-only matching, result ordering, and loading/failure/no-match state.
-- [ ] 4.2 Add Android UI or integration tests for every primary-screen entry point, search/back navigation, accessible controls, completed result presentation, and opening task details.
-- [ ] 4.3 Run relevant Android tests and static checks plus strict OpenSpec validation.
+- [x] 4.2 Add Android UI or integration tests for every primary-screen entry point, search/back navigation, accessible controls, completed result presentation, and opening task details.
+- [x] 4.3 Run relevant Android tests and static checks plus strict OpenSpec validation.

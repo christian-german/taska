@@ -87,6 +87,12 @@ class WeekWidgetItemsTest {
         assertEquals("15:05  meeting", WeekWidgetItems.taskText(task, ZoneId.of("Europe/Berlin"), Locale.US))
     }
 
+    @Test fun `all-day task rows contain only the title without time spacing`() {
+        val allDay = task("holiday", "2026-06-17T00:00:00Z").copy(allDay = true)
+
+        assertEquals("holiday", WeekWidgetItems.taskText(allDay, utc, Locale.ENGLISH))
+    }
+
     @Test fun `only incomplete tasks before the device local date are overdue`() {
         val today = LocalDate.of(2026, 6, 17)
 

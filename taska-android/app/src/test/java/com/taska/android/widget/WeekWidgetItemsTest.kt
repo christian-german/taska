@@ -64,14 +64,27 @@ class WeekWidgetItemsTest {
         assertFalse(items.any { it is WeekWidgetItem.OverdueHeader })
     }
 
-    @Test fun `header is localized and task rows contain time and title only`() {
+    @Test fun `header is localized and task rows use 24-hour time and title only`() {
         val task = task("meeting", "2026-06-17T10:00:00Z")
 
         assertEquals("Wed 17/06", WeekWidgetItems.header(LocalDate.of(2026, 6, 17), Locale.ENGLISH))
         val text = WeekWidgetItems.taskText(task, utc, Locale.ENGLISH)
-        assertEquals("10:00 AM  meeting", text)
+        assertEquals("10:00  meeting", text)
         assertFalse(text.contains("Wed"))
         assertFalse(text.contains("17/06"))
+    }
+
+    @Test fun `task rows use the same 24-hour time for American and European locales`() {
+        val task = task("meeting", "2026-06-17T13:05:00Z")
+
+        assertEquals("13:05  meeting", WeekWidgetItems.taskText(task, utc, Locale.US))
+        assertEquals("13:05  meeting", WeekWidgetItems.taskText(task, utc, Locale.GERMANY))
+    }
+
+    @Test fun `task row time is converted to the supplied device time zone`() {
+        val task = task("meeting", "2026-06-17T13:05:00Z")
+
+        assertEquals("15:05  meeting", WeekWidgetItems.taskText(task, ZoneId.of("Europe/Berlin"), Locale.US))
     }
 
     @Test fun `only incomplete tasks before the device local date are overdue`() {

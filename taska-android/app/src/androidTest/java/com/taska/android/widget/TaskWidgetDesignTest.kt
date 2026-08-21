@@ -70,6 +70,20 @@ class TaskWidgetDesignTest {
         assertTrue(taskRow.findViewById<View>(R.id.widget_task_appointment) is ImageView)
         assertEquals(View.GONE, taskRow.findViewById<View>(R.id.widget_task_appointment).visibility)
         assertEquals(2, taskRow.findViewById<TextView>(R.id.widget_task_text).maxLines)
+        assertEquals(View.GONE, root.findViewById<View>(R.id.widget_status).visibility)
+    }
+
+
+    @Test fun `today widget hides count status and task separators by default`() {
+        val root = LayoutInflater.from(context).inflate(R.layout.task_widget, null)
+
+        assertEquals(View.GONE, root.findViewById<View>(R.id.widget_status).visibility)
+        assertEquals(View.GONE, root.findViewById<View>(R.id.widget_overdue_header).visibility)
+        listOf(
+            R.id.widget_divider_0, R.id.widget_divider_1, R.id.widget_divider_2,
+            R.id.widget_divider_3, R.id.widget_divider_4, R.id.widget_divider_5,
+            R.id.widget_divider_6,
+        ).forEach { assertEquals(View.GONE, root.findViewById<View>(it).visibility) }
     }
 
     @Test fun `today rows provide hidden outlined appointment indicators`() {

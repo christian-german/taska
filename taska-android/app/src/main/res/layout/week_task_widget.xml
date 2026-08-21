@@ -4,6 +4,6 @@
     android:orientation="vertical" android:background="@drawable/widget_card_background"
     android:padding="@dimen/widget_card_padding">
     <TextView android:id="@+id/widget_title" style="@style/Widget_Header" android:layout_width="match_parent" android:layout_height="wrap_content" android:ellipsize="end" android:maxLines="1" />
-    <TextView android:id="@+id/widget_status" style="@style/Widget_Status" android:layout_width="match_parent" android:layout_height="wrap_content" android:paddingTop="4dp" android:paddingBottom="4dp" />
+    <TextView android:id="@+id/widget_status" style="@style/Widget_Status" android:layout_width="match_parent" android:layout_height="wrap_content" android:paddingTop="4dp" android:paddingBottom="4dp" android:visibility="gone" />
     <ListView android:id="@+id/widget_week_list" android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" android:divider="@null" android:scrollbars="vertical" />
 </LinearLayout>

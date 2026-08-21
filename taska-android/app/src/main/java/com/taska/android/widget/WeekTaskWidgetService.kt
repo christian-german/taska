@@ -14,7 +14,6 @@ import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
-import java.time.format.FormatStyle
 import java.util.Locale
 
 internal sealed interface WeekWidgetItem {
@@ -48,7 +47,7 @@ internal object WeekWidgetItems {
         date.format(DateTimeFormatter.ofPattern("EEE dd/MM", locale))
 
     fun taskText(task: TaskDto, zone: ZoneId = ZoneId.systemDefault(), locale: Locale = Locale.getDefault()): String {
-        val time = Instant.parse(task.scheduledAt!!).atZone(zone).format(DateTimeFormatter.ofLocalizedTime(FormatStyle.SHORT).withLocale(locale))
+        val time = Instant.parse(task.scheduledAt!!).atZone(zone).format(DateTimeFormatter.ofPattern("HH:mm", locale))
         return "$time  ${task.content}"
     }
 }

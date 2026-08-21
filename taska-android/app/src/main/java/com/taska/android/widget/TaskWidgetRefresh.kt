@@ -24,6 +24,21 @@ import java.time.ZoneId
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 
+internal data class TodayWidgetGroups(
+    val showOverdueHeader: Boolean,
+    val dividerAfterRow: Int?,
+) {
+    companion object {
+        fun from(tasks: List<TaskDto>): TodayWidgetGroups {
+            val overdueCount = tasks.count { it.isOverdueWidgetTask() }
+            return TodayWidgetGroups(
+                showOverdueHeader = overdueCount > 0,
+                dividerAfterRow = (overdueCount - 1).takeIf { overdueCount > 0 && overdueCount < tasks.size },
+            )
+        }
+    }
+}
+
 object TaskWidgetRefresh {
     private const val MAX_ROWS = 8
     private const val DAY_REFRESH_REQUEST_CODE = 9001
@@ -31,6 +46,7 @@ object TaskWidgetRefresh {
     private val checkIds = intArrayOf(R.id.widget_check_0, R.id.widget_check_1, R.id.widget_check_2, R.id.widget_check_3, R.id.widget_check_4, R.id.widget_check_5, R.id.widget_check_6, R.id.widget_check_7)
     private val taskIds = intArrayOf(R.id.widget_task_0, R.id.widget_task_1, R.id.widget_task_2, R.id.widget_task_3, R.id.widget_task_4, R.id.widget_task_5, R.id.widget_task_6, R.id.widget_task_7)
     private val appointmentIds = intArrayOf(R.id.widget_appointment_0, R.id.widget_appointment_1, R.id.widget_appointment_2, R.id.widget_appointment_3, R.id.widget_appointment_4, R.id.widget_appointment_5, R.id.widget_appointment_6, R.id.widget_appointment_7)
+    private val dividerIds = intArrayOf(R.id.widget_divider_0, R.id.widget_divider_1, R.id.widget_divider_2, R.id.widget_divider_3, R.id.widget_divider_4, R.id.widget_divider_5, R.id.widget_divider_6)
 
     private enum class WidgetType(
         val provider: Class<*>,
@@ -107,7 +123,12 @@ object TaskWidgetRefresh {
         error: String?,
     ): RemoteViews = if (type == WidgetType.WEEK) renderWeek(context, widgetId, tasks, range, error) else RemoteViews(context.packageName, R.layout.task_widget).apply {
         setTextViewText(R.id.widget_title, titleFor(type, range))
-        setTextViewText(R.id.widget_status, error ?: taskStatus(tasks))
+        bindStatus(error)
+        val groups = TodayWidgetGroups.from(tasks)
+        setViewVisibility(R.id.widget_overdue_header, if (groups.showOverdueHeader) View.VISIBLE else View.GONE)
+        dividerIds.forEachIndexed { index, dividerId ->
+            setViewVisibility(dividerId, if (index == groups.dividerAfterRow) View.VISIBLE else View.GONE)
+        }
         rowIds.indices.forEach { index ->
             val task = tasks.getOrNull(index)
             setViewVisibility(rowIds[index], if (task == null) View.GONE else View.VISIBLE)
@@ -132,7 +153,7 @@ object TaskWidgetRefresh {
         }
         return RemoteViews(context.packageName, R.layout.week_task_widget).apply {
             setTextViewText(R.id.widget_title, titleFor(WidgetType.WEEK, range))
-            setTextViewText(R.id.widget_status, error ?: taskStatus(tasks))
+            bindStatus(error)
             setRemoteAdapter(R.id.widget_week_list, serviceIntent)
             setPendingIntentTemplate(
                 R.id.widget_week_list,
@@ -146,10 +167,9 @@ object TaskWidgetRefresh {
         WidgetType.TODAY -> "Taska · Today · ${range.first.format(DateTimeFormatter.ofPattern("MMM d"))}"
     }
 
-    private fun taskStatus(tasks: List<TaskDto>): String = when (tasks.size) {
-        0 -> "No scheduled tasks"
-        1 -> "1 scheduled task"
-        else -> "${tasks.size} scheduled tasks"
+    private fun RemoteViews.bindStatus(error: String?) {
+        setViewVisibility(R.id.widget_status, if (error == null) View.GONE else View.VISIBLE)
+        if (error != null) setTextViewText(R.id.widget_status, error)
     }
 
     private fun RemoteViews.bindTask(context: Context, widgetId: Int, index: Int, task: TaskDto, canShowCompleted: Boolean) {

@@ -75,6 +75,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import com.taska.android.data.model.ProjectDto
+import com.taska.android.ui.shared.MobileDatePickerLocale
 import com.taska.android.ui.theme.frostedChrome
 import com.taska.android.ui.shared.TaskCreationFeedback
 import kotlinx.coroutines.delay
@@ -301,7 +302,8 @@ fun AddTaskBottomSheet(
 
     if (showCalendar) {
         val datePickerState = rememberDatePickerState(
-            initialSelectedDateMillis = state.dueDateMillis ?: todayMillis()
+            initialSelectedDateMillis = state.dueDateMillis ?: todayMillis(),
+            locale = MobileDatePickerLocale
         )
         DatePickerDialog(
             onDismissRequest = { showCalendar = false },

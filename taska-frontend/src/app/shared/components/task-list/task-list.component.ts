@@ -44,7 +44,6 @@ export interface TaskGroup {
                 [task]="task"
                 [project]="projectFor(task)"
                 [selected]="selectedId() === task.id"
-                [suggested]="suggestedIds().has(task.id)"
                 (toggled)="toggled.emit($event)"
                 (selectTask)="selectTask.emit($event)"
                 (updated)="updated.emit($event)" />
@@ -59,7 +58,6 @@ export class TaskListComponent {
   groups = input.required<TaskGroup[]>();
   projects = input<Project[]>([]);
   selectedId = input<string | null>(null);
-  suggestedIds = input<Set<string>>(new Set());
 
   toggled = output<Task>();
   selectTask = output<Task>();

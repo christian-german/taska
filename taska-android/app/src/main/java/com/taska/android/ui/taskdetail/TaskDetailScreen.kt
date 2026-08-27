@@ -101,6 +101,7 @@ import com.taska.android.data.model.LabelDto
 import com.taska.android.data.model.ProjectDto
 import com.taska.android.data.model.RecurrenceScope
 import com.taska.android.data.model.TaskDto
+import com.taska.android.ui.shared.MobileDatePickerLocale
 import com.taska.android.ui.shared.RecurrenceScopeDialog
 import com.taska.android.ui.theme.frostedChrome
 import com.taska.android.ui.theme.opaqueWorkSurface
@@ -223,7 +224,8 @@ fun TaskDetailScreen(
         )
         ActivePicker.CALENDAR -> {
             val datePickerState = rememberDatePickerState(
-                initialSelectedDateMillis = viewModel.scheduledAtToMillis()
+                initialSelectedDateMillis = viewModel.scheduledAtToMillis(),
+                locale = MobileDatePickerLocale
             )
             DatePickerDialog(
                 onDismissRequest = { activePicker = null },
@@ -240,7 +242,8 @@ fun TaskDetailScreen(
         }
         ActivePicker.DUE_CALENDAR -> {
             val datePickerState = rememberDatePickerState(
-                initialSelectedDateMillis = viewModel.dueAtToMillis()
+                initialSelectedDateMillis = viewModel.dueAtToMillis(),
+                locale = MobileDatePickerLocale
             )
             DatePickerDialog(
                 onDismissRequest = { activePicker = null },

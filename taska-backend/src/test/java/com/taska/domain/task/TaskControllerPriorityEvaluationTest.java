@@ -3,6 +3,8 @@ package com.taska.domain.task;
 import com.taska.domain.priority.TaskPriorityEvaluationDto;
 import com.taska.domain.priority.TaskPriorityEvaluationService;
 import com.taska.domain.notification.TaskChangePublisher;
+import tools.jackson.databind.exc.MismatchedInputException;
+import tools.jackson.databind.json.JsonMapper;
 import org.junit.jupiter.api.Test;
 import tools.jackson.databind.ObjectMapper;
 
@@ -11,6 +13,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.*;
 
 class TaskControllerPriorityEvaluationTest {
@@ -18,7 +21,7 @@ class TaskControllerPriorityEvaluationTest {
     private final TaskMapper taskMapper = mock(TaskMapper.class);
     private final TaskPriorityEvaluationService evaluationService = mock(TaskPriorityEvaluationService.class);
     private final TaskChangePublisher taskChangePublisher = mock(TaskChangePublisher.class);
-    private final TaskController controller = new TaskController(taskService, taskMapper, evaluationService, new ObjectMapper(), taskChangePublisher);
+    private final TaskController controller = new TaskController(taskService, taskMapper, evaluationService, taskChangePublisher);
 
     @Test void returnsEvaluationWhenPresent() {
         UUID id = UUID.randomUUID();
@@ -35,5 +38,10 @@ class TaskControllerPriorityEvaluationTest {
         var response = controller.getPriorityEvaluation(id);
         assertThat(response.getStatusCode().value()).isEqualTo(204);
         assertThat(response.getBody()).isNull();
+    }
+
+    @Test void taskUpdateRequest_rejectsPayloadsThatOmitMutableProperties() {
+        assertThatThrownBy(() -> new JsonMapper().readValue("{\"content\":\"Only title\"}", TaskUpdateRequest.class))
+                .isInstanceOf(MismatchedInputException.class);
     }
 }

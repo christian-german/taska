@@ -1,4 +1,4 @@
-package com.taska.domain.task;
+package com.taska.domain.task.occurrence;
 
 /**
  * Lifecycle state of a persisted {@link TaskInstance} (a recurring task occurrence).

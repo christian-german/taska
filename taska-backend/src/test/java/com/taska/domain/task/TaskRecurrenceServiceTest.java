@@ -1,5 +1,6 @@
 package com.taska.domain.task;
 
+import com.taska.domain.task.occurrence.TaskRecurrenceService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -11,13 +12,13 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-class RecurrenceServiceTest {
+class TaskRecurrenceServiceTest {
 
-    private RecurrenceService service;
+    private TaskRecurrenceService service;
 
     @BeforeEach
     void setUp() {
-        service = new RecurrenceService();
+        service = new TaskRecurrenceService();
     }
 
     private Task taskWith(String rrule, String scheduledAt) {

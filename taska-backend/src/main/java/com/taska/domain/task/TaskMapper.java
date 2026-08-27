@@ -1,5 +1,7 @@
 package com.taska.domain.task;
 
+import com.taska.domain.task.occurrence.TaskInstance;
+import com.taska.domain.task.occurrence.TaskInstanceStatus;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingConstants;

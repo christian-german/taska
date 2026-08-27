@@ -7,7 +7,10 @@ import com.taska.android.data.model.LabelDto
 import com.taska.android.data.model.ProjectDto
 import com.taska.android.data.model.RecurrenceScope
 import com.taska.android.data.model.TaskDto
+import com.taska.android.data.model.TaskUpdateRequest
+import com.taska.android.data.model.OccurrenceUpdateRequest
 import com.taska.android.data.model.TaskRequest
+import com.taska.android.data.model.toTaskUpdateRequest
 import com.taska.android.data.model.TimeEntryRequest
 import com.taska.android.data.repository.LabelRepository
 import com.taska.android.data.repository.ProjectRepository
@@ -97,22 +100,9 @@ class TaskDetailViewModel(
         }
     }
 
-    private fun applyUpdate(transform: TaskRequest.() -> TaskRequest) {
+    private fun applyUpdate(transform: TaskUpdateRequest.() -> TaskUpdateRequest) {
         val task = _uiState.value.task ?: return
-        val base = TaskRequest(
-            content = task.content,
-            type = task.type ?: "TODO",
-            description = task.description,
-            projectId = task.projectId,
-            priority = task.priority,
-            labels = task.labels,
-            scheduledAt = task.scheduledAt,
-            dueAt = task.dueAt,
-            allDay = task.allDay,
-            estimateMinutes = task.estimateMinutes,
-            isRecurring = task.isRecurring,
-            recurrenceRule = task.recurrenceRule
-        )
+        val base = task.toTaskUpdateRequest()
         viewModelScope.launch {
             try {
                 val updated = taskRepo.updateTask(taskId, base.transform())
@@ -165,25 +155,17 @@ class TaskDetailViewModel(
 
     private fun doReschedule(millis: Long, timeMinutes: Int?, scope: RecurrenceScope?) {
         val task = _uiState.value.task ?: return
-        val request = TaskRequest(
-            content = task.content,
-            type = task.type,
-            description = task.description,
-            projectId = task.projectId,
-            priority = task.priority,
-            labels = task.labels,
-            scheduledAt = millisToApiDateTime(millis, timeMinutes),
-            dueAt = task.dueAt,
-            allDay = timeMinutes == null,
-            estimateMinutes = task.estimateMinutes,
-            isRecurring = task.isRecurring,
-            recurrenceRule = task.recurrenceRule,
-            scope = scope?.name,
-            occurrenceScheduledAt = instanceOccurrenceScheduledAt
+        val request = task.toTaskUpdateRequest().copy(
+            scheduledAt = millisToApiDateTime(millis, timeMinutes), allDay = timeMinutes == null,
         )
         viewModelScope.launch {
             try {
-                val updated = taskRepo.updateTask(taskId, request)
+                val updated = when (scope) {
+                    RecurrenceScope.THIS_ONLY -> taskRepo.updateOccurrence(taskId, checkNotNull(instanceOccurrenceScheduledAt),
+                        OccurrenceUpdateRequest(task.content, task.priority, request.scheduledAt, task.dueAt))
+                    RecurrenceScope.FROM_THIS -> taskRepo.updateFollowingTask(taskId, checkNotNull(instanceOccurrenceScheduledAt), request)
+                    null -> taskRepo.updateTask(taskId, request)
+                }
                 val newProject = _uiState.value.projects.firstOrNull { it.id == updated.projectId }
                 _uiState.update { it.copy(task = updated, project = newProject ?: if (updated.projectId == null) null else it.project) }
             } catch (_: Exception) {}
@@ -201,25 +183,15 @@ class TaskDetailViewModel(
 
     private fun doClearSchedule(scope: RecurrenceScope?) {
         val task = _uiState.value.task ?: return
-        val request = TaskRequest(
-            content = task.content,
-            type = task.type,
-            description = task.description,
-            projectId = task.projectId,
-            priority = task.priority,
-            labels = task.labels,
-            scheduledAt = null,
-            dueAt = task.dueAt,
-            allDay = false,
-            estimateMinutes = task.estimateMinutes,
-            isRecurring = task.isRecurring,
-            recurrenceRule = task.recurrenceRule,
-            scope = scope?.name,
-            occurrenceScheduledAt = instanceOccurrenceScheduledAt
-        )
+        val request = task.toTaskUpdateRequest().copy(scheduledAt = null, allDay = false)
         viewModelScope.launch {
             try {
-                val updated = taskRepo.updateTask(taskId, request)
+                val updated = when (scope) {
+                    RecurrenceScope.THIS_ONLY -> taskRepo.updateOccurrence(taskId, checkNotNull(instanceOccurrenceScheduledAt),
+                        OccurrenceUpdateRequest(task.content, task.priority, null, task.dueAt))
+                    RecurrenceScope.FROM_THIS -> taskRepo.updateFollowingTask(taskId, checkNotNull(instanceOccurrenceScheduledAt), request)
+                    null -> taskRepo.updateTask(taskId, request)
+                }
                 _uiState.update { it.copy(task = updated) }
             } catch (_: Exception) {}
         }
@@ -231,7 +203,7 @@ class TaskDetailViewModel(
 
     fun updateEstimate(minutes: Int?) = applyUpdate { copy(estimateMinutes = minutes) }
 
-    fun updateLabels(labels: List<String>) = applyUpdate { copy(labels = labels.ifEmpty { null }) }
+    fun updateLabels(labels: List<String>) = applyUpdate { copy(labels = labels) }
 
     fun updatePriority(priority: Int) = applyUpdate { copy(priority = priority) }
 

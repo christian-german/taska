@@ -1,4 +1,4 @@
-package com.taska.domain.task;
+package com.taska.domain.task.occurrence;
 
 /**
  * Controls which occurrences of a recurring task are affected by an update or delete operation.

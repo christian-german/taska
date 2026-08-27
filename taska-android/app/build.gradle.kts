@@ -44,9 +44,9 @@ android {
             dimension = "env"
             applicationIdSuffix = ".dev"
             versionNameSuffix = "-dev"
-            buildConfigField("String", "API_URL", "\"http://192.168.1.14:8080/\"")
+            buildConfigField("String", "API_URL", "\"http://192.168.1.104:8080/\"")
             // Fill in real values before building
-            buildConfigField("String", "OIDC_ISSUER_URL", "\"http://192.168.1.14:8000/application/o/taska/\"")
+            buildConfigField("String", "OIDC_ISSUER_URL", "\"http://192.168.1.104:8000/application/o/taska/\"")
             buildConfigField("String", "OIDC_CLIENT_ID", "\"taska-client\"")
             buildConfigField("String", "OIDC_REDIRECT_URI", "\"com.taska.android:/oauth2callback\"")
             buildConfigField("String", "ACCOUNT_TYPE", "\"com.taska.account.dev\"")

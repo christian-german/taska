@@ -4,7 +4,8 @@ import androidx.lifecycle.SavedStateHandle
 import com.taska.android.MainDispatcherRule
 import com.taska.android.data.model.RecurrenceScope
 import com.taska.android.data.model.TaskDto
-import com.taska.android.data.model.TaskRequest
+import com.taska.android.data.model.TaskUpdateRequest
+import com.taska.android.data.model.OccurrenceUpdateRequest
 import com.taska.android.data.repository.LabelRepository
 import com.taska.android.data.repository.ProjectRepository
 import com.taska.android.data.repository.TaskRepository
@@ -35,7 +36,7 @@ class TaskDetailViewModelTest {
         val original = task(dueAt = "2026-09-01T00:00:00Z")
         val updated = original.copy(scheduledAt = null, allDay = false)
         prepareLoad(original)
-        val request = slot<TaskRequest>()
+        val request = slot<TaskUpdateRequest>()
         coEvery { taskRepo.updateTask("task-1", capture(request)) } returns updated
         val viewModel = viewModel()
 
@@ -44,6 +45,9 @@ class TaskDetailViewModelTest {
         assertNull(request.captured.scheduledAt)
         assertEquals(original.dueAt, request.captured.dueAt)
         assertEquals(original.description, request.captured.description)
+        assertEquals(original.labels, request.captured.labels)
+        assertEquals(original.priority, request.captured.priority)
+        assertEquals(original.mentionContext, request.captured.mentionContext)
         assertEquals(updated, viewModel.uiState.value.task)
         assertNull(viewModel.uiState.value.task?.scheduledAt)
         assertEquals(original.dueAt, viewModel.uiState.value.task?.dueAt)
@@ -67,8 +71,8 @@ class TaskDetailViewModelTest {
         val occurrence = "2026-08-24T09:00:00Z"
         val original = task(isRecurring = true, occurrenceScheduledAt = occurrence)
         prepareLoad(original)
-        val request = slot<TaskRequest>()
-        coEvery { taskRepo.updateTask("task-1", capture(request)) } returns original.copy(scheduledAt = null)
+        val request = slot<OccurrenceUpdateRequest>()
+        coEvery { taskRepo.updateOccurrence("task-1", occurrence, capture(request)) } returns original.copy(scheduledAt = null)
         val viewModel = viewModel(occurrence)
 
         viewModel.clearDue()
@@ -76,8 +80,29 @@ class TaskDetailViewModelTest {
         viewModel.confirmReschedule(RecurrenceScope.THIS_ONLY)
 
         assertNull(request.captured.scheduledAt)
-        assertEquals("THIS_ONLY", request.captured.scope)
-        assertEquals(occurrence, request.captured.occurrenceScheduledAt)
+        assertEquals(occurrence, original.occurrenceScheduledAt)
+    }
+
+    @Test
+    fun `following-series clear sends a complete request to the following endpoint`() = runTest {
+        val occurrence = "2026-08-24T09:00:00Z"
+        val original = task(isRecurring = true, occurrenceScheduledAt = occurrence)
+        prepareLoad(original)
+        val request = slot<TaskUpdateRequest>()
+        coEvery { taskRepo.updateFollowingTask("task-1", occurrence, capture(request)) } returns original.copy(scheduledAt = null)
+        val viewModel = viewModel(occurrence)
+
+        viewModel.clearDue()
+        viewModel.confirmReschedule(RecurrenceScope.FROM_THIS)
+        advanceUntilIdle()
+
+        assertNull(request.captured.scheduledAt)
+        assertEquals(original.dueAt, request.captured.dueAt)
+        assertEquals(original.content, request.captured.content)
+        assertEquals(original.recurrenceRule, request.captured.recurrenceRule)
+        assertEquals(original.mentionContext, request.captured.mentionContext)
+        coVerify(exactly = 0) { taskRepo.updateTask(any(), any()) }
+        coVerify(exactly = 0) { taskRepo.updateOccurrence(any(), any(), any()) }
     }
 
     @Test
@@ -164,7 +189,7 @@ class TaskDetailViewModelTest {
         sectionId = null, parentId = null, order = 1, priority = 2, labels = listOf("work"),
         isCompleted = false, scheduledAt = "2026-08-24T09:00:00Z", dueAt = dueAt,
         allDay = false, isRecurring = isRecurring, recurrenceRule = if (isRecurring) "freq=weekly" else null,
-        estimateMinutes = 30, createdAt = null, updatedAt = null, completedAt = null,
+        estimateMinutes = 30, mentionContext = "context", createdAt = null, updatedAt = null, completedAt = null,
         occurrenceScheduledAt = occurrenceScheduledAt
     )
 }

@@ -12,7 +12,7 @@ export class CommentService {
   getComments(taskId?: string, projectId?: string): Observable<Comment[]> {
     let params = new HttpParams();
     if (taskId) params = params.set('task_id', taskId);
-    if (projectId) params = params.set('project_id', projectId);
+    if (projectId) params = params.set('projectId', projectId);
     return this.http.get<Comment[]>(this.base, { params });
   }
 

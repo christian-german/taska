@@ -1,5 +1,7 @@
 package com.taska.domain.task;
 
+import com.taska.domain.task.occurrence.RecurrenceScope;
+
 import java.time.Instant;
 
 /**

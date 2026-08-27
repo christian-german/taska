@@ -20,6 +20,7 @@ data class TaskDto(
     @SerializedName("isRecurring") val isRecurring: Boolean?,
     val recurrenceRule: String? = null,
     val estimateMinutes: Int?,
+    val mentionContext: String? = null,
     val createdAt: String?,
     val updatedAt: String?,
     val completedAt: String?,

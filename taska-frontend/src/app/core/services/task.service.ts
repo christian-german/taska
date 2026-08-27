@@ -1,6 +1,6 @@
 import {inject, Injectable} from '@angular/core';
 import {HttpClient, HttpParams} from '@angular/common/http';
-import {Observable, tap} from 'rxjs';
+import {Observable, switchMap, tap, throwError} from 'rxjs';
 import {Task, RecurrenceScope} from '../models';
 import {environment} from '../../../environments/environment';
 import {TaskCreationFeedbackService} from './task-creation-feedback.service';
@@ -16,6 +16,14 @@ export interface TaskFilters {
   to?: string;
 }
 
+interface TaskUpdateRequest {
+  content: string; type: NonNullable<Task['type']>; description: string | null;
+  projectId: string | null; sectionId: string | null; parentId: string | null; order: number;
+  priority: Task['priority']; labels: string[]; scheduledAt: string | null; dueAt: string | null;
+  allDay: boolean; isRecurring: boolean; estimateMinutes: number | null;
+  mentionContext: string | null; recurrenceRule: string | null;
+}
+
 @Injectable({providedIn: 'root'})
 export class TaskService {
   private http = inject(HttpClient);
@@ -29,7 +37,7 @@ export class TaskService {
     if (filters?.label)        params = params.set('label', filters.label);
     if (filters?.filter)       params = params.set('filter', filters.filter);
     if (filters?.showCompleted) params = params.set('show_completed', 'true');
-    if (filters?.date)         params = params.set('date', filters.date);
+    if (filters?.date)         params = params.set('singleDate', filters.date);
     if (filters?.from)         params = params.set('from', filters.from);
     if (filters?.to)           params = params.set('to', filters.to);
     return this.http.get<Task[]>(this.base, {params});
@@ -45,8 +53,38 @@ export class TaskService {
     );
   }
 
-  updateTask(id: string, data: Partial<Task> & { scope?: RecurrenceScope; occurrenceScheduledAt?: string | null }): Observable<Task> {
-    return this.http.put<Task>(`${this.base}/${id}`, data);
+  updateTask(id: string, patch: Partial<Task> & { scope?: RecurrenceScope; occurrenceScheduledAt?: string | null }): Observable<Task> {
+    const {scope, occurrenceScheduledAt, ...changes} = patch;
+    return this.getTask(id).pipe(switchMap(task => {
+      if (scope && !occurrenceScheduledAt) return throwError(() => new Error('A recurring update requires an occurrence identity'));
+      if (scope === 'THIS_ONLY') {
+        const unsupported = Object.keys(changes).filter(key => !['content', 'priority', 'scheduledAt', 'dueAt'].includes(key));
+        if (unsupported.length) return throwError(() => new Error(`Unsupported single-occurrence fields: ${unsupported.join(', ')}`));
+        return this.http.put<Task>(`${this.base}/${id}/occurrences/${encodeURIComponent(occurrenceScheduledAt!)}`, {
+          title: 'content' in changes ? changes.content : task.content,
+          priority: 'priority' in changes ? changes.priority : task.priority,
+          scheduledAt: 'scheduledAt' in changes ? changes.scheduledAt : task.scheduledAt,
+          dueAt: 'dueAt' in changes ? changes.dueAt : task.dueAt,
+        });
+      }
+      const request = this.toUpdateRequest(task, changes);
+      const url = scope === 'FROM_THIS'
+        ? `${this.base}/${id}/occurrences/${encodeURIComponent(occurrenceScheduledAt!)}/following`
+        : `${this.base}/${id}`;
+      return this.http.put<Task>(url, request);
+    }));
+  }
+
+  private toUpdateRequest(task: Task, changes: Partial<Task>): TaskUpdateRequest {
+    const updated = {...task, ...changes};
+    return {
+      content: updated.content, type: updated.type ?? 'TODO', description: updated.description ?? null,
+      projectId: updated.projectId ?? null, sectionId: updated.sectionId ?? null, parentId: updated.parentId ?? null,
+      order: updated.order, priority: updated.priority, labels: updated.labels ?? [], scheduledAt: updated.scheduledAt,
+      dueAt: updated.dueAt, allDay: updated.allDay, isRecurring: updated.isRecurring,
+      estimateMinutes: updated.estimateMinutes ?? null, mentionContext: updated.mentionContext ?? null,
+      recurrenceRule: updated.recurrenceRule ?? null,
+    };
   }
 
   deleteTask(id: string, scope?: RecurrenceScope, occurrenceScheduledAt?: string): Observable<void> {

@@ -38,7 +38,6 @@ function todayISO(): string {
           [groups]="groups()"
           [projects]="projects()"
           [selectedId]="selectedId()"
-          [suggestedIds]="suggestedIds()"
           (toggled)="onToggle($event)"
           (selectTask)="onSelect($event)"
           (updated)="onUpdate($event)" />
@@ -94,16 +93,6 @@ export class TodayComponent implements OnInit {
       empty: 'rien de prévu demain',
     });
     return groups;
-  });
-
-  suggestedIds = computed(() => {
-    const today = new Date();
-    const candidates = this.tasks()
-      .filter(t => !t.isCompleted && t.scheduledAt && sameDay(new Date(t.scheduledAt), today))
-      .sort((a, b) =>
-        ((b.priority ?? 0) - (a.priority ?? 0)) || ((b.estimateMinutes || 0) - (a.estimateMinutes || 0))
-      );
-    return new Set(candidates.slice(0, 2).map(t => t.id));
   });
 
   subtitle = computed(() => {

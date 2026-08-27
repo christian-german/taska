@@ -79,14 +79,6 @@ import { CheckboxComponent, PriorityFlagComponent, ProjectDotComponent, TagChipC
               <app-icon name="calendar" [size]="10" /> rendez-vous
             </span>
           }
-          @if (suggested()) {
-            <span class="chip"
-                  style="background: rgba(255, 216, 77, 0.25); color: #8A6F00; font-size: 10.5px;
-                         font-family: inherit; display: inline-flex;
-                         align-items: center; gap: 3px;">
-              <app-icon name="zap" [size]="10" /> suggéré
-            </span>
-          }
         </div>
 
         @if (hasMeta()) {
@@ -140,7 +132,6 @@ export class TaskRowComponent {
   task = input.required<Task>();
   project = input<Project | null>(null);
   selected = input<boolean>(false);
-  suggested = input<boolean>(false);
 
   toggled = output<Task>();
   selectTask = output<Task>();

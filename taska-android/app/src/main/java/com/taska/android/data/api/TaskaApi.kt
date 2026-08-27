@@ -7,6 +7,8 @@ import com.taska.android.data.model.ProjectDto
 import com.taska.android.data.model.RegisterDeviceRequest
 import com.taska.android.data.model.TaskDto
 import com.taska.android.data.model.TaskRequest
+import com.taska.android.data.model.TaskUpdateRequest
+import com.taska.android.data.model.OccurrenceUpdateRequest
 import com.taska.android.data.model.TimeEntryRequest
 import retrofit2.http.Body
 import retrofit2.http.DELETE
@@ -41,7 +43,13 @@ interface TaskaApi {
     suspend fun createTask(@Body request: TaskRequest): TaskDto
 
     @PUT("/tasks/{id}")
-    suspend fun updateTask(@Path("id") id: String, @Body request: TaskRequest): TaskDto
+    suspend fun updateTask(@Path("id") id: String, @Body request: TaskUpdateRequest): TaskDto
+
+    @PUT("/tasks/{id}/occurrences/{occurrence}/following")
+    suspend fun updateFollowingTask(@Path("id") id: String, @Path("occurrence") occurrence: String, @Body request: TaskUpdateRequest): TaskDto
+
+    @PUT("/tasks/{id}/occurrences/{occurrence}")
+    suspend fun updateOccurrence(@Path("id") id: String, @Path("occurrence") occurrence: String, @Body request: OccurrenceUpdateRequest): TaskDto
 
     @POST("/tasks/{taskId}/close")
     suspend fun closeTask(

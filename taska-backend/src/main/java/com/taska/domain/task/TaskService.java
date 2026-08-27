@@ -3,6 +3,7 @@ package com.taska.domain.task;
 import com.taska.config.TaskaProperties;
 import com.taska.domain.project.ProjectRepository;
 import com.taska.domain.priority.TaskPriorityEvaluationRepository;
+import com.taska.domain.task.occurrence.*;
 import com.taska.exception.ResourceNotFoundException;
 import com.taska.domain.planningcalendar.PlanningCalendarService;
 import lombok.RequiredArgsConstructor;
@@ -26,7 +27,7 @@ public class TaskService {
 
     private final TaskRepository taskRepository;
     private final TaskInstanceRepository taskInstanceRepository;
-    private final RecurrenceService recurrenceService;
+    private final TaskRecurrenceService taskRecurrenceService;
     private final TaskMapper taskMapper;
     private final ProjectRepository projectRepository;
     private final TaskPriorityEvaluationRepository priorityEvaluationRepository;
@@ -82,85 +83,6 @@ public class TaskService {
                     : taskRepository.findBySectionIdAndIsCompletedFalseOrderByPositionAsc(sectionId);
         }
         return taskRepository.findAll();
-    }
-
-    /**
-     * Returns all task occurrences (both regular and recurring) that fall within the given date range.
-     * For recurring tasks, virtual occurrences are generated from the RRULE, with SKIPPED instances
-     * excluded and MODIFIED instances merged in. Non-recurring tasks are included when their due date
-     * falls inside the period.
-     *
-     * @param from start of the date range (inclusive, UTC)
-     * @param to   end of the date range (inclusive, UTC)
-     * @return list of task DTOs, each representing a single occurrence
-     */
-    @Transactional(readOnly = true)
-    public List<TaskDto> findOccurrencesForDateRange(LocalDate from, LocalDate to) {
-        return findOccurrencesForDateRange(from, to, false);
-    }
-
-    /**
-     * Returns occurrences in the requested range, optionally retaining completed non-recurring tasks.
-     * Completed recurring occurrences are already represented by their task instances.
-     */
-    public List<TaskDto> findOccurrencesForDateRange(LocalDate from, LocalDate to, boolean showCompleted) {
-        ZoneId calendarZone = taskaProperties.getCalendar().getTimeZone();
-        Instant periodStart = from.atStartOfDay(calendarZone).toInstant();
-        Instant periodEnd = to.plusDays(1).atStartOfDay(calendarZone).toInstant();
-
-        List<Task> nonRecurring = showCompleted
-                ? taskRepository.findNonRecurringTasksIncludingCompletedInPeriod(periodStart, periodEnd)
-                : taskRepository.findNonRecurringTasksInPeriod(periodStart, periodEnd);
-        List<TaskDto> result = new ArrayList<>(nonRecurring.stream().map(taskMapper::toDto).toList());
-
-        List<Task> recurringTasks = taskRepository.findActiveRecurringTasksForPeriod(periodStart, periodEnd);
-        if (recurringTasks.isEmpty()) return result;
-
-        List<UUID> ids = recurringTasks.stream().map(Task::getId).toList();
-
-        // Instances whose occurrenceScheduledAt falls within the period (for RRULE occurrence matching).
-        Map<UUID, Map<Instant, TaskInstance>> instancesByTask =
-                taskInstanceRepository.findByTaskIdInAndOccurrenceScheduledAtBetween(ids, periodStart, periodEnd)
-                        .stream()
-                        .collect(Collectors.groupingBy(
-                                TaskInstance::getTaskId,
-                                Collectors.toMap(TaskInstance::getOccurrenceScheduledAt, i -> i, (a, b) -> a)
-                        ));
-
-        // MODIFIED instances whose scheduledAt was moved into this period from another day.
-        Map<UUID, List<TaskInstance>> movedInByTask =
-                taskInstanceRepository.findByTaskIdInAndStatusAndScheduledAtBetween(
-                                ids, TaskInstanceStatus.MODIFIED, periodStart, periodEnd)
-                        .stream()
-                        .filter(i -> i.getOccurrenceScheduledAt().isBefore(periodStart)
-                                || !i.getOccurrenceScheduledAt().isBefore(periodEnd))
-                        .collect(Collectors.groupingBy(TaskInstance::getTaskId));
-
-        for (Task task : recurringTasks) {
-            Map<Instant, TaskInstance> taskInstances = instancesByTask.getOrDefault(task.getId(), Map.of());
-            List<Instant> occurrences = recurrenceService.getOccurrencesInRange(task, periodStart, periodEnd);
-
-            for (Instant occurrenceScheduledAt : occurrences) {
-                TaskInstance instance = taskInstances.get(occurrenceScheduledAt);
-                if (instance != null && instance.getStatus() == TaskInstanceStatus.SKIPPED) {
-                    continue;
-                }
-                // Skip occurrences whose scheduledAt was moved outside this period.
-                if (instance != null && instance.getScheduledAt() != null
-                        && (instance.getScheduledAt().isBefore(periodStart)
-                            || !instance.getScheduledAt().isBefore(periodEnd))) {
-                    continue;
-                }
-                result.add(taskMapper.toOccurrenceDto(task, instance, occurrenceScheduledAt));
-            }
-
-            // Add occurrences that were rescheduled into this period from a different day.
-            for (TaskInstance movedIn : movedInByTask.getOrDefault(task.getId(), List.of())) {
-                result.add(taskMapper.toOccurrenceDto(task, movedIn, movedIn.getOccurrenceScheduledAt()));
-            }
-        }
-
-        return result;
     }
 
     /**
@@ -309,6 +231,139 @@ public class TaskService {
                 yield taskMapper.toDto(taskRepository.save(cloned));
             }
         };
+    }
+
+    /** Replaces every mutable field of a base task. */
+    public TaskDto replace(UUID taskId, TaskUpdateRequest request) {
+        Task task = getOrThrow(taskId);
+        replaceMutableFields(task, request);
+        Task saved = taskRepository.save(task);
+        priorityEvaluationRepository.deleteByTaskId(taskId);
+        return taskMapper.toDto(saved);
+    }
+
+    /** Splits a recurring series and creates its following replacement from the complete request. */
+    public TaskDto replaceFollowing(UUID taskId, Instant occurrenceScheduledAt, TaskUpdateRequest request) {
+        Task original = getOrThrow(taskId);
+        if (!Boolean.TRUE.equals(original.getIsRecurring())) {
+            throw new IllegalArgumentException("Following-series replacement requires a recurring task");
+        }
+        validateOccurrence(original, occurrenceScheduledAt);
+        original.setRruleEndsAt(occurrenceScheduledAt.minus(1, ChronoUnit.SECONDS));
+        taskRepository.save(original);
+
+        Task replacement = new Task();
+        replaceMutableFields(replacement, request);
+        if (!Boolean.TRUE.equals(replacement.getIsRecurring())) {
+            throw new IllegalArgumentException("Following-series replacement must remain recurring");
+        }
+        Task saved = taskRepository.save(replacement);
+        priorityEvaluationRepository.deleteByTaskId(taskId);
+        return taskMapper.toDto(saved);
+    }
+
+
+    /**
+     * Returns all task occurrences (both regular and recurring) that fall within the given date range.
+     * For recurring tasks, virtual occurrences are generated from the RRULE, with SKIPPED instances
+     * excluded and MODIFIED instances merged in. Non-recurring tasks are included when their due date
+     * falls inside the period.
+     *
+     * @param from        start of the date range (inclusive, UTC)
+     * @param to          end of the date range (inclusive, UTC)
+     * @return list of task DTOs, each representing a single occurrence
+     */
+    @Transactional(readOnly = true)
+    public List<TaskDto> findOccurrencesForDateRange(LocalDate from, LocalDate to) {
+        return findOccurrencesForDateRange(from, to, false);
+    }
+
+    /**
+     * Returns occurrences in the requested range, optionally retaining completed non-recurring tasks.
+     * Completed recurring occurrences are already represented by their task instances.
+     *
+     * @param from
+     * @param to
+     * @param showCompleted
+     */
+    public List<TaskDto> findOccurrencesForDateRange(LocalDate from, LocalDate to, boolean showCompleted) {
+        ZoneId calendarZone = taskaProperties.getCalendar().getTimeZone();
+        Instant periodStart = from.atStartOfDay(calendarZone).toInstant();
+        Instant periodEnd = to.plusDays(1).atStartOfDay(calendarZone).toInstant();
+
+        List<Task> nonRecurring = showCompleted
+                ? taskRepository.findNonRecurringTasksIncludingCompletedInPeriod(periodStart, periodEnd)
+                : taskRepository.findNonRecurringTasksInPeriod(periodStart, periodEnd);
+        List<TaskDto> result = new ArrayList<>(nonRecurring.stream().map(taskMapper::toDto).toList());
+
+        List<Task> recurringTasks = taskRepository.findActiveRecurringTasksForPeriod(periodStart, periodEnd);
+        if (recurringTasks.isEmpty()) return result;
+
+        List<UUID> ids = recurringTasks.stream().map(Task::getId).toList();
+
+        // Instances whose occurrenceScheduledAt falls within the period (for RRULE occurrence matching).
+        Map<UUID, Map<Instant, TaskInstance>> instancesByTask =
+                taskInstanceRepository.findByTaskIdInAndOccurrenceScheduledAtBetween(ids, periodStart, periodEnd)
+                        .stream()
+                        .collect(Collectors.groupingBy(
+                                TaskInstance::getTaskId,
+                                Collectors.toMap(TaskInstance::getOccurrenceScheduledAt, i -> i, (a, b) -> a)
+                        ));
+
+        // MODIFIED instances whose scheduledAt was moved into this period from another day.
+        Map<UUID, List<TaskInstance>> movedInByTask =
+                taskInstanceRepository.findByTaskIdInAndStatusAndScheduledAtBetween(
+                                ids, TaskInstanceStatus.MODIFIED, periodStart, periodEnd)
+                        .stream()
+                        .filter(i -> i.getOccurrenceScheduledAt().isBefore(periodStart)
+                                || !i.getOccurrenceScheduledAt().isBefore(periodEnd))
+                        .collect(Collectors.groupingBy(TaskInstance::getTaskId));
+
+        for (Task task : recurringTasks) {
+            Map<Instant, TaskInstance> taskInstances = instancesByTask.getOrDefault(task.getId(), Map.of());
+            List<Instant> occurrences = taskRecurrenceService.getOccurrencesInRange(task, periodStart, periodEnd);
+
+            for (Instant occurrenceScheduledAt : occurrences) {
+                TaskInstance instance = taskInstances.get(occurrenceScheduledAt);
+                if (instance != null && instance.getStatus() == TaskInstanceStatus.SKIPPED) {
+                    continue;
+                }
+                // Skip occurrences whose scheduledAt was moved outside this period.
+                if (instance != null && instance.getScheduledAt() != null
+                        && (instance.getScheduledAt().isBefore(periodStart)
+                        || !instance.getScheduledAt().isBefore(periodEnd))) {
+                    continue;
+                }
+                result.add(taskMapper.toOccurrenceDto(task, instance, occurrenceScheduledAt));
+            }
+
+            // Add occurrences that were rescheduled into this period from a different day.
+            for (TaskInstance movedIn : movedInByTask.getOrDefault(task.getId(), List.of())) {
+                result.add(taskMapper.toOccurrenceDto(task, movedIn, movedIn.getOccurrenceScheduledAt()));
+            }
+        }
+
+        return result;
+    }
+
+    /** Replaces the fields independently persisted for one recurring occurrence. */
+    public TaskDto replaceOccurrence(UUID taskId, Instant occurrenceScheduledAt, OccurrenceUpdateRequest request) {
+        Task task = getOrThrow(taskId);
+        if (!Boolean.TRUE.equals(task.getIsRecurring())) {
+            throw new IllegalArgumentException("Occurrence replacement requires a recurring task");
+        }
+        validateOccurrence(task, occurrenceScheduledAt);
+        TaskInstance instance = taskInstanceRepository.findByTaskIdAndOccurrenceScheduledAt(taskId, occurrenceScheduledAt)
+                .orElseGet(TaskInstance::new);
+        instance.setTaskId(taskId);
+        instance.setOccurrenceScheduledAt(occurrenceScheduledAt);
+        instance.setStatus(TaskInstanceStatus.MODIFIED);
+        instance.setTitle(request.title());
+        instance.setPriority(request.priority());
+        instance.setScheduledAt(request.scheduledAt());
+        instance.setDueAt(request.dueAt());
+        if (request.scheduledAt() != null) assertScheduleAllowed(task.getProjectId(), request.scheduledAt(), task.isAllDay());
+        return taskMapper.toOccurrenceDto(task, taskInstanceRepository.save(instance), occurrenceScheduledAt);
     }
 
     /**
@@ -485,7 +540,7 @@ public class TaskService {
     private void validateOccurrence(Task task, Instant occurrenceScheduledAt) {
         Instant dayStart = occurrenceScheduledAt.truncatedTo(ChronoUnit.DAYS);
         Instant dayEnd = dayStart.plus(1, ChronoUnit.DAYS);
-        List<Instant> occurrences = recurrenceService.getOccurrencesInRange(task, dayStart, dayEnd);
+        List<Instant> occurrences = taskRecurrenceService.getOccurrencesInRange(task, dayStart, dayEnd);
         if (!occurrences.contains(occurrenceScheduledAt)) {
             throw new ResourceNotFoundException(
                     "No occurrence at " + occurrenceScheduledAt + " for task " + task.getId());
@@ -544,6 +599,27 @@ public class TaskService {
             }
             task.setScheduledAt(taskRequest.scheduledAt());
         }
+    }
+
+    private void replaceMutableFields(Task task, TaskUpdateRequest request) {
+        task.setContent(request.content());
+        task.setType(request.type());
+        task.setDescription(request.description());
+        task.setProjectId(request.projectId());
+        task.setSectionId(request.sectionId());
+        task.setParentId(request.parentId());
+        task.setPosition(request.order());
+        task.setPriority(request.priority());
+        task.setLabels(new ArrayList<>(request.labels()));
+        if (!java.util.Objects.equals(task.getScheduledAt(), request.scheduledAt())) task.setIsNotified(false);
+        task.setScheduledAt(request.scheduledAt());
+        task.setDueAt(request.dueAt());
+        task.setAllDay(request.allDay());
+        task.setIsRecurring(request.isRecurring());
+        task.setEstimateMinutes(request.estimateMinutes());
+        task.setMentionContext(request.mentionContext());
+        task.setRecurrenceRule(normalizeRRule(request.recurrenceRule()));
+        assertScheduleAllowed(request.projectId(), request.scheduledAt(), request.allDay());
     }
 
     private void assertScheduleAllowed(UUID projectId, Instant scheduledAt, boolean allDay) {

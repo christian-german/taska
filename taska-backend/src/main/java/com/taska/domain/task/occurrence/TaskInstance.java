@@ -1,4 +1,4 @@
-package com.taska.domain.task;
+package com.taska.domain.task.occurrence;
 
 import jakarta.persistence.*;
 import lombok.Getter;

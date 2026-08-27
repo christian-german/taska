@@ -1,10 +1,9 @@
 package com.taska.domain.task;
 
+import com.taska.domain.notification.TaskChangePublisher;
 import com.taska.domain.priority.TaskPriorityEvaluationDto;
 import com.taska.domain.priority.TaskPriorityEvaluationService;
-import com.taska.domain.notification.TaskChangePublisher;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.ObjectMapper;
+import com.taska.domain.task.occurrence.OccurrenceUpdateRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -26,13 +25,12 @@ public class TaskController {
     private final TaskService taskService;
     private final TaskMapper taskMapper;
     private final TaskPriorityEvaluationService priorityEvaluationService;
-    private final ObjectMapper objectMapper;
     private final TaskChangePublisher taskChangePublisher;
 
     /**
      * Lists tasks with optional filtering. When {@code date} is provided, returns all occurrences
      * (including recurring) for that single day. When {@code from} and {@code to} are both provided,
-     * returns occurrences for that date range. Otherwise delegates to the standard filter/label/project
+     * returns occurrences for that date range. Otherwise, delegates to the standard filter/label/project
      * scoped query.
      *
      * @param project_id     optional project filter
@@ -40,9 +38,9 @@ public class TaskController {
      * @param label          optional label name filter
      * @param filter         optional named filter ("today", "overdue", "upcoming")
      * @param show_completed include completed tasks when true
-     * @param date           single date for occurrence expansion (overrides other params)
+     * @param singleDate           single date for occurrence expansion (overrides other params)
      * @param from           start of date range for occurrence expansion
-     * @param to             end of date range for occurrence expansion
+     * @param to             end-of-date range for occurrence expansion
      * @return list of task DTOs
      */
     @GetMapping
@@ -52,12 +50,12 @@ public class TaskController {
             @RequestParam(required = false) String label,
             @RequestParam(required = false) String filter,
             @RequestParam(required = false, defaultValue = "false") boolean show_completed,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate singleDate,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to) {
 
-        if (date != null) {
-            return taskService.findOccurrencesForDateRange(date, date, show_completed);
+        if (singleDate != null) {
+            return taskService.findOccurrencesForDateRange(singleDate, singleDate, show_completed);
         }
         if (from != null && to != null) {
             return taskService.findOccurrencesForDateRange(from, to, show_completed);
@@ -98,18 +96,25 @@ public class TaskController {
                 .orElseGet(() -> ResponseEntity.noContent().build());
     }
 
-    /**
-     * Updates an existing task. Supports scope-based updates for recurring tasks via the request body.
-     *
-     * @param id          the task UUID
-     * @param payload the update payload. Supplying {@code "priority": null} explicitly clears the
-     *                manual priority; omitting {@code priority} leaves it unchanged.
-     * @return the updated task DTO
-     */
     @PutMapping("/{id}")
-    public TaskDto update(@PathVariable UUID id, @RequestBody JsonNode payload, @AuthenticationPrincipal Jwt jwt) {
-        TaskRequest taskRequest = objectMapper.convertValue(payload, TaskRequest.class);
-        TaskDto result = taskService.update(id, taskRequest, payload.has("priority"));
+    public TaskDto update(@PathVariable UUID id, @Valid @RequestBody TaskUpdateRequest request, @AuthenticationPrincipal Jwt jwt) {
+        TaskDto result = taskService.replace(id, request);
+        taskChangePublisher.publishFor(jwt.getSubject());
+        return result;
+    }
+
+    @PutMapping("/{id}/occurrences/{occurrenceScheduledAt}/following")
+    public TaskDto replaceFollowing(@PathVariable UUID id, @PathVariable java.time.Instant occurrenceScheduledAt,
+                                    @Valid @RequestBody TaskUpdateRequest request, @AuthenticationPrincipal Jwt jwt) {
+        TaskDto result = taskService.replaceFollowing(id, occurrenceScheduledAt, request);
+        taskChangePublisher.publishFor(jwt.getSubject());
+        return result;
+    }
+
+    @PutMapping("/{id}/occurrences/{occurrenceScheduledAt}")
+    public TaskDto replaceOccurrence(@PathVariable UUID id, @PathVariable java.time.Instant occurrenceScheduledAt,
+                                     @Valid @RequestBody OccurrenceUpdateRequest request, @AuthenticationPrincipal Jwt jwt) {
+        TaskDto result = taskService.replaceOccurrence(id, occurrenceScheduledAt, request);
         taskChangePublisher.publishFor(jwt.getSubject());
         return result;
     }

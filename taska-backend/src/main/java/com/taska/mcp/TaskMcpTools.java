@@ -1,6 +1,6 @@
 package com.taska.mcp;
 
-import com.taska.domain.task.RecurrenceScope;
+import com.taska.domain.task.occurrence.RecurrenceScope;
 import com.taska.domain.task.TaskCloseReopenRequest;
 import com.taska.domain.task.TaskDto;
 import com.taska.domain.task.TaskMapper;

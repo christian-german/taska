@@ -1,5 +1,6 @@
-package com.taska.domain.task;
+package com.taska.domain.task.occurrence;
 
+import com.taska.domain.task.Task;
 import net.fortuna.ical4j.model.DateList;
 import net.fortuna.ical4j.model.DateTime;
 import net.fortuna.ical4j.model.Recur;
@@ -13,7 +14,7 @@ import java.util.Date;
 import java.util.List;
 
 @Service
-public class RecurrenceService {
+public class TaskRecurrenceService {
 
     /**
      * Expands the RRULE of a recurring task and returns all occurrence instants that fall within

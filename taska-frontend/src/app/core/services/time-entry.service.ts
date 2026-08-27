@@ -17,7 +17,7 @@ export class TimeEntryService {
 
   getEntries(filters?: TimeEntryFilters): Observable<TimeEntry[]> {
     let params = new HttpParams();
-    if (filters?.projectId) params = params.set('project_id', filters.projectId);
+    if (filters?.projectId) params = params.set('projectId', filters.projectId);
     if (filters?.start)     params = params.set('start', filters.start);
     if (filters?.end)       params = params.set('end', filters.end);
     return this.http.get<TimeEntry[]>(this.base, { params });

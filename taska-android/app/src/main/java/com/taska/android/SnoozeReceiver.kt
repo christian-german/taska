@@ -6,7 +6,7 @@ import android.content.Intent
 import android.util.Log
 import androidx.core.app.NotificationManagerCompat
 import com.taska.android.data.api.RetrofitClient
-import com.taska.android.data.model.TaskRequest
+import com.taska.android.data.model.toTaskUpdateRequest
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -27,16 +27,7 @@ class SnoozeReceiver : BroadcastReceiver() {
 
                 RetrofitClient.api.updateTask(
                     taskId,
-                    TaskRequest(
-                        content = task.content,
-                        description = task.description,
-                        projectId = task.projectId,
-                        priority = task.priority,
-                        labels = task.labels,
-                        scheduledAt = newScheduledAt,
-                        allDay = task.allDay,
-                        estimateMinutes = task.estimateMinutes
-                    )
+                    task.toTaskUpdateRequest().copy(scheduledAt = newScheduledAt)
                 )
 
                 NotificationManagerCompat.from(context).cancel(notifId)

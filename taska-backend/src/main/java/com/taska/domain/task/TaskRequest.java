@@ -1,5 +1,6 @@
 package com.taska.domain.task;
 
+import com.taska.domain.task.occurrence.RecurrenceScope;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;

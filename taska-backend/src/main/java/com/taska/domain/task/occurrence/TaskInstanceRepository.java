@@ -1,4 +1,4 @@
-package com.taska.domain.task;
+package com.taska.domain.task.occurrence;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 

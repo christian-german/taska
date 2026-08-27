@@ -5,7 +5,8 @@ import androidx.lifecycle.viewModelScope
 import com.taska.android.data.model.ProjectDto
 import com.taska.android.data.model.RecurrenceScope
 import com.taska.android.data.model.TaskDto
-import com.taska.android.data.model.TaskRequest
+import com.taska.android.data.model.OccurrenceUpdateRequest
+import com.taska.android.data.model.toTaskUpdateRequest
 import com.taska.android.data.repository.ProjectRepository
 import com.taska.android.data.repository.TaskRepository
 import kotlinx.coroutines.async
@@ -77,21 +78,13 @@ class WeekViewModel(
     private fun executeReschedule(task: TaskDto, newScheduledAt: String, newEstimateMinutes: Int, scope: RecurrenceScope?) {
         viewModelScope.launch {
             try {
-                taskRepo.updateTask(
-                    task.id,
-                    TaskRequest(
-                        content = task.content,
-                        description = task.description,
-                        projectId = task.projectId,
-                        priority = task.priority,
-                        labels = task.labels,
-                        scheduledAt = newScheduledAt,
-                        allDay = false,
-                        estimateMinutes = newEstimateMinutes,
-                        scope = scope?.name,
-                        occurrenceScheduledAt = task.occurrenceScheduledAt
-                    )
-                )
+                val request = task.toTaskUpdateRequest().copy(scheduledAt = newScheduledAt, allDay = false, estimateMinutes = newEstimateMinutes)
+                when (scope) {
+                    RecurrenceScope.THIS_ONLY -> taskRepo.updateOccurrence(task.id, checkNotNull(task.occurrenceScheduledAt),
+                        OccurrenceUpdateRequest(task.content, task.priority, newScheduledAt, task.dueAt))
+                    RecurrenceScope.FROM_THIS -> taskRepo.updateFollowingTask(task.id, checkNotNull(task.occurrenceScheduledAt), request)
+                    null -> taskRepo.updateTask(task.id, request)
+                }
                 loadForOffset(_uiState.value.weekOffset)
             } catch (_: Exception) {}
         }

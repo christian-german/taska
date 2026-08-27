@@ -359,7 +359,10 @@ export class TaskDetailComponent implements OnChanges {
     this.pendingPatch.set(null);
     const occurrenceScheduledAt = this.task().occurrenceScheduledAt ?? undefined;
     this.taskService.updateTask(this.task().id, { ...patch, scope, occurrenceScheduledAt })
-      .subscribe(updated => this.taskUpdated.emit(updated));
+      .subscribe({
+        next: updated => this.taskUpdated.emit(updated),
+        error: () => undefined,
+      });
   }
 
   onClose(): void {
@@ -381,7 +384,10 @@ export class TaskDetailComponent implements OnChanges {
       this.showModifyScopeDialog.set(true);
     } else {
       this.taskService.updateTask(this.task().id, patch)
-        .subscribe(updated => this.taskUpdated.emit(updated));
+        .subscribe({
+          next: updated => this.taskUpdated.emit(updated),
+          error: () => undefined,
+        });
     }
   }
 }

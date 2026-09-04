@@ -1,0 +1,256 @@
+"/projects/{id}":
+  get:
+    tags:
+      - "Projects"
+    operationId: "getProject"
+    parameters:
+      - name: "id"
+        in: "path"
+        required: true
+        schema:
+          type: "string"
+          format: "uuid"
+        description: "Resource identifier."
+    responses:
+      "200":
+        description: "Successful response."
+        content:
+          "application/json":
+            schema:
+              "$ref": "../schemas/project.yaml#/ProjectDto"
+      "400":
+        "$ref": "../responses.yaml#/BadRequest"
+      "401":
+        "$ref": "../responses.yaml#/Unauthorized"
+      "403":
+        "$ref": "../responses.yaml#/Forbidden"
+      "404":
+        "$ref": "../responses.yaml#/NotFound"
+      "500":
+        "$ref": "../responses.yaml#/InternalServerError"
+    summary: "Get a project"
+    description: "Get a project for the authenticated Taska principal."
+  put:
+    tags:
+      - "Projects"
+    operationId: "updateProject"
+    parameters:
+      - name: "id"
+        in: "path"
+        required: true
+        schema:
+          type: "string"
+          format: "uuid"
+        description: "Resource identifier."
+    requestBody:
+      content:
+        "application/json":
+          schema:
+            "$ref": "../schemas/project.yaml#/ProjectRequest"
+      required: true
+      description: "Request payload."
+    responses:
+      "200":
+        description: "Successful response."
+        content:
+          "application/json":
+            schema:
+              "$ref": "../schemas/project.yaml#/ProjectDto"
+      "400":
+        "$ref": "../responses.yaml#/BadRequest"
+      "401":
+        "$ref": "../responses.yaml#/Unauthorized"
+      "403":
+        "$ref": "../responses.yaml#/Forbidden"
+      "404":
+        "$ref": "../responses.yaml#/NotFound"
+      "409":
+        "$ref": "../responses.yaml#/Conflict"
+      "422":
+        "$ref": "../responses.yaml#/ValidationError"
+      "500":
+        "$ref": "../responses.yaml#/InternalServerError"
+    summary: "Update a project"
+    description: "Update a project for the authenticated Taska principal."
+  delete:
+    tags:
+      - "Projects"
+    operationId: "deleteProject"
+    parameters:
+      - name: "id"
+        in: "path"
+        required: true
+        schema:
+          type: "string"
+          format: "uuid"
+        description: "Resource identifier."
+    responses:
+      "204":
+        description: "Operation completed; no response body."
+      "400":
+        "$ref": "../responses.yaml#/BadRequest"
+      "401":
+        "$ref": "../responses.yaml#/Unauthorized"
+      "403":
+        "$ref": "../responses.yaml#/Forbidden"
+      "404":
+        "$ref": "../responses.yaml#/NotFound"
+      "409":
+        "$ref": "../responses.yaml#/Conflict"
+      "500":
+        "$ref": "../responses.yaml#/InternalServerError"
+    summary: "Delete a project"
+    description: "Delete a project for the authenticated Taska principal."
+"/projects":
+  get:
+    tags:
+      - "Projects"
+    operationId: "listProjects"
+    responses:
+      "200":
+        description: "Successful response."
+        content:
+          "application/json":
+            schema:
+              type: "array"
+              items:
+                "$ref": "../schemas/project.yaml#/ProjectDto"
+      "401":
+        "$ref": "../responses.yaml#/Unauthorized"
+      "403":
+        "$ref": "../responses.yaml#/Forbidden"
+      "500":
+        "$ref": "../responses.yaml#/InternalServerError"
+    summary: "List projects"
+    description: "List projects for the authenticated Taska principal."
+  post:
+    tags:
+      - "Projects"
+    operationId: "createProject"
+    requestBody:
+      content:
+        "application/json":
+          schema:
+            "$ref": "../schemas/project.yaml#/ProjectRequest"
+      required: true
+      description: "Request payload."
+    responses:
+      "201":
+        description: "Resource created."
+        content:
+          "application/json":
+            schema:
+              "$ref": "../schemas/project.yaml#/ProjectDto"
+      "400":
+        "$ref": "../responses.yaml#/BadRequest"
+      "401":
+        "$ref": "../responses.yaml#/Unauthorized"
+      "403":
+        "$ref": "../responses.yaml#/Forbidden"
+      "409":
+        "$ref": "../responses.yaml#/Conflict"
+      "422":
+        "$ref": "../responses.yaml#/ValidationError"
+      "500":
+        "$ref": "../responses.yaml#/InternalServerError"
+    summary: "Create a project"
+    description: "Create a project for the authenticated Taska principal."
+"/projects/reorder":
+  patch:
+    tags:
+      - "Projects"
+    operationId: "reorderProjects"
+    requestBody:
+      content:
+        "application/json":
+          schema:
+            type: "array"
+            items:
+              "$ref": "../schemas/project.yaml#/ProjectReorderRequest"
+      required: true
+      description: "Request payload."
+    responses:
+      "204":
+        description: "Operation completed; no response body."
+      "400":
+        "$ref": "../responses.yaml#/BadRequest"
+      "401":
+        "$ref": "../responses.yaml#/Unauthorized"
+      "403":
+        "$ref": "../responses.yaml#/Forbidden"
+      "409":
+        "$ref": "../responses.yaml#/Conflict"
+      "422":
+        "$ref": "../responses.yaml#/ValidationError"
+      "500":
+        "$ref": "../responses.yaml#/InternalServerError"
+    summary: "Reorder projects"
+    description: "Reorder projects for the authenticated Taska principal."
+"/projects/{id}/tasks":
+  get:
+    tags:
+      - "Projects"
+    operationId: "listProjectTasks"
+    parameters:
+      - name: "id"
+        in: "path"
+        required: true
+        schema:
+          type: "string"
+          format: "uuid"
+        description: "Resource identifier."
+    responses:
+      "200":
+        description: "Successful response."
+        content:
+          "application/json":
+            schema:
+              type: "array"
+              items:
+                "$ref": "../schemas/task.yaml#/TaskDto"
+      "400":
+        "$ref": "../responses.yaml#/BadRequest"
+      "401":
+        "$ref": "../responses.yaml#/Unauthorized"
+      "403":
+        "$ref": "../responses.yaml#/Forbidden"
+      "404":
+        "$ref": "../responses.yaml#/NotFound"
+      "500":
+        "$ref": "../responses.yaml#/InternalServerError"
+    summary: "List project tasks"
+    description: "List project tasks for the authenticated Taska principal."
+"/projects/{id}/sections":
+  get:
+    tags:
+      - "Projects"
+    operationId: "listProjectSections"
+    parameters:
+      - name: "id"
+        in: "path"
+        required: true
+        schema:
+          type: "string"
+          format: "uuid"
+        description: "Resource identifier."
+    responses:
+      "200":
+        description: "Successful response."
+        content:
+          "application/json":
+            schema:
+              type: "array"
+              items:
+                "$ref": "../schemas/section.yaml#/SectionDto"
+      "400":
+        "$ref": "../responses.yaml#/BadRequest"
+      "401":
+        "$ref": "../responses.yaml#/Unauthorized"
+      "403":
+        "$ref": "../responses.yaml#/Forbidden"
+      "404":
+        "$ref": "../responses.yaml#/NotFound"
+      "500":
+        "$ref": "../responses.yaml#/InternalServerError"
+    summary: "List project sections"
+    description: "List project sections for the authenticated Taska principal."

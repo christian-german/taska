@@ -1,0 +1,9 @@
+RegisterDeviceRequest:
+  description: "Push-notification device registration payload."
+  type: "object"
+  properties:
+    token:
+      type: "string"
+      minLength: 1
+  required:
+    - "token"

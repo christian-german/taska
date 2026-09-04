@@ -1,0 +1,143 @@
+"/comments/{id}":
+  put:
+    tags:
+      - "Comments"
+    operationId: "updateComment"
+    parameters:
+      - name: "id"
+        in: "path"
+        required: true
+        schema:
+          type: "string"
+          format: "uuid"
+        description: "Resource identifier."
+    requestBody:
+      content:
+        "application/json":
+          schema:
+            "$ref": "../schemas/comment.yaml#/CommentRequest"
+      required: true
+      description: "Request payload."
+    responses:
+      "200":
+        description: "Successful response."
+        content:
+          "application/json":
+            schema:
+              "$ref": "../schemas/comment.yaml#/CommentDto"
+      "400":
+        "$ref": "../responses.yaml#/BadRequest"
+      "401":
+        "$ref": "../responses.yaml#/Unauthorized"
+      "403":
+        "$ref": "../responses.yaml#/Forbidden"
+      "404":
+        "$ref": "../responses.yaml#/NotFound"
+      "409":
+        "$ref": "../responses.yaml#/Conflict"
+      "422":
+        "$ref": "../responses.yaml#/ValidationError"
+      "500":
+        "$ref": "../responses.yaml#/InternalServerError"
+    summary: "Update a comment"
+    description: "Update a comment for the authenticated Taska principal."
+  delete:
+    tags:
+      - "Comments"
+    operationId: "deleteComment"
+    parameters:
+      - name: "id"
+        in: "path"
+        required: true
+        schema:
+          type: "string"
+          format: "uuid"
+        description: "Resource identifier."
+    responses:
+      "204":
+        description: "Operation completed; no response body."
+      "400":
+        "$ref": "../responses.yaml#/BadRequest"
+      "401":
+        "$ref": "../responses.yaml#/Unauthorized"
+      "403":
+        "$ref": "../responses.yaml#/Forbidden"
+      "404":
+        "$ref": "../responses.yaml#/NotFound"
+      "409":
+        "$ref": "../responses.yaml#/Conflict"
+      "500":
+        "$ref": "../responses.yaml#/InternalServerError"
+    summary: "Delete a comment"
+    description: "Delete a comment for the authenticated Taska principal."
+"/comments":
+  get:
+    tags:
+      - "Comments"
+    operationId: "listComments"
+    parameters:
+      - name: "task_id"
+        in: "query"
+        required: false
+        schema:
+          type: "string"
+          format: "uuid"
+        description: "Restrict results to this task identifier."
+      - name: "project_id"
+        in: "query"
+        required: false
+        schema:
+          type: "string"
+          format: "uuid"
+        description: "Restrict results to this project identifier."
+    responses:
+      "200":
+        description: "Successful response."
+        content:
+          "application/json":
+            schema:
+              type: "array"
+              items:
+                "$ref": "../schemas/comment.yaml#/CommentDto"
+      "400":
+        "$ref": "../responses.yaml#/BadRequest"
+      "401":
+        "$ref": "../responses.yaml#/Unauthorized"
+      "403":
+        "$ref": "../responses.yaml#/Forbidden"
+      "500":
+        "$ref": "../responses.yaml#/InternalServerError"
+    summary: "List comments"
+    description: "List comments for the authenticated Taska principal."
+  post:
+    tags:
+      - "Comments"
+    operationId: "createComment"
+    requestBody:
+      content:
+        "application/json":
+          schema:
+            "$ref": "../schemas/comment.yaml#/CommentRequest"
+      required: true
+      description: "Request payload."
+    responses:
+      "201":
+        description: "Resource created."
+        content:
+          "application/json":
+            schema:
+              "$ref": "../schemas/comment.yaml#/CommentDto"
+      "400":
+        "$ref": "../responses.yaml#/BadRequest"
+      "401":
+        "$ref": "../responses.yaml#/Unauthorized"
+      "403":
+        "$ref": "../responses.yaml#/Forbidden"
+      "409":
+        "$ref": "../responses.yaml#/Conflict"
+      "422":
+        "$ref": "../responses.yaml#/ValidationError"
+      "500":
+        "$ref": "../responses.yaml#/InternalServerError"
+    summary: "Create a comment"
+    description: "Create a comment for the authenticated Taska principal."

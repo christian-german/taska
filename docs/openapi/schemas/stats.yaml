@@ -1,0 +1,56 @@
+DailyCount:
+  description: "Completed task count for one calendar date."
+  type: "object"
+  properties:
+    date:
+      type: "string"
+    count:
+      type: "integer"
+      format: "int64"
+ProjectStat:
+  description: "Task completion statistics for one project."
+  type: "object"
+  properties:
+    projectId:
+      type: "string"
+      format: "uuid"
+    name:
+      type: "string"
+    color:
+      type: "string"
+    total:
+      type: "integer"
+      format: "int64"
+    done:
+      type: "integer"
+      format: "int64"
+StatsDto:
+  description: "Aggregated task statistics returned by the overview endpoint."
+  type: "object"
+  properties:
+    totalCompleted:
+      type: "integer"
+      format: "int64"
+    totalActive:
+      type: "integer"
+      format: "int64"
+    overdue:
+      type: "integer"
+      format: "int64"
+    streakDays:
+      type: "integer"
+      format: "int32"
+    completedThisWeek:
+      type: "integer"
+      format: "int64"
+    remainingMinutes:
+      type: "integer"
+      format: "int32"
+    last14Days:
+      type: "array"
+      items:
+        "$ref": "./stats.yaml#/DailyCount"
+    byProject:
+      type: "array"
+      items:
+        "$ref": "./stats.yaml#/ProjectStat"

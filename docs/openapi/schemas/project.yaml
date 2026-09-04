@@ -1,0 +1,76 @@
+ProjectRequest:
+  description: "Payload used to create or update a project."
+  type: "object"
+  properties:
+    name:
+      type: "string"
+      minLength: 1
+    color:
+      type: "string"
+    parentId:
+      type: "string"
+      format: "uuid"
+    clearParent:
+      type: "boolean"
+    order:
+      type: "integer"
+      format: "int32"
+    isFavorite:
+      type: "boolean"
+    viewStyle:
+      type: "string"
+      enum:
+        - "LIST"
+        - "BOARD"
+        - "CALENDAR"
+    planningCalendarId:
+      type: "string"
+      format: "uuid"
+  required:
+    - "name"
+ProjectDto:
+  description: "Project returned by the API."
+  type: "object"
+  properties:
+    id:
+      type: "string"
+      format: "uuid"
+    name:
+      type: "string"
+    color:
+      type: "string"
+    parentId:
+      type: "string"
+      format: "uuid"
+    order:
+      type: "integer"
+      format: "int32"
+    isFavorite:
+      type: "boolean"
+    viewStyle:
+      type: "string"
+      enum:
+        - "LIST"
+        - "BOARD"
+        - "CALENDAR"
+    isInboxProject:
+      type: "boolean"
+    planningCalendarId:
+      type: "string"
+      format: "uuid"
+    createdAt:
+      type: "string"
+      format: "date-time"
+    updatedAt:
+      type: "string"
+      format: "date-time"
+ProjectReorderRequest:
+  description: "New ordering position for a project."
+  type: "object"
+  properties:
+    id:
+      type: "string"
+      format: "uuid"
+    order:
+      type: "integer"
+      format: "int32"

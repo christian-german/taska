@@ -1,0 +1,29 @@
+"/register-device":
+  post:
+    tags:
+      - "Devices"
+    operationId: "registerDevice"
+    requestBody:
+      content:
+        "application/json":
+          schema:
+            "$ref": "../schemas/device.yaml#/RegisterDeviceRequest"
+      required: true
+      description: "Request payload."
+    responses:
+      "200":
+        description: "Successful response."
+      "400":
+        "$ref": "../responses.yaml#/BadRequest"
+      "401":
+        "$ref": "../responses.yaml#/Unauthorized"
+      "403":
+        "$ref": "../responses.yaml#/Forbidden"
+      "409":
+        "$ref": "../responses.yaml#/Conflict"
+      "422":
+        "$ref": "../responses.yaml#/ValidationError"
+      "500":
+        "$ref": "../responses.yaml#/InternalServerError"
+    summary: "Register a device"
+    description: "Register a device for the authenticated Taska principal."

@@ -9,7 +9,9 @@ import java.lang.reflect.Type;
 /**
  * Hibernate's built-in JSON mapper uses Jackson 2. This adapter persists the
  * application's Jackson 3 ({@code tools.jackson.*}) JSON types instead.
+ * This is used in the Spring Configuration.
  */
+@SuppressWarnings("unused")
 public final class Jackson3JsonFormatMapper extends AbstractJsonFormatMapper {
 
     private final JsonMapper objectMapper = new JsonMapper();

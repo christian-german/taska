@@ -1,0 +1,14 @@
+taskaOAuth:
+  type: "oauth2"
+  description: "OAuth 2.0 authentication for interactive Taska clients and machine-to-machine API tests."
+  flows:
+    authorizationCode:
+      authorizationUrl: "http://host.docker.internal:8000/application/o/authorize/"
+      tokenUrl: "http://host.docker.internal:8000/application/o/token/"
+      refreshUrl: "http://host.docker.internal:8000/application/o/token/"
+      scopes:
+        taska: "Full access to the Taska API."
+    clientCredentials:
+      tokenUrl: "http://host.docker.internal:8000/application/o/token/"
+      scopes:
+        taska: "Full access to the Taska API."

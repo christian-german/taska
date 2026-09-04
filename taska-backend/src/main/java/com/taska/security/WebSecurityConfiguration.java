@@ -33,7 +33,7 @@ public class WebSecurityConfiguration {
     /**
      * Configures the main security filter chain. CSRF is disabled (stateless API), CORS is
      * enabled with default settings, sessions are never created, and all endpoints require an
-     * authenticated OAuth2 JWT except {@code /public/**} and the actuator health check.
+     * authenticated OAuth2 JWT except the actuator health check.
      *
      * @param http the {@link HttpSecurity} builder
      * @return the configured {@link SecurityFilterChain}
@@ -45,7 +45,6 @@ public class WebSecurityConfiguration {
                 .cors(Customizer.withDefaults())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/public/**").permitAll()
                         .requestMatchers("/actuator/health/**").permitAll()
                         .requestMatchers("/mcp/**").authenticated()
                         .anyRequest().authenticated()

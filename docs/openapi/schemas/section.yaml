@@ -1,0 +1,34 @@
+SectionRequest:
+  description: "Payload used to create or update a section."
+  type: "object"
+  properties:
+    name:
+      type: "string"
+      minLength: 1
+    projectId:
+      type: "string"
+      format: "uuid"
+    order:
+      type: "integer"
+      format: "int32"
+  required:
+    - "name"
+    - "projectId"
+SectionDto:
+  description: "Section returned by the API."
+  type: "object"
+  properties:
+    id:
+      type: "string"
+      format: "uuid"
+    name:
+      type: "string"
+    projectId:
+      type: "string"
+      format: "uuid"
+    order:
+      type: "integer"
+      format: "int32"
+    createdAt:
+      type: "string"
+      format: "date-time"

@@ -7,9 +7,9 @@ import java.util.UUID;
  * Transfer object representing a project returned by the API.
  *
  * @param id             unique identifier of the project
- * @param name           display name of the project
+ * @param name           display the name of the project
  * @param color          hex color string used for UI display (e.g. {@code "#ff5733"})
- * @param parentId       UUID of the parent project for nested/sub-projects; {@code null} for root projects
+ * @param parentId       UUID of the parent project for nested/subprojects; {@code null} for root projects
  * @param order          display position among sibling projects (maps to the entity's {@code position})
  * @param isFavorite     whether the project is starred/favourited by the user
  * @param viewStyle      preferred rendering mode: {@code LIST}, {@code BOARD}, or {@code CALENDAR}

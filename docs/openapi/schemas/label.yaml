@@ -1,0 +1,32 @@
+LabelRequest:
+  description: "Payload used to create or update a label."
+  type: "object"
+  properties:
+    name:
+      type: "string"
+      minLength: 1
+    color:
+      type: "string"
+    order:
+      type: "integer"
+      format: "int32"
+    isFavorite:
+      type: "boolean"
+  required:
+    - "name"
+LabelDto:
+  description: "Label returned by the API."
+  type: "object"
+  properties:
+    id:
+      type: "string"
+      format: "uuid"
+    name:
+      type: "string"
+    color:
+      type: "string"
+    order:
+      type: "integer"
+      format: "int32"
+    isFavorite:
+      type: "boolean"

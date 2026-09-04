@@ -1,0 +1,22 @@
+"/version":
+  get:
+    tags:
+      - "Version"
+    operationId: "getVersion"
+    responses:
+      "200":
+        description: "Successful response."
+        content:
+          "application/json":
+            schema:
+              type: "object"
+              additionalProperties:
+                type: "string"
+      "401":
+        "$ref": "../responses.yaml#/Unauthorized"
+      "403":
+        "$ref": "../responses.yaml#/Forbidden"
+      "500":
+        "$ref": "../responses.yaml#/InternalServerError"
+    summary: "Get API version information"
+    description: "Get API version information for the authenticated Taska principal."

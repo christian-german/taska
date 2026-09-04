@@ -1,0 +1,70 @@
+BadRequest:
+  description: "The request is malformed or contains invalid parameters."
+  content:
+    "application/problem+json":
+      schema:
+        "$ref": "./schemas/error.yaml#/ProblemDetails"
+      example:
+        type: "about:blank"
+        title: "The request is malformed or contains invalid parameters."
+        status: 400
+Unauthorized:
+  description: "Authentication is required or the access token is invalid."
+  content:
+    "application/problem+json":
+      schema:
+        "$ref": "./schemas/error.yaml#/ProblemDetails"
+      example:
+        type: "about:blank"
+        title: "Authentication is required or the access token is invalid."
+        status: 401
+Forbidden:
+  description: "The authenticated principal is not allowed to perform this operation."
+  content:
+    "application/problem+json":
+      schema:
+        "$ref": "./schemas/error.yaml#/ProblemDetails"
+      example:
+        type: "about:blank"
+        title: "The authenticated principal is not allowed to perform this operation."
+        status: 403
+NotFound:
+  description: "The requested resource does not exist."
+  content:
+    "application/problem+json":
+      schema:
+        "$ref": "./schemas/error.yaml#/ProblemDetails"
+      example:
+        type: "about:blank"
+        title: "The requested resource does not exist."
+        status: 404
+Conflict:
+  description: "The operation conflicts with the current resource state."
+  content:
+    "application/problem+json":
+      schema:
+        "$ref": "./schemas/error.yaml#/ProblemDetails"
+      example:
+        type: "about:blank"
+        title: "The operation conflicts with the current resource state."
+        status: 409
+ValidationError:
+  description: "The request payload is syntactically valid but violates domain validation rules."
+  content:
+    "application/problem+json":
+      schema:
+        "$ref": "./schemas/error.yaml#/ProblemDetails"
+      example:
+        type: "about:blank"
+        title: "The request payload is syntactically valid but violates domain validation rules."
+        status: 422
+InternalServerError:
+  description: "An unexpected server error occurred."
+  content:
+    "application/problem+json":
+      schema:
+        "$ref": "./schemas/error.yaml#/ProblemDetails"
+      example:
+        type: "about:blank"
+        title: "An unexpected server error occurred."
+        status: 500

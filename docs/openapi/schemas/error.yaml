@@ -1,0 +1,45 @@
+ProblemDetails:
+  type: "object"
+  description: "RFC 9457 problem details returned for API errors."
+  required:
+    - "type"
+    - "title"
+    - "status"
+  properties:
+    type:
+      type: "string"
+      format: "uri-reference"
+      description: "Problem type identifier."
+    title:
+      type: "string"
+      description: "Short, human-readable problem summary."
+    status:
+      type: "integer"
+      minimum: 100
+      maximum: 599
+      description: "HTTP status code."
+    detail:
+      type: "string"
+      description: "Problem details specific to this occurrence."
+    instance:
+      type: "string"
+      format: "uri-reference"
+      description: "Identifier for this occurrence."
+    code:
+      type: "string"
+      description: "Stable, machine-readable Taska error code."
+    violations:
+      type: "array"
+      items:
+        "$ref": "./error.yaml#/Violation"
+Violation:
+  type: "object"
+  description: "One invalid input field or parameter."
+  required:
+    - "field"
+    - "message"
+  properties:
+    field:
+      type: "string"
+    message:
+      type: "string"

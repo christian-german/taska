@@ -1,0 +1,128 @@
+"/planning-calendars/{id}":
+  get:
+    tags:
+      - "Planning Calendars"
+    operationId: "getPlanningCalendar"
+    parameters:
+      - name: "id"
+        in: "path"
+        required: true
+        schema:
+          type: "string"
+          format: "uuid"
+        description: "Resource identifier."
+    responses:
+      "200":
+        description: "Successful response."
+        content:
+          "application/json":
+            schema:
+              "$ref": "../schemas/planning-calendar.yaml#/PlanningCalendarDto"
+      "400":
+        "$ref": "../responses.yaml#/BadRequest"
+      "401":
+        "$ref": "../responses.yaml#/Unauthorized"
+      "403":
+        "$ref": "../responses.yaml#/Forbidden"
+      "404":
+        "$ref": "../responses.yaml#/NotFound"
+      "500":
+        "$ref": "../responses.yaml#/InternalServerError"
+    summary: "Get a planning calendar"
+    description: "Get a planning calendar for the authenticated Taska principal."
+  put:
+    tags:
+      - "Planning Calendars"
+    operationId: "updatePlanningCalendar"
+    parameters:
+      - name: "id"
+        in: "path"
+        required: true
+        schema:
+          type: "string"
+          format: "uuid"
+        description: "Resource identifier."
+    requestBody:
+      content:
+        "application/json":
+          schema:
+            "$ref": "../schemas/planning-calendar.yaml#/PlanningCalendarRequest"
+      required: true
+      description: "Request payload."
+    responses:
+      "200":
+        description: "Successful response."
+        content:
+          "application/json":
+            schema:
+              "$ref": "../schemas/planning-calendar.yaml#/PlanningCalendarDto"
+      "400":
+        "$ref": "../responses.yaml#/BadRequest"
+      "401":
+        "$ref": "../responses.yaml#/Unauthorized"
+      "403":
+        "$ref": "../responses.yaml#/Forbidden"
+      "404":
+        "$ref": "../responses.yaml#/NotFound"
+      "409":
+        "$ref": "../responses.yaml#/Conflict"
+      "422":
+        "$ref": "../responses.yaml#/ValidationError"
+      "500":
+        "$ref": "../responses.yaml#/InternalServerError"
+    summary: "Update a planning calendar"
+    description: "Update a planning calendar for the authenticated Taska principal."
+"/planning-calendars":
+  get:
+    tags:
+      - "Planning Calendars"
+    operationId: "listPlanningCalendars"
+    responses:
+      "200":
+        description: "Successful response."
+        content:
+          "application/json":
+            schema:
+              type: "array"
+              items:
+                "$ref": "../schemas/planning-calendar.yaml#/PlanningCalendarDto"
+      "401":
+        "$ref": "../responses.yaml#/Unauthorized"
+      "403":
+        "$ref": "../responses.yaml#/Forbidden"
+      "500":
+        "$ref": "../responses.yaml#/InternalServerError"
+    summary: "List planning calendars"
+    description: "List planning calendars for the authenticated Taska principal."
+  post:
+    tags:
+      - "Planning Calendars"
+    operationId: "createPlanningCalendar"
+    requestBody:
+      content:
+        "application/json":
+          schema:
+            "$ref": "../schemas/planning-calendar.yaml#/PlanningCalendarRequest"
+      required: true
+      description: "Request payload."
+    responses:
+      "201":
+        description: "Resource created."
+        content:
+          "application/json":
+            schema:
+              "$ref": "../schemas/planning-calendar.yaml#/PlanningCalendarDto"
+      "400":
+        "$ref": "../responses.yaml#/BadRequest"
+      "401":
+        "$ref": "../responses.yaml#/Unauthorized"
+      "403":
+        "$ref": "../responses.yaml#/Forbidden"
+      "409":
+        "$ref": "../responses.yaml#/Conflict"
+      "422":
+        "$ref": "../responses.yaml#/ValidationError"
+      "500":
+        "$ref": "../responses.yaml#/InternalServerError"
+    summary: "Create a planning calendar"
+    description: "Create a planning calendar for the authenticated Taska principal."

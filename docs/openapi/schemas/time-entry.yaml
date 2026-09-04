@@ -1,0 +1,43 @@
+TimeEntryRequest:
+  description: "Payload used to create or update a time entry."
+  type: "object"
+  properties:
+    startAt:
+      type: "string"
+      format: "date-time"
+    endAt:
+      type: "string"
+      format: "date-time"
+    projectId:
+      type: "string"
+      format: "uuid"
+    description:
+      type: "string"
+    notes:
+      type: "string"
+TimeEntryDto:
+  description: "Time entry returned by the API."
+  type: "object"
+  properties:
+    id:
+      type: "string"
+      format: "uuid"
+    startAt:
+      type: "string"
+      format: "date-time"
+    endAt:
+      type: "string"
+      format: "date-time"
+    projectId:
+      type: "string"
+      format: "uuid"
+    description:
+      type: "string"
+    notes:
+      type: "string"
+    createdAt:
+      type: "string"
+      format: "date-time"
+    updatedAt:
+      type: "string"
+      format: "date-time"

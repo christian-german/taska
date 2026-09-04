@@ -19,7 +19,7 @@ public class FirebaseConfig {
     private Resource serviceAccountResource;
 
     /**
-     * Initialises the Firebase application using the service account credentials loaded from the
+     * Initializes the Firebase application using the service account credentials loaded from the
      * configured resource path. Called automatically by Spring after dependency injection.
      *
      * @throws IOException if the service account file cannot be read

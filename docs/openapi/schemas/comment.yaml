@@ -1,0 +1,33 @@
+CommentRequest:
+  description: "Payload used to create or update a comment."
+  type: "object"
+  properties:
+    taskId:
+      type: "string"
+      format: "uuid"
+    projectId:
+      type: "string"
+      format: "uuid"
+    content:
+      type: "string"
+      minLength: 1
+  required:
+    - "content"
+CommentDto:
+  description: "Comment returned by the API."
+  type: "object"
+  properties:
+    id:
+      type: "string"
+      format: "uuid"
+    taskId:
+      type: "string"
+      format: "uuid"
+    projectId:
+      type: "string"
+      format: "uuid"
+    content:
+      type: "string"
+    createdAt:
+      type: "string"
+      format: "date-time"

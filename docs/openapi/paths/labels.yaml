@@ -1,0 +1,157 @@
+"/labels/{id}":
+  get:
+    tags:
+      - "Labels"
+    operationId: "getLabel"
+    parameters:
+      - name: "id"
+        in: "path"
+        required: true
+        schema:
+          type: "string"
+          format: "uuid"
+        description: "Resource identifier."
+    responses:
+      "200":
+        description: "Successful response."
+        content:
+          "application/json":
+            schema:
+              "$ref": "../schemas/label.yaml#/LabelDto"
+      "400":
+        "$ref": "../responses.yaml#/BadRequest"
+      "401":
+        "$ref": "../responses.yaml#/Unauthorized"
+      "403":
+        "$ref": "../responses.yaml#/Forbidden"
+      "404":
+        "$ref": "../responses.yaml#/NotFound"
+      "500":
+        "$ref": "../responses.yaml#/InternalServerError"
+    summary: "Get a label"
+    description: "Get a label for the authenticated Taska principal."
+  put:
+    tags:
+      - "Labels"
+    operationId: "updateLabel"
+    parameters:
+      - name: "id"
+        in: "path"
+        required: true
+        schema:
+          type: "string"
+          format: "uuid"
+        description: "Resource identifier."
+    requestBody:
+      content:
+        "application/json":
+          schema:
+            "$ref": "../schemas/label.yaml#/LabelRequest"
+      required: true
+      description: "Request payload."
+    responses:
+      "200":
+        description: "Successful response."
+        content:
+          "application/json":
+            schema:
+              "$ref": "../schemas/label.yaml#/LabelDto"
+      "400":
+        "$ref": "../responses.yaml#/BadRequest"
+      "401":
+        "$ref": "../responses.yaml#/Unauthorized"
+      "403":
+        "$ref": "../responses.yaml#/Forbidden"
+      "404":
+        "$ref": "../responses.yaml#/NotFound"
+      "409":
+        "$ref": "../responses.yaml#/Conflict"
+      "422":
+        "$ref": "../responses.yaml#/ValidationError"
+      "500":
+        "$ref": "../responses.yaml#/InternalServerError"
+    summary: "Update a label"
+    description: "Update a label for the authenticated Taska principal."
+  delete:
+    tags:
+      - "Labels"
+    operationId: "deleteLabel"
+    parameters:
+      - name: "id"
+        in: "path"
+        required: true
+        schema:
+          type: "string"
+          format: "uuid"
+        description: "Resource identifier."
+    responses:
+      "204":
+        description: "Operation completed; no response body."
+      "400":
+        "$ref": "../responses.yaml#/BadRequest"
+      "401":
+        "$ref": "../responses.yaml#/Unauthorized"
+      "403":
+        "$ref": "../responses.yaml#/Forbidden"
+      "404":
+        "$ref": "../responses.yaml#/NotFound"
+      "409":
+        "$ref": "../responses.yaml#/Conflict"
+      "500":
+        "$ref": "../responses.yaml#/InternalServerError"
+    summary: "Delete a label"
+    description: "Delete a label for the authenticated Taska principal."
+"/labels":
+  get:
+    tags:
+      - "Labels"
+    operationId: "listLabels"
+    responses:
+      "200":
+        description: "Successful response."
+        content:
+          "application/json":
+            schema:
+              type: "array"
+              items:
+                "$ref": "../schemas/label.yaml#/LabelDto"
+      "401":
+        "$ref": "../responses.yaml#/Unauthorized"
+      "403":
+        "$ref": "../responses.yaml#/Forbidden"
+      "500":
+        "$ref": "../responses.yaml#/InternalServerError"
+    summary: "List labels"
+    description: "List labels for the authenticated Taska principal."
+  post:
+    tags:
+      - "Labels"
+    operationId: "createLabel"
+    requestBody:
+      content:
+        "application/json":
+          schema:
+            "$ref": "../schemas/label.yaml#/LabelRequest"
+      required: true
+      description: "Request payload."
+    responses:
+      "201":
+        description: "Resource created."
+        content:
+          "application/json":
+            schema:
+              "$ref": "../schemas/label.yaml#/LabelDto"
+      "400":
+        "$ref": "../responses.yaml#/BadRequest"
+      "401":
+        "$ref": "../responses.yaml#/Unauthorized"
+      "403":
+        "$ref": "../responses.yaml#/Forbidden"
+      "409":
+        "$ref": "../responses.yaml#/Conflict"
+      "422":
+        "$ref": "../responses.yaml#/ValidationError"
+      "500":
+        "$ref": "../responses.yaml#/InternalServerError"
+    summary: "Create a label"
+    description: "Create a label for the authenticated Taska principal."

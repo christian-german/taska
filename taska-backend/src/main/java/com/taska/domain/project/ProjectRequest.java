@@ -10,9 +10,9 @@ import java.util.UUID;
  * @param name        required display name; must not be blank
  * @param color       hex color string for UI display; defaults to {@code "#808080"} on create
  * @param parentId    UUID of the parent project to nest this project under; {@code null} keeps the
- *                    project at root level on create; on update, ignored when {@code clearParent} is {@code true}
+ *                    project at root level on creation; on update, ignored when {@code clearParent} is {@code true}
  * @param clearParent when {@code true} on update, removes the parent relationship regardless of
- *                    whether {@code parentId} is also provided; has no effect on create
+ *                    whether {@code parentId} is also provided; has no effect on creation
  * @param order       display position among sibling projects; defaults to {@code 0} on create
  * @param isFavorite  whether to star/favourite the project; defaults to {@code false} on create
  * @param viewStyle   preferred rendering mode ({@code LIST}, {@code BOARD}, or {@code CALENDAR});

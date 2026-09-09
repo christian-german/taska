@@ -37,6 +37,30 @@ describe('TaskService task creation feedback', () => {
     expect(feedback.visible()).toBe(false);
   });
 
+  it('uses the camelCase task query contract', () => {
+    service.getTasks({
+      projectId: 'project-1',
+      label: 'work',
+      showCompleted: false,
+      date: '2026-09-08',
+      from: '2026-09-08',
+      to: '2026-09-14',
+    }).subscribe();
+
+    const request = http.expectOne(candidate => candidate.url.endsWith('/tasks'));
+    expect(request.request.params.keys().sort()).toEqual([
+      'date',
+      'from',
+      'label',
+      'projectId',
+      'showCompleted',
+      'to',
+    ]);
+    expect(request.request.params.get('projectId')).toBe('project-1');
+    expect(request.request.params.get('showCompleted')).toBe('false');
+    request.flush([]);
+  });
+
   it('builds a complete replacement payload and preserves an explicit schedule clear', () => {
     const task = taskFixture();
     service.updateTask(task.id, {scheduledAt: null}).subscribe();
@@ -46,7 +70,7 @@ describe('TaskService task creation feedback', () => {
     expect(request.request.method).toBe('PUT');
     expect(request.request.body).toEqual({
       content: task.content, type: 'TODO', description: task.description,
-      projectId: task.projectId, sectionId: null, parentId: null, order: task.order,
+      projectId: task.projectId, parentId: null, order: task.order,
       priority: task.priority, labels: task.labels, scheduledAt: null, dueAt: task.dueAt,
       allDay: task.allDay, isRecurring: false, estimateMinutes: task.estimateMinutes,
       mentionContext: task.mentionContext, recurrenceRule: null,
@@ -63,7 +87,7 @@ describe('TaskService task creation feedback', () => {
     const request = http.expectOne(request => request.method === 'PUT' && request.url.endsWith(`/tasks/${task.id}/occurrences/${encodeURIComponent(occurrence)}/following`));
     expect(request.request.method).toBe('PUT');
     expect(request.request.body).toMatchObject({content: 'Future title', type: 'TODO', recurrenceRule: 'FREQ=DAILY'});
-    expect(Object.keys(request.request.body)).toHaveLength(16);
+    expect(Object.keys(request.request.body)).toHaveLength(15);
     request.flush(task);
   });
 

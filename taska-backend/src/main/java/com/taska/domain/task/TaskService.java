@@ -35,52 +35,22 @@ public class TaskService {
     private final PlanningCalendarService planningCalendarService;
 
     /**
-     * Returns a filtered list of tasks based on the provided criteria.
-     * Supported filters: "today" (tasks due today), "overdue" (past-due non-recurring),
-     * "upcoming" (due in the next 14 days). Label and project/section filters are
-     * applied when the corresponding parameter is non-null.
+     * Returns a list of tasks scoped by the provided project or label criteria.
      *
      * @param projectId     optional project ID to scope results
-     * @param sectionId     optional section ID to scope results
      * @param label         optional label name to filter by
-     * @param filter        optional named filter: "today", "overdue", or "upcoming"
      * @param showCompleted when true, completed tasks are included in the result
      * @return list of matching tasks
      */
     @Transactional(readOnly = true)
-    public List<Task> findAll(UUID projectId, UUID sectionId, String label, String filter, boolean showCompleted) {
-        if (filter != null) {
-            ZoneId calendarZone = taskaProperties.getCalendar().getTimeZone();
-            LocalDate today = LocalDate.now(calendarZone);
-            Instant startOfToday = today.atStartOfDay(calendarZone).toInstant();
-            Instant startOfTomorrow = today.plusDays(1).atStartOfDay(calendarZone).toInstant();
-            return switch (filter) {
-                case "today" ->
-                        taskRepository.findByScheduledAtBetweenAndIsCompletedFalseOrderByScheduledAtAsc(startOfToday, startOfTomorrow);
-                case "overdue" ->
-                        taskRepository.findByScheduledAtBeforeAndIsCompletedFalseAndIsRecurringFalseOrderByScheduledAtAsc(startOfToday);
-                case "upcoming" -> taskRepository.findByScheduledAtBetweenAndIsCompletedFalseOrderByScheduledAtAsc(
-                        startOfTomorrow, today.plusDays(14).atStartOfDay(calendarZone).toInstant());
-                default -> taskRepository.findAll();
-            };
-        }
+    public List<Task> findAll(UUID projectId, String label, boolean showCompleted) {
         if (label != null) {
             return showCompleted ? taskRepository.findByLabel(label) : taskRepository.findByLabelAndIsCompletedFalse(label);
-        }
-        if (projectId != null && sectionId != null) {
-            return showCompleted
-                    ? taskRepository.findByProjectIdAndSectionIdOrderByPositionAsc(projectId, sectionId)
-                    : taskRepository.findByProjectIdAndSectionIdAndIsCompletedFalseOrderByPositionAsc(projectId, sectionId);
         }
         if (projectId != null) {
             return showCompleted
                     ? taskRepository.findByProjectIdOrderByPositionAsc(projectId)
                     : taskRepository.findByProjectIdAndIsCompletedFalseOrderByPositionAsc(projectId);
-        }
-        if (sectionId != null) {
-            return showCompleted
-                    ? taskRepository.findBySectionIdOrderByPositionAsc(sectionId)
-                    : taskRepository.findBySectionIdAndIsCompletedFalseOrderByPositionAsc(sectionId);
         }
         return taskRepository.findAll();
     }
@@ -108,22 +78,21 @@ public class TaskService {
      * @return the persisted task entity
      */
     public Task create(TaskRequest taskRequest) {
-        Task t = new Task();
-        t.setContent(taskRequest.content());
-        t.setType(taskRequest.type() != null ? taskRequest.type() : TaskType.TODO);
-        t.setDescription(taskRequest.description());
-        t.setSectionId(taskRequest.sectionId());
-        t.setParentId(taskRequest.parentId());
-        t.setPosition(taskRequest.order() != null ? taskRequest.order() : 0);
-        t.setPriority(taskRequest.priority());
-        t.setLabels(taskRequest.labels() != null ? taskRequest.labels() : new ArrayList<>());
-        t.setScheduledAt(taskRequest.scheduledAt());
-        t.setDueAt(taskRequest.dueAt());
-        t.setAllDay(taskRequest.allDay() != null ? taskRequest.allDay() : false);
-        t.setIsRecurring(taskRequest.isRecurring() != null ? taskRequest.isRecurring() : false);
-        t.setEstimateMinutes(taskRequest.estimateMinutes());
-        t.setMentionContext(taskRequest.mentionContext());
-        t.setRecurrenceRule(normalizeRRule(taskRequest.recurrenceRule()));
+        Task task = new Task();
+        task.setContent(taskRequest.content());
+        task.setType(taskRequest.type() != null ? taskRequest.type() : TaskType.TODO);
+        task.setDescription(taskRequest.description());
+        task.setParentId(taskRequest.parentId());
+        task.setPosition(taskRequest.order() != null ? taskRequest.order() : 0);
+        task.setPriority(taskRequest.priority());
+        task.setLabels(taskRequest.labels() != null ? taskRequest.labels() : new ArrayList<>());
+        task.setScheduledAt(taskRequest.scheduledAt());
+        task.setDueAt(taskRequest.dueAt());
+        task.setAllDay(taskRequest.allDay() != null ? taskRequest.allDay() : false);
+        task.setIsRecurring(taskRequest.isRecurring() != null ? taskRequest.isRecurring() : false);
+        task.setEstimateMinutes(taskRequest.estimateMinutes());
+        task.setMentionContext(taskRequest.mentionContext());
+        task.setRecurrenceRule(normalizeRRule(taskRequest.recurrenceRule()));
 
         UUID projectId = taskRequest.projectId();
         if (projectId == null && taskRequest.parentId() == null) {
@@ -131,10 +100,10 @@ public class TaskService {
                     .orElseThrow(() -> new ResourceNotFoundException("Inbox project not found"))
                     .getId();
         }
-        t.setProjectId(projectId);
-        assertScheduleAllowed(projectId, t.getScheduledAt(), t.isAllDay());
+        task.setProjectId(projectId);
+        assertScheduleAllowed(projectId, task.getScheduledAt(), task.isAllDay());
 
-        return taskRepository.save(t);
+        return taskRepository.save(task);
     }
 
     /**
@@ -201,11 +170,22 @@ public class TaskService {
                 instance.setTaskId(taskId);
                 instance.setOccurrenceScheduledAt(occurrenceScheduledAt);
                 instance.setStatus(TaskInstanceStatus.MODIFIED);
-                if (taskRequest.content() != null) instance.setTitle(taskRequest.content());
-                if (priorityProvided && taskRequest.priority() != null) instance.setPriority(taskRequest.priority());
-                if (taskRequest.scheduledAt() != null) instance.setScheduledAt(taskRequest.scheduledAt());
-                if (taskRequest.scheduledAt() != null) assertScheduleAllowed(task.getProjectId(), taskRequest.scheduledAt(), task.isAllDay());
-                if (taskRequest.dueAt() != null) instance.setDueAt(taskRequest.dueAt());
+                if (taskRequest.content() != null) {
+                    instance.setTitle(taskRequest.content());
+                }
+                if (priorityProvided && taskRequest.priority() != null) {
+                    instance.setPriority(taskRequest.priority());
+                }
+                if (taskRequest.scheduledAt() != null) {
+                    instance.setScheduledAt(taskRequest.scheduledAt());
+                }
+                if (taskRequest.scheduledAt() != null) {
+                    assertScheduleAllowed(
+                            task.getProjectId(), taskRequest.scheduledAt(), task.isAllDay());
+                }
+                if (taskRequest.dueAt() != null) {
+                    instance.setDueAt(taskRequest.dueAt());
+                }
                 yield taskMapper.toOccurrenceDto(task, taskInstanceRepository.save(instance), occurrenceScheduledAt);
             }
             case FROM_THIS -> {
@@ -217,7 +197,6 @@ public class TaskService {
                 cloned.setType(taskRequest.type() != null ? taskRequest.type() : task.getType());
                 cloned.setDescription(taskRequest.description() != null ? taskRequest.description() : task.getDescription());
                 cloned.setProjectId(task.getProjectId());
-                cloned.setSectionId(task.getSectionId());
                 cloned.setParentId(task.getParentId());
                 cloned.setPosition(task.getPosition());
                 cloned.setPriority(priorityProvided ? taskRequest.priority() : task.getPriority());
@@ -234,16 +213,17 @@ public class TaskService {
     }
 
     /** Replaces every mutable field of a base task. */
-    public TaskDto replace(UUID taskId, TaskUpdateRequest request) {
+    public TaskDto replace(UUID taskId, TaskUpdateRequest taskUpdateRequest) {
         Task task = getOrThrow(taskId);
-        replaceMutableFields(task, request);
+        replaceMutableFields(task, taskUpdateRequest);
         Task saved = taskRepository.save(task);
         priorityEvaluationRepository.deleteByTaskId(taskId);
         return taskMapper.toDto(saved);
     }
 
     /** Splits a recurring series and creates its following replacement from the complete request. */
-    public TaskDto replaceFollowing(UUID taskId, Instant occurrenceScheduledAt, TaskUpdateRequest request) {
+    public TaskDto replaceFollowing(
+            UUID taskId, Instant occurrenceScheduledAt, TaskUpdateRequest taskUpdateRequest) {
         Task original = getOrThrow(taskId);
         if (!Boolean.TRUE.equals(original.getIsRecurring())) {
             throw new IllegalArgumentException("Following-series replacement requires a recurring task");
@@ -253,7 +233,7 @@ public class TaskService {
         taskRepository.save(original);
 
         Task replacement = new Task();
-        replaceMutableFields(replacement, request);
+        replaceMutableFields(replacement, taskUpdateRequest);
         if (!Boolean.TRUE.equals(replacement.getIsRecurring())) {
             throw new IllegalArgumentException("Following-series replacement must remain recurring");
         }
@@ -294,29 +274,35 @@ public class TaskService {
         List<Task> nonRecurring = showCompleted
                 ? taskRepository.findNonRecurringTasksIncludingCompletedInPeriod(periodStart, periodEnd)
                 : taskRepository.findNonRecurringTasksInPeriod(periodStart, periodEnd);
-        List<TaskDto> result = new ArrayList<>(nonRecurring.stream().map(taskMapper::toDto).toList());
+        List<TaskDto> taskDtos = new ArrayList<>(nonRecurring.stream().map(taskMapper::toDto).toList());
 
         List<Task> recurringTasks = taskRepository.findActiveRecurringTasksForPeriod(periodStart, periodEnd);
-        if (recurringTasks.isEmpty()) return result;
+        if (recurringTasks.isEmpty()) {
+            return taskDtos;
+        }
 
-        List<UUID> ids = recurringTasks.stream().map(Task::getId).toList();
+        List<UUID> recurringTaskIds = recurringTasks.stream().map(Task::getId).toList();
 
         // Instances whose occurrenceScheduledAt falls within the period (for RRULE occurrence matching).
         Map<UUID, Map<Instant, TaskInstance>> instancesByTask =
-                taskInstanceRepository.findByTaskIdInAndOccurrenceScheduledAtBetween(ids, periodStart, periodEnd)
+                taskInstanceRepository.findByTaskIdInAndOccurrenceScheduledAtBetween(
+                                recurringTaskIds, periodStart, periodEnd)
                         .stream()
                         .collect(Collectors.groupingBy(
                                 TaskInstance::getTaskId,
-                                Collectors.toMap(TaskInstance::getOccurrenceScheduledAt, i -> i, (a, b) -> a)
+                                Collectors.toMap(
+                                        TaskInstance::getOccurrenceScheduledAt,
+                                        taskInstance -> taskInstance,
+                                        (existingInstance, duplicateInstance) -> existingInstance)
                         ));
 
         // MODIFIED instances whose scheduledAt was moved into this period from another day.
         Map<UUID, List<TaskInstance>> movedInByTask =
                 taskInstanceRepository.findByTaskIdInAndStatusAndScheduledAtBetween(
-                                ids, TaskInstanceStatus.MODIFIED, periodStart, periodEnd)
+                                recurringTaskIds, TaskInstanceStatus.MODIFIED, periodStart, periodEnd)
                         .stream()
-                        .filter(i -> i.getOccurrenceScheduledAt().isBefore(periodStart)
-                                || !i.getOccurrenceScheduledAt().isBefore(periodEnd))
+                        .filter(taskInstance -> taskInstance.getOccurrenceScheduledAt().isBefore(periodStart)
+                                || !taskInstance.getOccurrenceScheduledAt().isBefore(periodEnd))
                         .collect(Collectors.groupingBy(TaskInstance::getTaskId));
 
         for (Task task : recurringTasks) {
@@ -334,20 +320,24 @@ public class TaskService {
                         || !instance.getScheduledAt().isBefore(periodEnd))) {
                     continue;
                 }
-                result.add(taskMapper.toOccurrenceDto(task, instance, occurrenceScheduledAt));
+                taskDtos.add(taskMapper.toOccurrenceDto(task, instance, occurrenceScheduledAt));
             }
 
             // Add occurrences that were rescheduled into this period from a different day.
-            for (TaskInstance movedIn : movedInByTask.getOrDefault(task.getId(), List.of())) {
-                result.add(taskMapper.toOccurrenceDto(task, movedIn, movedIn.getOccurrenceScheduledAt()));
+            for (TaskInstance movedInstance : movedInByTask.getOrDefault(task.getId(), List.of())) {
+                taskDtos.add(taskMapper.toOccurrenceDto(
+                        task, movedInstance, movedInstance.getOccurrenceScheduledAt()));
             }
         }
 
-        return result;
+        return taskDtos;
     }
 
     /** Replaces the fields independently persisted for one recurring occurrence. */
-    public TaskDto replaceOccurrence(UUID taskId, Instant occurrenceScheduledAt, OccurrenceUpdateRequest request) {
+    public TaskDto replaceOccurrence(
+            UUID taskId,
+            Instant occurrenceScheduledAt,
+            OccurrenceUpdateRequest occurrenceUpdateRequest) {
         Task task = getOrThrow(taskId);
         if (!Boolean.TRUE.equals(task.getIsRecurring())) {
             throw new IllegalArgumentException("Occurrence replacement requires a recurring task");
@@ -358,11 +348,14 @@ public class TaskService {
         instance.setTaskId(taskId);
         instance.setOccurrenceScheduledAt(occurrenceScheduledAt);
         instance.setStatus(TaskInstanceStatus.MODIFIED);
-        instance.setTitle(request.title());
-        instance.setPriority(request.priority());
-        instance.setScheduledAt(request.scheduledAt());
-        instance.setDueAt(request.dueAt());
-        if (request.scheduledAt() != null) assertScheduleAllowed(task.getProjectId(), request.scheduledAt(), task.isAllDay());
+        instance.setTitle(occurrenceUpdateRequest.title());
+        instance.setPriority(occurrenceUpdateRequest.priority());
+        instance.setScheduledAt(occurrenceUpdateRequest.scheduledAt());
+        instance.setDueAt(occurrenceUpdateRequest.dueAt());
+        if (occurrenceUpdateRequest.scheduledAt() != null) {
+            assertScheduleAllowed(
+                    task.getProjectId(), occurrenceUpdateRequest.scheduledAt(), task.isAllDay());
+        }
         return taskMapper.toOccurrenceDto(task, taskInstanceRepository.save(instance), occurrenceScheduledAt);
     }
 
@@ -556,7 +549,11 @@ public class TaskService {
      * @return normalised RRULE string or the original {@code recurrenceStringRule}
      */
     private static String normalizeRRule(String recurrenceStringRule) {
-        if (recurrenceStringRule == null || recurrenceStringRule.isBlank() || recurrenceStringRule.toUpperCase().startsWith("FREQ=")) return recurrenceStringRule;
+        if (recurrenceStringRule == null
+                || recurrenceStringRule.isBlank()
+                || recurrenceStringRule.toUpperCase().startsWith("FREQ=")) {
+            return recurrenceStringRule;
+        }
         return switch (recurrenceStringRule.toLowerCase()) {
             case "daily" -> "FREQ=DAILY";
             case "weekly" -> "FREQ=WEEKLY";
@@ -575,21 +572,48 @@ public class TaskService {
      * @param taskRequest  the update payload; only non-null fields are applied
      */
     private void applyPatch(Task task, TaskRequest taskRequest, boolean priorityProvided) {
-        if (taskRequest.content() != null) task.setContent(taskRequest.content());
-        if (taskRequest.type() != null) task.setType(taskRequest.type());
-        if (taskRequest.description() != null) task.setDescription(taskRequest.description());
-        if (taskRequest.projectId() != null) task.setProjectId(taskRequest.projectId());
-        if (taskRequest.sectionId() != null) task.setSectionId(taskRequest.sectionId());
-        if (taskRequest.parentId() != null) task.setParentId(taskRequest.parentId());
-        if (taskRequest.order() != null) task.setPosition(taskRequest.order());
-        if (priorityProvided) task.setPriority(taskRequest.priority());
-        if (taskRequest.labels() != null) task.setLabels(taskRequest.labels());
-        if (taskRequest.allDay() != null) task.setAllDay(taskRequest.allDay());
-        if (taskRequest.isRecurring() != null) task.setIsRecurring(taskRequest.isRecurring());
-        if (taskRequest.estimateMinutes() != null) task.setEstimateMinutes(taskRequest.estimateMinutes());
-        if (taskRequest.mentionContext() != null) task.setMentionContext(taskRequest.mentionContext());
-        if (taskRequest.recurrenceRule() != null) task.setRecurrenceRule(normalizeRRule(taskRequest.recurrenceRule()));
-        if (taskRequest.dueAt() != null) task.setDueAt(taskRequest.dueAt());
+        if (taskRequest.content() != null) {
+            task.setContent(taskRequest.content());
+        }
+        if (taskRequest.type() != null) {
+            task.setType(taskRequest.type());
+        }
+        if (taskRequest.description() != null) {
+            task.setDescription(taskRequest.description());
+        }
+        if (taskRequest.projectId() != null) {
+            task.setProjectId(taskRequest.projectId());
+        }
+        if (taskRequest.parentId() != null) {
+            task.setParentId(taskRequest.parentId());
+        }
+        if (taskRequest.order() != null) {
+            task.setPosition(taskRequest.order());
+        }
+        if (priorityProvided) {
+            task.setPriority(taskRequest.priority());
+        }
+        if (taskRequest.labels() != null) {
+            task.setLabels(taskRequest.labels());
+        }
+        if (taskRequest.allDay() != null) {
+            task.setAllDay(taskRequest.allDay());
+        }
+        if (taskRequest.isRecurring() != null) {
+            task.setIsRecurring(taskRequest.isRecurring());
+        }
+        if (taskRequest.estimateMinutes() != null) {
+            task.setEstimateMinutes(taskRequest.estimateMinutes());
+        }
+        if (taskRequest.mentionContext() != null) {
+            task.setMentionContext(taskRequest.mentionContext());
+        }
+        if (taskRequest.recurrenceRule() != null) {
+            task.setRecurrenceRule(normalizeRRule(taskRequest.recurrenceRule()));
+        }
+        if (taskRequest.dueAt() != null) {
+            task.setDueAt(taskRequest.dueAt());
+        }
         if (taskRequest.scheduledAt() != null) {
             UUID effectiveProjectId = taskRequest.projectId() != null ? taskRequest.projectId() : task.getProjectId();
             boolean effectiveAllDay = taskRequest.allDay() != null ? taskRequest.allDay() : task.isAllDay();
@@ -601,29 +625,35 @@ public class TaskService {
         }
     }
 
-    private void replaceMutableFields(Task task, TaskUpdateRequest request) {
-        task.setContent(request.content());
-        task.setType(request.type());
-        task.setDescription(request.description());
-        task.setProjectId(request.projectId());
-        task.setSectionId(request.sectionId());
-        task.setParentId(request.parentId());
-        task.setPosition(request.order());
-        task.setPriority(request.priority());
-        task.setLabels(new ArrayList<>(request.labels()));
-        if (!java.util.Objects.equals(task.getScheduledAt(), request.scheduledAt())) task.setIsNotified(false);
-        task.setScheduledAt(request.scheduledAt());
-        task.setDueAt(request.dueAt());
-        task.setAllDay(request.allDay());
-        task.setIsRecurring(request.isRecurring());
-        task.setEstimateMinutes(request.estimateMinutes());
-        task.setMentionContext(request.mentionContext());
-        task.setRecurrenceRule(normalizeRRule(request.recurrenceRule()));
-        assertScheduleAllowed(request.projectId(), request.scheduledAt(), request.allDay());
+    private void replaceMutableFields(Task task, TaskUpdateRequest taskUpdateRequest) {
+        task.setContent(taskUpdateRequest.content());
+        task.setType(taskUpdateRequest.type());
+        task.setDescription(taskUpdateRequest.description());
+        task.setProjectId(taskUpdateRequest.projectId());
+        task.setParentId(taskUpdateRequest.parentId());
+        task.setPosition(taskUpdateRequest.order());
+        task.setPriority(taskUpdateRequest.priority());
+        task.setLabels(new ArrayList<>(taskUpdateRequest.labels()));
+        if (!java.util.Objects.equals(task.getScheduledAt(), taskUpdateRequest.scheduledAt())) {
+            task.setIsNotified(false);
+        }
+        task.setScheduledAt(taskUpdateRequest.scheduledAt());
+        task.setDueAt(taskUpdateRequest.dueAt());
+        task.setAllDay(taskUpdateRequest.allDay());
+        task.setIsRecurring(taskUpdateRequest.isRecurring());
+        task.setEstimateMinutes(taskUpdateRequest.estimateMinutes());
+        task.setMentionContext(taskUpdateRequest.mentionContext());
+        task.setRecurrenceRule(normalizeRRule(taskUpdateRequest.recurrenceRule()));
+        assertScheduleAllowed(
+                taskUpdateRequest.projectId(),
+                taskUpdateRequest.scheduledAt(),
+                taskUpdateRequest.allDay());
     }
 
     private void assertScheduleAllowed(UUID projectId, Instant scheduledAt, boolean allDay) {
-        if (scheduledAt == null || projectId == null) return;
+        if (scheduledAt == null || projectId == null) {
+            return;
+        }
         UUID calendarId = projectRepository.findById(projectId)
                 .orElseThrow(() -> new ResourceNotFoundException("Project not found: " + projectId))
                 .getPlanningCalendarId();

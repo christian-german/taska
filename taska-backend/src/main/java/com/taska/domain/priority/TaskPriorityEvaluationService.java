@@ -21,36 +21,49 @@ import java.util.stream.Collectors;
 public class TaskPriorityEvaluationService {
 
     private final TaskRepository taskRepository;
-    private final TaskPriorityEvaluationRepository evaluationRepository;
-    private final OpenAiPriorityAssessmentClient assessmentClient;
-    private final PriorityAssessmentValidator validator;
-    private final TaskPriorityScorer scorer;
+    private final TaskPriorityEvaluationRepository taskPriorityEvaluationRepository;
+    private final OpenAiPriorityAssessmentClient priorityAssessmentClient;
+    private final PriorityAssessmentValidator priorityAssessmentValidator;
+    private final TaskPriorityScorer taskPriorityScorer;
     private final JsonMapper jsonMapper;
 
     public Optional<TaskPriorityEvaluationDto> findForTask(UUID taskId) {
         if (!taskRepository.existsById(taskId)) {
             throw new ResourceNotFoundException("Task not found: " + taskId);
         }
-        return evaluationRepository.findByTaskId(taskId).map(TaskPriorityEvaluationDto::from);
+        return taskPriorityEvaluationRepository.findByTaskId(taskId)
+                .map(TaskPriorityEvaluationDto::from);
     }
 
     @Transactional
     public void evaluate(List<Task> tasks) {
-        if (tasks.isEmpty()) return;
-        Map<UUID, Instant> versions = tasks.stream().collect(Collectors.toMap(Task::getId, Task::getUpdatedAt));
-        Set<UUID> ids = versions.keySet();
-        PriorityEvaluationBatchResponse response = assessmentClient.assess(PriorityEvaluationBatchRequest.from(tasks));
-        validator.validateEnvelope(response, ids);
-        for (var assessment : response.evaluations()) {
-            if (!validator.isValid(assessment)) continue;
+        if (tasks.isEmpty()) {
+            return;
+        }
+        Map<UUID, Instant> taskVersions = tasks.stream()
+                .collect(Collectors.toMap(Task::getId, Task::getUpdatedAt));
+        Set<UUID> taskIds = taskVersions.keySet();
+        PriorityEvaluationBatchResponse evaluationResponse = priorityAssessmentClient
+                .assess(PriorityEvaluationBatchRequest.from(tasks));
+        priorityAssessmentValidator.validateEnvelope(evaluationResponse, taskIds);
+        for (var assessment : evaluationResponse.evaluations()) {
+            if (!priorityAssessmentValidator.isValid(assessment)) {
+                continue;
+            }
             Task current = taskRepository.findById(assessment.taskId()).orElse(null);
-            if (!eligibleAndUnchanged(current, versions.get(assessment.taskId()))) continue;
+            if (!eligibleAndUnchanged(current, taskVersions.get(assessment.taskId()))) {
+                continue;
+            }
             TaskPriorityEvaluation evaluation = new TaskPriorityEvaluation();
             evaluation.setTaskId(current.getId());
-            evaluation.setScore(scorer.total(assessment.urgency(), assessment.impact(), assessment.risk(), assessment.durationMinutes()));
+            evaluation.setScore(taskPriorityScorer.total(
+                    assessment.urgency(),
+                    assessment.impact(),
+                    assessment.risk(),
+                    assessment.durationMinutes()));
             evaluation.setComponents(components(assessment));
             evaluation.setComputedAt(Instant.now());
-            evaluationRepository.save(evaluation);
+            taskPriorityEvaluationRepository.save(evaluation);
         }
     }
 
@@ -59,12 +72,16 @@ public class TaskPriorityEvaluationService {
                 && task.getType() == TaskType.TODO && java.util.Objects.equals(task.getUpdatedAt(), version);
     }
 
-    private JsonNode components(PriorityEvaluationBatchResponse.Assessment a) {
+    private JsonNode components(PriorityEvaluationBatchResponse.Assessment assessment) {
         ObjectNode root = jsonMapper.createObjectNode();
-        component(root, "urgency", a.urgency().name(), a.urgencyConfidence(), a.urgencyReason(), scorer.urgencyPoints(a.urgency()));
-        component(root, "impact", a.impact().name(), a.impactConfidence(), a.impactReason(), scorer.impactPoints(a.impact()));
-        component(root, "risk", a.risk().name(), a.riskConfidence(), a.riskReason(), scorer.riskPoints(a.risk()));
-        component(root, "duration", a.durationMinutes(), a.durationConfidence(), a.durationReason(), scorer.durationPoints(a.durationMinutes()));
+        component(root, "urgency", assessment.urgency().name(), assessment.urgencyConfidence(),
+                assessment.urgencyReason(), taskPriorityScorer.urgencyPoints(assessment.urgency()));
+        component(root, "impact", assessment.impact().name(), assessment.impactConfidence(),
+                assessment.impactReason(), taskPriorityScorer.impactPoints(assessment.impact()));
+        component(root, "risk", assessment.risk().name(), assessment.riskConfidence(),
+                assessment.riskReason(), taskPriorityScorer.riskPoints(assessment.risk()));
+        component(root, "duration", assessment.durationMinutes(), assessment.durationConfidence(),
+                assessment.durationReason(), taskPriorityScorer.durationPoints(assessment.durationMinutes()));
         return root;
     }
 

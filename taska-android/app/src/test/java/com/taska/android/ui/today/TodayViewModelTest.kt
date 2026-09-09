@@ -66,7 +66,7 @@ class TodayViewModelTest {
         scheduledAt: String? = null,
     ) = TaskDto(
         id = id, content = content, description = null, projectId = null,
-        sectionId = null, parentId = null, order = null, priority = 3,
+        parentId = null, order = null, priority = 3,
         labels = null, isCompleted = isCompleted, scheduledAt = scheduledAt, allDay = false,
         isRecurring = isRecurring, recurrenceRule = null, estimateMinutes = null,
         createdAt = null, updatedAt = null, completedAt = null,

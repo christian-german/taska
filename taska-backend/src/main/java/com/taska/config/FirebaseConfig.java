@@ -15,8 +15,13 @@ import java.io.IOException;
 @ConditionalOnProperty(prefix = "taska.firebase", name = "disabled", havingValue = "false", matchIfMissing = true)
 public class FirebaseConfig {
 
-    @Value("${firebase.service-account-path:classpath:firebase-service-account.json}")
-    private Resource serviceAccountResource;
+    private final Resource serviceAccountResource;
+
+    public FirebaseConfig(
+            @Value("${firebase.service-account-path:classpath:firebase-service-account.json}")
+            Resource serviceAccountResource) {
+        this.serviceAccountResource = serviceAccountResource;
+    }
 
     /**
      * Initializes the Firebase application using the service account credentials loaded from the

@@ -50,7 +50,6 @@ export class ShortcutsModalComponent {
         ['g puis t', "aujourd'hui"],
         ['g puis i', 'inbox'],
         ['g puis w', 'semaine'],
-        ['g puis s', 'stats'],
         ['?', 'aide'],
       ],
     },

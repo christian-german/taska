@@ -5,11 +5,10 @@ import { filter, map } from 'rxjs';
 import { OidcSecurityService } from 'angular-auth-oidc-client';
 import { ProjectService } from '../../core/services/project.service';
 import { LabelService } from '../../core/services/label.service';
-import { FilterService } from '../../core/services/filter.service';
 import { TaskService } from '../../core/services/task.service';
 import { ThemeService } from '../../core/services/theme.service';
 import { UiStateService } from '../../core/services/ui-state.service';
-import { Filter, Label, Project, Task, getColor, isOverdue } from '../../core/models';
+import { Label, Project, Task, getColor, isOverdue } from '../../core/models';
 import { IconComponent } from '../../shared/components/icon/icon.component';
 import { ProjectDotComponent, TagChipComponent } from '../../shared/components/atoms/atoms.component';
 
@@ -46,7 +45,6 @@ export class SidebarComponent implements OnInit {
   private destroyRef = inject(DestroyRef);
   private projectService = inject(ProjectService);
   private labelService = inject(LabelService);
-  private filterService = inject(FilterService);
   private taskService = inject(TaskService);
   ui = inject(UiStateService);
   themeService = inject(ThemeService);
@@ -58,7 +56,6 @@ export class SidebarComponent implements OnInit {
 
   projects = toSignal(this.projectService.projects$, { initialValue: [] as Project[] });
   labels = toSignal(this.labelService.labels$, { initialValue: [] as Label[] });
-  filters = toSignal(this.filterService.filters$, { initialValue: [] as Filter[] });
   showUserMenu = signal(false);
   hoveredProjectId = signal<string | null>(null);
   activeMenuId = signal<string | null>(null);
@@ -137,7 +134,6 @@ export class SidebarComponent implements OnInit {
       { id: 'today', label: "Aujourd'hui", icon: 'star', route: '/today', count: c.today },
       { id: 'week', label: 'Semaine', icon: 'calendar', route: '/week', count: c.week },
       { id: 'done', label: 'Terminées', icon: 'check', route: '/done', count: 0 },
-      { id: 'time', label: 'Time tracker', icon: 'clock', route: '/time', count: 0 },
     ];
   });
 

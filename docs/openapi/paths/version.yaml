@@ -9,8 +9,10 @@
         content:
           "application/json":
             schema:
+              description: "Map containing the running application version under the `version` key."
               type: "object"
               additionalProperties:
+                description: "Application version read at startup, or `develop` when no version is configured."
                 type: "string"
       "401":
         "$ref": "../responses.yaml#/Unauthorized"

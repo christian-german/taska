@@ -8,7 +8,6 @@ import {CommandPaletteComponent} from './shared/components/command-palette/comma
 import {ShortcutsModalComponent} from './shared/components/shortcuts-modal/shortcuts-modal.component';
 import {ProjectService} from './core/services/project.service';
 import {LabelService} from './core/services/label.service';
-import {FilterService} from './core/services/filter.service';
 import {UiStateService} from './core/services/ui-state.service';
 import {Project, Task} from './core/models';
 import {attachConsole} from '@tauri-apps/plugin-log';
@@ -91,7 +90,6 @@ export class AppComponent implements OnInit {
   private detachConsole?: () => void;
   private projectService = inject(ProjectService);
   private labelService = inject(LabelService);
-  private filterService = inject(FilterService);
   private router = inject(Router);
   protected ui = inject(UiStateService);
   private updateService = inject(UpdateService);
@@ -140,7 +138,6 @@ export class AppComponent implements OnInit {
     // Load initial data.
     this.projectService.loadProjects().subscribe();
     this.labelService.loadLabels().subscribe();
-    this.filterService.loadFilters().subscribe();
   }
 
   ngOnDestroy() {
@@ -214,11 +211,6 @@ export class AppComponent implements OnInit {
     }
     if (this.gBuffer.endsWith('gw')) {
       this.router.navigateByUrl('/week');
-      this.gBuffer = '';
-      return;
-    }
-    if (this.gBuffer.endsWith('gs')) {
-      this.router.navigateByUrl('/stats');
       this.gBuffer = '';
       return;
     }

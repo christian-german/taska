@@ -14,7 +14,6 @@ import java.util.UUID;
  * @param content         title / main text of the task
  * @param description     optional longer description
  * @param projectId       project this task belongs to; {@code null} for subtasks without a project
- * @param sectionId       section within the project; {@code null} when the task is unsectioned
  * @param parentId        parent task UUID for subtasks; {@code null} for top-level tasks
  * @param order           display position within its container (maps to the entity's {@code position})
  * @param priority        optional manual urgency level: 1 = urgent, 2 = high, 3 = medium, 4 = normal
@@ -44,7 +43,6 @@ public record TaskDto(
         String content,
         String description,
         UUID projectId,
-        UUID sectionId,
         UUID parentId,
         Integer order,
         Integer priority,
@@ -67,13 +65,13 @@ public record TaskDto(
         TaskType type
 ) {
     /** Compatibility constructor for callers compiled before task type was introduced. */
-    public TaskDto(UUID id, String content, String description, UUID projectId, UUID sectionId,
+    public TaskDto(UUID id, String content, String description, UUID projectId,
                    UUID parentId, Integer order, Integer priority, List<String> labels,
                    Boolean isCompleted, Instant scheduledAt, Boolean allDay, Boolean isRecurring,
                    Integer estimateMinutes, String mentionContext, String recurrenceRule,
                    Instant createdAt, Instant updatedAt, Instant completedAt, UUID instanceId,
                    Instant occurrenceScheduledAt, Boolean isVirtual, Instant rruleEndsAt) {
-        this(id, content, description, projectId, sectionId, parentId, order, priority, labels,
+        this(id, content, description, projectId, parentId, order, priority, labels,
                 isCompleted, scheduledAt, null, allDay, isRecurring, estimateMinutes, mentionContext,
                 recurrenceRule, createdAt, updatedAt, completedAt, instanceId, occurrenceScheduledAt,
                 isVirtual, rruleEndsAt, TaskType.TODO);

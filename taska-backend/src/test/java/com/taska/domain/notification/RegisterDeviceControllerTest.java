@@ -11,30 +11,32 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
 
 class RegisterDeviceControllerTest {
-    private final DeviceTokenRepository repository = mock(DeviceTokenRepository.class);
-    private final RegisterDeviceController controller = new RegisterDeviceController(repository);
+    private final DeviceTokenRepository deviceTokenRepository = mock(DeviceTokenRepository.class);
+    private final RegisterDeviceController registerDeviceController = new RegisterDeviceController(deviceTokenRepository);
 
-    @Test void storesTheAuthenticatedSubjectOnNewToken() {
+    @Test
+    void storesTheAuthenticatedSubjectOnNewToken() {
         Jwt jwt = jwt("account-a");
-        when(repository.findByToken("token")).thenReturn(Optional.empty());
+        when(deviceTokenRepository.findByToken("token")).thenReturn(Optional.empty());
 
-        controller.registerDevice(new RegisterDeviceRequest("token"), jwt);
+        registerDeviceController.registerDevice(new RegisterDeviceRequest("token"), jwt);
 
         var saved = ArgumentCaptor.forClass(DeviceToken.class);
-        verify(repository).save(saved.capture());
+        verify(deviceTokenRepository).save(saved.capture());
         assertThat(saved.getValue().getToken()).isEqualTo("token");
         assertThat(saved.getValue().getAccountSubject()).isEqualTo("account-a");
     }
 
-    @Test void reassignsExistingTokenToCurrentAccount() {
+    @Test
+    void reassignsExistingTokenToCurrentAccount() {
         DeviceToken device = new DeviceToken();
         device.setToken("token");
         device.setAccountSubject("account-a");
-        when(repository.findByToken("token")).thenReturn(Optional.of(device));
+        when(deviceTokenRepository.findByToken("token")).thenReturn(Optional.of(device));
 
-        controller.registerDevice(new RegisterDeviceRequest("token"), jwt("account-b"));
+        registerDeviceController.registerDevice(new RegisterDeviceRequest("token"), jwt("account-b"));
 
-        verify(repository).save(device);
+        verify(deviceTokenRepository).save(device);
         assertThat(device.getAccountSubject()).isEqualTo("account-b");
     }
 

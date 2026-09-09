@@ -33,10 +33,18 @@ public class TaskPriorityScorer {
     }
 
     public int durationPoints(int minutes) {
-        if (minutes <= 0) throw new IllegalArgumentException("duration must be positive");
-        if (minutes <= 15) return 15;
-        if (minutes <= 30) return 10;
-        if (minutes <= 60) return 5;
+        if (minutes <= 0) {
+            throw new IllegalArgumentException("duration must be positive");
+        }
+        if (minutes <= 15) {
+            return 15;
+        }
+        if (minutes <= 30) {
+            return 10;
+        }
+        if (minutes <= 60) {
+            return 5;
+        }
         return 0;
     }
 

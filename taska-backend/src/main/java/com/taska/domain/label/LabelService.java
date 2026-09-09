@@ -13,7 +13,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class LabelService {
 
-    private final LabelRepository labelRepo;
+    private final LabelRepository labelRepository;
 
     /**
      * Returns all labels ordered by position ascending.
@@ -22,69 +22,77 @@ public class LabelService {
      */
     @Transactional(readOnly = true)
     public List<Label> findAll() {
-        return labelRepo.findAllByOrderByPositionAsc();
+        return labelRepository.findAllByOrderByPositionAsc();
     }
 
     /**
      * Returns the label with the given ID, or throws {@link com.taska.exception.ResourceNotFoundException}.
      *
-     * @param id the label UUID
+     * @param labelId the label UUID
      * @return the matching label entity
      */
     @Transactional(readOnly = true)
-    public Label findById(UUID id) {
-        return getOrThrow(id);
+    public Label findById(UUID labelId) {
+        return getOrThrow(labelId);
     }
 
     /**
      * Creates and persists a new label. Defaults: color "charcoal", position 0, not a favourite.
      *
-     * @param req the label creation payload
+     * @param labelRequest the label creation payload
      * @return the persisted label entity
      */
-    public Label create(LabelRequest req) {
-        Label l = new Label();
-        l.setName(req.name());
-        l.setColor(req.color() != null ? req.color() : "charcoal");
-        l.setPosition(req.order() != null ? req.order() : 0);
-        l.setIsFavorite(req.isFavorite() != null ? req.isFavorite() : false);
-        return labelRepo.save(l);
+    public Label create(LabelRequest labelRequest) {
+        Label label = new Label();
+        label.setName(labelRequest.name());
+        label.setColor(labelRequest.color() != null ? labelRequest.color() : "charcoal");
+        label.setPosition(labelRequest.order() != null ? labelRequest.order() : 0);
+        label.setIsFavorite(labelRequest.isFavorite() != null ? labelRequest.isFavorite() : false);
+        return labelRepository.save(label);
     }
 
     /**
      * Updates an existing label with non-null fields from the request.
      *
-     * @param id  the label UUID to update
-     * @param req the update payload
+     * @param labelId      the label UUID to update
+     * @param labelRequest the update payload
      * @return the updated label entity
      */
-    public Label update(UUID id, LabelRequest req) {
-        Label l = getOrThrow(id);
-        if (req.name() != null) l.setName(req.name());
-        if (req.color() != null) l.setColor(req.color());
-        if (req.order() != null) l.setPosition(req.order());
-        if (req.isFavorite() != null) l.setIsFavorite(req.isFavorite());
-        return labelRepo.save(l);
+    public Label update(UUID labelId, LabelRequest labelRequest) {
+        Label label = getOrThrow(labelId);
+        if (labelRequest.name() != null) {
+            label.setName(labelRequest.name());
+        }
+        if (labelRequest.color() != null) {
+            label.setColor(labelRequest.color());
+        }
+        if (labelRequest.order() != null) {
+            label.setPosition(labelRequest.order());
+        }
+        if (labelRequest.isFavorite() != null) {
+            label.setIsFavorite(labelRequest.isFavorite());
+        }
+        return labelRepository.save(label);
     }
 
     /**
      * Deletes the label with the given ID.
      * Throws {@link com.taska.exception.ResourceNotFoundException} if not found.
      *
-     * @param id the label UUID to delete
+     * @param labelId the label UUID to delete
      */
-    public void delete(UUID id) {
-        labelRepo.delete(getOrThrow(id));
+    public void delete(UUID labelId) {
+        labelRepository.delete(getOrThrow(labelId));
     }
 
     /**
      * Loads a label by ID or throws {@link com.taska.exception.ResourceNotFoundException} if not found.
      *
-     * @param id the label UUID
+     * @param labelId the label UUID
      * @return the label entity
      */
-    private Label getOrThrow(UUID id) {
-        return labelRepo.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Label not found: " + id));
+    private Label getOrThrow(UUID labelId) {
+        return labelRepository.findById(labelId)
+                .orElseThrow(() -> new ResourceNotFoundException("Label not found: " + labelId));
     }
 }

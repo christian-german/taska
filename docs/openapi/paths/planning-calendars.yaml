@@ -1,10 +1,10 @@
-"/planning-calendars/{id}":
+"/planning-calendars/{planningCalendarId}":
   get:
     tags:
       - "Planning Calendars"
     operationId: "getPlanningCalendar"
     parameters:
-      - name: "id"
+      - name: "planningCalendarId"
         in: "path"
         required: true
         schema:
@@ -35,7 +35,7 @@
       - "Planning Calendars"
     operationId: "updatePlanningCalendar"
     parameters:
-      - name: "id"
+      - name: "planningCalendarId"
         in: "path"
         required: true
         schema:

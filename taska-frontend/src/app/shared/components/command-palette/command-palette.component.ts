@@ -100,7 +100,6 @@ export class CommandPaletteComponent implements OnInit {
       { id: 'n_inbox', kind: 'nav', label: 'Aller à Inbox', icon: 'inbox', run: () => this.router.navigateByUrl('/inbox') },
       { id: 'n_week', kind: 'nav', label: 'Aller à Semaine', icon: 'calendar', run: () => this.router.navigateByUrl('/week') },
       { id: 'n_done', kind: 'nav', label: 'Voir les terminées', icon: 'check', run: () => this.router.navigateByUrl('/done') },
-      { id: 'n_stats', kind: 'nav', label: 'Voir les stats', icon: 'chart', run: () => this.router.navigateByUrl('/stats') },
       { id: 'n_projects', kind: 'nav', label: 'Voir les projets', icon: 'folder', run: () => this.router.navigateByUrl('/projects') },
       { id: 'a_quick', kind: 'action', label: 'Ajout rapide…', icon: 'plus', kbd: '⌘N', run: () => this.ui.openQuickAdd() },
       { id: 'a_help', kind: 'action', label: 'Raccourcis clavier', icon: 'settings', kbd: '?', run: () => this.ui.showHelp.set(true) },

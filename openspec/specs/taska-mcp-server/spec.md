@@ -61,11 +61,11 @@ The MCP server SHALL expose tools to list projects, retrieve a project by identi
 - **THEN** the server SHALL return an actionable tool error without exposing internal implementation details
 
 ### Requirement: Task management tools
-The MCP server SHALL expose tools to list tasks, retrieve a task by identifier, create a task, update a task, complete a task, and reopen a task. Each task tool SHALL delegate to Taska's task application service and preserve existing task validation, inbox defaults, and recurring-task semantics.
+The MCP server SHALL expose tools to list tasks, retrieve a task by identifier, create a task, update a task, complete a task, and reopen a task. Each task tool SHALL delegate to Taska's task application service and preserve existing task validation, inbox defaults, and recurring-task semantics. MCP task tool inputs and outputs SHALL NOT contain section identifiers, and task-list input SHALL NOT contain a named filter shortcut.
 
-#### Scenario: Client lists filtered tasks
-- **WHEN** an authenticated MCP client invokes the task-listing tool with supported project, section, label, completion, or named date-filter inputs
-- **THEN** the server SHALL return tasks matching the same semantics as Taska's task service
+#### Scenario: Client lists scoped tasks
+- **WHEN** an authenticated MCP client invokes the task-listing tool with supported project, label, or completion inputs
+- **THEN** the server SHALL return tasks matching the same semantics as Taska's task service without section data or named filter input
 
 #### Scenario: Client creates an inbox task
 - **WHEN** an authenticated MCP client invokes the task-creation tool without a project identifier or parent task

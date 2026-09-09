@@ -56,37 +56,37 @@ class TaskServiceQueryTest {
     // ── Helpers ──────────────────────────────────────────────────────────────
 
     private Task buildNonRecurringTask() {
-        Task t = new Task();
-        t.setId(UUID.randomUUID());
-        t.setContent("Non-recurring");
-        t.setIsRecurring(false);
-        t.setLabels(List.of());
-        return t;
+        Task task = new Task();
+        task.setId(UUID.randomUUID());
+        task.setContent("Non-recurring");
+        task.setIsRecurring(false);
+        task.setLabels(List.of());
+        return task;
     }
 
     private Task buildRecurringTask() {
-        Task t = new Task();
-        t.setId(UUID.randomUUID());
-        t.setContent("Recurring");
-        t.setIsRecurring(true);
-        t.setRecurrenceRule("FREQ=DAILY");
-        t.setScheduledAt(Instant.parse("2026-05-01T10:00:00Z"));
-        t.setLabels(List.of());
-        return t;
+        Task task = new Task();
+        task.setId(UUID.randomUUID());
+        task.setContent("Recurring");
+        task.setIsRecurring(true);
+        task.setRecurrenceRule("FREQ=DAILY");
+        task.setScheduledAt(Instant.parse("2026-05-01T10:00:00Z"));
+        task.setLabels(List.of());
+        return task;
     }
 
     private TaskInstance buildInstance(UUID taskId, Instant occurrenceScheduledAt, TaskInstanceStatus status) {
-        TaskInstance i = new TaskInstance();
-        i.setId(UUID.randomUUID());
-        i.setTaskId(taskId);
-        i.setOccurrenceScheduledAt(occurrenceScheduledAt);
-        i.setStatus(status);
-        return i;
+        TaskInstance taskInstance = new TaskInstance();
+        taskInstance.setId(UUID.randomUUID());
+        taskInstance.setTaskId(taskId);
+        taskInstance.setOccurrenceScheduledAt(occurrenceScheduledAt);
+        taskInstance.setStatus(status);
+        return taskInstance;
     }
 
     /** Minimal stub DTO — content does not matter for routing tests. */
     private TaskDto stubDto(UUID id) {
-        return new TaskDto(id, "content", null, null, null, null,
+        return new TaskDto(id, "content", null, null, null,
                 0, 1, List.of(), false, null, false, false,
                 null, null, null, null, null, null, null, null, false, null);
     }
@@ -98,19 +98,6 @@ class TaskServiceQueryTest {
 
     private void useCalendarZone(ZoneId zone) {
         when(calendarProperties.getTimeZone()).thenReturn(zone);
-    }
-
-    @Test
-    void findAll_todayUsesConfiguredCalendarZoneBoundaries() {
-        ZoneId paris = ZoneId.of("Europe/Paris");
-        useCalendarZone(paris);
-        LocalDate today = LocalDate.now(paris);
-        Instant start = today.atStartOfDay(paris).toInstant();
-        Instant end = today.plusDays(1).atStartOfDay(paris).toInstant();
-
-        taskService.findAll(null, null, null, "today", false);
-
-        verify(taskRepository).findByScheduledAtBetweenAndIsCompletedFalseOrderByScheduledAtAsc(start, end);
     }
 
     @Test

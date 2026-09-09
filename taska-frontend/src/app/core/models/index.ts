@@ -1,35 +1,10 @@
 export type ViewStyle = 'LIST' | 'BOARD' | 'CALENDAR';
 
-export interface TimeEntry {
-  id: string;
-  startAt: string;    // ISO 8601 UTC, e.g. "2024-05-03T10:00:00Z"
-  endAt: string;      // ISO 8601 UTC, e.g. "2024-05-03T11:30:00Z"
-  projectId: string;
-  description: string;
-  notes?: string;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export function timeEntryDuration(e: TimeEntry): number {
-  return Math.round((new Date(e.endAt).getTime() - new Date(e.startAt).getTime()) / 60000);
-}
-
-export interface Filter {
-  id: string;
-  name: string;
-  color: string;
-  isFavorite: boolean;
-  order: number;
-  projectId?: string;
-  hasDate?: boolean;
-}
-
 export interface Project {
   id: string;
   name: string;
   color: string;
-  parentId?: string;
+  parentId?: string | null;
   order: number;
   isFavorite: boolean;
   viewStyle: ViewStyle;
@@ -39,15 +14,16 @@ export interface Project {
   updatedAt: string;
 }
 
-export interface PlanningCalendarRule { dayOfWeek: number; startMinute: number; endMinute: number; }
-export interface PlanningCalendar { id: string; name: string; rules: PlanningCalendarRule[]; }
+export interface PlanningCalendarRule {
+  dayOfWeek: number;
+  startMinute: number;
+  endMinute: number;
+}
 
-export interface Section {
+export interface PlanningCalendar {
   id: string;
   name: string;
-  projectId: string;
-  order: number;
-  createdAt: string;
+  rules: PlanningCalendarRule[];
 }
 
 export type RecurrenceScope = 'THIS_ONLY' | 'FROM_THIS';
@@ -56,12 +32,10 @@ export type TaskType = 'TODO' | 'APPOINTMENT';
 export interface Task {
   id: string;
   content: string;
-  /** Missing only for responses from servers predating task types. */
-  type?: TaskType;
-  description?: string;
-  projectId?: string;
-  sectionId?: string;
-  parentId?: string;
+  type: TaskType;
+  description?: string | null;
+  projectId?: string | null;
+  parentId?: string | null;
   order: number;
   /** Optional manual priority; null means no manual priority is assigned. */
   priority: 1 | 2 | 3 | 4 | null;
@@ -72,15 +46,15 @@ export interface Task {
   dueAt: string | null;
   allDay: boolean;
   isRecurring: boolean;
-  estimateMinutes?: number;
-  mentionContext?: string;
-  recurrenceRule?: string;
+  estimateMinutes?: number | null;
+  mentionContext?: string | null;
+  recurrenceRule?: string | null;
   createdAt: string;
   updatedAt: string;
-  completedAt?: string;
+  completedAt?: string | null;
   instanceId?: string | null;
   occurrenceScheduledAt?: string | null;
-  isVirtual?: boolean;
+  isVirtual?: boolean | null;
   rruleEndsAt?: string | null;
 }
 
@@ -94,34 +68,10 @@ export interface Label {
 
 export interface Comment {
   id: string;
-  taskId?: string;
-  projectId?: string;
+  taskId?: string | null;
+  projectId?: string | null;
   content: string;
   createdAt: string;
-}
-
-export interface DailyCount {
-  date: string;
-  count: number;
-}
-
-export interface ProjectStat {
-  projectId: string;
-  name: string;
-  color: string;
-  total: number;
-  done: number;
-}
-
-export interface StatsOverview {
-  totalCompleted: number;
-  totalActive: number;
-  overdue: number;
-  streakDays: number;
-  completedThisWeek: number;
-  remainingMinutes: number;
-  last14Days: DailyCount[];
-  byProject: ProjectStat[];
 }
 
 export const PROJECT_COLORS: Record<string, string> = {

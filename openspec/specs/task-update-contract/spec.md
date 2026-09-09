@@ -6,25 +6,25 @@ Define complete-replacement contracts for base tasks, following recurring series
 
 ### Requirement: Base task updates replace the complete mutable task representation
 
-The system SHALL expose `PUT /tasks/{id}` as a full replacement operation for a non-occurrence task. The request body SHALL be a typed `TaskUpdateRequest` containing every mutable base-task property: content, type, description, projectId, sectionId, parentId, order, priority, labels, scheduledAt, dueAt, allDay, isRecurring, estimateMinutes, mentionContext, and recurrenceRule. The request SHALL NOT contain output-only task fields such as ID, completion state, timestamps, or occurrence metadata. The system SHALL reject incomplete or invalid replacement requests without changing the task.
+The system SHALL expose `PUT /tasks/{taskId}` as a full replacement operation for a non-occurrence task. The request body SHALL be a typed `TaskUpdateRequest` containing every mutable base-task property: content, type, description, projectId, parentId, order, priority, labels, scheduledAt, dueAt, allDay, isRecurring, estimateMinutes, mentionContext, and recurrenceRule. The request SHALL NOT contain a section identifier or output-only task fields such as ID, completion state, timestamps, or occurrence metadata. The system SHALL reject incomplete or invalid replacement requests without changing the task.
 
 #### Scenario: Replace a task with complete mutable values
-- **WHEN** a client sends a valid complete `TaskUpdateRequest` to `PUT /tasks/{id}`
+- **WHEN** a client sends a valid complete `TaskUpdateRequest` to `PUT /tasks/{taskId}`
 - **THEN** the system SHALL replace every mutable base-task property with the supplied value
-- **AND** it SHALL return the resulting task representation
+- **AND** it SHALL return the resulting task representation without a section identifier
 
 #### Scenario: Partial base-task update is rejected
-- **WHEN** a client omits a required mutable property from `PUT /tasks/{id}`
+- **WHEN** a client omits a required mutable property from `PUT /tasks/{taskId}`
 - **THEN** the system SHALL reject the request
 - **AND** it SHALL leave the existing task unchanged
 
-#### Scenario: Output-only task state is not client-controlled
+#### Scenario: Output-only and retired task state is not client-controlled
 - **WHEN** a client sends a base-task replacement request
-- **THEN** the request SHALL NOT be able to replace the task ID, completion state, created timestamp, updated timestamp, completed timestamp, or occurrence metadata
+- **THEN** the request SHALL NOT be able to replace a section identifier, task ID, completion state, created timestamp, updated timestamp, completed timestamp, or occurrence metadata
 
 ### Requirement: Following-series updates split and replace a complete series
 
-The system SHALL expose a dedicated `PUT /tasks/{id}/occurrences/{occurrenceScheduledAt}/following` endpoint for a recurring task. It SHALL accept a complete `TaskUpdateRequest`, end the original series immediately before the identified occurrence, and create a new recurring task from every supplied mutable value. The new series SHALL begin from the supplied replacement schedule and SHALL be returned as the updated task representation.
+The system SHALL expose a dedicated `PUT /tasks/{taskId}/occurrences/{occurrenceScheduledAt}/following` endpoint for a recurring task. It SHALL accept a complete `TaskUpdateRequest`, end the original series immediately before the identified occurrence, and create a new recurring task from every supplied mutable value. The new series SHALL begin from the supplied replacement schedule and SHALL be returned as the updated task representation.
 
 #### Scenario: Replace the following series
 - **WHEN** a client sends a valid complete `TaskUpdateRequest` to the following-series endpoint for a valid recurring occurrence
@@ -41,7 +41,7 @@ The system SHALL expose a dedicated `PUT /tasks/{id}/occurrences/{occurrenceSche
 
 ### Requirement: Single-occurrence updates use an occurrence-specific replacement resource
 
-The system SHALL expose `PUT /tasks/{id}/occurrences/{occurrenceScheduledAt}` for a single recurring occurrence. The endpoint SHALL accept a typed `OccurrenceUpdateRequest` containing only title, priority, scheduledAt, and dueAt, because those are the properties supported by `TaskInstance`. It SHALL create or replace the target occurrence's overrides without changing the parent task or other occurrences.
+The system SHALL expose `PUT /tasks/{taskId}/occurrences/{occurrenceScheduledAt}` for a single recurring occurrence. The endpoint SHALL accept a typed `OccurrenceUpdateRequest` containing only title, priority, scheduledAt, and dueAt, because those are the properties supported by `TaskInstance`. It SHALL create or replace the target occurrence's overrides without changing the parent task or other occurrences.
 
 #### Scenario: Replace supported values for one occurrence
 - **WHEN** a client sends a valid `OccurrenceUpdateRequest` for a valid recurring occurrence

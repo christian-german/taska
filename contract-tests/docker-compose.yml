@@ -1,0 +1,158 @@
+services:
+  taska-db:
+    image: postgres:18.1-alpine
+    environment:
+      POSTGRES_DB: taska
+      POSTGRES_USER: taska
+      POSTGRES_PASSWORD: taska
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -d $${POSTGRES_DB} -U $${POSTGRES_USER}"]
+      start_period: 1s
+      interval: 2s
+      timeout: 5s
+      retries: 60
+    volumes:
+      - taska-db-data:/var/lib/postgresql/data
+
+  db-authentik:
+    image: postgres:18.1-alpine
+    labels:
+      org.springframework.boot.ignore: "true"
+    environment:
+      POSTGRES_DB: authentik
+      POSTGRES_USER: authentik
+      POSTGRES_PASSWORD: authentik
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -d $${POSTGRES_DB} -U $${POSTGRES_USER}"]
+      start_period: 1s
+      interval: 2s
+      timeout: 5s
+      retries: 60
+    volumes:
+      - authentik-db-data:/var/lib/postgresql/data
+
+  authentik-server:
+    image: ghcr.io/goauthentik/server:2026.8.1
+    command: server
+    environment: &authentik-environment
+      AUTHENTIK_POSTGRESQL__HOST: db-authentik
+      AUTHENTIK_POSTGRESQL__NAME: authentik
+      AUTHENTIK_POSTGRESQL__USER: authentik
+      AUTHENTIK_POSTGRESQL__PASSWORD: authentik
+      AUTHENTIK_SECRET_KEY: taska-contract-tests-secret-key
+      AUTHENTIK_BOOTSTRAP_TOKEN: taska-contract-tests-bootstrap-token
+      AUTHENTIK_BOOTSTRAP_PASSWORD: akadmin
+      AUTHENTIK_ERROR_REPORTING__ENABLED: "false"
+    volumes:
+      - ../taska-backend/authentik/blueprints/taska.yaml:/blueprints/custom/taska.yaml:ro
+    depends_on:
+      db-authentik:
+        condition: service_healthy
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - >-
+          ak healthcheck && python -c
+          "import urllib.request; urllib.request.urlopen(
+          'http://localhost:9000/application/o/taska/.well-known/openid-configuration',
+          timeout=5)"
+      start_period: 20s
+      interval: 5s
+      timeout: 10s
+      retries: 60
+
+  authentik-worker:
+    image: ghcr.io/goauthentik/server:2026.8.1
+    command: worker
+    environment: *authentik-environment
+    volumes:
+      - ../taska-backend/authentik/blueprints/taska.yaml:/blueprints/custom/taska.yaml:ro
+    depends_on:
+      db-authentik:
+        condition: service_healthy
+
+  taska-backend:
+    image: taska-contract-tests-backend:local
+    build:
+      context: ../taska-backend
+      dockerfile: Dockerfile
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://taska-db:5432/taska
+      SPRING_DATASOURCE_USERNAME: taska
+      SPRING_DATASOURCE_PASSWORD: taska
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI: http://authentik-server:9000/application/o/taska/
+      TASKA_SECURITY_INCREASE_TIMEOUT: "true"
+      TASKA_SECURITY_DISABLE_ISSUER_VALIDATION: "true"
+      TASKA_FIREBASE_DISABLED: "true"
+      TASKA_NOTIFICATION_ENABLED: "false"
+      OPENAI_API_KEY: contract-tests-placeholder
+    depends_on:
+      taska-db:
+        condition: service_healthy
+      authentik-server:
+        condition: service_healthy
+    restart: on-failure:10
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O - http://localhost:8080/actuator/health | grep -q '\"status\":\"UP\"'"]
+      start_period: 30s
+      interval: 5s
+      timeout: 5s
+      retries: 60
+
+  schemathesis:
+    image: ghcr.io/schemathesis/schemathesis:stable
+    profiles: ["tools"]
+    working_dir: /reports/raw
+    user: "${CONTRACT_TEST_UID:-1000}:${CONTRACT_TEST_GID:-1000}"
+    environment:
+      HOME: /tmp
+      AUTHENTIK_BASE_URL: http://authentik-server:9000
+      TOKEN_URL: http://authentik-server:9000/application/o/token/
+      TOKEN_CLIENT_ID: taska-client
+      TOKEN_USERNAME: user
+      TOKEN_PASSWORD: pass
+      TOKEN_SCOPE: openid profile email
+      TOKEN_REDIRECT_URI: http://localhost:4200/callback
+      TOKEN_TIMEOUT_SECONDS: "120"
+    volumes:
+      - ../docs/openapi:/openapi:ro
+      - ./:/contract-tests:ro
+      - ./reports:/reports
+
+  prism:
+    image: stoplight/prism:5
+    profiles: ["tools"]
+    command:
+      - mock
+      - --host
+      - 0.0.0.0
+      - --port
+      - "4010"
+      - --multiprocess=false
+      - --errors
+      - --dynamic
+      - --seed
+      - taska-contract-tests
+      - --json-schema-faker-fillProperties
+      - /openapi/taska.openapi.yaml
+    ports:
+      - "${PRISM_PORT:-4010}:4010"
+    volumes:
+      - ../docs/openapi:/openapi:ro
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - >-
+          require('http').get('http://127.0.0.1:4010/version',
+          response => process.exit(response.statusCode ? 0 : 1))
+          .on('error', () => process.exit(1))
+      start_period: 2s
+      interval: 2s
+      timeout: 3s
+      retries: 30
+
+volumes:
+  taska-db-data:
+  authentik-db-data:

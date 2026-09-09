@@ -1,6 +1,7 @@
 package com.taska.exception;
 
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -9,37 +10,47 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import java.net.URI;
 import java.util.Map;
 import java.util.stream.Collectors;
 
 @RestControllerAdvice
-@Slf4j
 public class GlobalExceptionHandler {
+
+    private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
     /**
      * Handles {@link ResourceNotFoundException} and returns a 404 Problem Detail response.
      *
-     * @param ex the exception containing the not-found message
+     * @param exception the exception containing the not-found message
      * @return a 404 Problem Detail with the exception message as detail
      */
     @ExceptionHandler(ResourceNotFoundException.class)
-    public ProblemDetail handleNotFound(ResourceNotFoundException ex) {
-        return ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, ex.getMessage());
+    public ProblemDetail handleNotFound(ResourceNotFoundException exception) {
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
+                HttpStatus.NOT_FOUND, exception.getMessage());
+        problemDetail.setType(URI.create("about:blank"));
+        return problemDetail;
     }
 
     /**
      * Handles Bean Validation failures and returns a 400 Problem Detail response with a map of
      * field names to their validation error messages.
      *
-     * @param ex the validation exception produced by {@code @Valid} constraints
+     * @param exception the validation exception produced by {@code @Valid} constraints
      * @return a 400 Problem Detail with an {@code errors} property containing per-field messages
      */
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ProblemDetail handleValidation(MethodArgumentNotValidException ex) {
-        Map<String, String> errors = ex.getBindingResult().getFieldErrors().stream()
-                .collect(Collectors.toMap(FieldError::getField, fe -> fe.getDefaultMessage() != null ? fe.getDefaultMessage() : "invalid"));
+    public ProblemDetail handleValidation(MethodArgumentNotValidException exception) {
+        Map<String, String> errors = exception.getBindingResult().getFieldErrors().stream()
+                .collect(Collectors.toMap(
+                        FieldError::getField,
+                        fieldError -> fieldError.getDefaultMessage() != null
+                                ? fieldError.getDefaultMessage()
+                                : "invalid"));
         ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, "Validation failed");
         problemDetail.setProperty("errors", errors);
+        problemDetail.setType(URI.create("about:blank"));
         return problemDetail;
     }
 
@@ -47,29 +58,36 @@ public class GlobalExceptionHandler {
      * Returns a client error when JSON cannot be deserialized, such as an Instant without an
      * ISO-8601 timezone offset.
      *
-     * @param ex the request-body deserialization failure
+     * @param exception the request-body deserialization failure
      * @return a 400 Problem Detail without exposing parser internals
      */
     @ExceptionHandler(HttpMessageNotReadableException.class)
-    public ProblemDetail handleUnreadableMessage(HttpMessageNotReadableException ex) {
-        return ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, "Invalid request body");
+    public ProblemDetail handleUnreadableMessage(HttpMessageNotReadableException exception) {
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, "Invalid request body");
+        problemDetail.setType(URI.create("about:blank"));
+        return problemDetail;
     }
 
     @ExceptionHandler(IllegalArgumentException.class)
-    public ProblemDetail handleIllegalArgument(IllegalArgumentException ex) {
-        return ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, ex.getMessage());
+    public ProblemDetail handleIllegalArgument(IllegalArgumentException exception) {
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
+                HttpStatus.BAD_REQUEST, exception.getMessage());
+        problemDetail.setType(URI.create("about:blank"));
+        return problemDetail;
     }
 
     /**
      * Catch-all handler for unexpected exceptions. Logs the full stack trace and returns a 500
      * Problem Detail to avoid leaking internal error details to clients.
      *
-     * @param ex the unhandled exception
+     * @param exception the unhandled exception
      * @return a 500 Problem Detail with a generic "Internal error" message
      */
     @ExceptionHandler(Exception.class)
-    public ProblemDetail handleGeneric(Exception ex) {
-        log.error("Unexpected error", ex);
-        return ProblemDetail.forStatusAndDetail(HttpStatus.INTERNAL_SERVER_ERROR, "Internal error");
+    public ProblemDetail handleGeneric(Exception exception) {
+        log.error("Unexpected error", exception);
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.INTERNAL_SERVER_ERROR, "Internal error");
+        problemDetail.setType(URI.create("about:blank"));
+        return problemDetail;
     }
 }

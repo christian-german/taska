@@ -57,7 +57,7 @@ class SearchViewModelTest {
     private fun task(id: String, content: String, completed: Boolean = false, description: String? = null) =
         TaskDto(
             id = id, content = content, description = description, projectId = null,
-            sectionId = null, parentId = null, order = null, priority = null, labels = null,
+            parentId = null, order = null, priority = null, labels = null,
             isCompleted = completed, scheduledAt = null, isRecurring = false,
             estimateMinutes = null, createdAt = null, updatedAt = null, completedAt = null,
         )

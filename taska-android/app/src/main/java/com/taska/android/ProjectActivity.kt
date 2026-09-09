@@ -98,10 +98,6 @@ class ProjectActivity : ComponentActivity() {
                                         Intent(this@ProjectActivity, WeekActivity::class.java)
                                             .addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT)
                                     )
-                                    NavDestination.TRACKER -> startActivity(
-                                        Intent(this@ProjectActivity, TrackerActivity::class.java)
-                                            .addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT)
-                                    )
                                 }
                             },
                             onAddClick = { showAddTask = true }

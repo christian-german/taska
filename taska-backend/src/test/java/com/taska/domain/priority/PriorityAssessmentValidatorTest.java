@@ -8,14 +8,18 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class PriorityAssessmentValidatorTest {
-    private final PriorityAssessmentValidator validator = new PriorityAssessmentValidator();
+    private final PriorityAssessmentValidator priorityAssessmentValidator = new PriorityAssessmentValidator();
     private final UUID id = UUID.randomUUID();
 
-    @Test void validAssessmentIsAccepted() { assertThat(validator.isValid(assessment(id))).isTrue(); }
+    @Test
+    void validAssessmentIsAccepted() {
+        assertThat(priorityAssessmentValidator.isValid(assessment(id))).isTrue();
+    }
 
-    @Test void duplicateEnvelopeIdsAreRejected() {
+    @Test
+    void duplicateEnvelopeIdsAreRejected() {
         var response = new PriorityEvaluationBatchResponse(List.of(assessment(id), assessment(id)));
-        assertThatThrownBy(() -> validator.validateEnvelope(response, Set.of(id))).isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> priorityAssessmentValidator.validateEnvelope(response, Set.of(id))).isInstanceOf(IllegalArgumentException.class);
     }
 
     private PriorityEvaluationBatchResponse.Assessment assessment(UUID taskId) {

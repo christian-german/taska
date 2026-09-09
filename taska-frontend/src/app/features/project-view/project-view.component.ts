@@ -1,8 +1,7 @@
 import { ChangeDetectionStrategy, Component, OnInit, computed, effect, inject, input, signal } from '@angular/core';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
-import { Project, Section, Task, getColor } from '../../core/models';
+import { Project, Task, getColor } from '../../core/models';
 import { ProjectService } from '../../core/services/project.service';
-import { SectionService } from '../../core/services/section.service';
 import { TaskService } from '../../core/services/task.service';
 import { UiStateService } from '../../core/services/ui-state.service';
 import { TaskListComponent, TaskGroup } from '../../shared/components/task-list/task-list.component';
@@ -48,14 +47,12 @@ export class ProjectViewComponent implements OnInit {
   id = input<string>('');
 
   private projectService = inject(ProjectService);
-  private sectionService = inject(SectionService);
   private taskService = inject(TaskService);
   private ui = inject(UiStateService);
 
   allProjects = toSignal(this.projectService.projects$, { initialValue: [] as Project[] });
   project = computed(() => this.allProjects().find(p => p.id === this.id()) ?? null);
 
-  sections = signal<Section[]>([]);
   allItems = signal<Task[]>([]);
 
   selectedId = computed(() => this.ui.selectedTask()?.id ?? null);
@@ -117,7 +114,6 @@ export class ProjectViewComponent implements OnInit {
   ngOnInit(): void {}
 
   private load(id: string): void {
-    this.projectService.getProjectSections(id).subscribe(s => this.sections.set(s));
     this.taskService.getTasks({ projectId: id, showCompleted: true }).subscribe(t => this.allItems.set(t));
   }
 

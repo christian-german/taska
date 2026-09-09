@@ -1,7 +1,5 @@
 package com.taska.domain.project;
 
-import com.taska.domain.section.Section;
-import com.taska.domain.section.SectionRepository;
 import com.taska.domain.task.Task;
 import com.taska.domain.task.TaskRepository;
 import com.taska.exception.ResourceNotFoundException;
@@ -19,11 +17,10 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class ProjectService {
 
-    private final ProjectRepository projectRepo;
-    private final SectionRepository sectionRepo;
-    private final TaskRepository taskRepo;
-    private final PlanningCalendarRepository calendarRepo;
-    private final PlanningCalendarService calendarService;
+    private final ProjectRepository projectRepository;
+    private final TaskRepository taskRepository;
+    private final PlanningCalendarRepository planningCalendarRepository;
+    private final PlanningCalendarService planningCalendarService;
 
     /**
      * Returns all projects ordered by their position ascending.
@@ -32,7 +29,7 @@ public class ProjectService {
      */
     @Transactional(readOnly = true)
     public List<Project> findAll() {
-        return projectRepo.findAllByOrderByPositionAsc();
+        return projectRepository.findAllByOrderByPositionAsc();
     }
 
     /**
@@ -42,29 +39,33 @@ public class ProjectService {
      * @return the matching project entity
      */
     @Transactional(readOnly = true)
-    public Project findById(UUID id) {
-        return getOrThrow(id);
+    public Project findById(UUID projectId) {
+        return getOrThrow(projectId);
     }
 
     /**
      * Creates and persists a new project from the given request.
      * Defaults: color "#808080", position 0, not a favourite, view style LIST.
      *
-     * @param req the project creation payload
+     * @param projectRequest the project creation payload
      * @return the persisted project entity
      */
-    public Project create(ProjectRequest req) {
-        Project p = new Project();
-        p.setName(req.name());
-        p.setColor(req.color() != null ? req.color() : "#808080");
-        p.setParentId(req.parentId());
-        p.setPosition(req.order() != null ? req.order() : 0);
-        p.setIsFavorite(req.isFavorite() != null ? req.isFavorite() : false);
-        p.setViewStyle(req.viewStyle() != null ? req.viewStyle() : ViewStyle.LIST);
-        UUID calendarId = req.planningCalendarId() != null ? req.planningCalendarId() : PlanningCalendarService.DEFAULT_ID;
-        if (!calendarRepo.existsById(calendarId)) throw new ResourceNotFoundException("Planning calendar not found: " + calendarId);
-        p.setPlanningCalendarId(calendarId);
-        return projectRepo.save(p);
+    public Project create(ProjectRequest projectRequest) {
+        Project project = new Project();
+        project.setName(projectRequest.name());
+        project.setColor(projectRequest.color() != null ? projectRequest.color() : "#808080");
+        project.setParentId(projectRequest.parentId());
+        project.setPosition(projectRequest.order() != null ? projectRequest.order() : 0);
+        project.setIsFavorite(projectRequest.isFavorite() != null ? projectRequest.isFavorite() : false);
+        project.setViewStyle(projectRequest.viewStyle() != null ? projectRequest.viewStyle() : ViewStyle.LIST);
+        UUID planningCalendarId = projectRequest.planningCalendarId() != null
+                ? projectRequest.planningCalendarId()
+                : PlanningCalendarService.DEFAULT_ID;
+        if (!planningCalendarRepository.existsById(planningCalendarId)) {
+            throw new ResourceNotFoundException("Planning calendar not found: " + planningCalendarId);
+        }
+        project.setPlanningCalendarId(planningCalendarId);
+        return projectRepository.save(project);
     }
 
     /**
@@ -72,43 +73,63 @@ public class ProjectService {
      * Setting {@code clearParent} to true removes the parent relationship even when {@code parentId}
      * is also provided.
      *
-     * @param id  the project UUID to update
-     * @param req the update payload
+     * @param projectId      the project UUID to update
+     * @param projectRequest the update payload
      * @return the updated project entity
      */
-    public Project update(UUID id, ProjectRequest req) {
-        Project p = getOrThrow(id);
-        if (req.name() != null) p.setName(req.name());
-        if (req.color() != null) p.setColor(req.color());
-        if (Boolean.TRUE.equals(req.clearParent())) {
-            p.setParentId(null);
-        } else if (req.parentId() != null) {
-            p.setParentId(req.parentId());
+    public Project update(UUID projectId, ProjectRequest projectRequest) {
+        Project project = getOrThrow(projectId);
+        if (projectRequest.name() != null) {
+            project.setName(projectRequest.name());
         }
-        if (req.order() != null) p.setPosition(req.order());
-        if (req.isFavorite() != null) p.setIsFavorite(req.isFavorite());
-        if (req.viewStyle() != null) p.setViewStyle(req.viewStyle());
-        if (req.planningCalendarId() != null && !req.planningCalendarId().equals(p.getPlanningCalendarId())) {
-            if (!calendarRepo.existsById(req.planningCalendarId())) throw new ResourceNotFoundException("Planning calendar not found: " + req.planningCalendarId());
-            boolean incompatible = taskRepo.findByProjectIdAndScheduledAtIsNotNullAndIsCompletedFalseOrderByScheduledAtAsc(id).stream()
-                    .anyMatch(t -> !calendarService.allows(req.planningCalendarId(), t.getScheduledAt(), t.isAllDay()));
-            if (incompatible) throw new IllegalArgumentException("Planning calendar does not allow an existing scheduled task");
-            p.setPlanningCalendarId(req.planningCalendarId());
+        if (projectRequest.color() != null) {
+            project.setColor(projectRequest.color());
         }
-        return projectRepo.save(p);
+        if (Boolean.TRUE.equals(projectRequest.clearParent())) {
+            project.setParentId(null);
+        } else if (projectRequest.parentId() != null) {
+            project.setParentId(projectRequest.parentId());
+        }
+        if (projectRequest.order() != null) {
+            project.setPosition(projectRequest.order());
+        }
+        if (projectRequest.isFavorite() != null) {
+            project.setIsFavorite(projectRequest.isFavorite());
+        }
+        if (projectRequest.viewStyle() != null) {
+            project.setViewStyle(projectRequest.viewStyle());
+        }
+        if (projectRequest.planningCalendarId() != null
+                && !projectRequest.planningCalendarId().equals(project.getPlanningCalendarId())) {
+            if (!planningCalendarRepository.existsById(projectRequest.planningCalendarId())) {
+                throw new ResourceNotFoundException(
+                        "Planning calendar not found: " + projectRequest.planningCalendarId());
+            }
+            boolean hasIncompatibleTask = taskRepository
+                    .findByProjectIdAndScheduledAtIsNotNullAndIsCompletedFalseOrderByScheduledAtAsc(projectId)
+                    .stream()
+                    .anyMatch(task -> !planningCalendarService.allows(
+                            projectRequest.planningCalendarId(), task.getScheduledAt(), task.isAllDay()));
+            if (hasIncompatibleTask) {
+                throw new IllegalArgumentException(
+                        "Planning calendar does not allow an existing scheduled task");
+            }
+            project.setPlanningCalendarId(projectRequest.planningCalendarId());
+        }
+        return projectRepository.save(project);
     }
 
     /**
      * Bulk-updates the position of multiple projects in a single operation.
      * Projects not found in the repository are silently skipped.
      *
-     * @param items list of id/order pairs defining the new positions
+     * @param reorderRequests list of id/order pairs defining the new positions
      */
-    public void reorder(List<ProjectReorderRequest> items) {
-        items.forEach(item ->
-            projectRepo.findById(item.id()).ifPresent(p -> {
-                p.setPosition(item.order());
-                projectRepo.save(p);
+    public void reorder(List<ProjectReorderRequest> reorderRequests) {
+        reorderRequests.forEach(reorderRequest ->
+            projectRepository.findById(reorderRequest.id()).ifPresent(project -> {
+                project.setPosition(reorderRequest.order());
+                projectRepository.save(project);
             })
         );
     }
@@ -119,12 +140,12 @@ public class ProjectService {
      *
      * @param id the project UUID to delete
      */
-    public void delete(UUID id) {
-        Project p = getOrThrow(id);
-        if (p.getIsInboxProject()) {
+    public void delete(UUID projectId) {
+        Project project = getOrThrow(projectId);
+        if (project.getIsInboxProject()) {
             throw new IllegalStateException("Cannot delete inbox project");
         }
-        projectRepo.delete(p);
+        projectRepository.delete(project);
     }
 
     /**
@@ -135,22 +156,9 @@ public class ProjectService {
      * @return list of incomplete task entities in the project
      */
     @Transactional(readOnly = true)
-    public List<Task> getProjectTasks(UUID id) {
-        getOrThrow(id);
-        return taskRepo.findByProjectIdAndIsCompletedFalseOrderByPositionAsc(id);
-    }
-
-    /**
-     * Returns all sections belonging to the given project, ordered by position.
-     * Throws {@link com.taska.exception.ResourceNotFoundException} if the project does not exist.
-     *
-     * @param id the project UUID
-     * @return list of section entities in the project
-     */
-    @Transactional(readOnly = true)
-    public List<Section> getProjectSections(UUID id) {
-        getOrThrow(id);
-        return sectionRepo.findByProjectIdOrderByPositionAsc(id);
+    public List<Task> getProjectTasks(UUID projectId) {
+        getOrThrow(projectId);
+        return taskRepository.findByProjectIdAndIsCompletedFalseOrderByPositionAsc(projectId);
     }
 
     /**
@@ -159,8 +167,8 @@ public class ProjectService {
      * @param id the project UUID
      * @return the project entity
      */
-    private Project getOrThrow(UUID id) {
-        return projectRepo.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Project not found: " + id));
+    private Project getOrThrow(UUID projectId) {
+        return projectRepository.findById(projectId)
+                .orElseThrow(() -> new ResourceNotFoundException("Project not found: " + projectId));
     }
 }

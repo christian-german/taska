@@ -121,7 +121,7 @@ class TaskWidgetRefreshTest {
     }
 
     private fun task(id: String, scheduledAt: String?, completed: Boolean = false, occurrence: String? = null) = TaskDto(
-        id = id, content = id, description = null, projectId = null, sectionId = null,
+        id = id, content = id, description = null, projectId = null,
         parentId = null, order = 0, priority = null, labels = emptyList(), isCompleted = completed,
         scheduledAt = scheduledAt, estimateMinutes = null, isRecurring = false,
         createdAt = null, updatedAt = null, completedAt = null, occurrenceScheduledAt = occurrence,

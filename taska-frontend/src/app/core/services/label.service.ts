@@ -4,6 +4,13 @@ import {BehaviorSubject, Observable, tap} from 'rxjs';
 import {Label} from '../models';
 import {environment} from '../../../environments/environment';
 
+interface LabelRequest {
+  name: string;
+  color?: string | null;
+  order?: number | null;
+  isFavorite?: boolean | null;
+}
+
 @Injectable({ providedIn: 'root' })
 export class LabelService {
   private http = inject(HttpClient);
@@ -18,24 +25,24 @@ export class LabelService {
     );
   }
 
-  createLabel(data: Partial<Label>): Observable<Label> {
+  createLabel(data: LabelRequest): Observable<Label> {
     return this.http.post<Label>(this.base, data).pipe(
       tap(created => this.labelsSubject.next([...this.labelsSubject.value, created]))
     );
   }
 
-  updateLabel(id: string, data: Partial<Label>): Observable<Label> {
-    return this.http.put<Label>(`${this.base}/${id}`, data).pipe(
+  updateLabel(labelId: string, data: LabelRequest): Observable<Label> {
+    return this.http.put<Label>(`${this.base}/${labelId}`, data).pipe(
       tap(updated => {
-        this.labelsSubject.next(this.labelsSubject.value.map(l => l.id === id ? updated : l));
+        this.labelsSubject.next(this.labelsSubject.value.map(l => l.id === labelId ? updated : l));
       })
     );
   }
 
-  deleteLabel(id: string): Observable<void> {
-    return this.http.delete<void>(`${this.base}/${id}`).pipe(
+  deleteLabel(labelId: string): Observable<void> {
+    return this.http.delete<void>(`${this.base}/${labelId}`).pipe(
       tap(() => {
-        this.labelsSubject.next(this.labelsSubject.value.filter(l => l.id !== id));
+        this.labelsSubject.next(this.labelsSubject.value.filter(l => l.id !== labelId));
       })
     );
   }

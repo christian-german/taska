@@ -9,27 +9,27 @@ import com.taska.android.data.model.OccurrenceUpdateRequest
 import com.taska.android.data.repository.LabelRepository
 import com.taska.android.data.repository.ProjectRepository
 import com.taska.android.data.repository.TaskRepository
-import com.taska.android.data.repository.TimeEntryRepository
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
 import io.mockk.slot
-import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.advanceUntilIdle
+import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Rule
 import org.junit.Test
 
+@OptIn(ExperimentalCoroutinesApi::class)
 class TaskDetailViewModelTest {
     @get:Rule val dispatcherRule = MainDispatcherRule()
 
     private val taskRepo = mockk<TaskRepository>()
     private val projectRepo = mockk<ProjectRepository> { coEvery { getProjects() } returns emptyList() }
     private val labelRepo = mockk<LabelRepository> { coEvery { getLabels() } returns emptyList() }
-    private val timeEntryRepo = mockk<TimeEntryRepository>()
 
     @Test
     fun `clear schedule preserves deadline and adopts server response`() = runTest {
@@ -177,7 +177,7 @@ class TaskDetailViewModelTest {
 
     private fun viewModel(occurrence: String? = null) = TaskDetailViewModel(
         SavedStateHandle(mapOf("task_id" to "task-1", "scheduled_at" to occurrence)),
-        taskRepo, projectRepo, labelRepo, timeEntryRepo
+        taskRepo, projectRepo, labelRepo
     )
 
     private fun task(
@@ -186,7 +186,7 @@ class TaskDetailViewModelTest {
         occurrenceScheduledAt: String? = null,
     ) = TaskDto(
         id = "task-1", content = "Plan launch", description = "Keep this", projectId = "project-1",
-        sectionId = null, parentId = null, order = 1, priority = 2, labels = listOf("work"),
+        parentId = null, order = 1, priority = 2, labels = listOf("work"),
         isCompleted = false, scheduledAt = "2026-08-24T09:00:00Z", dueAt = dueAt,
         allDay = false, isRecurring = isRecurring, recurrenceRule = if (isRecurring) "freq=weekly" else null,
         estimateMinutes = 30, mentionContext = "context", createdAt = null, updatedAt = null, completedAt = null,

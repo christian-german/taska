@@ -14,19 +14,19 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class TaskRecurrenceServiceTest {
 
-    private TaskRecurrenceService service;
+    private TaskRecurrenceService taskRecurrenceService;
 
     @BeforeEach
     void setUp() {
-        service = new TaskRecurrenceService();
+        taskRecurrenceService = new TaskRecurrenceService();
     }
 
     private Task taskWith(String rrule, String scheduledAt) {
-        Task t = new Task();
-        t.setIsRecurring(true);
-        t.setRecurrenceRule(rrule);
-        t.setScheduledAt(Instant.parse(scheduledAt));
-        return t;
+        Task task = new Task();
+        task.setIsRecurring(true);
+        task.setRecurrenceRule(rrule);
+        task.setScheduledAt(Instant.parse(scheduledAt));
+        return task;
     }
 
     private Instant dayStart(String date) {
@@ -37,9 +37,9 @@ class TaskRecurrenceServiceTest {
     void daily_task_has_occurrence_every_day() {
         Task task = taskWith("FREQ=DAILY", "2026-05-01T10:00:00Z");
 
-        List<Instant> occ = service.getOccurrencesInRange(task, dayStart("2026-05-18"), dayStart("2026-05-19"));
-        assertThat(occ).hasSize(1);
-        assertThat(occ.getFirst()).isEqualTo(Instant.parse("2026-05-18T10:00:00Z"));
+        List<Instant> occurrences = taskRecurrenceService.getOccurrencesInRange(task, dayStart("2026-05-18"), dayStart("2026-05-19"));
+        assertThat(occurrences).hasSize(1);
+        assertThat(occurrences.getFirst()).isEqualTo(Instant.parse("2026-05-18T10:00:00Z"));
     }
 
     @Test
@@ -47,8 +47,8 @@ class TaskRecurrenceServiceTest {
         Task task = taskWith("FREQ=WEEKLY;BYDAY=MO", "2026-05-04T09:00:00Z");
 
         // 2026-05-19 is a Tuesday
-        List<Instant> occ = service.getOccurrencesInRange(task, dayStart("2026-05-19"), dayStart("2026-05-20"));
-        assertThat(occ).isEmpty();
+        List<Instant> occurrences = taskRecurrenceService.getOccurrencesInRange(task, dayStart("2026-05-19"), dayStart("2026-05-20"));
+        assertThat(occurrences).isEmpty();
     }
 
     @Test
@@ -56,16 +56,16 @@ class TaskRecurrenceServiceTest {
         Task task = taskWith("FREQ=WEEKLY;BYDAY=MO", "2026-05-04T09:00:00Z");
 
         // 2026-05-18 is a Monday
-        List<Instant> occ = service.getOccurrencesInRange(task, dayStart("2026-05-18"), dayStart("2026-05-19"));
-        assertThat(occ).hasSize(1);
+        List<Instant> occurrences = taskRecurrenceService.getOccurrencesInRange(task, dayStart("2026-05-18"), dayStart("2026-05-19"));
+        assertThat(occurrences).hasSize(1);
     }
 
     @Test
     void no_occurrence_before_dtstart() {
         Task task = taskWith("FREQ=DAILY", "2026-05-18T10:00:00Z");
 
-        List<Instant> occ = service.getOccurrencesInRange(task, dayStart("2026-05-17"), dayStart("2026-05-18"));
-        assertThat(occ).isEmpty();
+        List<Instant> occurrences = taskRecurrenceService.getOccurrencesInRange(task, dayStart("2026-05-17"), dayStart("2026-05-18"));
+        assertThat(occurrences).isEmpty();
     }
 
     @Test
@@ -73,16 +73,16 @@ class TaskRecurrenceServiceTest {
         Task task = taskWith("FREQ=DAILY", "2026-05-01T10:00:00Z");
         task.setRruleEndsAt(Instant.parse("2026-05-15T23:59:59Z"));
 
-        List<Instant> occ = service.getOccurrencesInRange(task, dayStart("2026-05-18"), dayStart("2026-05-19"));
-        assertThat(occ).isEmpty();
+        List<Instant> occurrences = taskRecurrenceService.getOccurrencesInRange(task, dayStart("2026-05-18"), dayStart("2026-05-19"));
+        assertThat(occurrences).isEmpty();
     }
 
     @Test
     void range_returns_multiple_occurrences() {
         Task task = taskWith("FREQ=DAILY", "2026-05-01T08:00:00Z");
 
-        List<Instant> occ = service.getOccurrencesInRange(task, dayStart("2026-05-18"), dayStart("2026-05-21"));
-        assertThat(occ).hasSize(3);
+        List<Instant> occurrences = taskRecurrenceService.getOccurrencesInRange(task, dayStart("2026-05-18"), dayStart("2026-05-21"));
+        assertThat(occurrences).hasSize(3);
     }
 
     @Test
@@ -91,7 +91,7 @@ class TaskRecurrenceServiceTest {
         task.setIsRecurring(false);
 
         assertThatThrownBy(() ->
-                service.getOccurrencesInRange(task, dayStart("2026-05-18"), dayStart("2026-05-19")))
+                taskRecurrenceService.getOccurrencesInRange(task, dayStart("2026-05-18"), dayStart("2026-05-19")))
                 .isInstanceOf(IllegalStateException.class);
     }
 
@@ -99,11 +99,11 @@ class TaskRecurrenceServiceTest {
     void monthly_first_day_of_month() {
         Task task = taskWith("FREQ=MONTHLY;BYMONTHDAY=1", "2026-05-01T10:00:00Z");
 
-        List<Instant> occ = service.getOccurrencesInRange(task, dayStart("2026-06-01"), dayStart("2026-06-02"));
-        assertThat(occ).hasSize(1);
+        List<Instant> occurrences = taskRecurrenceService.getOccurrencesInRange(task, dayStart("2026-06-01"), dayStart("2026-06-02"));
+        assertThat(occurrences).hasSize(1);
 
-        List<Instant> noOcc = service.getOccurrencesInRange(task, dayStart("2026-06-02"), dayStart("2026-06-03"));
-        assertThat(noOcc).isEmpty();
+        List<Instant> noOccurrences = taskRecurrenceService.getOccurrencesInRange(task, dayStart("2026-06-02"), dayStart("2026-06-03"));
+        assertThat(noOccurrences).isEmpty();
     }
 
     // ── 1.2 ──────────────────────────────────────────────────────────────────
@@ -112,9 +112,9 @@ class TaskRecurrenceServiceTest {
     void daily_task_seven_day_window_returns_seven_occurrences() {
         Task task = taskWith("FREQ=DAILY", "2026-05-01T10:00:00Z");
 
-        List<Instant> occ = service.getOccurrencesInRange(task, dayStart("2026-05-18"), dayStart("2026-05-25"));
+        List<Instant> occurrences = taskRecurrenceService.getOccurrencesInRange(task, dayStart("2026-05-18"), dayStart("2026-05-25"));
 
-        assertThat(occ).hasSize(7);
+        assertThat(occurrences).hasSize(7);
     }
 
     // ── 1.3 ──────────────────────────────────────────────────────────────────
@@ -123,9 +123,9 @@ class TaskRecurrenceServiceTest {
     void weekly_monday_two_mondays_in_range_returns_two_occurrences() {
         Task task = taskWith("FREQ=WEEKLY;BYDAY=MO", "2026-05-04T09:00:00Z");
         // 2026-05-18 and 2026-05-25 are both Mondays
-        List<Instant> occ = service.getOccurrencesInRange(task, dayStart("2026-05-18"), dayStart("2026-05-26"));
+        List<Instant> occurrences = taskRecurrenceService.getOccurrencesInRange(task, dayStart("2026-05-18"), dayStart("2026-05-26"));
 
-        assertThat(occ).hasSize(2);
+        assertThat(occurrences).hasSize(2);
     }
 
     // ── 1.4 ──────────────────────────────────────────────────────────────────
@@ -134,9 +134,9 @@ class TaskRecurrenceServiceTest {
     void monthly_first_of_month_three_months_returns_three_occurrences() {
         Task task = taskWith("FREQ=MONTHLY;BYMONTHDAY=1", "2026-05-01T10:00:00Z");
         // June 1, July 1, August 1 all fall within the window
-        List<Instant> occ = service.getOccurrencesInRange(task, dayStart("2026-06-01"), dayStart("2026-09-01"));
+        List<Instant> occurrences = taskRecurrenceService.getOccurrencesInRange(task, dayStart("2026-06-01"), dayStart("2026-09-01"));
 
-        assertThat(occ).hasSize(3);
+        assertThat(occurrences).hasSize(3);
     }
 
     // ── 1.6 ──────────────────────────────────────────────────────────────────
@@ -150,9 +150,9 @@ class TaskRecurrenceServiceTest {
         Task task = taskWith("FREQ=DAILY", "2026-05-01T10:00:00Z");
         task.setRruleEndsAt(Instant.parse("2026-05-17T23:59:59Z")); // ends before period start
 
-        List<Instant> occ = service.getOccurrencesInRange(task, dayStart("2026-05-18"), dayStart("2026-05-19"));
+        List<Instant> occurrences = taskRecurrenceService.getOccurrencesInRange(task, dayStart("2026-05-18"), dayStart("2026-05-19"));
 
-        assertThat(occ).isEmpty();
+        assertThat(occurrences).isEmpty();
     }
 
     // ── 1.8 ──────────────────────────────────────────────────────────────────
@@ -161,10 +161,10 @@ class TaskRecurrenceServiceTest {
     void single_day_window_equal_to_scheduled_at_returns_one_occurrence() {
         Task task = taskWith("FREQ=DAILY", "2026-05-18T10:00:00Z");
 
-        List<Instant> occ = service.getOccurrencesInRange(task, dayStart("2026-05-18"), dayStart("2026-05-19"));
+        List<Instant> occurrences = taskRecurrenceService.getOccurrencesInRange(task, dayStart("2026-05-18"), dayStart("2026-05-19"));
 
-        assertThat(occ).hasSize(1);
-        assertThat(occ.getFirst()).isEqualTo(Instant.parse("2026-05-18T10:00:00Z"));
+        assertThat(occurrences).hasSize(1);
+        assertThat(occurrences.getFirst()).isEqualTo(Instant.parse("2026-05-18T10:00:00Z"));
     }
 
     // ── 1.9 ──────────────────────────────────────────────────────────────────
@@ -179,7 +179,7 @@ class TaskRecurrenceServiceTest {
         task.setScheduledAt(Instant.parse("2026-05-01T10:00:00Z"));
 
         assertThatThrownBy(() ->
-                service.getOccurrencesInRange(task, dayStart("2026-05-18"), dayStart("2026-05-19")))
+                taskRecurrenceService.getOccurrencesInRange(task, dayStart("2026-05-18"), dayStart("2026-05-19")))
                 .isInstanceOf(IllegalStateException.class);
     }
 
@@ -192,7 +192,7 @@ class TaskRecurrenceServiceTest {
         Task task = taskWith("NOT_A_VALID_RRULE_STRING", "2026-05-01T10:00:00Z");
 
         assertThatThrownBy(() ->
-                service.getOccurrencesInRange(task, dayStart("2026-05-18"), dayStart("2026-05-19")))
+                taskRecurrenceService.getOccurrencesInRange(task, dayStart("2026-05-18"), dayStart("2026-05-19")))
                 .isInstanceOf(IllegalArgumentException.class);
     }
 
@@ -204,10 +204,10 @@ class TaskRecurrenceServiceTest {
     void scheduled_at_in_far_past_future_window_still_generates_occurrences() {
         Task task = taskWith("FREQ=DAILY", "2024-05-01T10:00:00Z");
 
-        List<Instant> occ = service.getOccurrencesInRange(task, dayStart("2026-05-20"), dayStart("2026-05-21"));
+        List<Instant> occurrences = taskRecurrenceService.getOccurrencesInRange(task, dayStart("2026-05-20"), dayStart("2026-05-21"));
 
-        assertThat(occ).hasSize(1);
-        assertThat(occ.getFirst()).isEqualTo(Instant.parse("2026-05-20T10:00:00Z"));
+        assertThat(occurrences).hasSize(1);
+        assertThat(occurrences.getFirst()).isEqualTo(Instant.parse("2026-05-20T10:00:00Z"));
     }
 
     // ── 6.3 ──────────────────────────────────────────────────────────────────
@@ -216,9 +216,9 @@ class TaskRecurrenceServiceTest {
     void large_daily_window_one_year_returns_three_hundred_sixty_five_occurrences() {
         Task task = taskWith("FREQ=DAILY", "2026-01-01T08:00:00Z");
 
-        List<Instant> occ = service.getOccurrencesInRange(task, dayStart("2026-01-01"), dayStart("2027-01-01"));
+        List<Instant> occurrences = taskRecurrenceService.getOccurrencesInRange(task, dayStart("2026-01-01"), dayStart("2027-01-01"));
 
-        assertThat(occ).hasSize(365);
+        assertThat(occurrences).hasSize(365);
     }
 
     // ── 6.4 ──────────────────────────────────────────────────────────────────
@@ -230,10 +230,10 @@ class TaskRecurrenceServiceTest {
     void biweekly_tuesday_four_week_window_returns_two_occurrences() {
         Task task = taskWith("FREQ=WEEKLY;INTERVAL=2;BYDAY=TU", "2026-05-05T09:00:00Z");
 
-        List<Instant> occ = service.getOccurrencesInRange(task, dayStart("2026-05-05"), dayStart("2026-06-02"));
+        List<Instant> occurrences = taskRecurrenceService.getOccurrencesInRange(task, dayStart("2026-05-05"), dayStart("2026-06-02"));
 
-        assertThat(occ).hasSize(2);
-        assertThat(occ.get(0)).isEqualTo(Instant.parse("2026-05-05T09:00:00Z"));
-        assertThat(occ.get(1)).isEqualTo(Instant.parse("2026-05-19T09:00:00Z"));
+        assertThat(occurrences).hasSize(2);
+        assertThat(occurrences.get(0)).isEqualTo(Instant.parse("2026-05-05T09:00:00Z"));
+        assertThat(occurrences.get(1)).isEqualTo(Instant.parse("2026-05-19T09:00:00Z"));
     }
 }

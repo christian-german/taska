@@ -23,6 +23,9 @@ entries:
       invalidation_flow: !Find [authentik_flows.flow, [slug, default-provider-invalidation-flow]]
       client_id: taska-client
       client_type: public
+      grant_types:
+        - authorization_code
+        - refresh_token
       allowed_origins:
         - http://localhost:4200
         - http://tauri.localhost

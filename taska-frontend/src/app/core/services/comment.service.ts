@@ -1,30 +1,36 @@
-import {inject, Injectable} from '@angular/core';
-import {HttpClient, HttpParams} from '@angular/common/http';
-import {Observable} from 'rxjs';
-import {Comment} from '../models';
-import {environment} from '../../../environments/environment';
+import { HttpClient, HttpParams } from '@angular/common/http';
+import { inject, Injectable } from '@angular/core';
+import { Observable } from 'rxjs';
+import { environment } from '../../../environments/environment';
+import { Comment } from '../models';
+
+interface CommentRequest {
+  taskId?: string | null;
+  projectId?: string | null;
+  content: string;
+}
 
 @Injectable({ providedIn: 'root' })
 export class CommentService {
-  private http = inject(HttpClient);
+  private readonly http = inject(HttpClient);
   private readonly base = `${environment.apiUrl}/comments`;
 
   getComments(taskId?: string, projectId?: string): Observable<Comment[]> {
     let params = new HttpParams();
-    if (taskId) params = params.set('task_id', taskId);
+    if (taskId) params = params.set('taskId', taskId);
     if (projectId) params = params.set('projectId', projectId);
     return this.http.get<Comment[]>(this.base, { params });
   }
 
-  createComment(data: Partial<Comment>): Observable<Comment> {
+  createComment(data: CommentRequest): Observable<Comment> {
     return this.http.post<Comment>(this.base, data);
   }
 
-  updateComment(id: string, data: Partial<Comment>): Observable<Comment> {
-    return this.http.put<Comment>(`${this.base}/${id}`, data);
+  updateComment(commentId: string, data: Pick<CommentRequest, 'content'>): Observable<Comment> {
+    return this.http.put<Comment>(`${this.base}/${commentId}`, data);
   }
 
-  deleteComment(id: string): Observable<void> {
-    return this.http.delete<void>(`${this.base}/${id}`);
+  deleteComment(commentId: string): Observable<void> {
+    return this.http.delete<void>(`${this.base}/${commentId}`);
   }
 }

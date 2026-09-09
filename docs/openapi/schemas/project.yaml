@@ -1,30 +1,40 @@
 ProjectRequest:
   description: "Payload used to create or update a project."
   type: "object"
+  additionalProperties: false
   properties:
     name:
+      description: "Required display name of the project; must not be blank."
       type: "string"
       minLength: 1
     color:
-      type: "string"
+      description: "Hexadecimal color used to display the project; defaults to `#808080` on creation."
+      type: ["string", "null"]
     parentId:
-      type: "string"
+      description: "Parent project UUID used to nest this project; ignored on update when `clearParent` is true."
+      type: ["string", "null"]
       format: "uuid"
     clearParent:
-      type: "boolean"
+      description: "When true on update, removes the parent relationship; has no effect on creation."
+      type: ["boolean", "null"]
     order:
-      type: "integer"
+      description: "Display position among sibling projects; defaults to 0 on creation."
+      type: ["integer", "null"]
       format: "int32"
     isFavorite:
-      type: "boolean"
+      description: "Whether the project is starred by the user; defaults to false on creation."
+      type: ["boolean", "null"]
     viewStyle:
-      type: "string"
+      description: "Preferred task rendering mode; defaults to `LIST` on creation."
+      type: ["string", "null"]
       enum:
         - "LIST"
         - "BOARD"
         - "CALENDAR"
+        - null
     planningCalendarId:
-      type: "string"
+      description: "Planning calendar assigned to the project; defaults to Taska's built-in calendar on creation."
+      type: ["string", "null"]
       format: "uuid"
   required:
     - "name"
@@ -33,44 +43,63 @@ ProjectDto:
   type: "object"
   properties:
     id:
+      description: "Unique identifier of the project."
       type: "string"
       format: "uuid"
     name:
+      description: "Display name of the project."
       type: "string"
     color:
+      description: "Hexadecimal color used to display the project."
       type: "string"
     parentId:
-      type: "string"
+      description: >
+        UUID of the parent project for nested or child projects;
+        null for root projects.
+      type: ["string", "null"]
       format: "uuid"
     order:
+      description: "Display position among sibling projects, mapped from the persisted position."
       type: "integer"
       format: "int32"
     isFavorite:
+      description: "Whether the project is starred by the user."
       type: "boolean"
     viewStyle:
+      description: "Preferred task rendering mode for the project."
       type: "string"
       enum:
         - "LIST"
         - "BOARD"
         - "CALENDAR"
     isInboxProject:
+      description: "Whether this is the special default inbox project, which cannot be deleted."
       type: "boolean"
     planningCalendarId:
+      description: "Unique identifier of the planning calendar assigned to this project."
       type: "string"
       format: "uuid"
     createdAt:
+      description: "Timestamp when the project was first created."
       type: "string"
       format: "date-time"
     updatedAt:
+      description: "Timestamp of the project's most recent update."
       type: "string"
       format: "date-time"
 ProjectReorderRequest:
   description: "New ordering position for a project."
   type: "object"
+  additionalProperties: false
   properties:
     id:
+      description: "UUID of the project whose position should be updated."
       type: "string"
       format: "uuid"
     order:
+      description: "New display position to assign to the project."
       type: "integer"
       format: "int32"
+  required:
+    - "id"
+    - "order"

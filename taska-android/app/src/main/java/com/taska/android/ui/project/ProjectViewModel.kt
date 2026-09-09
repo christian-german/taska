@@ -20,7 +20,6 @@ data class ProjectUiState(
     val project: ProjectDto? = null,
     val parentProject: ProjectDto? = null,
     val tasks: List<TaskDto> = emptyList(),
-    val overdueCount: Int = 0,
     val isLoading: Boolean = false,
     val error: String? = null
 )
@@ -52,10 +51,6 @@ class ProjectViewModel(
 
                 val todayStr = SimpleDateFormat("yyyy-MM-dd", Locale.US)
                     .format(Calendar.getInstance().time)
-                val overdueCount = tasks.count {
-                    it.isCompleted != true && it.scheduledAt != null && it.scheduledAt.substring(0, 10) < todayStr
-                }
-
                 val sorted = tasks.sortedWith(
                     compareByDescending<TaskDto> { it.scheduledAt != null && it.scheduledAt.substring(0, 10) < todayStr }
                         .thenBy { it.scheduledAt }
@@ -66,7 +61,6 @@ class ProjectViewModel(
                         project = project,
                         parentProject = parent,
                         tasks = sorted,
-                        overdueCount = overdueCount,
                         isLoading = false
                     )
                 }

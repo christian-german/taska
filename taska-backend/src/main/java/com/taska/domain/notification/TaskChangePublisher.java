@@ -5,7 +5,8 @@ import com.google.firebase.messaging.FirebaseMessagingException;
 import com.google.firebase.messaging.MessagingErrorCode;
 import com.google.firebase.messaging.Message;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.util.concurrent.ExecutionException;
@@ -13,15 +14,18 @@ import java.util.concurrent.ExecutionException;
 /** Publishes opaque task-list invalidation events to one account's Android devices. */
 @Service
 @RequiredArgsConstructor
-@Slf4j
 public class TaskChangePublisher {
+
+    private static final Logger log = LoggerFactory.getLogger(TaskChangePublisher.class);
 
     public static final String EVENT_TYPE = "tasks_changed";
 
     private final DeviceTokenRepository deviceTokenRepository;
 
     public void publishFor(String accountSubject) {
-        if (accountSubject == null || accountSubject.isBlank()) return;
+        if (accountSubject == null || accountSubject.isBlank()) {
+            return;
+        }
 
         for (DeviceToken device : deviceTokenRepository.findByAccountSubject(accountSubject)) {
             Message message = Message.builder()

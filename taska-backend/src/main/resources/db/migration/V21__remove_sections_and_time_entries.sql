@@ -1,0 +1,4 @@
+ALTER TABLE tasks DROP COLUMN IF EXISTS section_id;
+
+DROP TABLE IF EXISTS sections;
+DROP TABLE IF EXISTS time_entries;

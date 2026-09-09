@@ -11,7 +11,16 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -30,37 +39,36 @@ public class TaskController {
     /**
      * Lists tasks with optional filtering. When {@code date} is provided, returns all occurrences
      * (including recurring) for that single day. When {@code from} and {@code to} are both provided,
-     * returns occurrences for that date range. Otherwise, delegates to the standard filter/label/project
+     * returns occurrences for that date range. Otherwise, delegates to the standard label/project
      * scoped query.
      *
-     * @param project_id     optional project filter
-     * @param section_id     optional section filter
+     * @param projectId      optional project filter
      * @param label          optional label name filter
-     * @param filter         optional named filter ("today", "overdue", "upcoming")
-     * @param show_completed include completed tasks when true
-     * @param singleDate           single date for occurrence expansion (overrides other params)
+     * @param showCompleted  include completed tasks when true
+     * @param date           single date for occurrence expansion (overrides other params)
      * @param from           start of date range for occurrence expansion
      * @param to             end-of-date range for occurrence expansion
      * @return list of task DTOs
      */
     @GetMapping
     public List<TaskDto> getAll(
-            @RequestParam(required = false) UUID project_id,
-            @RequestParam(required = false) UUID section_id,
-            @RequestParam(required = false) String label,
-            @RequestParam(required = false) String filter,
-            @RequestParam(required = false, defaultValue = "false") boolean show_completed,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate singleDate,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to) {
+            @RequestParam(name = "projectId", required = false) UUID projectId,
+            @RequestParam(name = "label", required = false) String label,
+            @RequestParam(name = "showCompleted", required = false, defaultValue = "false") boolean showCompleted,
+            @RequestParam(name = "date", required = false)
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
+            @RequestParam(name = "from", required = false)
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
+            @RequestParam(name = "to", required = false)
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to) {
 
-        if (singleDate != null) {
-            return taskService.findOccurrencesForDateRange(singleDate, singleDate, show_completed);
+        if (date != null) {
+            return taskService.findOccurrencesForDateRange(date, date, showCompleted);
         }
         if (from != null && to != null) {
-            return taskService.findOccurrencesForDateRange(from, to, show_completed);
+            return taskService.findOccurrencesForDateRange(from, to, showCompleted);
         }
-        return taskService.findAll(project_id, section_id, label, filter, show_completed)
+        return taskService.findAll(projectId, label, showCompleted)
                 .stream().map(taskMapper::toDto).toList();
     }
 
@@ -73,50 +81,59 @@ public class TaskController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public TaskDto create(@Valid @RequestBody TaskRequest taskRequest, @AuthenticationPrincipal Jwt jwt) {
-        TaskDto result = taskMapper.toDto(taskService.create(taskRequest));
+        TaskDto createdTask = taskMapper.toDto(taskService.create(taskRequest));
         taskChangePublisher.publishFor(jwt.getSubject());
-        return result;
+        return createdTask;
     }
 
     /**
      * Returns a single task by its UUID.
      *
-     * @param id the task UUID
+     * @param taskId the task UUID
      * @return the task DTO, or 404 if not found
      */
-    @GetMapping("/{id}")
-    public TaskDto getById(@PathVariable UUID id) {
-        return taskMapper.toDto(taskService.findById(id));
+    @GetMapping("/{taskId}")
+    public TaskDto getById(@PathVariable UUID taskId) {
+        return taskMapper.toDto(taskService.findById(taskId));
     }
 
-    @GetMapping("/{id}/priority-evaluation")
-    public ResponseEntity<TaskPriorityEvaluationDto> getPriorityEvaluation(@PathVariable UUID id) {
-        return priorityEvaluationService.findForTask(id)
+    @GetMapping("/{taskId}/priority-evaluation")
+    public ResponseEntity<TaskPriorityEvaluationDto> getPriorityEvaluation(@PathVariable UUID taskId) {
+        return priorityEvaluationService.findForTask(taskId)
                 .map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.noContent().build());
     }
 
-    @PutMapping("/{id}")
-    public TaskDto update(@PathVariable UUID id, @Valid @RequestBody TaskUpdateRequest request, @AuthenticationPrincipal Jwt jwt) {
-        TaskDto result = taskService.replace(id, request);
+    @PutMapping("/{taskId}")
+    public TaskDto update(
+            @PathVariable UUID taskId,
+            @Valid @RequestBody TaskUpdateRequest taskUpdateRequest,
+            @AuthenticationPrincipal Jwt jwt) {
+        TaskDto updatedTask = taskService.replace(taskId, taskUpdateRequest);
         taskChangePublisher.publishFor(jwt.getSubject());
-        return result;
+        return updatedTask;
     }
 
-    @PutMapping("/{id}/occurrences/{occurrenceScheduledAt}/following")
-    public TaskDto replaceFollowing(@PathVariable UUID id, @PathVariable java.time.Instant occurrenceScheduledAt,
-                                    @Valid @RequestBody TaskUpdateRequest request, @AuthenticationPrincipal Jwt jwt) {
-        TaskDto result = taskService.replaceFollowing(id, occurrenceScheduledAt, request);
+    @PutMapping("/{taskId}/occurrences/{occurrenceScheduledAt}/following")
+    public TaskDto replaceFollowing(
+            @PathVariable UUID taskId,
+            @PathVariable java.time.Instant occurrenceScheduledAt,
+            @Valid @RequestBody TaskUpdateRequest taskUpdateRequest,
+            @AuthenticationPrincipal Jwt jwt) {
+        TaskDto updatedTask = taskService.replaceFollowing(taskId, occurrenceScheduledAt, taskUpdateRequest);
         taskChangePublisher.publishFor(jwt.getSubject());
-        return result;
+        return updatedTask;
     }
 
-    @PutMapping("/{id}/occurrences/{occurrenceScheduledAt}")
-    public TaskDto replaceOccurrence(@PathVariable UUID id, @PathVariable java.time.Instant occurrenceScheduledAt,
-                                     @Valid @RequestBody OccurrenceUpdateRequest request, @AuthenticationPrincipal Jwt jwt) {
-        TaskDto result = taskService.replaceOccurrence(id, occurrenceScheduledAt, request);
+    @PutMapping("/{taskId}/occurrences/{occurrenceScheduledAt}")
+    public TaskDto replaceOccurrence(
+            @PathVariable UUID taskId,
+            @PathVariable java.time.Instant occurrenceScheduledAt,
+            @Valid @RequestBody OccurrenceUpdateRequest occurrenceUpdateRequest,
+            @AuthenticationPrincipal Jwt jwt) {
+        TaskDto updatedTask = taskService.replaceOccurrence(taskId, occurrenceScheduledAt, occurrenceUpdateRequest);
         taskChangePublisher.publishFor(jwt.getSubject());
-        return result;
+        return updatedTask;
     }
 
     /**
@@ -124,14 +141,14 @@ public class TaskController {
      * specific occurrence is skipped or the series is truncated from that point. Returns HTTP 204.
      *
      * @param taskId the task UUID
-     * @param body   optional delete scope for recurring tasks
+     * @param taskDeleteRequest optional delete scope for recurring tasks
      */
     @DeleteMapping("/{taskId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void delete(@PathVariable UUID taskId,
-                       @RequestBody(required = false) TaskDeleteRequest body,
+                       @RequestBody(required = false) TaskDeleteRequest taskDeleteRequest,
                        @AuthenticationPrincipal Jwt jwt) {
-        taskService.delete(taskId, body);
+        taskService.delete(taskId, taskDeleteRequest);
         taskChangePublisher.publishFor(jwt.getSubject());
     }
 
@@ -140,16 +157,16 @@ public class TaskController {
      * identifies which occurrence to close.
      *
      * @param taskId the task UUID
-     * @param body   optional request with the scheduled occurrence instant
+     * @param taskCloseReopenRequest optional request with the scheduled occurrence instant
      * @return the updated task DTO
      */
     @PostMapping("/{taskId}/close")
     public TaskDto close(@PathVariable UUID taskId,
-                         @RequestBody(required = false) TaskCloseReopenRequest body,
+                         @RequestBody(required = false) TaskCloseReopenRequest taskCloseReopenRequest,
                          @AuthenticationPrincipal Jwt jwt) {
-        TaskDto result = taskService.close(taskId, body);
+        TaskDto updatedTask = taskService.close(taskId, taskCloseReopenRequest);
         taskChangePublisher.publishFor(jwt.getSubject());
-        return result;
+        return updatedTask;
     }
 
     /**
@@ -157,16 +174,16 @@ public class TaskController {
      * identifies which occurrence to reopen by removing its DONE instance record.
      *
      * @param taskId the task UUID
-     * @param body   optional request with the scheduled occurrence instant
+     * @param taskCloseReopenRequest optional request with the scheduled occurrence instant
      * @return the updated task DTO
      */
     @PostMapping("/{taskId}/reopen")
     public TaskDto reopen(@PathVariable UUID taskId,
-                          @RequestBody(required = false) TaskCloseReopenRequest body,
+                          @RequestBody(required = false) TaskCloseReopenRequest taskCloseReopenRequest,
                           @AuthenticationPrincipal Jwt jwt) {
-        TaskDto result = taskService.reopen(taskId, body);
+        TaskDto updatedTask = taskService.reopen(taskId, taskCloseReopenRequest);
         taskChangePublisher.publishFor(jwt.getSubject());
-        return result;
+        return updatedTask;
     }
 
     /**

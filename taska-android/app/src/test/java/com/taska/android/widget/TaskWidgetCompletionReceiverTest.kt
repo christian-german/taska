@@ -123,7 +123,7 @@ class TaskWidgetCompletionReceiverTest {
     }
 
     private fun task(id: String) = TaskDto(
-        id = id, content = id, description = null, projectId = null, sectionId = null,
+        id = id, content = id, description = null, projectId = null,
         parentId = null, order = 0, priority = null, labels = emptyList(), isCompleted = false,
         scheduledAt = null, estimateMinutes = null, isRecurring = false,
         createdAt = null, updatedAt = null, completedAt = null,

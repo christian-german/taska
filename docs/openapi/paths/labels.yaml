@@ -1,10 +1,10 @@
-"/labels/{id}":
+"/labels/{labelId}":
   get:
     tags:
       - "Labels"
     operationId: "getLabel"
     parameters:
-      - name: "id"
+      - name: "labelId"
         in: "path"
         required: true
         schema:
@@ -35,7 +35,7 @@
       - "Labels"
     operationId: "updateLabel"
     parameters:
-      - name: "id"
+      - name: "labelId"
         in: "path"
         required: true
         schema:
@@ -77,7 +77,7 @@
       - "Labels"
     operationId: "deleteLabel"
     parameters:
-      - name: "id"
+      - name: "labelId"
         in: "path"
         required: true
         schema:

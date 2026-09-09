@@ -5,7 +5,6 @@ data class TaskUpdateRequest(
     val type: String,
     val description: String?,
     val projectId: String?,
-    val sectionId: String?,
     val parentId: String?,
     val order: Int,
     val priority: Int?,
@@ -27,9 +26,19 @@ data class OccurrenceUpdateRequest(
 )
 
 fun TaskDto.toTaskUpdateRequest() = TaskUpdateRequest(
-    content = content, type = type ?: "TODO", description = description,
-    projectId = projectId, sectionId = sectionId, parentId = parentId, order = order ?: 0,
-    priority = priority, labels = labels ?: emptyList(), scheduledAt = scheduledAt, dueAt = dueAt,
-    allDay = allDay, isRecurring = isRecurring == true, estimateMinutes = estimateMinutes,
-    mentionContext = mentionContext, recurrenceRule = recurrenceRule,
+    content = content,
+    type = type ?: "TODO",
+    description = description,
+    projectId = projectId,
+    parentId = parentId,
+    order = order ?: 0,
+    priority = priority,
+    labels = labels ?: emptyList(),
+    scheduledAt = scheduledAt,
+    dueAt = dueAt,
+    allDay = allDay,
+    isRecurring = isRecurring == true,
+    estimateMinutes = estimateMinutes,
+    mentionContext = mentionContext,
+    recurrenceRule = recurrenceRule,
 )

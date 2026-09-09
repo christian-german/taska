@@ -48,8 +48,10 @@ public class TaskRecurrenceService {
         Recur recur;
         try {
             recur = new Recur(task.getRecurrenceRule());
-        } catch (ParseException e) {
-            throw new IllegalArgumentException("Invalid recurrence_rule for task " + task.getId() + ": " + task.getRecurrenceRule(), e);
+        } catch (ParseException exception) {
+            throw new IllegalArgumentException(
+                    "Invalid recurrence_rule for task " + task.getId() + ": " + task.getRecurrenceRule(),
+                    exception);
         }
 
         DateTime dtStart = new DateTime(Date.from(task.getScheduledAt()));
@@ -58,15 +60,15 @@ public class TaskRecurrenceService {
 
         DateList dates = recur.getDates(dtStart, from, to, Value.DATE_TIME);
 
-        List<Instant> result = new ArrayList<>(dates.size());
-        for (net.fortuna.ical4j.model.Date d : dates) {
-            result.add(Instant.ofEpochMilli(d.getTime()));
+        List<Instant> occurrences = new ArrayList<>(dates.size());
+        for (net.fortuna.ical4j.model.Date occurrenceDate : dates) {
+            occurrences.add(Instant.ofEpochMilli(occurrenceDate.getTime()));
         }
 
         // Remove occurrences that are after the rrule end date.
         Instant cutoff = task.getRruleEndsAt();
-        result.removeIf(occ -> cutoff != null && !occ.isBefore(cutoff));
+        occurrences.removeIf(occurrence -> cutoff != null && !occurrence.isBefore(cutoff));
 
-        return result;
+        return occurrences;
     }
 }

@@ -15,7 +15,6 @@ public record TaskUpdateRequest(
         @JsonProperty(required = true) @NotNull TaskType type,
         @JsonProperty(required = true) String description,
         @JsonProperty(required = true) UUID projectId,
-        @JsonProperty(required = true) UUID sectionId,
         @JsonProperty(required = true) UUID parentId,
         @JsonProperty(required = true) @NotNull Integer order,
         @JsonProperty(required = true) @Min(1) @Max(4) Integer priority,

@@ -19,12 +19,8 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.FilterList
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -133,13 +129,6 @@ private fun InboxHeader(taskCount: Int, onSearch: () -> Unit) {
             modifier = Modifier.weight(1f)
         )
         com.taska.android.ui.shared.SearchAction(onSearch)
-        IconButton(onClick = {}) {
-            Icon(
-                imageVector = Icons.Outlined.FilterList,
-                contentDescription = "Filtrer",
-                tint = TextPrimary
-            )
-        }
     }
 }
 

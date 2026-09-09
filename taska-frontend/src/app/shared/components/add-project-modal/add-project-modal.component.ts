@@ -213,10 +213,12 @@ export class AddProjectModalComponent implements OnInit {
     if (!name) return;
     const p = this.project();
     if (p) {
+      const parentId = this.parentId();
       this.projectService.updateProject(p.id, {
         name,
         color: this.color(),
-        parentId: this.parentId() || undefined,
+        parentId: parentId || undefined,
+        clearParent: !parentId,
         viewStyle: this.viewStyle(),
         isFavorite: this.isFavorite(),
         planningCalendarId: this.planningCalendarId() || undefined,

@@ -23,27 +23,27 @@ class ProjectMcpToolsTest {
 
     @Mock private ProjectService projectService;
     @Mock private ProjectMapper projectMapper;
-    @InjectMocks private ProjectMcpTools tools;
+    @InjectMocks private ProjectMcpTools projectMcpTools;
 
     @Test
     void listProjectsDelegatesToProjectService() {
         when(projectService.findAll()).thenReturn(List.of());
 
-        McpSchema.CallToolResult result = tools.listProjects();
+        McpSchema.CallToolResult callToolResult = projectMcpTools.listProjects();
 
-        assertThat(result.isError()).isFalse();
-        assertThat(result.structuredContent())
+        assertThat(callToolResult.isError()).isFalse();
+        assertThat(callToolResult.structuredContent())
                 .isEqualTo(new ProjectMcpTools.ProjectListOutput(List.of()));
         verify(projectService).findAll();
     }
 
     @Test
     void createProjectRejectsBlankNameWithoutCallingService() {
-        McpSchema.CallToolResult result = tools.createProject(
+        McpSchema.CallToolResult callToolResult = projectMcpTools.createProject(
                 new ProjectMcpTools.ProjectCreateInput(" ", null, null, null, null, null));
 
-        assertThat(result.isError()).isTrue();
-        assertThat(result.content().getFirst().toString()).contains("must not be blank");
+        assertThat(callToolResult.isError()).isTrue();
+        assertThat(callToolResult.content().getFirst().toString()).contains("must not be blank");
     }
 
     @Test
@@ -51,9 +51,9 @@ class ProjectMcpToolsTest {
         UUID projectId = UUID.randomUUID();
         when(projectService.findById(projectId)).thenThrow(new ResourceNotFoundException("Project not found: " + projectId));
 
-        McpSchema.CallToolResult result = tools.getProject(projectId);
+        McpSchema.CallToolResult callToolResult = projectMcpTools.getProject(projectId);
 
-        assertThat(result.isError()).isTrue();
-        assertThat(result.content().getFirst().toString()).contains("Project not found");
+        assertThat(callToolResult.isError()).isTrue();
+        assertThat(callToolResult.content().getFirst().toString()).contains("Project not found");
     }
 }

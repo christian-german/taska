@@ -29,46 +29,46 @@ public class LabelController {
     /**
      * Creates a new label. Returns HTTP 201 with the created label DTO.
      *
-     * @param req validated label creation payload
+     * @param labelRequest validated label creation payload
      * @return the created label DTO
      */
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public LabelDto create(@Valid @RequestBody LabelRequest req) {
-        return labelMapper.toDto(labelService.create(req));
+    public LabelDto create(@Valid @RequestBody LabelRequest labelRequest) {
+        return labelMapper.toDto(labelService.create(labelRequest));
     }
 
     /**
      * Returns a single label by its UUID.
      *
-     * @param id the label UUID
+     * @param labelId the label UUID
      * @return the label DTO, or 404 if not found
      */
-    @GetMapping("/{id}")
-    public LabelDto getById(@PathVariable UUID id) {
-        return labelMapper.toDto(labelService.findById(id));
+    @GetMapping("/{labelId}")
+    public LabelDto getById(@PathVariable UUID labelId) {
+        return labelMapper.toDto(labelService.findById(labelId));
     }
 
     /**
      * Updates an existing label with non-null fields from the request.
      *
-     * @param id  the label UUID
-     * @param req the update payload
+     * @param labelId the label UUID
+     * @param labelRequest the update payload
      * @return the updated label DTO
      */
-    @PutMapping("/{id}")
-    public LabelDto update(@PathVariable UUID id, @RequestBody LabelRequest req) {
-        return labelMapper.toDto(labelService.update(id, req));
+    @PutMapping("/{labelId}")
+    public LabelDto update(@PathVariable UUID labelId, @RequestBody LabelRequest labelRequest) {
+        return labelMapper.toDto(labelService.update(labelId, labelRequest));
     }
 
     /**
      * Deletes the label with the given ID. Returns HTTP 204 on success.
      *
-     * @param id the label UUID to delete
+     * @param labelId the label UUID to delete
      */
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/{labelId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void delete(@PathVariable UUID id) {
-        labelService.delete(id);
+    public void delete(@PathVariable UUID labelId) {
+        labelService.delete(labelId);
     }
 }

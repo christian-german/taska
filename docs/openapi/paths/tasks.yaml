@@ -1,10 +1,10 @@
-"/tasks/{id}":
+"/tasks/{taskId}":
   get:
     tags:
       - "Tasks"
     operationId: "getTask"
     parameters:
-      - name: "id"
+      - name: "taskId"
         in: "path"
         required: true
         schema:
@@ -35,7 +35,7 @@
       - "Tasks"
     operationId: "updateTask"
     parameters:
-      - name: "id"
+      - name: "taskId"
         in: "path"
         required: true
         schema:
@@ -72,13 +72,50 @@
         "$ref": "../responses.yaml#/InternalServerError"
     summary: "Update a task"
     description: "Update a task for the authenticated Taska principal."
-"/tasks/{id}/occurrences/{occurrenceScheduledAt}":
+  delete:
+    tags:
+      - "Tasks"
+    operationId: "deleteTask"
+    parameters:
+      - name: "taskId"
+        in: "path"
+        required: true
+        schema:
+          type: "string"
+          format: "uuid"
+        description: "Task identifier."
+    requestBody:
+      content:
+        "application/json":
+          schema:
+            "$ref": "../schemas/task.yaml#/TaskDeleteRequest"
+      description: "Request payload."
+    responses:
+      "204":
+        description: "Operation completed; no response body."
+      "400":
+        "$ref": "../responses.yaml#/BadRequest"
+      "401":
+        "$ref": "../responses.yaml#/Unauthorized"
+      "403":
+        "$ref": "../responses.yaml#/Forbidden"
+      "404":
+        "$ref": "../responses.yaml#/NotFound"
+      "409":
+        "$ref": "../responses.yaml#/Conflict"
+      "422":
+        "$ref": "../responses.yaml#/ValidationError"
+      "500":
+        "$ref": "../responses.yaml#/InternalServerError"
+    summary: "Delete a task"
+    description: "Delete a task for the authenticated Taska principal."
+"/tasks/{taskId}/occurrences/{occurrenceScheduledAt}":
   put:
     tags:
       - "Tasks"
     operationId: "replaceTaskOccurrence"
     parameters:
-      - name: "id"
+      - name: "taskId"
         in: "path"
         required: true
         schema:
@@ -122,13 +159,13 @@
         "$ref": "../responses.yaml#/InternalServerError"
     summary: "Replace one recurring task occurrence"
     description: "Replace one recurring task occurrence for the authenticated Taska principal."
-"/tasks/{id}/occurrences/{occurrenceScheduledAt}/following":
+"/tasks/{taskId}/occurrences/{occurrenceScheduledAt}/following":
   put:
     tags:
       - "Tasks"
     operationId: "replaceFollowingTaskOccurrences"
     parameters:
-      - name: "id"
+      - name: "taskId"
         in: "path"
         required: true
         schema:
@@ -178,40 +215,27 @@
       - "Tasks"
     operationId: "listTasks"
     parameters:
-      - name: "project_id"
+      - name: "projectId"
         in: "query"
         required: false
         schema:
           type: "string"
           format: "uuid"
         description: "Restrict results to this project identifier."
-      - name: "section_id"
-        in: "query"
-        required: false
-        schema:
-          type: "string"
-          format: "uuid"
-        description: "Restrict results to this section identifier."
       - name: "label"
         in: "query"
         required: false
         schema:
           type: "string"
         description: "Restrict results to tasks carrying this label."
-      - name: "filter"
-        in: "query"
-        required: false
-        schema:
-          type: "string"
-        description: "Apply the named saved filter."
-      - name: "show_completed"
+      - name: "showCompleted"
         in: "query"
         required: false
         schema:
           type: "boolean"
           default: false
         description: "Include completed tasks when true."
-      - name: "singleDate"
+      - name: "date"
         in: "query"
         required: false
         schema:
@@ -275,6 +299,8 @@
         "$ref": "../responses.yaml#/Unauthorized"
       "403":
         "$ref": "../responses.yaml#/Forbidden"
+      "404":
+        "$ref": "../responses.yaml#/NotFound"
       "409":
         "$ref": "../responses.yaml#/Conflict"
       "422":
@@ -401,13 +427,13 @@
         "$ref": "../responses.yaml#/InternalServerError"
     summary: "List task subtasks"
     description: "List task subtasks for the authenticated Taska principal."
-"/tasks/{id}/priority-evaluation":
+"/tasks/{taskId}/priority-evaluation":
   get:
     tags:
       - "Tasks"
     operationId: "getTaskPriorityEvaluation"
     parameters:
-      - name: "id"
+      - name: "taskId"
         in: "path"
         required: true
         schema:
@@ -433,41 +459,3 @@
         "$ref": "../responses.yaml#/InternalServerError"
     summary: "Get a task priority evaluation"
     description: "Get a task priority evaluation for the authenticated Taska principal."
-"/tasks/{taskId}":
-  delete:
-    tags:
-      - "Tasks"
-    operationId: "deleteTask"
-    parameters:
-      - name: "taskId"
-        in: "path"
-        required: true
-        schema:
-          type: "string"
-          format: "uuid"
-        description: "Task identifier."
-    requestBody:
-      content:
-        "application/json":
-          schema:
-            "$ref": "../schemas/task.yaml#/TaskDeleteRequest"
-      description: "Request payload."
-    responses:
-      "204":
-        description: "Operation completed; no response body."
-      "400":
-        "$ref": "../responses.yaml#/BadRequest"
-      "401":
-        "$ref": "../responses.yaml#/Unauthorized"
-      "403":
-        "$ref": "../responses.yaml#/Forbidden"
-      "404":
-        "$ref": "../responses.yaml#/NotFound"
-      "409":
-        "$ref": "../responses.yaml#/Conflict"
-      "422":
-        "$ref": "../responses.yaml#/ValidationError"
-      "500":
-        "$ref": "../responses.yaml#/InternalServerError"
-    summary: "Delete a task"
-    description: "Delete a task for the authenticated Taska principal."

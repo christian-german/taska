@@ -11,11 +11,9 @@ import com.taska.android.data.model.TaskUpdateRequest
 import com.taska.android.data.model.OccurrenceUpdateRequest
 import com.taska.android.data.model.TaskRequest
 import com.taska.android.data.model.toTaskUpdateRequest
-import com.taska.android.data.model.TimeEntryRequest
 import com.taska.android.data.repository.LabelRepository
 import com.taska.android.data.repository.ProjectRepository
 import com.taska.android.data.repository.TaskRepository
-import com.taska.android.data.repository.TimeEntryRepository
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -37,7 +35,6 @@ data class TaskDetailUiState(
     val subtasks: List<TaskDto> = emptyList(),
     val isLoading: Boolean = false,
     val error: String? = null,
-    val timerStarted: Boolean = false,
     val isCompletionPending: Boolean = false,
     val pendingReschedule: PendingReschedule? = null
 )
@@ -47,7 +44,6 @@ class TaskDetailViewModel(
     private val taskRepo: TaskRepository,
     private val projectRepo: ProjectRepository,
     private val labelRepo: LabelRepository,
-    private val timeEntryRepo: TimeEntryRepository,
 ) : ViewModel() {
 
     constructor(savedStateHandle: SavedStateHandle) : this(
@@ -55,7 +51,6 @@ class TaskDetailViewModel(
         TaskRepository(),
         ProjectRepository(),
         LabelRepository(),
-        TimeEntryRepository(),
     )
 
     private val taskId: String = checkNotNull(savedStateHandle["task_id"])
@@ -274,22 +269,6 @@ class TaskDetailViewModel(
         }
     }
 
-    fun startTimer() {
-        viewModelScope.launch {
-            val task = _uiState.value.task ?: return@launch
-            try {
-                timeEntryRepo.createTimeEntry(
-                    TimeEntryRequest(
-                        startAt = currentIsoDateTime(),
-                        projectId = task.projectId,
-                        description = task.content
-                    )
-                )
-                _uiState.update { it.copy(timerStarted = true) }
-            } catch (_: Exception) {}
-        }
-    }
-
     fun millisToApiDateTime(millis: Long, timeMinutes: Int?): String {
         val local = Calendar.getInstance().also { it.timeInMillis = millis }
         val y = local.get(Calendar.YEAR)
@@ -333,5 +312,4 @@ class TaskDetailViewModel(
         }.timeInMillis
     }
 
-    private fun currentIsoDateTime(): String = java.time.Instant.now().toString()
 }

@@ -42,7 +42,6 @@ class TaskDtoTest {
         type = type,
         description = description,
         projectId = null,
-        sectionId = null,
         parentId = null,
         order = null,
         priority = priority,

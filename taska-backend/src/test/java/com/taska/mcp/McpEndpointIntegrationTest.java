@@ -58,7 +58,7 @@ class McpEndpointIntegrationTest {
             """;
     private static final String LIST_TASKS = """
             {"jsonrpc":"2.0","id":4,"method":"tools/call","params":{"name":"list_tasks","arguments":{
-              "taskListInput":{"projectId":null,"sectionId":null,"label":null,"filter":null,"showCompleted":false}}}}
+              "taskListInput":{"projectId":null,"label":null,"showCompleted":false}}}}
             """;
 
     @LocalServerPort
@@ -126,7 +126,7 @@ class McpEndpointIntegrationTest {
         @Bean
         TaskMcpTools taskMcpTools() {
             TaskService taskService = mock(TaskService.class);
-            org.mockito.Mockito.when(taskService.findAll(null, null, null, null, false)).thenReturn(List.of());
+            org.mockito.Mockito.when(taskService.findAll(null, null, false)).thenReturn(List.of());
             return new TaskMcpTools(taskService, mock(TaskMapper.class));
         }
     }

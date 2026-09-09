@@ -69,7 +69,6 @@ class DayActivity : ComponentActivity() {
                                     NavDestination.TODAY -> startActivity(Intent(this@DayActivity, TodayActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT))
                                     NavDestination.DAY -> Unit
                                     NavDestination.WEEK -> startActivity(Intent(this@DayActivity, WeekActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT))
-                                    NavDestination.TRACKER -> startActivity(Intent(this@DayActivity, TrackerActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT))
                                     NavDestination.INBOX -> Unit
                                 }
                             },

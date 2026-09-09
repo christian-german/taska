@@ -1,17 +1,22 @@
 LabelRequest:
   description: "Payload used to create or update a label."
   type: "object"
+  additionalProperties: false
   properties:
     name:
+      description: "Required unique display name of the label; must not be blank."
       type: "string"
       minLength: 1
     color:
-      type: "string"
+      description: "Color identifier used to display the label; defaults to `charcoal` on creation."
+      type: ["string", "null"]
     order:
-      type: "integer"
+      description: "Display position among all labels; defaults to 0 on creation."
+      type: ["integer", "null"]
       format: "int32"
     isFavorite:
-      type: "boolean"
+      description: "Whether the label is starred by the user; defaults to false on creation."
+      type: ["boolean", "null"]
   required:
     - "name"
 LabelDto:
@@ -19,14 +24,19 @@ LabelDto:
   type: "object"
   properties:
     id:
+      description: "Unique identifier of the label."
       type: "string"
       format: "uuid"
     name:
+      description: "Unique display name of the label."
       type: "string"
     color:
+      description: "Color identifier used to display the label, such as `charcoal` or a hexadecimal color."
       type: "string"
     order:
+      description: "Display position among all labels, mapped from the persisted position."
       type: "integer"
       format: "int32"
     isFavorite:
+      description: "Whether the label is starred by the user."
       type: "boolean"

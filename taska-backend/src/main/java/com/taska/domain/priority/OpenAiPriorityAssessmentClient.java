@@ -16,8 +16,8 @@ public class OpenAiPriorityAssessmentClient {
     private final ChatClient.Builder chatClientBuilder;
     private final JsonMapper jsonMapper;
 
-    public PriorityEvaluationBatchResponse assess(PriorityEvaluationBatchRequest request) {
-        String prompt = jsonMapper.writeValueAsString(request);
+    public PriorityEvaluationBatchResponse assess(PriorityEvaluationBatchRequest batchRequest) {
+        String prompt = jsonMapper.writeValueAsString(batchRequest);
         return chatClientBuilder.build()
                 .prompt()
                 .system(SYSTEM_PROMPT)

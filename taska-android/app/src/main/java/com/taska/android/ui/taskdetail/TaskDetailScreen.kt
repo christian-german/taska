@@ -29,6 +29,7 @@ import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.Label
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.CheckCircle
@@ -40,7 +41,6 @@ import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Event
 import androidx.compose.material.icons.outlined.Flag
 import androidx.compose.material.icons.outlined.FolderOpen
-import androidx.compose.material.icons.outlined.Label
 import androidx.compose.material.icons.outlined.MoreVert
 import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material.icons.outlined.Repeat
@@ -190,12 +190,10 @@ fun TaskDetailScreen(
 
         if (task != null) {
             BottomBar(
-                timerStarted = state.timerStarted,
                 onReporter = {
                     focusManager.clearFocus()
                     activePicker = ActivePicker.DATE
-                },
-                onStartTimer = { viewModel.startTimer() }
+                }
             )
         }
     }
@@ -554,7 +552,7 @@ private fun TaskContent(
         // TAGS
         item {
             PropertyRow(
-                icon = Icons.Outlined.Label,
+                icon = Icons.AutoMirrored.Outlined.Label,
                 label = "TAGS",
                 value = if (taskLabels.isNotEmpty()) taskLabels.joinToString(" · ") else null,
                 onClick = { onPropertyClick(ActivePicker.LABELS) }
@@ -813,9 +811,7 @@ private fun SubtaskItem(subtask: TaskDto, onToggle: () -> Unit) {
 
 @Composable
 private fun BottomBar(
-    timerStarted: Boolean,
-    onReporter: () -> Unit,
-    onStartTimer: () -> Unit
+    onReporter: () -> Unit
 ) {
     Row(
         modifier = Modifier
@@ -834,20 +830,6 @@ private fun BottomBar(
             Icon(Icons.Outlined.CalendarMonth, null, modifier = Modifier.size(16.dp))
             Spacer(Modifier.width(6.dp))
             Text("Reporter")
-        }
-        Button(
-            onClick = onStartTimer,
-            modifier = Modifier.weight(1f),
-            enabled = !timerStarted,
-            colors = ButtonDefaults.buttonColors(
-                containerColor = Orange,
-                disabledContainerColor = Color(0xFFF5C4A8)
-            ),
-            shape = RoundedCornerShape(12.dp)
-        ) {
-            Icon(Icons.Outlined.PlayArrow, null, modifier = Modifier.size(16.dp))
-            Spacer(Modifier.width(6.dp))
-            Text(if (timerStarted) "Timer démarré" else "Démarrer timer")
         }
     }
 }

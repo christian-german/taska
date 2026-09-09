@@ -10,59 +10,41 @@ security:
   - taskaOAuth:
       - "taska"
 tags:
-  - name: "Time Entries"
-    description: "Time tracking entries."
   - name: "Tasks"
     description: "Tasks, recurring occurrences, subtasks, and task state transitions."
-  - name: "Sections"
-    description: "Sections used to organize tasks inside projects."
   - name: "Projects"
     description: "Projects and their ordering and related resources."
   - name: "Planning Calendars"
     description: "Planning calendars and their scheduling rules."
   - name: "Labels"
     description: "Labels used to classify tasks."
-  - name: "Filters"
-    description: "Saved task filters and their matching tasks."
   - name: "Comments"
     description: "Comments attached to tasks or projects."
   - name: "Devices"
     description: "Device registration for push notifications."
   - name: "Version"
     description: "API build and version metadata."
-  - name: "Statistics"
-    description: "Aggregated task statistics."
 paths:
-  "/time-entries/{id}":
-    "$ref": "./paths/time-entries.yaml#/~1time-entries~1{id}"
-  "/tasks/{id}":
-    "$ref": "./paths/tasks.yaml#/~1tasks~1{id}"
-  "/tasks/{id}/occurrences/{occurrenceScheduledAt}":
-    "$ref": "./paths/tasks.yaml#/~1tasks~1{id}~1occurrences~1{occurrenceScheduledAt}"
-  "/tasks/{id}/occurrences/{occurrenceScheduledAt}/following":
-    "$ref": "./paths/tasks.yaml#/~1tasks~1{id}~1occurrences~1{occurrenceScheduledAt}~1following"
-  "/sections/{id}":
-    "$ref": "./paths/sections.yaml#/~1sections~1{id}"
-  "/projects/{id}":
-    "$ref": "./paths/projects.yaml#/~1projects~1{id}"
-  "/planning-calendars/{id}":
-    "$ref": "./paths/planning-calendars.yaml#/~1planning-calendars~1{id}"
-  "/labels/{id}":
-    "$ref": "./paths/labels.yaml#/~1labels~1{id}"
-  "/filters/{id}":
-    "$ref": "./paths/filters.yaml#/~1filters~1{id}"
-  "/comments/{id}":
-    "$ref": "./paths/comments.yaml#/~1comments~1{id}"
-  "/time-entries":
-    "$ref": "./paths/time-entries.yaml#/~1time-entries"
+  "/tasks/{taskId}":
+    "$ref": "./paths/tasks.yaml#/~1tasks~1{taskId}"
+  "/tasks/{taskId}/occurrences/{occurrenceScheduledAt}":
+    "$ref": "./paths/tasks.yaml#/~1tasks~1{taskId}~1occurrences~1{occurrenceScheduledAt}"
+  "/tasks/{taskId}/occurrences/{occurrenceScheduledAt}/following":
+    "$ref": "./paths/tasks.yaml#/~1tasks~1{taskId}~1occurrences~1{occurrenceScheduledAt}~1following"
+  "/projects/{projectId}":
+    "$ref": "./paths/projects.yaml#/~1projects~1{projectId}"
+  "/planning-calendars/{planningCalendarId}":
+    "$ref": "./paths/planning-calendars.yaml#/~1planning-calendars~1{planningCalendarId}"
+  "/labels/{labelId}":
+    "$ref": "./paths/labels.yaml#/~1labels~1{labelId}"
+  "/comments/{commentId}":
+    "$ref": "./paths/comments.yaml#/~1comments~1{commentId}"
   "/tasks":
     "$ref": "./paths/tasks.yaml#/~1tasks"
   "/tasks/{taskId}/reopen":
     "$ref": "./paths/tasks.yaml#/~1tasks~1{taskId}~1reopen"
   "/tasks/{taskId}/close":
     "$ref": "./paths/tasks.yaml#/~1tasks~1{taskId}~1close"
-  "/sections":
-    "$ref": "./paths/sections.yaml#/~1sections"
   "/register-device":
     "$ref": "./paths/devices.yaml#/~1register-device"
   "/projects":
@@ -71,8 +53,6 @@ paths:
     "$ref": "./paths/planning-calendars.yaml#/~1planning-calendars"
   "/labels":
     "$ref": "./paths/labels.yaml#/~1labels"
-  "/filters":
-    "$ref": "./paths/filters.yaml#/~1filters"
   "/comments":
     "$ref": "./paths/comments.yaml#/~1comments"
   "/projects/reorder":
@@ -81,37 +61,21 @@ paths:
     "$ref": "./paths/version.yaml#/~1version"
   "/tasks/{taskId}/subtasks":
     "$ref": "./paths/tasks.yaml#/~1tasks~1{taskId}~1subtasks"
-  "/tasks/{id}/priority-evaluation":
-    "$ref": "./paths/tasks.yaml#/~1tasks~1{id}~1priority-evaluation"
-  "/stats/overview":
-    "$ref": "./paths/stats.yaml#/~1stats~1overview"
-  "/projects/{id}/tasks":
-    "$ref": "./paths/projects.yaml#/~1projects~1{id}~1tasks"
-  "/projects/{id}/sections":
-    "$ref": "./paths/projects.yaml#/~1projects~1{id}~1sections"
-  "/filters/{id}/tasks":
-    "$ref": "./paths/filters.yaml#/~1filters~1{id}~1tasks"
-  "/tasks/{taskId}":
-    "$ref": "./paths/tasks.yaml#/~1tasks~1{taskId}"
+  "/tasks/{taskId}/priority-evaluation":
+    "$ref": "./paths/tasks.yaml#/~1tasks~1{taskId}~1priority-evaluation"
+  "/projects/{projectId}/tasks":
+    "$ref": "./paths/projects.yaml#/~1projects~1{projectId}~1tasks"
 components:
   securitySchemes:
     taskaOAuth:
       "$ref": "./security.yaml#/taskaOAuth"
   schemas:
-    TimeEntryRequest:
-      "$ref": "./schemas/time-entry.yaml#/TimeEntryRequest"
-    TimeEntryDto:
-      "$ref": "./schemas/time-entry.yaml#/TimeEntryDto"
     TaskUpdateRequest:
       "$ref": "./schemas/task.yaml#/TaskUpdateRequest"
     TaskDto:
       "$ref": "./schemas/task.yaml#/TaskDto"
     OccurrenceUpdateRequest:
       "$ref": "./schemas/task.yaml#/OccurrenceUpdateRequest"
-    SectionRequest:
-      "$ref": "./schemas/section.yaml#/SectionRequest"
-    SectionDto:
-      "$ref": "./schemas/section.yaml#/SectionDto"
     ProjectRequest:
       "$ref": "./schemas/project.yaml#/ProjectRequest"
     ProjectDto:
@@ -126,10 +90,6 @@ components:
       "$ref": "./schemas/label.yaml#/LabelRequest"
     LabelDto:
       "$ref": "./schemas/label.yaml#/LabelDto"
-    FilterRequest:
-      "$ref": "./schemas/filter.yaml#/FilterRequest"
-    FilterDto:
-      "$ref": "./schemas/filter.yaml#/FilterDto"
     CommentRequest:
       "$ref": "./schemas/comment.yaml#/CommentRequest"
     CommentDto:
@@ -146,12 +106,6 @@ components:
       "$ref": "./schemas/task.yaml#/PriorityEvaluationComponents"
     TaskPriorityEvaluationDto:
       "$ref": "./schemas/task.yaml#/TaskPriorityEvaluationDto"
-    DailyCount:
-      "$ref": "./schemas/stats.yaml#/DailyCount"
-    ProjectStat:
-      "$ref": "./schemas/stats.yaml#/ProjectStat"
-    StatsDto:
-      "$ref": "./schemas/stats.yaml#/StatsDto"
     TaskDeleteRequest:
       "$ref": "./schemas/task.yaml#/TaskDeleteRequest"
     ProblemDetails:

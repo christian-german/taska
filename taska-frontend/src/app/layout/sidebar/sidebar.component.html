@@ -126,20 +126,6 @@
       </div>
   </div>
 
-  <div class="sb-section">
-    <div class="h">
-      <a routerLink="/filters" routerLinkActive="active" style="text-decoration: none; color: inherit;">Filtres</a>
-    </div>
-    @if (filters().length > 0) {
-      @for (f of filters(); track f.id) {
-        <a [routerLink]="['/filter', f.id]" routerLinkActive="active" class="sb-item">
-          <span class="ic"><app-icon name="filter" [size]="14" /></span>
-          <span>{{ f.name }}</span>
-        </a>
-      }
-    }
-  </div>
-
   </div><!-- end scrollable -->
 
   <div style="flex-shrink: 0; position: relative; padding: 12px; border-top: 1px solid var(--line);
@@ -184,8 +170,5 @@
     <button class="btn btn-ghost btn-icon" (click)="themeService.toggle()" [title]="'Thème'">
       <app-icon [name]="themeService.isDark() ? 'sun' : 'moon'" [size]="14" />
     </button>
-    <a class="btn btn-ghost btn-icon" routerLink="/stats" routerLinkActive="active" title="Stats">
-      <app-icon name="chart" [size]="14" />
-    </a>
   </div>
 </aside>

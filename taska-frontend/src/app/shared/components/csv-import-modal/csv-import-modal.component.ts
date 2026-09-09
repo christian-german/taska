@@ -111,7 +111,7 @@ function parseTodoistCsv(text: string): ParsedTask[] {
           Importer depuis Todoist
         </div>
         <div class="mono" style="font-size: 12px; color: var(--mute); margin-bottom: 18px; line-height: 1.5;">
-          Fichier CSV exporté depuis Todoist · sections ignorées · tâches importées telles quelles
+          Fichier CSV exporté depuis Todoist · tâches importées telles quelles
         </div>
 
         @if (!parsedTasks().length && !importing()) {

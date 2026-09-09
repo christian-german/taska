@@ -14,7 +14,7 @@ describe('TaskDetailComponent schedule removal', () => {
   let updateTask: ReturnType<typeof vi.fn>;
 
   const task = (changes: Partial<Task> = {}): Task => ({
-    id: 'task-1', content: 'Plan launch', order: 1, priority: 2, labels: ['work'],
+    id: 'task-1', content: 'Plan launch', type: 'TODO', order: 1, priority: 2, labels: ['work'],
     isCompleted: false, scheduledAt: '2026-08-24T09:00:00Z', dueAt: '2026-09-01T00:00:00Z',
     allDay: false, isRecurring: false, createdAt: '', updatedAt: '', ...changes,
   });

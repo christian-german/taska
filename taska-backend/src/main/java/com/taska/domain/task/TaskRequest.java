@@ -24,7 +24,6 @@ import java.util.UUID;
  * @param description     optional longer description; {@code null} leaves the existing value unchanged on update
  * @param projectId       project to assign the task to; when {@code null} on create and no {@code parentId}
  *                        is set, the task is placed in the inbox project
- * @param sectionId       section within the project; {@code null} places the task outside any section
  * @param parentId        parent task UUID to create this as a subtask
  * @param order           display position within its container; defaults to 0 on create
  * @param priority        optional urgency level 1–4 (1 = urgent, 4 = normal); {@code null} means
@@ -48,7 +47,6 @@ public record  TaskRequest(
         @NotBlank String content,
         String description,
         UUID projectId,
-        UUID sectionId,
         UUID parentId,
         Integer order,
         @Min(1) @Max(4)
@@ -67,23 +65,23 @@ public record  TaskRequest(
         TaskType type
 ) {
     /** Compatibility constructor for clients and tests that omit the optional task type. */
-    public TaskRequest(String content, String description, UUID projectId, UUID sectionId,
+    public TaskRequest(String content, String description, UUID projectId,
                        UUID parentId, Integer order, Integer priority, List<String> labels,
                        Instant scheduledAt, Boolean allDay, Boolean isRecurring, Integer estimateMinutes,
                        String mentionContext, String recurrenceRule, RecurrenceScope scope,
                        Instant occurrenceScheduledAt) {
-        this(content, description, projectId, sectionId, parentId, order, priority, labels, scheduledAt, null,
+        this(content, description, projectId, parentId, order, priority, labels, scheduledAt, null,
                 allDay, isRecurring, estimateMinutes, mentionContext, recurrenceRule, scope,
                 occurrenceScheduledAt, null);
     }
 
     /** Compatibility constructor for callers that provide a task type but no due date. */
-    public TaskRequest(String content, String description, UUID projectId, UUID sectionId,
+    public TaskRequest(String content, String description, UUID projectId,
                        UUID parentId, Integer order, Integer priority, List<String> labels,
                        Instant scheduledAt, Boolean allDay, Boolean isRecurring, Integer estimateMinutes,
                        String mentionContext, String recurrenceRule, RecurrenceScope scope,
                        Instant occurrenceScheduledAt, TaskType type) {
-        this(content, description, projectId, sectionId, parentId, order, priority, labels, scheduledAt, null,
+        this(content, description, projectId, parentId, order, priority, labels, scheduledAt, null,
                 allDay, isRecurring, estimateMinutes, mentionContext, recurrenceRule, scope,
                 occurrenceScheduledAt, type);
     }

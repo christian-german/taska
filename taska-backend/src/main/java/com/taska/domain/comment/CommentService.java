@@ -13,7 +13,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class CommentService {
 
-    private final CommentRepository commentRepo;
+    private final CommentRepository commentRepository;
 
     /**
      * Returns comments scoped by the provided filter. When {@code taskId} is given, only comments
@@ -27,36 +27,40 @@ public class CommentService {
      */
     @Transactional(readOnly = true)
     public List<Comment> findAll(UUID taskId, UUID projectId) {
-        if (taskId != null) return commentRepo.findByTaskIdOrderByCreatedAtAsc(taskId);
-        if (projectId != null) return commentRepo.findByProjectIdOrderByCreatedAtAsc(projectId);
-        return commentRepo.findAll();
+        if (taskId != null) {
+            return commentRepository.findByTaskIdOrderByCreatedAtAsc(taskId);
+        }
+        if (projectId != null) {
+            return commentRepository.findByProjectIdOrderByCreatedAtAsc(projectId);
+        }
+        return commentRepository.findAll();
     }
 
     /**
      * Creates and persists a new comment associated with a task or a project.
      *
-     * @param req the comment creation payload
+     * @param commentRequest the comment creation payload
      * @return the persisted comment entity
      */
-    public Comment create(CommentRequest req) {
+    public Comment create(CommentRequest commentRequest) {
         Comment comment = new Comment();
-        comment.setTaskId(req.taskId());
-        comment.setProjectId(req.projectId());
-        comment.setContent(req.content());
-        return commentRepo.save(comment);
+        comment.setTaskId(commentRequest.taskId());
+        comment.setProjectId(commentRequest.projectId());
+        comment.setContent(commentRequest.content());
+        return commentRepository.save(comment);
     }
 
     /**
      * Updates the content of an existing comment.
      *
      * @param id  the comment UUID to update
-     * @param req the update payload containing the new content
+     * @param commentRequest the update payload containing the new content
      * @return the updated comment entity
      */
-    public Comment update(UUID id, CommentRequest req) {
-        Comment c = getOrThrow(id);
-        c.setContent(req.content());
-        return commentRepo.save(c);
+    public Comment update(UUID id, CommentRequest commentRequest) {
+        Comment comment = getOrThrow(id);
+        comment.setContent(commentRequest.content());
+        return commentRepository.save(comment);
     }
 
     /**
@@ -66,7 +70,7 @@ public class CommentService {
      * @param id the comment UUID to delete
      */
     public void delete(UUID id) {
-        commentRepo.delete(getOrThrow(id));
+        commentRepository.delete(getOrThrow(id));
     }
 
     /**
@@ -76,7 +80,7 @@ public class CommentService {
      * @return the comment entity
      */
     private Comment getOrThrow(UUID id) {
-        return commentRepo.findById(id)
+        return commentRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Comment not found: " + id));
     }
 }

@@ -55,7 +55,6 @@ public interface TaskMapper {
                 content,
                 task.getDescription(),
                 task.getProjectId(),
-                task.getSectionId(),
                 task.getParentId(),
                 task.getPosition(),
                 priority,

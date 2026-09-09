@@ -22,39 +22,9 @@ public interface TaskRepository extends JpaRepository<Task, UUID> {
     List<Task> findByProjectIdAndIsCompletedFalseOrderByPositionAsc(UUID projectId);
 
     /**
-     * Returns all incomplete tasks in the given section, ordered by position.
-     */
-    List<Task> findBySectionIdAndIsCompletedFalseOrderByPositionAsc(UUID sectionId);
-
-    /**
-     * Returns all incomplete tasks belonging to both the given project and section, ordered by position.
-     */
-    List<Task> findByProjectIdAndSectionIdAndIsCompletedFalseOrderByPositionAsc(UUID projectId, UUID sectionId);
-
-    /**
-     * Returns all incomplete tasks whose scheduled time falls within [from, to), ordered by scheduled time.
-     */
-    List<Task> findByScheduledAtBetweenAndIsCompletedFalseOrderByScheduledAtAsc(Instant from, Instant to);
-
-    /**
-     * Returns all incomplete, non-recurring overdue tasks (scheduled before the given instant), ordered by scheduled time.
-     */
-    List<Task> findByScheduledAtBeforeAndIsCompletedFalseAndIsRecurringFalseOrderByScheduledAtAsc(Instant before);
-
-    /**
      * Returns all tasks (including completed) in the given project, ordered by position.
      */
     List<Task> findByProjectIdOrderByPositionAsc(UUID projectId);
-
-    /**
-     * Returns all tasks (including completed) in the given section, ordered by position.
-     */
-    List<Task> findBySectionIdOrderByPositionAsc(UUID sectionId);
-
-    /**
-     * Returns all tasks (including completed) in the given project and section, ordered by position.
-     */
-    List<Task> findByProjectIdAndSectionIdOrderByPositionAsc(UUID projectId, UUID sectionId);
 
     /**
      * Returns all direct subtasks of the given parent task, ordered by position.
@@ -74,47 +44,9 @@ public interface TaskRepository extends JpaRepository<Task, UUID> {
     List<Task> findByLabel(@Param("label") String label);
 
     /**
-     * Returns all incomplete tasks that have a scheduled time, ordered by scheduled time.
-     */
-    @Query("SELECT t FROM Task t WHERE t.isCompleted = false AND t.scheduledAt IS NOT NULL ORDER BY t.scheduledAt ASC")
-    List<Task> findAllWithScheduledAtNotCompleted();
-
-    /**
-     * Returns all incomplete tasks that have no scheduled time, ordered by position.
-     */
-    @Query("SELECT t FROM Task t WHERE t.isCompleted = false AND t.scheduledAt IS NULL ORDER BY t.position ASC")
-    List<Task> findAllWithNoScheduledAtNotCompleted();
-
-    /**
      * Returns all incomplete tasks in the given project that have a scheduled time, ordered by scheduled time.
      */
     List<Task> findByProjectIdAndScheduledAtIsNotNullAndIsCompletedFalseOrderByScheduledAtAsc(UUID projectId);
-
-    /**
-     * Returns all incomplete tasks in the given project that have no scheduled time, ordered by position.
-     */
-    List<Task> findByProjectIdAndScheduledAtIsNullAndIsCompletedFalseOrderByPositionAsc(UUID projectId);
-
-    /**
-     * Returns the total number of completed tasks.
-     */
-    long countByIsCompletedTrue();
-
-    /**
-     * Returns the total number of incomplete tasks.
-     */
-    long countByIsCompletedFalse();
-
-    /**
-     * Returns the count of incomplete tasks whose due date is strictly before the given instant.
-     */
-    @Query("SELECT COUNT(t) FROM Task t WHERE t.isCompleted = false AND t.scheduledAt < :before")
-    long countByIsCompletedFalseAndScheduledAtBefore(@Param("before") Instant before);
-
-    /**
-     * Returns all tasks completed after the given instant, ordered chronologically by completion date.
-     */
-    List<Task> findByCompletedAtAfterOrderByCompletedAtAsc(Instant since);
 
     /**
      * Returns incomplete, non-notified, non-all-day tasks with a due date on or before {@code in15min}.

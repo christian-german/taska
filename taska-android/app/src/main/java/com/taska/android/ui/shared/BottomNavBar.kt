@@ -17,7 +17,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.AccessTime
 import androidx.compose.material.icons.outlined.CalendarMonth
 import androidx.compose.material.icons.outlined.CalendarViewDay
-import androidx.compose.material.icons.outlined.Timer
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -32,7 +31,7 @@ import androidx.compose.ui.unit.sp
 import com.taska.android.ui.theme.frostedChrome
 
 enum class NavDestination {
-    INBOX, TODAY, DAY, WEEK, TRACKER
+    INBOX, TODAY, DAY, WEEK
 }
 
 @Composable
@@ -86,12 +85,6 @@ fun BottomNavBar(
             label = "Semaine",
             active = current == NavDestination.WEEK,
             onClick = { onNavigate(NavDestination.WEEK) }
-        )
-        NavItem(
-            icon = Icons.Outlined.Timer,
-            label = "Tracker",
-            active = current == NavDestination.TRACKER,
-            onClick = { onNavigate(NavDestination.TRACKER) }
         )
     }
 }

@@ -108,10 +108,6 @@ class TodayActivity : ComponentActivity() {
                                     Intent(this, WeekActivity::class.java)
                                         .addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT)
                                 )
-                                NavDestination.TRACKER -> startActivity(
-                                    Intent(this, TrackerActivity::class.java)
-                                        .addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT)
-                                )
                             }
                         }
                     )

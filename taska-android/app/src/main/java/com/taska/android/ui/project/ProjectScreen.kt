@@ -126,7 +126,6 @@ fun ProjectScreen(
                 else -> {
                     val project = uiState.project
                     val dotColor = project?.color?.let { parseHexColor(it) } ?: TextSecondary
-                    val activeCount = uiState.tasks.count { it.isCompleted != true }
                     val todayStr = SimpleDateFormat("yyyy-MM-dd", Locale.US)
                         .format(Calendar.getInstance().time)
 
@@ -153,21 +152,6 @@ fun ProjectScreen(
                                 )
                             }
 
-                            val statsText = buildString {
-                                append("$activeCount tâche${if (activeCount != 1) "s" else ""}")
-                                if (uiState.overdueCount > 0) {
-                                    append(" · ${uiState.overdueCount} en retard")
-                                }
-                            }
-                            Text(
-                                text = statsText,
-                                modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 12.dp),
-                                style = TextStyle(
-                                    fontFamily = com.taska.android.ui.theme.Archivo,
-                                    fontSize = 13.sp,
-                                    color = TextSecondary
-                                )
-                            )
                             HorizontalDivider(color = DividerColor, thickness = 0.5.dp)
                         }
 

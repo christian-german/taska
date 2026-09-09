@@ -1,8 +1,6 @@
 package com.taska.domain.task.occurrence;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
 
 import java.time.Instant;
 import java.util.UUID;
@@ -19,77 +17,170 @@ import java.util.UUID;
  */
 @Entity
 @Table(name = "task_instances")
-@Getter
-@Setter
 public class TaskInstance {
-
-    /** Auto-generated UUID primary key. */
+    /**
+     * Auto-generated UUID primary key.
+     */
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
-
-    /** UUID of the parent recurring {@link Task} this instance belongs to. */
+    /**
+     * UUID of the parent recurring {@link Task} this instance belongs to.
+     */
     @Column(name = "task_id", nullable = false)
     private UUID taskId;
-
     /**
      * The RRULE-generated instant this instance corresponds to.
      * Together with {@link #taskId}, this uniquely identifies a single occurrence.
      */
     @Column(name = "occurrence_scheduled_at", nullable = false)
     private Instant occurrenceScheduledAt;
-
     /**
      * Override for the occurrence's planned schedule time; non-null only when the occurrence was modified
      * via a {@code THIS_ONLY} update that changed the task's {@code scheduledAt}.
      */
     @Column(name = "scheduled_at")
     private Instant scheduledAt;
-
-    /** Optional deadline override for this recurring occurrence. */
+    /**
+     * Optional deadline override for this recurring occurrence.
+     */
     @Column(name = "due_at")
     private Instant dueAt;
-
-    /** Current state of this occurrence: {@code DONE}, {@code SKIPPED}, or {@code MODIFIED}. */
+    /**
+     * Current state of this occurrence: {@code DONE}, {@code SKIPPED}, or {@code MODIFIED}.
+     */
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private TaskInstanceStatus status;
-
-    /** Timestamp when the occurrence was completed; non-null only when {@link #status} is {@code DONE}. */
+    /**
+     * Timestamp when the occurrence was completed; non-null only when {@link #status} is {@code DONE}.
+     */
     @Column(name = "completed_at")
     private Instant completedAt;
-
     /**
      * Override for the occurrence's title (task content); non-null only when the occurrence was
      * modified via a {@code THIS_ONLY} update that changed the content.
      */
     @Column(length = 1000)
     private String title;
-
     /**
      * Override for the occurrence's priority; non-null only when the occurrence was modified
      * via a {@code THIS_ONLY} update that changed the priority.
      */
     private Integer priority;
-
-    /** Timestamp when this instance row was first persisted; set by {@link #onCreate()} and never updated. */
+    /**
+     * Timestamp when this instance row was first persisted; set by {@link #onCreate()} and never updated.
+     */
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
-
-    /** Timestamp of the last modification to this instance row; updated automatically by {@link #onUpdate()}. */
+    /**
+     * Timestamp of the last modification to this instance row; updated automatically by {@link #onUpdate()}.
+     */
     @Column(name = "updated_at", nullable = false)
     private Instant updatedAt;
 
-    /** Initialises {@link #createdAt} and {@link #updatedAt} on first persist. */
+    /**
+     * Initialises {@link #createdAt} and {@link #updatedAt} on first persist.
+     */
     @PrePersist
     protected void onCreate() {
         createdAt = Instant.now();
         updatedAt = Instant.now();
     }
 
-    /** Refreshes {@link #updatedAt} on every subsequent persist. */
+    /**
+     * Refreshes {@link #updatedAt} on every subsequent persist.
+     */
     @PreUpdate
     protected void onUpdate() {
         updatedAt = Instant.now();
+    }
+
+    public UUID getId() {
+        return this.id;
+    }
+
+    public UUID getTaskId() {
+        return this.taskId;
+    }
+
+    public Instant getOccurrenceScheduledAt() {
+        return this.occurrenceScheduledAt;
+    }
+
+    public Instant getScheduledAt() {
+        return this.scheduledAt;
+    }
+
+    public Instant getDueAt() {
+        return this.dueAt;
+    }
+
+    public TaskInstanceStatus getStatus() {
+        return this.status;
+    }
+
+    public Instant getCompletedAt() {
+        return this.completedAt;
+    }
+
+    public String getTitle() {
+        return this.title;
+    }
+
+    public Integer getPriority() {
+        return this.priority;
+    }
+
+    public Instant getCreatedAt() {
+        return this.createdAt;
+    }
+
+    public Instant getUpdatedAt() {
+        return this.updatedAt;
+    }
+
+    public void setId(final UUID id) {
+        this.id = id;
+    }
+
+    public void setTaskId(final UUID taskId) {
+        this.taskId = taskId;
+    }
+
+    public void setOccurrenceScheduledAt(final Instant occurrenceScheduledAt) {
+        this.occurrenceScheduledAt = occurrenceScheduledAt;
+    }
+
+    public void setScheduledAt(final Instant scheduledAt) {
+        this.scheduledAt = scheduledAt;
+    }
+
+    public void setDueAt(final Instant dueAt) {
+        this.dueAt = dueAt;
+    }
+
+    public void setStatus(final TaskInstanceStatus status) {
+        this.status = status;
+    }
+
+    public void setCompletedAt(final Instant completedAt) {
+        this.completedAt = completedAt;
+    }
+
+    public void setTitle(final String title) {
+        this.title = title;
+    }
+
+    public void setPriority(final Integer priority) {
+        this.priority = priority;
+    }
+
+    public void setCreatedAt(final Instant createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public void setUpdatedAt(final Instant updatedAt) {
+        this.updatedAt = updatedAt;
     }
 }

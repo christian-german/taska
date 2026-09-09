@@ -19,28 +19,31 @@ import static org.mockito.Mockito.*;
 class TaskControllerPriorityEvaluationTest {
     private final TaskService taskService = mock(TaskService.class);
     private final TaskMapper taskMapper = mock(TaskMapper.class);
-    private final TaskPriorityEvaluationService evaluationService = mock(TaskPriorityEvaluationService.class);
+    private final TaskPriorityEvaluationService taskPriorityEvaluationService = mock(TaskPriorityEvaluationService.class);
     private final TaskChangePublisher taskChangePublisher = mock(TaskChangePublisher.class);
-    private final TaskController controller = new TaskController(taskService, taskMapper, evaluationService, taskChangePublisher);
+    private final TaskController taskController = new TaskController(taskService, taskMapper, taskPriorityEvaluationService, taskChangePublisher);
 
-    @Test void returnsEvaluationWhenPresent() {
+    @Test
+    void returnsEvaluationWhenPresent() {
         UUID id = UUID.randomUUID();
         var evaluation = new TaskPriorityEvaluationDto(id, 95, new ObjectMapper().createObjectNode(), Instant.now());
-        when(evaluationService.findForTask(id)).thenReturn(Optional.of(evaluation));
-        var response = controller.getPriorityEvaluation(id);
-        assertThat(response.getStatusCode().value()).isEqualTo(200);
-        assertThat(response.getBody()).isEqualTo(evaluation);
+        when(taskPriorityEvaluationService.findForTask(id)).thenReturn(Optional.of(evaluation));
+        var responseEntity = taskController.getPriorityEvaluation(id);
+        assertThat(responseEntity.getStatusCode().value()).isEqualTo(200);
+        assertThat(responseEntity.getBody()).isEqualTo(evaluation);
     }
 
-    @Test void returnsNoContentWhenEvaluationIsMissing() {
+    @Test
+    void returnsNoContentWhenEvaluationIsMissing() {
         UUID id = UUID.randomUUID();
-        when(evaluationService.findForTask(id)).thenReturn(Optional.empty());
-        var response = controller.getPriorityEvaluation(id);
-        assertThat(response.getStatusCode().value()).isEqualTo(204);
-        assertThat(response.getBody()).isNull();
+        when(taskPriorityEvaluationService.findForTask(id)).thenReturn(Optional.empty());
+        var responseEntity = taskController.getPriorityEvaluation(id);
+        assertThat(responseEntity.getStatusCode().value()).isEqualTo(204);
+        assertThat(responseEntity.getBody()).isNull();
     }
 
-    @Test void taskUpdateRequest_rejectsPayloadsThatOmitMutableProperties() {
+    @Test
+    void taskUpdateRequest_rejectsPayloadsThatOmitMutableProperties() {
         assertThatThrownBy(() -> new JsonMapper().readValue("{\"content\":\"Only title\"}", TaskUpdateRequest.class))
                 .isInstanceOf(MismatchedInputException.class);
     }

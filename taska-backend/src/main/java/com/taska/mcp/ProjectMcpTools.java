@@ -39,11 +39,14 @@ public class ProjectMcpTools {
 
     @McpTool(name = "create_project", description = "Create a Taska project.", generateOutputSchema = true)
     public McpSchema.CallToolResult createProject(
-            @McpToolParam(required = true, description = "New project details.") ProjectCreateInput input) {
+            @McpToolParam(required = true, description = "New project details.")
+            ProjectCreateInput projectCreateInput) {
         return McpToolResponses.execute(() -> {
-            requireName(input.name());
+            requireName(projectCreateInput.name());
             Project project = projectService.create(new ProjectRequest(
-                    input.name(), input.color(), input.parentId(), false, input.order(), input.isFavorite(), input.viewStyle(), null));
+                    projectCreateInput.name(), projectCreateInput.color(), projectCreateInput.parentId(),
+                    false, projectCreateInput.order(), projectCreateInput.isFavorite(),
+                    projectCreateInput.viewStyle(), null));
             return ProjectOutput.from(projectMapper.toDto(project));
         });
     }
@@ -51,11 +54,16 @@ public class ProjectMcpTools {
     @McpTool(name = "update_project", description = "Update fields on an existing Taska project.", generateOutputSchema = true)
     public McpSchema.CallToolResult updateProject(
             @McpToolParam(required = true, description = "Project UUID.") UUID projectId,
-            @McpToolParam(required = true, description = "Project fields to update. Omitted fields are unchanged.") ProjectUpdateInput input) {
+            @McpToolParam(required = true, description = "Project fields to update. Omitted fields are unchanged.")
+            ProjectUpdateInput projectUpdateInput) {
         return McpToolResponses.execute(() -> {
-            if (input.name() != null) requireName(input.name());
+            if (projectUpdateInput.name() != null) {
+                requireName(projectUpdateInput.name());
+            }
             Project project = projectService.update(projectId, new ProjectRequest(
-                    input.name(), input.color(), input.parentId(), input.clearParent(), input.order(), input.isFavorite(), input.viewStyle(), null));
+                    projectUpdateInput.name(), projectUpdateInput.color(), projectUpdateInput.parentId(),
+                    projectUpdateInput.clearParent(), projectUpdateInput.order(),
+                    projectUpdateInput.isFavorite(), projectUpdateInput.viewStyle(), null));
             return ProjectOutput.from(projectMapper.toDto(project));
         });
     }

@@ -1,8 +1,14 @@
 package com.taska.domain.priority;
 
 import com.taska.domain.task.Task;
-import com.taska.domain.task.TaskRepository;
 import com.taska.domain.task.TaskType;
+import com.taska.domain.task.repository.TaskRepository;
+import com.taska.domain.priority.repository.TaskPriorityEvaluationRepository;
+import com.taska.domain.priority.service.OpenAiPriorityAssessmentClient;
+import com.taska.domain.priority.service.PriorityAssessmentValidator;
+import com.taska.domain.priority.service.PriorityEvaluationBatchResponse;
+import com.taska.domain.priority.service.TaskPriorityEvaluationService;
+import com.taska.domain.priority.service.TaskPriorityScorer;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;

@@ -4,11 +4,18 @@ import {BehaviorSubject, Observable, tap} from 'rxjs';
 import {Label} from '../models';
 import {environment} from '../../../environments/environment';
 
-interface LabelRequest {
+interface LabelCreateRequest {
   name: string;
   color?: string | null;
   order?: number | null;
   isFavorite?: boolean | null;
+}
+
+interface LabelUpdateRequest {
+  name: string;
+  color: string;
+  order: number;
+  isFavorite: boolean;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -25,13 +32,13 @@ export class LabelService {
     );
   }
 
-  createLabel(data: LabelRequest): Observable<Label> {
+  createLabel(data: LabelCreateRequest): Observable<Label> {
     return this.http.post<Label>(this.base, data).pipe(
       tap(created => this.labelsSubject.next([...this.labelsSubject.value, created]))
     );
   }
 
-  updateLabel(labelId: string, data: LabelRequest): Observable<Label> {
+  updateLabel(labelId: string, data: LabelUpdateRequest): Observable<Label> {
     return this.http.put<Label>(`${this.base}/${labelId}`, data).pipe(
       tap(updated => {
         this.labelsSubject.next(this.labelsSubject.value.map(l => l.id === labelId ? updated : l));

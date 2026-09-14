@@ -46,7 +46,7 @@
       content:
         "application/json":
           schema:
-            "$ref": "../schemas/project.yaml#/ProjectRequest"
+            "$ref": "../schemas/project.yaml#/ProjectUpdateRequest"
       required: true
       description: "Request payload."
     responses:
@@ -131,7 +131,7 @@
       content:
         "application/json":
           schema:
-            "$ref": "../schemas/project.yaml#/ProjectRequest"
+            "$ref": "../schemas/project.yaml#/ProjectCreateRequest"
       required: true
       description: "Request payload."
     responses:

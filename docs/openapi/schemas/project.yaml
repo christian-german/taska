@@ -1,5 +1,5 @@
-ProjectRequest:
-  description: "Payload used to create or update a project."
+ProjectCreateRequest:
+  description: "Payload used to create a project."
   type: "object"
   additionalProperties: false
   properties:
@@ -11,12 +11,9 @@ ProjectRequest:
       description: "Hexadecimal color used to display the project; defaults to `#808080` on creation."
       type: ["string", "null"]
     parentId:
-      description: "Parent project UUID used to nest this project; ignored on update when `clearParent` is true."
+      description: "Parent project UUID used to nest this project; null or omission creates a root project."
       type: ["string", "null"]
       format: "uuid"
-    clearParent:
-      description: "When true on update, removes the parent relationship; has no effect on creation."
-      type: ["boolean", "null"]
     order:
       description: "Display position among sibling projects; defaults to 0 on creation."
       type: ["integer", "null"]
@@ -38,6 +35,48 @@ ProjectRequest:
       format: "uuid"
   required:
     - "name"
+ProjectUpdateRequest:
+  description: "Complete replacement of a project's mutable properties."
+  type: "object"
+  additionalProperties: false
+  properties:
+    name:
+      description: "Required replacement display name; must not be blank."
+      type: "string"
+      minLength: 1
+    color:
+      description: "Required replacement display color."
+      type: "string"
+    parentId:
+      description: "Required parent selection; null explicitly removes the parent relationship."
+      type: ["string", "null"]
+      format: "uuid"
+    order:
+      description: "Required replacement display position among sibling projects."
+      type: "integer"
+      format: "int32"
+    isFavorite:
+      description: "Required replacement favorite state."
+      type: "boolean"
+    viewStyle:
+      description: "Required replacement task rendering mode."
+      type: "string"
+      enum:
+        - "LIST"
+        - "BOARD"
+        - "CALENDAR"
+    planningCalendarId:
+      description: "Required planning calendar assignment."
+      type: "string"
+      format: "uuid"
+  required:
+    - "name"
+    - "color"
+    - "parentId"
+    - "order"
+    - "isFavorite"
+    - "viewStyle"
+    - "planningCalendarId"
 ProjectDto:
   description: "Project returned by the API."
   type: "object"

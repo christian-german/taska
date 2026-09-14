@@ -1,5 +1,9 @@
 package com.taska.domain.notification;
 
+import com.taska.domain.notification.controller.RegisterDeviceController;
+import com.taska.domain.notification.controller.RegisterDeviceRequest;
+import com.taska.domain.notification.repository.DeviceTokenRepository;
+import com.taska.domain.notification.service.DeviceRegistrationService;
 import org.junit.jupiter.api.Test;
 import org.springframework.security.oauth2.jwt.Jwt;
 
@@ -12,7 +16,8 @@ import static org.mockito.Mockito.*;
 
 class RegisterDeviceControllerTest {
     private final DeviceTokenRepository deviceTokenRepository = mock(DeviceTokenRepository.class);
-    private final RegisterDeviceController registerDeviceController = new RegisterDeviceController(deviceTokenRepository);
+    private final DeviceRegistrationService deviceRegistrationService = new DeviceRegistrationService(deviceTokenRepository);
+    private final RegisterDeviceController registerDeviceController = new RegisterDeviceController(deviceRegistrationService);
 
     @Test
     void storesTheAuthenticatedSubjectOnNewToken() {

@@ -2,9 +2,12 @@ package com.taska.domain.task;
 
 import com.taska.config.TaskaProperties;
 import com.taska.domain.task.occurrence.TaskInstance;
-import com.taska.domain.task.occurrence.TaskInstanceRepository;
 import com.taska.domain.task.occurrence.TaskInstanceStatus;
-import com.taska.domain.task.occurrence.TaskRecurrenceService;
+import com.taska.domain.task.occurrence.repository.TaskInstanceRepository;
+import com.taska.domain.task.occurrence.service.TaskRecurrenceService;
+import com.taska.domain.task.repository.TaskRepository;
+import com.taska.domain.task.service.TaskResult;
+import com.taska.domain.task.service.TaskService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -25,8 +28,7 @@ import static org.mockito.Mockito.*;
 
 /**
  * Unit tests for TaskService#findOccurrencesForDateRange.
- * All repository and RecurrenceService calls are mocked; TaskMapper is mocked
- * to isolate service routing logic from field-inheritance logic (see TaskMapperTest).
+ * All repository and recurrence-service calls are mocked.
  */
 @ExtendWith(MockitoExtension.class)
 class TaskServiceQueryTest {
@@ -34,7 +36,6 @@ class TaskServiceQueryTest {
     @Mock private TaskRepository          taskRepository;
     @Mock private TaskInstanceRepository taskInstanceRepository;
     @Mock private TaskRecurrenceService taskRecurrenceService;
-    @Mock private TaskMapper              taskMapper;
     @Mock private TaskaProperties         taskaProperties;
     @Mock private TaskaProperties.Calendar calendarProperties;
 
@@ -84,13 +85,6 @@ class TaskServiceQueryTest {
         return taskInstance;
     }
 
-    /** Minimal stub DTO — content does not matter for routing tests. */
-    private TaskDto stubDto(UUID id) {
-        return new TaskDto(id, "content", null, null, null,
-                0, 1, List.of(), false, null, false, false,
-                null, null, null, null, null, null, null, null, false, null);
-    }
-
     @SuppressWarnings("SameParameterValue")
     private void givenNoRecurringTasks(Instant start, Instant end) {
         when(taskRepository.findActiveRecurringTasksForPeriod(start, end)).thenReturn(List.of());
@@ -110,7 +104,7 @@ class TaskServiceQueryTest {
         when(taskRepository.findNonRecurringTasksInPeriod(start, end)).thenReturn(List.of());
         givenNoRecurringTasks(start, end);
 
-        List<TaskDto> result = taskService.findOccurrencesForDateRange(DATE, DATE);
+        List<TaskResult> result = taskService.findOccurrencesForDateRange(DATE, DATE);
 
         assertThat(result).isEmpty();
         verify(taskRepository).findNonRecurringTasksInPeriod(start, end);
@@ -136,34 +130,28 @@ class TaskServiceQueryTest {
     // ── 2.1 ──────────────────────────────────────────────────────────────────
 
     @Test
-    void findOccurrencesForDateRange_nonRecurringTaskInWindow_returnedViaToDtoNotOccurrenceDto() {
+    void findOccurrencesForDateRange_nonRecurringTaskInWindow_returnsBaseTaskResult() {
         Task task = buildNonRecurringTask();
-        TaskDto dto = stubDto(task.getId());
 
         when(taskRepository.findNonRecurringTasksInPeriod(START, END)).thenReturn(List.of(task));
         givenNoRecurringTasks(START, END);
-        when(taskMapper.toDto(task)).thenReturn(dto);
 
-        List<TaskDto> result = taskService.findOccurrencesForDateRange(DATE, DATE);
+        List<TaskResult> result = taskService.findOccurrencesForDateRange(DATE, DATE);
 
-        assertThat(result).containsExactly(dto);
-        verify(taskMapper).toDto(task);
-        verify(taskMapper, never()).toOccurrenceDto(any(), any(), any());
+        assertThat(result).containsExactly(TaskResult.base(task));
     }
 
     @Test
     void findOccurrencesForDateRange_withCompletedTasksUsesCompletedInclusiveQuery() {
         Task task = buildNonRecurringTask();
         task.setIsCompleted(true);
-        TaskDto dto = stubDto(task.getId());
 
         when(taskRepository.findNonRecurringTasksIncludingCompletedInPeriod(START, END)).thenReturn(List.of(task));
         givenNoRecurringTasks(START, END);
-        when(taskMapper.toDto(task)).thenReturn(dto);
 
-        List<TaskDto> result = taskService.findOccurrencesForDateRange(DATE, DATE, true);
+        List<TaskResult> result = taskService.findOccurrencesForDateRange(DATE, DATE, true);
 
-        assertThat(result).containsExactly(dto);
+        assertThat(result).containsExactly(TaskResult.base(task));
         verify(taskRepository).findNonRecurringTasksIncludingCompletedInPeriod(START, END);
         verify(taskRepository, never()).findNonRecurringTasksInPeriod(START, END);
     }
@@ -171,45 +159,39 @@ class TaskServiceQueryTest {
     // ── 2.2 ──────────────────────────────────────────────────────────────────
 
     @Test
-    void findOccurrencesForDateRange_recurringOccurrenceNoInstance_mapperCalledWithNullInstance() {
+    void findOccurrencesForDateRange_recurringOccurrenceNoInstance_returnsVirtualResult() {
         Task task = buildRecurringTask();
         Instant occurrenceScheduledAt = Instant.parse("2026-05-20T10:00:00Z");
-        TaskDto occDto = stubDto(task.getId());
 
         when(taskRepository.findNonRecurringTasksInPeriod(START, END)).thenReturn(List.of());
         when(taskRepository.findActiveRecurringTasksForPeriod(START, END)).thenReturn(List.of(task));
         when(taskInstanceRepository.findByTaskIdInAndOccurrenceScheduledAtBetween(eq(List.of(task.getId())), eq(START), eq(END)))
                 .thenReturn(List.of());
         when(taskRecurrenceService.getOccurrencesInRange(task, START, END)).thenReturn(List.of(occurrenceScheduledAt));
-        when(taskMapper.toOccurrenceDto(task, null, occurrenceScheduledAt)).thenReturn(occDto);
 
-        List<TaskDto> result = taskService.findOccurrencesForDateRange(DATE, DATE);
+        List<TaskResult> result = taskService.findOccurrencesForDateRange(DATE, DATE);
 
-        assertThat(result).containsExactly(occDto);
-        // null instance → virtual occurrence
-        verify(taskMapper).toOccurrenceDto(task, null, occurrenceScheduledAt);
+        assertThat(result).containsExactly(TaskResult.occurrence(task, null, occurrenceScheduledAt));
     }
 
     // ── 2.3 ──────────────────────────────────────────────────────────────────
 
     @Test
-    void findOccurrencesForDateRange_doneInstance_mapperCalledWithDoneInstance() {
+    void findOccurrencesForDateRange_doneInstance_returnsPersistedOccurrenceResult() {
         Task task = buildRecurringTask();
         Instant occurrenceScheduledAt = Instant.parse("2026-05-20T10:00:00Z");
         TaskInstance doneInstance = buildInstance(task.getId(), occurrenceScheduledAt, TaskInstanceStatus.DONE);
-        TaskDto occDto = stubDto(task.getId());
 
         when(taskRepository.findNonRecurringTasksInPeriod(START, END)).thenReturn(List.of());
         when(taskRepository.findActiveRecurringTasksForPeriod(START, END)).thenReturn(List.of(task));
         when(taskInstanceRepository.findByTaskIdInAndOccurrenceScheduledAtBetween(eq(List.of(task.getId())), eq(START), eq(END)))
                 .thenReturn(List.of(doneInstance));
         when(taskRecurrenceService.getOccurrencesInRange(task, START, END)).thenReturn(List.of(occurrenceScheduledAt));
-        when(taskMapper.toOccurrenceDto(task, doneInstance, occurrenceScheduledAt)).thenReturn(occDto);
 
-        List<TaskDto> result = taskService.findOccurrencesForDateRange(DATE, DATE);
+        List<TaskResult> result = taskService.findOccurrencesForDateRange(DATE, DATE);
 
-        assertThat(result).containsExactly(occDto);
-        verify(taskMapper).toOccurrenceDto(task, doneInstance, occurrenceScheduledAt);
+        assertThat(result).containsExactly(
+                TaskResult.occurrence(task, doneInstance, occurrenceScheduledAt));
     }
 
     // ── 2.4 ──────────────────────────────────────────────────────────────────
@@ -226,10 +208,9 @@ class TaskServiceQueryTest {
                 .thenReturn(List.of(skipped));
         when(taskRecurrenceService.getOccurrencesInRange(task, START, END)).thenReturn(List.of(occurrenceScheduledAt));
 
-        List<TaskDto> result = taskService.findOccurrencesForDateRange(DATE, DATE);
+        List<TaskResult> result = taskService.findOccurrencesForDateRange(DATE, DATE);
 
         assertThat(result).isEmpty();
-        verify(taskMapper, never()).toOccurrenceDto(any(), any(), any());
     }
 
     // ── 2.8 ──────────────────────────────────────────────────────────────────
@@ -245,7 +226,7 @@ class TaskServiceQueryTest {
                 .thenReturn(List.of());
         when(taskRecurrenceService.getOccurrencesInRange(task, START, END)).thenReturn(List.of());
 
-        List<TaskDto> result = taskService.findOccurrencesForDateRange(DATE, DATE);
+        List<TaskResult> result = taskService.findOccurrencesForDateRange(DATE, DATE);
 
         assertThat(result).isEmpty();
     }
@@ -258,8 +239,6 @@ class TaskServiceQueryTest {
         Task task2 = buildRecurringTask();
         Instant scheduled1 = Instant.parse("2026-05-20T08:00:00Z");
         Instant scheduled2 = Instant.parse("2026-05-20T10:00:00Z");
-        TaskDto dto1 = stubDto(task1.getId());
-        TaskDto dto2 = stubDto(task2.getId());
 
         when(taskRepository.findNonRecurringTasksInPeriod(START, END)).thenReturn(List.of());
         when(taskRepository.findActiveRecurringTasksForPeriod(START, END)).thenReturn(List.of(task1, task2));
@@ -267,12 +246,12 @@ class TaskServiceQueryTest {
                 .thenReturn(List.of());
         when(taskRecurrenceService.getOccurrencesInRange(task1, START, END)).thenReturn(List.of(scheduled1));
         when(taskRecurrenceService.getOccurrencesInRange(task2, START, END)).thenReturn(List.of(scheduled2));
-        when(taskMapper.toOccurrenceDto(task1, null, scheduled1)).thenReturn(dto1);
-        when(taskMapper.toOccurrenceDto(task2, null, scheduled2)).thenReturn(dto2);
 
-        List<TaskDto> result = taskService.findOccurrencesForDateRange(DATE, DATE);
+        List<TaskResult> result = taskService.findOccurrencesForDateRange(DATE, DATE);
 
-        assertThat(result).containsExactlyInAnyOrder(dto1, dto2);
+        assertThat(result).containsExactlyInAnyOrder(
+                TaskResult.occurrence(task1, null, scheduled1),
+                TaskResult.occurrence(task2, null, scheduled2));
     }
 
     // ── 2.11 ─────────────────────────────────────────────────────────────────
@@ -304,7 +283,7 @@ class TaskServiceQueryTest {
         when(taskRecurrenceService.getOccurrencesInRange(task, originalStart, originalEnd))
                 .thenReturn(List.of(occurrenceScheduledAt));
 
-        List<TaskDto> result = taskService.findOccurrencesForDateRange(originalDay, originalDay);
+        List<TaskResult> result = taskService.findOccurrencesForDateRange(originalDay, originalDay);
 
         // Occurrence moved to May 23 — May 21 should be empty.
         assertThat(result).isEmpty();
@@ -341,10 +320,9 @@ class TaskServiceQueryTest {
         when(taskRecurrenceService.getOccurrencesInRange(task, newStart, newEnd))
                 .thenReturn(List.of(movedScheduledAt));
 
-        taskService.findOccurrencesForDateRange(newDay, newDay);
+        List<TaskResult> result = taskService.findOccurrencesForDateRange(newDay, newDay);
 
-        // The mapper must receive the MODIFIED instance, not null.
-        verify(taskMapper).toOccurrenceDto(eq(task), eq(modified), any());
+        assertThat(result).anyMatch(taskResult -> taskResult.taskInstance() == modified);
     }
 
     // ── 2.10 ─────────────────────────────────────────────────────────────────
@@ -363,8 +341,6 @@ class TaskServiceQueryTest {
 
         TaskInstance skipped = buildInstance(task.getId(), atSkipped, TaskInstanceStatus.SKIPPED);
         TaskInstance done    = buildInstance(task.getId(), atDone,    TaskInstanceStatus.DONE);
-        TaskDto doneDto    = stubDto(task.getId());
-        TaskDto virtualDto = stubDto(task.getId());
 
         when(taskRepository.findNonRecurringTasksInPeriod(start, end)).thenReturn(List.of());
         when(taskRepository.findActiveRecurringTasksForPeriod(start, end)).thenReturn(List.of(task));
@@ -372,12 +348,11 @@ class TaskServiceQueryTest {
                 .thenReturn(List.of(skipped, done));
         when(taskRecurrenceService.getOccurrencesInRange(task, start, end))
                 .thenReturn(List.of(atSkipped, atDone, atVirtual));
-        when(taskMapper.toOccurrenceDto(task, done,    atDone)).thenReturn(doneDto);
-        when(taskMapper.toOccurrenceDto(task, null,    atVirtual)).thenReturn(virtualDto);
 
-        List<TaskDto> result = taskService.findOccurrencesForDateRange(from, to);
+        List<TaskResult> result = taskService.findOccurrencesForDateRange(from, to);
 
-        assertThat(result).containsExactlyInAnyOrder(doneDto, virtualDto);
-        verify(taskMapper, never()).toOccurrenceDto(eq(task), eq(skipped), any());
+        assertThat(result).containsExactlyInAnyOrder(
+                TaskResult.occurrence(task, done, atDone),
+                TaskResult.occurrence(task, null, atVirtual));
     }
 }

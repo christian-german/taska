@@ -1,9 +1,8 @@
 package com.taska.mcp;
 
-import com.taska.domain.project.ProjectMapper;
-import com.taska.domain.project.ProjectService;
-import com.taska.domain.task.TaskMapper;
-import com.taska.domain.task.TaskService;
+import com.taska.domain.project.service.ProjectService;
+import com.taska.domain.task.service.TaskService;
+import com.taska.domain.task.service.TaskMutationService;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
@@ -120,14 +119,14 @@ class McpEndpointIntegrationTest {
         ProjectMcpTools projectMcpTools() {
             ProjectService projectService = mock(ProjectService.class);
             org.mockito.Mockito.when(projectService.findAll()).thenReturn(List.of());
-            return new ProjectMcpTools(projectService, mock(ProjectMapper.class));
+            return new ProjectMcpTools(projectService);
         }
 
         @Bean
         TaskMcpTools taskMcpTools() {
             TaskService taskService = mock(TaskService.class);
             org.mockito.Mockito.when(taskService.findAll(null, null, false)).thenReturn(List.of());
-            return new TaskMcpTools(taskService, mock(TaskMapper.class));
+            return new TaskMcpTools(taskService, mock(TaskMutationService.class));
         }
     }
 

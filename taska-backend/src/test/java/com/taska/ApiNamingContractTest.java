@@ -1,10 +1,10 @@
 package com.taska;
 
-import com.taska.domain.comment.CommentController;
-import com.taska.domain.label.LabelController;
-import com.taska.domain.planningcalendar.PlanningCalendarController;
-import com.taska.domain.project.ProjectController;
-import com.taska.domain.task.TaskController;
+import com.taska.domain.comment.controller.CommentController;
+import com.taska.domain.label.controller.LabelController;
+import com.taska.domain.planningcalendar.controller.PlanningCalendarController;
+import com.taska.domain.project.controller.ProjectController;
+import com.taska.domain.task.controller.TaskController;
 import org.junit.jupiter.api.Test;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;

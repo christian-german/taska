@@ -283,7 +283,7 @@
       content:
         "application/json":
           schema:
-            "$ref": "../schemas/task.yaml#/TaskRequest"
+            "$ref": "../schemas/task.yaml#/TaskCreateRequest"
       required: true
       description: "Request payload."
     responses:

@@ -3,7 +3,7 @@ package com.taska.android.ui.addtask
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.taska.android.data.model.ProjectDto
-import com.taska.android.data.model.TaskRequest
+import com.taska.android.data.model.TaskCreateRequest
 import com.taska.android.data.repository.ProjectRepository
 import com.taska.android.data.repository.TaskRepository
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -69,7 +69,7 @@ class AddTaskViewModel(
             try {
                 val scheduledAt = current.dueDateMillis?.let { millisToApiDateTime(it, current.dueTimeMinutes) }
                 val allDay = if (current.dueDateMillis != null) current.dueTimeMinutes == null else null
-                val request = TaskRequest(
+                val request = TaskCreateRequest(
                     content = current.content.trim(),
                     type = current.taskType,
                     projectId = current.selectedProject?.id,

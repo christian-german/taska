@@ -7,7 +7,7 @@ import com.taska.android.data.model.OccurrenceUpdateRequest
 import com.taska.android.data.model.ProjectDto
 import com.taska.android.data.model.RegisterDeviceRequest
 import com.taska.android.data.model.TaskDto
-import com.taska.android.data.model.TaskRequest
+import com.taska.android.data.model.TaskCreateRequest
 import com.taska.android.data.model.TaskUpdateRequest
 import retrofit2.http.Body
 import retrofit2.http.DELETE
@@ -39,7 +39,7 @@ interface TaskaApi {
     suspend fun getSubtasks(@Path("taskId") taskId: String): List<TaskDto>
 
     @POST("/tasks")
-    suspend fun createTask(@Body request: TaskRequest): TaskDto
+    suspend fun createTask(@Body request: TaskCreateRequest): TaskDto
 
     @PUT("/tasks/{taskId}")
     suspend fun updateTask(@Path("taskId") taskId: String, @Body request: TaskUpdateRequest): TaskDto

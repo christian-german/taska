@@ -120,7 +120,12 @@ export class LabelsComponent implements OnInit {
     if (!name) return;
     const editing = this.editingLabel();
     if (editing) {
-      this.labelService.updateLabel(editing.id, { name, color: this.modalColor(), isFavorite: editing.isFavorite } as any).subscribe();
+      this.labelService.updateLabel(editing.id, {
+        name,
+        color: this.modalColor(),
+        order: editing.order,
+        isFavorite: editing.isFavorite,
+      }).subscribe();
     } else {
       this.labelService.createLabel({ name, color: this.modalColor(), isFavorite: false }).subscribe();
     }

@@ -1,5 +1,5 @@
-CommentRequest:
-  description: "Payload used to create or update a comment."
+CommentCreateRequest:
+  description: "Payload used to create a comment."
   type: "object"
   additionalProperties: false
   properties:
@@ -13,6 +13,17 @@ CommentRequest:
       format: "uuid"
     content:
       description: "Required text content of the comment; must not be blank."
+      type: "string"
+      minLength: 1
+  required:
+    - "content"
+CommentUpdateRequest:
+  description: "Complete replacement of a comment's mutable properties."
+  type: "object"
+  additionalProperties: false
+  properties:
+    content:
+      description: "Required replacement text; must not be blank."
       type: "string"
       minLength: 1
   required:

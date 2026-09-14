@@ -197,7 +197,6 @@ describe('Angular outgoing OpenAPI contract', () => {
       name: 'Launch',
       color: '#4073ff',
       parentId: null,
-      clearParent: false,
       order: 1,
       isFavorite: true,
       viewStyle: 'LIST' as const,

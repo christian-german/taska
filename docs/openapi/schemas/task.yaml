@@ -201,7 +201,7 @@ OccurrenceUpdateRequest:
       format: "date-time"
   required:
     - "title"
-TaskRequest:
+TaskCreateRequest:
   description: "Payload used to create a task."
   type: "object"
   additionalProperties: false
@@ -261,17 +261,6 @@ TaskRequest:
     recurrenceRule:
       description: "iCal4j RRULE or shorthand alias (`daily`, `weekly`, `monthly`, or `yearly`), normalized on save."
       type: ["string", "null"]
-    scope:
-      description: "For recurring updates, apply the change only to this occurrence or from this occurrence onward."
-      type: ["string", "null"]
-      enum:
-        - "THIS_ONLY"
-        - "FROM_THIS"
-        - null
-    occurrenceScheduledAt:
-      description: "UTC instant identifying the generated occurrence; required when a recurrence scope is supplied."
-      type: ["string", "null"]
-      format: "date-time"
     type:
       description: "Kind of commitment represented by the task."
       type: ["string", "null"]

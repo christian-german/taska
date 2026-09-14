@@ -1,5 +1,8 @@
 package com.taska.domain.task;
 
+import com.taska.domain.task.controller.TaskDto;
+import com.taska.domain.task.controller.TaskMapper;
+import com.taska.domain.task.controller.TaskMapperImpl;
 import com.taska.domain.task.occurrence.TaskInstance;
 import com.taska.domain.task.occurrence.TaskInstanceStatus;
 import org.junit.jupiter.api.Test;
@@ -16,10 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 class TaskMapperTest {
 
-    // Use an anonymous implementation so the default method runs without Spring context.
-    private final TaskMapper taskMapper = _ -> {
-        throw new UnsupportedOperationException("not used in these tests");
-    };
+    private final TaskMapper taskMapper = new TaskMapperImpl();
 
     // ── Helpers ──────────────────────────────────────────────────────────────
 

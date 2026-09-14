@@ -9,7 +9,7 @@ import com.taska.android.data.model.RecurrenceScope
 import com.taska.android.data.model.TaskDto
 import com.taska.android.data.model.TaskUpdateRequest
 import com.taska.android.data.model.OccurrenceUpdateRequest
-import com.taska.android.data.model.TaskRequest
+import com.taska.android.data.model.TaskCreateRequest
 import com.taska.android.data.model.toTaskUpdateRequest
 import com.taska.android.data.repository.LabelRepository
 import com.taska.android.data.repository.ProjectRepository
@@ -256,7 +256,7 @@ class TaskDetailViewModel(
         viewModelScope.launch {
             try {
                 taskRepo.createTask(
-                    TaskRequest(
+                    TaskCreateRequest(
                         content = content,
                         projectId = _uiState.value.task?.projectId,
                         parentId = taskId

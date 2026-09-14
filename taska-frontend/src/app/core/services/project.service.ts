@@ -9,15 +9,24 @@ export interface ReorderItem {
   order: number;
 }
 
-export interface ProjectRequest {
+export interface ProjectCreateRequest {
   name: string;
   color?: string | null;
   parentId?: string | null;
-  clearParent?: boolean | null;
   order?: number | null;
   isFavorite?: boolean | null;
   viewStyle?: Project['viewStyle'] | null;
   planningCalendarId?: string | null;
+}
+
+export interface ProjectUpdateRequest {
+  name: string;
+  color: string;
+  parentId: string | null;
+  order: number;
+  isFavorite: boolean;
+  viewStyle: Project['viewStyle'];
+  planningCalendarId: string;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -38,13 +47,13 @@ export class ProjectService {
     return this.http.get<Project>(`${this.base}/${projectId}`);
   }
 
-  createProject(data: ProjectRequest): Observable<Project> {
+  createProject(data: ProjectCreateRequest): Observable<Project> {
     return this.http.post<Project>(this.base, data).pipe(
       tap(() => this.loadProjects().subscribe()),
     );
   }
 
-  updateProject(projectId: string, data: ProjectRequest): Observable<Project> {
+  updateProject(projectId: string, data: ProjectUpdateRequest): Observable<Project> {
     return this.http.put<Project>(`${this.base}/${projectId}`, data).pipe(
       tap(updated => {
         const current = this.projectsSubject.value;

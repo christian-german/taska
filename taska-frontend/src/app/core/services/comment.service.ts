@@ -4,9 +4,13 @@ import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { Comment } from '../models';
 
-interface CommentRequest {
+interface CommentCreateRequest {
   taskId?: string | null;
   projectId?: string | null;
+  content: string;
+}
+
+interface CommentUpdateRequest {
   content: string;
 }
 
@@ -22,11 +26,11 @@ export class CommentService {
     return this.http.get<Comment[]>(this.base, { params });
   }
 
-  createComment(data: CommentRequest): Observable<Comment> {
+  createComment(data: CommentCreateRequest): Observable<Comment> {
     return this.http.post<Comment>(this.base, data);
   }
 
-  updateComment(commentId: string, data: Pick<CommentRequest, 'content'>): Observable<Comment> {
+  updateComment(commentId: string, data: CommentUpdateRequest): Observable<Comment> {
     return this.http.put<Comment>(`${this.base}/${commentId}`, data);
   }
 

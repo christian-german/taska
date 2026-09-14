@@ -1,6 +1,6 @@
 package com.taska.domain.task;
 
-import com.taska.domain.task.occurrence.TaskRecurrenceService;
+import com.taska.domain.task.occurrence.service.TaskRecurrenceService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 

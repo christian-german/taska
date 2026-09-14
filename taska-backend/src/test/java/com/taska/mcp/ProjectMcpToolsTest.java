@@ -1,8 +1,7 @@
 package com.taska.mcp;
 
 import com.taska.domain.project.Project;
-import com.taska.domain.project.ProjectMapper;
-import com.taska.domain.project.ProjectService;
+import com.taska.domain.project.service.ProjectService;
 import com.taska.exception.ResourceNotFoundException;
 import io.modelcontextprotocol.spec.McpSchema;
 import org.junit.jupiter.api.Test;
@@ -22,7 +21,6 @@ import static org.mockito.Mockito.when;
 class ProjectMcpToolsTest {
 
     @Mock private ProjectService projectService;
-    @Mock private ProjectMapper projectMapper;
     @InjectMocks private ProjectMcpTools projectMcpTools;
 
     @Test

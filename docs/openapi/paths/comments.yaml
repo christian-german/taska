@@ -15,7 +15,7 @@
       content:
         "application/json":
           schema:
-            "$ref": "../schemas/comment.yaml#/CommentRequest"
+            "$ref": "../schemas/comment.yaml#/CommentUpdateRequest"
       required: true
       description: "Request payload."
     responses:
@@ -117,7 +117,7 @@
       content:
         "application/json":
           schema:
-            "$ref": "../schemas/comment.yaml#/CommentRequest"
+            "$ref": "../schemas/comment.yaml#/CommentCreateRequest"
       required: true
       description: "Request payload."
     responses:

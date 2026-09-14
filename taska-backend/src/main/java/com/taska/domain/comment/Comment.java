@@ -1,5 +1,6 @@
 package com.taska.domain.comment;
 
+import com.taska.domain.comment.repository.CommentRepository;
 import jakarta.persistence.*;
 
 import java.time.Instant;

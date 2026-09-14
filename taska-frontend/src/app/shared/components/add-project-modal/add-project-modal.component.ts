@@ -217,11 +217,11 @@ export class AddProjectModalComponent implements OnInit {
       this.projectService.updateProject(p.id, {
         name,
         color: this.color(),
-        parentId: parentId || undefined,
-        clearParent: !parentId,
+        parentId: parentId || null,
+        order: p.order,
         viewStyle: this.viewStyle(),
         isFavorite: this.isFavorite(),
-        planningCalendarId: this.planningCalendarId() || undefined,
+        planningCalendarId: this.planningCalendarId() || p.planningCalendarId,
       }).subscribe(() => this.close.emit());
     } else {
       this.projectService.createProject({

@@ -1,8 +1,14 @@
 package com.taska.domain.task;
 
-import com.taska.domain.priority.TaskPriorityEvaluationDto;
-import com.taska.domain.priority.TaskPriorityEvaluationService;
-import com.taska.domain.notification.TaskChangePublisher;
+import com.taska.domain.priority.TaskPriorityEvaluation;
+import com.taska.domain.priority.controller.TaskPriorityEvaluationDto;
+import com.taska.domain.priority.controller.TaskPriorityEvaluationMapper;
+import com.taska.domain.priority.service.TaskPriorityEvaluationService;
+import com.taska.domain.task.controller.TaskController;
+import com.taska.domain.task.controller.TaskMapper;
+import com.taska.domain.task.controller.TaskUpdateRequest;
+import com.taska.domain.task.service.TaskService;
+import com.taska.domain.task.service.TaskMutationService;
 import tools.jackson.databind.exc.MismatchedInputException;
 import tools.jackson.databind.json.JsonMapper;
 import org.junit.jupiter.api.Test;
@@ -20,14 +26,22 @@ class TaskControllerPriorityEvaluationTest {
     private final TaskService taskService = mock(TaskService.class);
     private final TaskMapper taskMapper = mock(TaskMapper.class);
     private final TaskPriorityEvaluationService taskPriorityEvaluationService = mock(TaskPriorityEvaluationService.class);
-    private final TaskChangePublisher taskChangePublisher = mock(TaskChangePublisher.class);
-    private final TaskController taskController = new TaskController(taskService, taskMapper, taskPriorityEvaluationService, taskChangePublisher);
+    private final TaskPriorityEvaluationMapper priorityEvaluationMapper = mock(TaskPriorityEvaluationMapper.class);
+    private final TaskMutationService taskMutationService = mock(TaskMutationService.class);
+    private final TaskController taskController = new TaskController(
+            taskService, taskMutationService, taskMapper, taskPriorityEvaluationService, priorityEvaluationMapper);
 
     @Test
     void returnsEvaluationWhenPresent() {
         UUID id = UUID.randomUUID();
-        var evaluation = new TaskPriorityEvaluationDto(id, 95, new ObjectMapper().createObjectNode(), Instant.now());
-        when(taskPriorityEvaluationService.findForTask(id)).thenReturn(Optional.of(evaluation));
+        var entity = new TaskPriorityEvaluation();
+        entity.setTaskId(id);
+        entity.setScore(95);
+        entity.setComponents(new ObjectMapper().createObjectNode());
+        entity.setComputedAt(Instant.now());
+        var evaluation = TaskPriorityEvaluationDto.from(entity);
+        when(taskPriorityEvaluationService.findForTask(id)).thenReturn(Optional.of(entity));
+        when(priorityEvaluationMapper.toDto(entity)).thenReturn(evaluation);
         var responseEntity = taskController.getPriorityEvaluation(id);
         assertThat(responseEntity.getStatusCode().value()).isEqualTo(200);
         assertThat(responseEntity.getBody()).isEqualTo(evaluation);

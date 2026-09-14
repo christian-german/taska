@@ -1,5 +1,6 @@
 package com.taska.domain.priority;
 
+import com.taska.domain.priority.service.TaskPriorityScorer;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;

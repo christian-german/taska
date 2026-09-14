@@ -1,5 +1,5 @@
-PlanningCalendarRequest:
-  description: "Payload used to create or update a planning calendar."
+PlanningCalendarCreateRequest:
+  description: "Payload used to create a planning calendar."
   type: "object"
   additionalProperties: false
   properties:
@@ -8,12 +8,29 @@ PlanningCalendarRequest:
       type: "string"
       minLength: 1
     rules:
-      description: "Availability windows that replace the calendar's existing rules when supplied on update."
+      description: "Optional initial availability windows; omission creates an empty rule set."
       type: ["array", "null"]
       items:
         "$ref": "./planning-calendar.yaml#/Rule"
   required:
     - "name"
+PlanningCalendarUpdateRequest:
+  description: "Complete replacement of a planning calendar's mutable properties."
+  type: "object"
+  additionalProperties: false
+  properties:
+    name:
+      description: "Required replacement display name; must not be blank."
+      type: "string"
+      minLength: 1
+    rules:
+      description: "Complete replacement rule set; an empty array clears all existing rules."
+      type: "array"
+      items:
+        "$ref": "./planning-calendar.yaml#/Rule"
+  required:
+    - "name"
+    - "rules"
 Rule:
   description: "A planning window expressed as weekday and minute offsets."
   type: "object"

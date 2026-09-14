@@ -46,7 +46,7 @@
       content:
         "application/json":
           schema:
-            "$ref": "../schemas/label.yaml#/LabelRequest"
+            "$ref": "../schemas/label.yaml#/LabelUpdateRequest"
       required: true
       description: "Request payload."
     responses:
@@ -131,7 +131,7 @@
       content:
         "application/json":
           schema:
-            "$ref": "../schemas/label.yaml#/LabelRequest"
+            "$ref": "../schemas/label.yaml#/LabelCreateRequest"
       required: true
       description: "Request payload."
     responses:

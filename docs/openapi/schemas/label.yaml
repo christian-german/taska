@@ -1,5 +1,5 @@
-LabelRequest:
-  description: "Payload used to create or update a label."
+LabelCreateRequest:
+  description: "Payload used to create a label."
   type: "object"
   additionalProperties: false
   properties:
@@ -19,6 +19,30 @@ LabelRequest:
       type: ["boolean", "null"]
   required:
     - "name"
+LabelUpdateRequest:
+  description: "Complete mutable representation used to replace a label."
+  type: "object"
+  additionalProperties: false
+  properties:
+    name:
+      description: "Required unique display name of the label; must not be blank."
+      type: "string"
+      minLength: 1
+    color:
+      description: "Required color identifier used to display the label."
+      type: "string"
+    order:
+      description: "Required display position among all labels."
+      type: "integer"
+      format: "int32"
+    isFavorite:
+      description: "Required favourite state of the label."
+      type: "boolean"
+  required:
+    - "name"
+    - "color"
+    - "order"
+    - "isFavorite"
 LabelDto:
   description: "Label returned by the API."
   type: "object"

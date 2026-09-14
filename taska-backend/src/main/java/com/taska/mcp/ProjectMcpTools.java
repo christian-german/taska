@@ -1,10 +1,10 @@
 package com.taska.mcp;
 
 import com.taska.domain.project.Project;
-import com.taska.domain.project.ProjectMapper;
-import com.taska.domain.project.ProjectRequest;
-import com.taska.domain.project.ProjectService;
 import com.taska.domain.project.ViewStyle;
+import com.taska.domain.project.service.ProjectCreateParameters;
+import com.taska.domain.project.service.ProjectService;
+import com.taska.domain.project.service.ProjectUpdateParameters;
 import io.modelcontextprotocol.spec.McpSchema;
 import lombok.RequiredArgsConstructor;
 import org.springframework.ai.mcp.annotation.McpTool;
@@ -21,20 +21,17 @@ import java.util.UUID;
 public class ProjectMcpTools {
 
     private final ProjectService projectService;
-    private final ProjectMapper projectMapper;
 
     @McpTool(name = "list_projects", description = "List all Taska projects in their display order.", generateOutputSchema = true)
     public McpSchema.CallToolResult listProjects() {
-        return McpToolResponses.execute(() -> new ProjectListOutput(projectService.findAll().stream()
-                .map(projectMapper::toDto)
-                .map(ProjectOutput::from)
-                .toList()));
+        return McpToolResponses.execute(() -> new ProjectListOutput(
+                projectService.findAll().stream().map(ProjectOutput::from).toList()));
     }
 
     @McpTool(name = "get_project", description = "Get a Taska project by its UUID.", generateOutputSchema = true)
     public McpSchema.CallToolResult getProject(
             @McpToolParam(required = true, description = "Project UUID.") UUID projectId) {
-        return McpToolResponses.execute(() -> ProjectOutput.from(projectMapper.toDto(projectService.findById(projectId))));
+        return McpToolResponses.execute(() -> ProjectOutput.from(projectService.findById(projectId)));
     }
 
     @McpTool(name = "create_project", description = "Create a Taska project.", generateOutputSchema = true)
@@ -43,11 +40,15 @@ public class ProjectMcpTools {
             ProjectCreateInput projectCreateInput) {
         return McpToolResponses.execute(() -> {
             requireName(projectCreateInput.name());
-            Project project = projectService.create(new ProjectRequest(
-                    projectCreateInput.name(), projectCreateInput.color(), projectCreateInput.parentId(),
-                    false, projectCreateInput.order(), projectCreateInput.isFavorite(),
-                    projectCreateInput.viewStyle(), null));
-            return ProjectOutput.from(projectMapper.toDto(project));
+            Project project = projectService.create(new ProjectCreateParameters(
+                    projectCreateInput.name(),
+                    projectCreateInput.color() == null ? "#808080" : projectCreateInput.color(),
+                    projectCreateInput.parentId(),
+                    projectCreateInput.order() == null ? 0 : projectCreateInput.order(),
+                    Boolean.TRUE.equals(projectCreateInput.isFavorite()),
+                    projectCreateInput.viewStyle() == null ? ViewStyle.LIST : projectCreateInput.viewStyle(),
+                    null));
+            return ProjectOutput.from(project);
         });
     }
 
@@ -57,14 +58,30 @@ public class ProjectMcpTools {
             @McpToolParam(required = true, description = "Project fields to update. Omitted fields are unchanged.")
             ProjectUpdateInput projectUpdateInput) {
         return McpToolResponses.execute(() -> {
-            if (projectUpdateInput.name() != null) {
-                requireName(projectUpdateInput.name());
-            }
-            Project project = projectService.update(projectId, new ProjectRequest(
-                    projectUpdateInput.name(), projectUpdateInput.color(), projectUpdateInput.parentId(),
-                    projectUpdateInput.clearParent(), projectUpdateInput.order(),
-                    projectUpdateInput.isFavorite(), projectUpdateInput.viewStyle(), null));
-            return ProjectOutput.from(projectMapper.toDto(project));
+            Project existingProject = projectService.findById(projectId);
+            String name = projectUpdateInput.name() == null
+                    ? existingProject.getName()
+                    : projectUpdateInput.name();
+            requireName(name);
+            Project project = projectService.update(projectId, new ProjectUpdateParameters(
+                    name,
+                    projectUpdateInput.color() == null ? existingProject.getColor() : projectUpdateInput.color(),
+                    Boolean.TRUE.equals(projectUpdateInput.clearParent())
+                            ? null
+                            : projectUpdateInput.parentId() == null
+                                    ? existingProject.getParentId()
+                                    : projectUpdateInput.parentId(),
+                    projectUpdateInput.order() == null
+                            ? existingProject.getPosition()
+                            : projectUpdateInput.order(),
+                    projectUpdateInput.isFavorite() == null
+                            ? existingProject.getIsFavorite()
+                            : projectUpdateInput.isFavorite(),
+                    projectUpdateInput.viewStyle() == null
+                            ? existingProject.getViewStyle()
+                            : projectUpdateInput.viewStyle(),
+                    existingProject.getPlanningCalendarId()));
+            return ProjectOutput.from(project);
         });
     }
 
@@ -88,10 +105,13 @@ public class ProjectMcpTools {
 
     public record ProjectOutput(UUID id, String name, String color, UUID parentId, Integer order,
                                 Boolean isFavorite, ViewStyle viewStyle, Boolean isInboxProject,
-                                Instant createdAt, Instant updatedAt) {
-        static ProjectOutput from(com.taska.domain.project.ProjectDto project) {
-            return new ProjectOutput(project.id(), project.name(), project.color(), project.parentId(), project.order(),
-                    project.isFavorite(), project.viewStyle(), project.isInboxProject(), project.createdAt(), project.updatedAt());
+                                UUID planningCalendarId, Instant createdAt, Instant updatedAt) {
+        static ProjectOutput from(Project project) {
+            return new ProjectOutput(
+                    project.getId(), project.getName(), project.getColor(), project.getParentId(),
+                    project.getPosition(), project.getIsFavorite(), project.getViewStyle(),
+                    project.getIsInboxProject(), project.getPlanningCalendarId(),
+                    project.getCreatedAt(), project.getUpdatedAt());
         }
     }
 }

@@ -76,26 +76,34 @@ components:
       "$ref": "./schemas/task.yaml#/TaskDto"
     OccurrenceUpdateRequest:
       "$ref": "./schemas/task.yaml#/OccurrenceUpdateRequest"
-    ProjectRequest:
-      "$ref": "./schemas/project.yaml#/ProjectRequest"
+    ProjectCreateRequest:
+      "$ref": "./schemas/project.yaml#/ProjectCreateRequest"
+    ProjectUpdateRequest:
+      "$ref": "./schemas/project.yaml#/ProjectUpdateRequest"
     ProjectDto:
       "$ref": "./schemas/project.yaml#/ProjectDto"
-    PlanningCalendarRequest:
-      "$ref": "./schemas/planning-calendar.yaml#/PlanningCalendarRequest"
+    PlanningCalendarCreateRequest:
+      "$ref": "./schemas/planning-calendar.yaml#/PlanningCalendarCreateRequest"
+    PlanningCalendarUpdateRequest:
+      "$ref": "./schemas/planning-calendar.yaml#/PlanningCalendarUpdateRequest"
     Rule:
       "$ref": "./schemas/planning-calendar.yaml#/Rule"
     PlanningCalendarDto:
       "$ref": "./schemas/planning-calendar.yaml#/PlanningCalendarDto"
-    LabelRequest:
-      "$ref": "./schemas/label.yaml#/LabelRequest"
+    LabelCreateRequest:
+      "$ref": "./schemas/label.yaml#/LabelCreateRequest"
+    LabelUpdateRequest:
+      "$ref": "./schemas/label.yaml#/LabelUpdateRequest"
     LabelDto:
       "$ref": "./schemas/label.yaml#/LabelDto"
-    CommentRequest:
-      "$ref": "./schemas/comment.yaml#/CommentRequest"
+    CommentCreateRequest:
+      "$ref": "./schemas/comment.yaml#/CommentCreateRequest"
+    CommentUpdateRequest:
+      "$ref": "./schemas/comment.yaml#/CommentUpdateRequest"
     CommentDto:
       "$ref": "./schemas/comment.yaml#/CommentDto"
-    TaskRequest:
-      "$ref": "./schemas/task.yaml#/TaskRequest"
+    TaskCreateRequest:
+      "$ref": "./schemas/task.yaml#/TaskCreateRequest"
     TaskCloseReopenRequest:
       "$ref": "./schemas/task.yaml#/TaskCloseReopenRequest"
     RegisterDeviceRequest:

@@ -48,8 +48,6 @@ export interface TaskCreateRequest {
   estimateMinutes?: number | null;
   mentionContext?: string | null;
   recurrenceRule?: string | null;
-  scope?: RecurrenceScope | null;
-  occurrenceScheduledAt?: string | null;
 }
 
 @Injectable({ providedIn: 'root' })

@@ -7,7 +7,7 @@ import com.taska.android.data.model.DeleteTaskBody
 import com.taska.android.data.model.OccurrenceUpdateRequest
 import com.taska.android.data.model.RecurrenceScope
 import com.taska.android.data.model.TaskDto
-import com.taska.android.data.model.TaskRequest
+import com.taska.android.data.model.TaskCreateRequest
 import com.taska.android.data.model.TaskUpdateRequest
 import com.taska.android.widget.TaskWidgetRefresh
 
@@ -27,7 +27,7 @@ class TaskRepository(private val api: TaskaApi) {
 
     suspend fun getSubtasks(taskId: String): List<TaskDto> = api.getSubtasks(taskId)
 
-    suspend fun createTask(request: TaskRequest): TaskDto =
+    suspend fun createTask(request: TaskCreateRequest): TaskDto =
         api.createTask(request).also { refreshWidgets() }
 
     suspend fun updateTask(id: String, request: TaskUpdateRequest): TaskDto =

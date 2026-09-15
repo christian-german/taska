@@ -1,4 +1,4 @@
-package com.taska.domain.notification;
+package com.taska.domain.notification.repository;
 
 import jakarta.persistence.*;
 

@@ -1,12 +1,17 @@
 package com.taska.domain.planningcalendar;
 
 import com.taska.config.TaskaProperties;
+import com.taska.domain.planningcalendar.repository.PlanningCalendar;
 import com.taska.domain.planningcalendar.repository.PlanningCalendarRepository;
+import com.taska.domain.planningcalendar.repository.PlanningCalendarRule;
 import com.taska.domain.planningcalendar.repository.PlanningCalendarRuleRepository;
 import com.taska.domain.planningcalendar.service.PlanningCalendarCreateParameters;
 import com.taska.domain.planningcalendar.service.PlanningCalendarRuleParameters;
 import com.taska.domain.planningcalendar.service.PlanningCalendarService;
 import com.taska.domain.planningcalendar.service.PlanningCalendarUpdateParameters;
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.Validation;
+import jakarta.validation.Validator;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -15,16 +20,20 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.Instant;
 import java.time.ZoneId;
+import java.lang.reflect.Method;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 
 @ExtendWith(MockitoExtension.class)
 class PlanningCalendarServiceTest {
+    private final Validator validator = Validation.buildDefaultValidatorFactory().getValidator();
+
     @Mock PlanningCalendarRepository calendars;
     @Mock PlanningCalendarRuleRepository rules;
     @Mock TaskaProperties properties;
@@ -47,16 +56,23 @@ class PlanningCalendarServiceTest {
     }
 
     @Test
-    void rejectsOverlappingRulesOnCreate() {
-        PlanningCalendar calendar = new PlanningCalendar();
-        calendar.setId(UUID.randomUUID());
-        when(calendars.save(org.mockito.ArgumentMatchers.any())).thenReturn(calendar);
-        PlanningCalendarCreateParameters planningCalendarRequest = new PlanningCalendarCreateParameters("Work", List.of(
+    void validatesOverlappingRulesAtTheServiceBoundary() throws NoSuchMethodException {
+        PlanningCalendarCreateParameters planningCalendarParameters = new PlanningCalendarCreateParameters("Work", List.of(
                 new PlanningCalendarRuleParameters(1, 540, 720),
                 new PlanningCalendarRuleParameters(1, 600, 780)));
+        Method createMethod = PlanningCalendarService.class.getMethod(
+                "create", PlanningCalendarCreateParameters.class);
 
-        assertThatThrownBy(() -> planningCalendarService.create(planningCalendarRequest)).isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("overlap");
+        Set<ConstraintViolation<PlanningCalendarService>> violations = validator.forExecutables()
+                .validateParameters(
+                        planningCalendarService,
+                        createMethod,
+                        new Object[] {planningCalendarParameters});
+
+        assertThat(violations)
+                .extracting(ConstraintViolation::getMessage)
+                .contains("availability rules must not overlap");
+        verifyNoInteractions(calendars, rules);
     }
 
     @Test

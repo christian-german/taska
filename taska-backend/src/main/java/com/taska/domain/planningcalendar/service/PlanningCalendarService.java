@@ -1,23 +1,26 @@
 package com.taska.domain.planningcalendar.service;
 
 import com.taska.config.TaskaProperties;
-import com.taska.domain.planningcalendar.PlanningCalendar;
-import com.taska.domain.planningcalendar.PlanningCalendarRule;
+import com.taska.domain.planningcalendar.repository.PlanningCalendar;
+import com.taska.domain.planningcalendar.repository.PlanningCalendarRule;
 import com.taska.domain.planningcalendar.repository.PlanningCalendarRepository;
 import com.taska.domain.planningcalendar.repository.PlanningCalendarRuleRepository;
 import com.taska.exception.ResourceNotFoundException;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.validation.annotation.Validated;
 
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
-import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
 
 @Service
+@Validated
 @Transactional
 @RequiredArgsConstructor
 public class PlanningCalendarService {
@@ -29,18 +32,20 @@ public class PlanningCalendarService {
     private final TaskaProperties taskaProperties;
 
     @Transactional(readOnly = true)
-    public List<PlanningCalendarDetails> all() {
+    public List<PlanningCalendarDetails> findAll() {
         return planningCalendarRepository.findAll().stream()
                 .map(this::toDetails)
                 .toList();
     }
 
     @Transactional(readOnly = true)
-    public PlanningCalendarDetails get(UUID planningCalendarId) {
-        return toDetails(findEntity(planningCalendarId));
+    public PlanningCalendarDetails get(@NotNull UUID planningCalendarId) {
+        return toDetails(planningCalendarRepository.findById(planningCalendarId)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Planning calendar not found: " + planningCalendarId)));
     }
 
-    public PlanningCalendarDetails create(PlanningCalendarCreateParameters planningCalendarCreateParameters) {
+    public PlanningCalendarDetails create(@NotNull @Valid PlanningCalendarCreateParameters planningCalendarCreateParameters) {
         PlanningCalendar planningCalendar = new PlanningCalendar();
         planningCalendar.setName(planningCalendarCreateParameters.name());
         PlanningCalendar savedPlanningCalendar = planningCalendarRepository.save(planningCalendar);
@@ -48,10 +53,9 @@ public class PlanningCalendarService {
         return get(savedPlanningCalendar.getId());
     }
 
-    public PlanningCalendarDetails update(
-            UUID planningCalendarId,
-            PlanningCalendarUpdateParameters planningCalendarUpdateParameters) {
-        PlanningCalendar planningCalendar = findEntity(planningCalendarId);
+    public PlanningCalendarDetails update(@NotNull UUID planningCalendarId, @NotNull @Valid PlanningCalendarUpdateParameters planningCalendarUpdateParameters) {
+        PlanningCalendar planningCalendar = planningCalendarRepository.findById(planningCalendarId)
+                .orElseThrow(() -> new ResourceNotFoundException("Planning calendar not found: " + planningCalendarId));
         planningCalendar.setName(planningCalendarUpdateParameters.name());
         planningCalendarRepository.save(planningCalendar);
         replaceRules(planningCalendarId, planningCalendarUpdateParameters.rules());
@@ -59,7 +63,8 @@ public class PlanningCalendarService {
     }
 
     @Transactional(readOnly = true)
-    public boolean allows(UUID planningCalendarId, Instant scheduledAt, boolean allDay) {
+    public boolean allows(@NotNull UUID planningCalendarId, @NotNull Instant scheduledAt, boolean allDay) {
+
         ZoneId timeZone = taskaProperties.getCalendar().getTimeZone();
         ZonedDateTime scheduledDateTime = scheduledAt.atZone(timeZone);
         List<PlanningCalendarRule> calendarRules = planningCalendarRuleRepository
@@ -75,10 +80,8 @@ public class PlanningCalendarService {
                         && scheduledMinute < rule.getEndMinute());
     }
 
-    private void replaceRules(
-            UUID planningCalendarId,
-            List<PlanningCalendarRuleParameters> requestedRules) {
-        validateRules(requestedRules);
+    private void replaceRules(UUID planningCalendarId, List<PlanningCalendarRuleParameters> requestedRules) {
+
         planningCalendarRuleRepository.deleteByCalendarId(planningCalendarId);
         planningCalendarRuleRepository.saveAll(requestedRules.stream()
                 .map(requestedRule -> {
@@ -92,38 +95,8 @@ public class PlanningCalendarService {
                 .toList());
     }
 
-    private void validateRules(List<PlanningCalendarRuleParameters> requestedRules) {
-        for (PlanningCalendarRuleParameters rule : requestedRules) {
-            if (rule.dayOfWeek() < 1
-                    || rule.dayOfWeek() > 7
-                    || rule.startMinute() < 0
-                    || rule.startMinute() >= rule.endMinute()
-                    || rule.endMinute() > 1_440) {
-                throw new IllegalArgumentException("Invalid availability rule");
-            }
-        }
-        for (int dayOfWeek = 1; dayOfWeek <= 7; dayOfWeek++) {
-            final int currentDayOfWeek = dayOfWeek;
-            List<PlanningCalendarRuleParameters> rulesForDay = requestedRules.stream()
-                    .filter(rule -> rule.dayOfWeek() == currentDayOfWeek)
-                    .sorted(Comparator.comparingInt(PlanningCalendarRuleParameters::startMinute))
-                    .toList();
-            for (int ruleIndex = 1; ruleIndex < rulesForDay.size(); ruleIndex++) {
-                if (rulesForDay.get(ruleIndex - 1).endMinute()
-                        > rulesForDay.get(ruleIndex).startMinute()) {
-                    throw new IllegalArgumentException("Availability rules overlap");
-                }
-            }
-        }
-    }
-
-    private PlanningCalendar findEntity(UUID planningCalendarId) {
-        return planningCalendarRepository.findById(planningCalendarId)
-                .orElseThrow(() -> new ResourceNotFoundException(
-                        "Planning calendar not found: " + planningCalendarId));
-    }
-
     private PlanningCalendarDetails toDetails(PlanningCalendar planningCalendar) {
+
         return new PlanningCalendarDetails(
                 planningCalendar.getId(),
                 planningCalendar.getName(),

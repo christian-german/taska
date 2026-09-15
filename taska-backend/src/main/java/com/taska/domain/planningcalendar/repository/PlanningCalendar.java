@@ -1,4 +1,4 @@
-package com.taska.domain.planningcalendar;
+package com.taska.domain.planningcalendar.repository;
 
 import jakarta.persistence.*;
 

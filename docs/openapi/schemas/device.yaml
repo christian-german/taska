@@ -1,6 +1,7 @@
 RegisterDeviceRequest:
   description: "Push-notification device registration payload."
   type: "object"
+  additionalProperties: false
   properties:
     token:
       description: "Firebase Cloud Messaging device token to register; must not be blank."

@@ -27,34 +27,27 @@ public class PlanningCalendarController {
     private final PlanningCalendarMapper planningCalendarMapper;
 
     @GetMapping
-    public List<PlanningCalendarDto> all() {
-        return planningCalendarService.all().stream()
+    public List<PlanningCalendarDto> getAll() {
+        return planningCalendarService.findAll().stream()
                 .map(planningCalendarMapper::toDto)
                 .toList();
     }
 
     @GetMapping("/{planningCalendarId}")
-    public PlanningCalendarDto get(@PathVariable UUID planningCalendarId) {
+    public PlanningCalendarDto getById(@PathVariable UUID planningCalendarId) {
         return planningCalendarMapper.toDto(planningCalendarService.get(planningCalendarId));
     }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public PlanningCalendarDto create(
-            @Valid @RequestBody PlanningCalendarCreateRequest planningCalendarCreateRequest) {
-        PlanningCalendarCreateParameters planningCalendarCreateParameters =
-                planningCalendarMapper.toParameters(planningCalendarCreateRequest);
-        return planningCalendarMapper.toDto(
-                planningCalendarService.create(planningCalendarCreateParameters));
+    public PlanningCalendarDto create(@Valid @RequestBody PlanningCalendarCreateRequest planningCalendarCreateRequest) {
+        PlanningCalendarCreateParameters planningCalendarCreateParameters = planningCalendarMapper.toParameters(planningCalendarCreateRequest);
+        return planningCalendarMapper.toDto(planningCalendarService.create(planningCalendarCreateParameters));
     }
 
     @PutMapping("/{planningCalendarId}")
-    public PlanningCalendarDto update(
-            @PathVariable UUID planningCalendarId,
-            @Valid @RequestBody PlanningCalendarUpdateRequest planningCalendarUpdateRequest) {
-        PlanningCalendarUpdateParameters planningCalendarUpdateParameters =
-                planningCalendarMapper.toParameters(planningCalendarUpdateRequest);
-        return planningCalendarMapper.toDto(
-                planningCalendarService.update(planningCalendarId, planningCalendarUpdateParameters));
+    public PlanningCalendarDto update(@PathVariable UUID planningCalendarId, @Valid @RequestBody PlanningCalendarUpdateRequest planningCalendarUpdateRequest) {
+        PlanningCalendarUpdateParameters planningCalendarUpdateParameters = planningCalendarMapper.toParameters(planningCalendarUpdateRequest);
+        return planningCalendarMapper.toDto(planningCalendarService.update(planningCalendarId, planningCalendarUpdateParameters));
     }
 }

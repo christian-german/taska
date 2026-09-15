@@ -1,0 +1,12 @@
+###
+POST {{api}}/register-device
+Authorization: Bearer {{$auth.token("user")}}
+Content-Type: application/json
+
+{
+  "": false,
+  "\uda4e\udc38[": [
+    22069
+  ],
+  "token": "\ue94d"
+}

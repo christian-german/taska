@@ -114,6 +114,7 @@ services:
       TOKEN_SCOPE: openid profile email
       TOKEN_REDIRECT_URI: http://localhost:4200/callback
       TOKEN_TIMEOUT_SECONDS: "120"
+      SCHEMATHESIS_HOOKS: /contract-tests/hooks/constraints.py
     volumes:
       - ../docs/openapi:/openapi:ro
       - ./:/contract-tests:ro

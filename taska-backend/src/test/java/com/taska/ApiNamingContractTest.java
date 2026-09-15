@@ -66,7 +66,7 @@ class ApiNamingContractTest {
         assertEquals("/{labelId}", deletePath(LabelController.class, "delete"));
         assertEquals("/{commentId}", putPath(CommentController.class, "update"));
         assertEquals("/{commentId}", deletePath(CommentController.class, "delete"));
-        assertEquals("/{planningCalendarId}", getPath(PlanningCalendarController.class, "get"));
+        assertEquals("/{planningCalendarId}", getPath(PlanningCalendarController.class, "getById"));
         assertEquals("/{planningCalendarId}", putPath(PlanningCalendarController.class, "update"));
     }
 

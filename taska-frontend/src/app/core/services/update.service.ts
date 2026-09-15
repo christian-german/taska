@@ -1,14 +1,14 @@
-import {inject, Injectable, NgZone} from '@angular/core';
-import {check} from '@tauri-apps/plugin-updater';
-import {relaunch} from '@tauri-apps/plugin-process';
-import {Subject} from 'rxjs';
+import { inject, Injectable, NgZone } from '@angular/core';
+import { check } from '@tauri-apps/plugin-updater';
+import { relaunch } from '@tauri-apps/plugin-process';
+import { Subject } from 'rxjs';
 
 export interface UpdateInfo {
   version: string;
   notes: string;
 }
 
-@Injectable({providedIn: 'root'})
+@Injectable({ providedIn: 'root' })
 export class UpdateService {
   private updateAvailable$ = new Subject<UpdateInfo>();
   updateAvailable = this.updateAvailable$.asObservable();
@@ -31,7 +31,7 @@ export class UpdateService {
   }
 
   async downloadAndInstall(
-    onProgress?: (downloaded: number, total: number | null) => void
+    onProgress?: (downloaded: number, total: number | null) => void,
   ): Promise<void> {
     const update = await check();
     if (!update) return;

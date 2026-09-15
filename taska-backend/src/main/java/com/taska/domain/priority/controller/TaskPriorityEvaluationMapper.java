@@ -6,7 +6,7 @@ import org.mapstruct.MappingConstants;
 
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
 public interface TaskPriorityEvaluationMapper {
-    default TaskPriorityEvaluationDto toDto(TaskPriorityEvaluation taskPriorityEvaluation) {
-        return TaskPriorityEvaluationDto.from(taskPriorityEvaluation);
-    }
+  default TaskPriorityEvaluationDto toDto(TaskPriorityEvaluation taskPriorityEvaluation) {
+    return TaskPriorityEvaluationDto.from(taskPriorityEvaluation);
+  }
 }

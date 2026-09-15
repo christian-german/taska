@@ -6,7 +6,7 @@ import com.taska.android.data.model.ProjectDto
 
 class ProjectRepository(private val api: TaskaApi) {
 
-    constructor() : this(RetrofitClient.api)
+  constructor() : this(RetrofitClient.api)
 
-    suspend fun getProjects(): List<ProjectDto> = api.getProjects()
+  suspend fun getProjects(): List<ProjectDto> = api.getProjects()
 }

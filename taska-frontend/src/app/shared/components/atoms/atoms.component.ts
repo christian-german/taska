@@ -1,21 +1,29 @@
-import {ChangeDetectionStrategy, Component, computed, input, output, signal} from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, input, output, signal } from '@angular/core';
 import { hexToRgba } from '../../../core/models';
 
 @Component({
   selector: 'app-checkbox',
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <span class="cb"
-          [class.checked]="checked()"
-          [class.just-checked]="justChecked()"
-          [style.width.px]="size()"
-          [style.height.px]="size()"
-          (click)="onClick($event)"
-          role="checkbox"
-          [attr.aria-checked]="checked()">
+    <span
+      class="cb"
+      [class.checked]="checked()"
+      [class.just-checked]="justChecked()"
+      [style.width.px]="size()"
+      [style.height.px]="size()"
+      (click)="onClick($event)"
+      role="checkbox"
+      [attr.aria-checked]="checked()"
+    >
       <svg [attr.width]="size() - 6" [attr.height]="size() - 6" viewBox="0 0 14 14" fill="none">
-        <path class="check-svg" d="M2.5 7.5 L6 11 L11.5 3.5"
-              stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" />
+        <path
+          class="check-svg"
+          d="M2.5 7.5 L6 11 L11.5 3.5"
+          stroke="#fff"
+          stroke-width="2.2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        />
       </svg>
     </span>
   `,
@@ -44,7 +52,12 @@ export class CheckboxComponent {
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @if (display() && display() <= 4) {
-      <span [style.color]="color()" [style.display]="'inline-flex'" [style.align-items]="'center'" [title]="'P' + display()">
+      <span
+        [style.color]="color()"
+        [style.display]="'inline-flex'"
+        [style.align-items]="'center'"
+        [title]="'P' + display()"
+      >
         <svg [attr.width]="size()" [attr.height]="size()" viewBox="0 0 16 16" fill="none">
           <path d="M3 1.5 V14.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" />
           <path d="M3.4 2 L13 3 L11 6.2 L13 9.4 L3.4 8.4" fill="currentColor" />
@@ -69,7 +82,12 @@ export class PriorityFlagComponent {
 @Component({
   selector: 'app-project-dot',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  template: `<span class="dot" [style.background]="color()" [style.width.px]="size()" [style.height.px]="size()"></span>`,
+  template: `<span
+    class="dot"
+    [style.background]="color()"
+    [style.width.px]="size()"
+    [style.height.px]="size()"
+  ></span>`,
 })
 export class ProjectDotComponent {
   color = input<string>('#8A847A');
@@ -79,7 +97,9 @@ export class ProjectDotComponent {
 @Component({
   selector: 'app-tag-chip',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  template: `<span class="chip tag" [style.background]="bg()" [style.color]="color()">{{ prefix() }}{{ name() }}</span>`,
+  template: `<span class="chip tag" [style.background]="bg()" [style.color]="color()"
+    >{{ prefix() }}{{ name() }}</span
+  >`,
 })
 export class TagChipComponent {
   name = input.required<string>();
@@ -95,8 +115,16 @@ export class TagChipComponent {
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="empty">
-      <div [style.width.px]="64" [style.height.px]="64" [style.border-radius.px]="16" [style.background]="'var(--bg-2)'"
-           [style.display]="'flex'" [style.align-items]="'center'" [style.justify-content]="'center'" [style.margin-bottom.px]="12">
+      <div
+        [style.width.px]="64"
+        [style.height.px]="64"
+        [style.border-radius.px]="16"
+        [style.background]="'var(--bg-2)'"
+        [style.display]="'flex'"
+        [style.align-items]="'center'"
+        [style.justify-content]="'center'"
+        [style.margin-bottom.px]="12"
+      >
         <ng-content select="[icon]"></ng-content>
       </div>
       <div class="script" [style.font-size.px]="22" [style.color]="'var(--ink)'">{{ title() }}</div>
@@ -116,12 +144,12 @@ export function fireConfetti(x: number, y: number): void {
   for (let i = 0; i < 26; i++) {
     const el = document.createElement('div');
     el.className = 'confetti';
-    el.style.left = (x + (Math.random() - 0.5) * 100) + 'px';
-    el.style.top = (y - 10) + 'px';
+    el.style.left = x + (Math.random() - 0.5) * 100 + 'px';
+    el.style.top = y - 10 + 'px';
     el.style.background = colors[i % colors.length];
     el.style.transform = `rotate(${Math.random() * 360}deg)`;
     el.style.animation = `fall ${0.9 + Math.random() * 0.7}s ease-in forwards`;
-    el.style.animationDelay = (Math.random() * 0.15) + 's';
+    el.style.animationDelay = Math.random() * 0.15 + 's';
     document.body.appendChild(el);
     setTimeout(() => el.remove(), 2000);
   }

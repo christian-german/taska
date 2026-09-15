@@ -8,7 +8,7 @@ import androidx.compose.runtime.Composable
 
 @Composable
 fun SearchAction(onClick: () -> Unit) {
-    IconButton(onClick = onClick) {
-        Icon(Icons.Outlined.Search, contentDescription = "Rechercher des tâches")
-    }
+  IconButton(onClick = onClick) {
+    Icon(Icons.Outlined.Search, contentDescription = "Rechercher des tâches")
+  }
 }

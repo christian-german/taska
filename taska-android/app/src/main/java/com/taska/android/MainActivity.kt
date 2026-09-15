@@ -28,91 +28,92 @@ import com.taska.android.ui.theme.TaskaTheme
 
 class MainActivity : ComponentActivity() {
 
-    private val inboxViewModel: InboxViewModel by viewModels()
+  private val inboxViewModel: InboxViewModel by viewModels()
 
-    override fun onResume() {
-        super.onResume()
-        inboxViewModel.load()
-    }
+  override fun onResume() {
+    super.onResume()
+    inboxViewModel.load()
+  }
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
+  override fun onCreate(savedInstanceState: Bundle?) {
+    super.onCreate(savedInstanceState)
 
-        RetrofitClient.init(this)
+    RetrofitClient.init(this)
 
-        enableEdgeToEdge()
-        setContent {
-            TaskaTheme {
-                WithDrawer(
-                    onInboxSelected = { /* already on inbox, do nothing */ },
-                    onProjectSelected = { projectId ->
-                        startActivity(
-                            Intent(this, ProjectActivity::class.java)
-                                .putExtra("project_id", projectId)
-                                .putExtra("nav_current", NavDestination.INBOX.name)
-                        )
-                    }
-                ) {
-                    InboxRoot(
-                        inboxViewModel = inboxViewModel,
-                        onNavigate = { dest ->
-                            when (dest) {
-                                NavDestination.TODAY -> startActivity(
-                                    Intent(this, TodayActivity::class.java)
-                                        .addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT)
-                                )
-                                NavDestination.DAY -> startActivity(
-                                    Intent(this, DayActivity::class.java)
-                                        .addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT)
-                                )
-                                NavDestination.WEEK -> startActivity(
-                                    Intent(this, WeekActivity::class.java)
-                                        .addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT)
-                                )
-                                NavDestination.INBOX -> Unit
-                            }
-                        }
-                    )
-                }
-            }
+    enableEdgeToEdge()
+    setContent {
+      TaskaTheme {
+        WithDrawer(
+          onInboxSelected = { /* already on inbox, do nothing */ },
+          onProjectSelected = { projectId ->
+            startActivity(
+              Intent(this, ProjectActivity::class.java)
+                .putExtra("project_id", projectId)
+                .putExtra("nav_current", NavDestination.INBOX.name)
+            )
+          },
+        ) {
+          InboxRoot(
+            inboxViewModel = inboxViewModel,
+            onNavigate = { dest ->
+              when (dest) {
+                NavDestination.TODAY ->
+                  startActivity(
+                    Intent(this, TodayActivity::class.java)
+                      .addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT)
+                  )
+                NavDestination.DAY ->
+                  startActivity(
+                    Intent(this, DayActivity::class.java)
+                      .addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT)
+                  )
+                NavDestination.WEEK ->
+                  startActivity(
+                    Intent(this, WeekActivity::class.java)
+                      .addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT)
+                  )
+                NavDestination.INBOX -> Unit
+              }
+            },
+          )
         }
+      }
     }
+  }
 }
 
 @Composable
 private fun InboxRoot(inboxViewModel: InboxViewModel, onNavigate: (NavDestination) -> Unit) {
-    val context = LocalContext.current
-    val addTaskViewModel: AddTaskViewModel = viewModel()
-    var showAddTask by remember { mutableStateOf(false) }
+  val context = LocalContext.current
+  val addTaskViewModel: AddTaskViewModel = viewModel()
+  var showAddTask by remember { mutableStateOf(false) }
 
-    Column(modifier = Modifier.fillMaxSize()) {
-        InboxScreen(
-            viewModel = inboxViewModel,
-            onTaskClick = { taskId ->
-                context.startActivity(
-                    Intent(context, TaskDetailActivity::class.java).apply {
-                        putExtra("task_id", taskId)
-                    }
-                )
-            },
-            onSearch = { context.startActivity(Intent(context, SearchActivity::class.java)) },
-            modifier = Modifier.weight(1f)
+  Column(modifier = Modifier.fillMaxSize()) {
+    InboxScreen(
+      viewModel = inboxViewModel,
+      onTaskClick = { taskId ->
+        context.startActivity(
+          Intent(context, TaskDetailActivity::class.java).apply { putExtra("task_id", taskId) }
         )
-        BottomNavBar(
-            current = NavDestination.INBOX,
-            onNavigate = onNavigate,
-            onAddClick = { showAddTask = true }
-        )
-    }
+      },
+      onSearch = { context.startActivity(Intent(context, SearchActivity::class.java)) },
+      modifier = Modifier.weight(1f),
+    )
+    BottomNavBar(
+      current = NavDestination.INBOX,
+      onNavigate = onNavigate,
+      onAddClick = { showAddTask = true },
+    )
+  }
 
-    if (showAddTask) {
-        AddTaskBottomSheet(
-            viewModel = addTaskViewModel,
-            onDismiss = { showAddTask = false },
-            onTaskCreated = {
-                showAddTask = false
-                inboxViewModel.load()
-            }
-        )
-    }
+  if (showAddTask) {
+    AddTaskBottomSheet(
+      viewModel = addTaskViewModel,
+      onDismiss = { showAddTask = false },
+      onTaskCreated = {
+        showAddTask = false
+        inboxViewModel.load()
+      },
+    )
+  }
 }

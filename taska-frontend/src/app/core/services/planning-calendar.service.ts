@@ -21,7 +21,10 @@ export class PlanningCalendarService {
     return this.http.post<PlanningCalendar>(this.base, data);
   }
 
-  update(planningCalendarId: string, data: PlanningCalendarUpdateRequest): Observable<PlanningCalendar> {
+  update(
+    planningCalendarId: string,
+    data: PlanningCalendarUpdateRequest,
+  ): Observable<PlanningCalendar> {
     return this.http.put<PlanningCalendar>(`${this.base}/${planningCalendarId}`, data);
   }
 }

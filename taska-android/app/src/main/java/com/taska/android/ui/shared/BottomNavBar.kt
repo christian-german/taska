@@ -31,92 +31,94 @@ import androidx.compose.ui.unit.sp
 import com.taska.android.ui.theme.frostedChrome
 
 enum class NavDestination {
-    INBOX, TODAY, DAY, WEEK
+  INBOX,
+  TODAY,
+  DAY,
+  WEEK,
 }
 
 @Composable
 fun BottomNavBar(
-    current: NavDestination?,
-    onNavigate: (NavDestination) -> Unit,
-    onAddClick: () -> Unit
+  current: NavDestination?,
+  onNavigate: (NavDestination) -> Unit,
+  onAddClick: () -> Unit,
 ) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .frostedChrome()
-            .navigationBarsPadding()
-            .height(64.dp)
-            .padding(horizontal = 8.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceEvenly
+  Row(
+    modifier =
+      Modifier.fillMaxWidth()
+        .frostedChrome()
+        .navigationBarsPadding()
+        .height(64.dp)
+        .padding(horizontal = 8.dp),
+    verticalAlignment = Alignment.CenterVertically,
+    horizontalArrangement = Arrangement.SpaceEvenly,
+  ) {
+    NavItem(
+      icon = Icons.Outlined.AccessTime,
+      label = "Aujourd'hui",
+      active = current == NavDestination.TODAY,
+      onClick = { onNavigate(NavDestination.TODAY) },
+    )
+    NavItem(
+      icon = Icons.Outlined.CalendarViewDay,
+      label = "Journée",
+      active = current == NavDestination.DAY,
+      onClick = { onNavigate(NavDestination.DAY) },
+    )
+
+    Box(
+      modifier =
+        Modifier.size(52.dp)
+          .clip(RoundedCornerShape(14.dp))
+          .background(MaterialTheme.colorScheme.primary)
+          .clickable { onAddClick() },
+      contentAlignment = Alignment.Center,
     ) {
-        NavItem(
-            icon = Icons.Outlined.AccessTime,
-            label = "Aujourd'hui",
-            active = current == NavDestination.TODAY,
-            onClick = { onNavigate(NavDestination.TODAY) }
-        )
-        NavItem(
-            icon = Icons.Outlined.CalendarViewDay,
-            label = "Journée",
-            active = current == NavDestination.DAY,
-            onClick = { onNavigate(NavDestination.DAY) }
-        )
-
-        Box(
-            modifier = Modifier
-                .size(52.dp)
-                .clip(RoundedCornerShape(14.dp))
-                .background(MaterialTheme.colorScheme.primary)
-                .clickable { onAddClick() },
-            contentAlignment = Alignment.Center
-        ) {
-            Text(
-                text = "+",
-                color = MaterialTheme.colorScheme.onPrimary,
-                fontSize = 28.sp,
-                fontWeight = FontWeight.Light,
-                lineHeight = 28.sp
-            )
-        }
-
-        NavItem(
-            icon = Icons.Outlined.CalendarMonth,
-            label = "Semaine",
-            active = current == NavDestination.WEEK,
-            onClick = { onNavigate(NavDestination.WEEK) }
-        )
+      Text(
+        text = "+",
+        color = MaterialTheme.colorScheme.onPrimary,
+        fontSize = 28.sp,
+        fontWeight = FontWeight.Light,
+        lineHeight = 28.sp,
+      )
     }
+
+    NavItem(
+      icon = Icons.Outlined.CalendarMonth,
+      label = "Semaine",
+      active = current == NavDestination.WEEK,
+      onClick = { onNavigate(NavDestination.WEEK) },
+    )
+  }
 }
 
 @Composable
 private fun NavItem(
-    icon: ImageVector,
-    label: String,
-    active: Boolean,
-    onClick: () -> Unit
+  icon: ImageVector,
+  label: String,
+  active: Boolean,
+  onClick: () -> Unit,
 ) {
-    val tint = if (active) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.onSurfaceVariant
-    Column(
-        modifier = Modifier
-            .clickable(onClick = onClick)
-            .padding(horizontal = 4.dp, vertical = 8.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-        Icon(
-            imageVector = icon,
-            contentDescription = label,
-            tint = tint,
-            modifier = Modifier.size(22.dp)
-        )
-        Spacer(modifier = Modifier.height(2.dp))
-        Text(
-            text = label.uppercase(),
-            color = tint,
-            fontSize = 9.sp,
-            fontWeight = if (active) FontWeight.Bold else FontWeight.Normal,
-            letterSpacing = 0.5.sp
-        )
-    }
+  val tint =
+    if (active) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.onSurfaceVariant
+  Column(
+    modifier = Modifier.clickable(onClick = onClick).padding(horizontal = 4.dp, vertical = 8.dp),
+    horizontalAlignment = Alignment.CenterHorizontally,
+    verticalArrangement = Arrangement.Center,
+  ) {
+    Icon(
+      imageVector = icon,
+      contentDescription = label,
+      tint = tint,
+      modifier = Modifier.size(22.dp),
+    )
+    Spacer(modifier = Modifier.height(2.dp))
+    Text(
+      text = label.uppercase(),
+      color = tint,
+      fontSize = 9.sp,
+      fontWeight = if (active) FontWeight.Bold else FontWeight.Normal,
+      letterSpacing = 0.5.sp,
+    )
+  }
 }

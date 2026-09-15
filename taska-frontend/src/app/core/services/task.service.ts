@@ -74,9 +74,7 @@ export class TaskService {
   }
 
   createTask(data: TaskCreateRequest): Observable<Task> {
-    return this.http.post<Task>(this.base, data).pipe(
-      tap(() => this.taskCreationFeedback.show()),
-    );
+    return this.http.post<Task>(this.base, data).pipe(tap(() => this.taskCreationFeedback.show()));
   }
 
   updateTask(
@@ -88,13 +86,13 @@ export class TaskService {
   ): Observable<Task> {
     const { scope, occurrenceScheduledAt, ...changes } = patch;
     return this.getTask(taskId).pipe(
-      switchMap(task => {
+      switchMap((task) => {
         if (scope && !occurrenceScheduledAt) {
           return throwError(() => new Error('A recurring update requires an occurrence identity'));
         }
         if (scope === 'THIS_ONLY') {
           const unsupported = Object.keys(changes).filter(
-            key => !['content', 'priority', 'scheduledAt', 'dueAt'].includes(key),
+            (key) => !['content', 'priority', 'scheduledAt', 'dueAt'].includes(key),
           );
           if (unsupported.length) {
             return throwError(
@@ -142,7 +140,11 @@ export class TaskService {
     };
   }
 
-  deleteTask(taskId: string, scope?: RecurrenceScope, occurrenceScheduledAt?: string): Observable<void> {
+  deleteTask(
+    taskId: string,
+    scope?: RecurrenceScope,
+    occurrenceScheduledAt?: string,
+  ): Observable<void> {
     const body = scope ? { scope, occurrenceScheduledAt } : undefined;
     return this.http.delete<void>(`${this.base}/${taskId}`, { body });
   }

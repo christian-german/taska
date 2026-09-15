@@ -7,6 +7,4 @@ import java.time.Instant;
 
 /** Mutable fields that a persisted recurring occurrence can override independently. */
 public record OccurrenceUpdateRequest(
-        @NotBlank String title, @Min(1) @Max(4) Integer priority,
-        Instant scheduledAt, Instant dueAt
-) {}
+    @NotBlank String title, @Min(1) @Max(4) Integer priority, Instant scheduledAt, Instant dueAt) {}

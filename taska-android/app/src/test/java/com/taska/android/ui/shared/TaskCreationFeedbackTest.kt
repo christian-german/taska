@@ -13,25 +13,27 @@ import org.junit.Before
 import org.junit.Test
 
 class TaskCreationFeedbackTest {
-    @Before
-    fun setUp() {
-        mockkStatic(Toast::class)
-    }
+  @Before
+  fun setUp() {
+    mockkStatic(Toast::class)
+  }
 
-    @After
-    fun tearDown() {
-        unmockkStatic(Toast::class)
-    }
+  @After
+  fun tearDown() {
+    unmockkStatic(Toast::class)
+  }
 
-    @Test
-    fun `show presents a short task-created toast`() {
-        val applicationContext = mockk<Context>()
-        val context = mockk<Context> { every { this@mockk.applicationContext } returns applicationContext }
-        val toast = mockk<Toast>(relaxed = true)
-        every { Toast.makeText(applicationContext, R.string.task_created, Toast.LENGTH_SHORT) } returns toast
+  @Test
+  fun `show presents a short task-created toast`() {
+    val applicationContext = mockk<Context>()
+    val context =
+      mockk<Context> { every { this@mockk.applicationContext } returns applicationContext }
+    val toast = mockk<Toast>(relaxed = true)
+    every { Toast.makeText(applicationContext, R.string.task_created, Toast.LENGTH_SHORT) } returns
+      toast
 
-        TaskCreationFeedback.show(context)
+    TaskCreationFeedback.show(context)
 
-        verify(exactly = 1) { toast.show() }
-    }
+    verify(exactly = 1) { toast.show() }
+  }
 }

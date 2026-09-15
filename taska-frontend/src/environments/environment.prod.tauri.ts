@@ -6,6 +6,6 @@ export const environment = {
     clientId: 'mE2vXI67I43D8fmclgsjHKwt42W4dkDpXJQUOQEJ',
     redirectUri: 'http://tauri.localhost/callback',
     postLogoutRedirectUri: 'http://tauri.localhost',
-    scope: 'openid profile email offline_access'
-  }
+    scope: 'openid profile email offline_access',
+  },
 };

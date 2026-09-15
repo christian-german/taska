@@ -22,9 +22,12 @@ import { IconComponent } from '../icon/icon.component';
         <button class="btn btn-primary" (click)="onAdd()">
           <app-icon name="plus" [size]="13" />
           Ajouter
-          <span class="kbd"
-                style="margin-left: 6px; background: rgba(255,255,255,0.18);
-                       color: rgba(255,255,255,0.85); border: 0;">⌘N</span>
+          <span
+            class="kbd"
+            style="margin-left: 6px; background: rgba(255,255,255,0.18);
+                       color: rgba(255,255,255,0.85); border: 0;"
+            >⌘N</span
+          >
         </button>
         <div style="flex: 1;"></div>
         <ng-content select="[actions]"></ng-content>

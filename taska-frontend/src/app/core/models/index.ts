@@ -120,14 +120,20 @@ export function hexToRgba(hex: string | undefined, a: number): string {
   if (!hex) return `rgba(138,132,122,${a})`;
   if (hex.startsWith('rgba') || hex.startsWith('rgb')) return hex;
   let h = hex.replace('#', '');
-  if (h.length === 3) h = h.split('').map(c => c + c).join('');
+  if (h.length === 3)
+    h = h
+      .split('')
+      .map((c) => c + c)
+      .join('');
   const r = parseInt(h.slice(0, 2), 16);
   const g = parseInt(h.slice(2, 4), 16);
   const b = parseInt(h.slice(4, 6), 16);
   return `rgba(${r},${g},${b},${a})`;
 }
 
-export function isOverdue(taskOrDate: Pick<Task, 'scheduledAt' | 'allDay' | 'isCompleted'> | string | undefined): boolean {
+export function isOverdue(
+  taskOrDate: Pick<Task, 'scheduledAt' | 'allDay' | 'isCompleted'> | string | undefined,
+): boolean {
   if (!taskOrDate) return false;
   const todayMidnight = new Date();
   todayMidnight.setHours(0, 0, 0, 0);
@@ -174,7 +180,11 @@ export function isToday(scheduledAt?: string | null): boolean {
   if (!scheduledAt) return false;
   const d = new Date(scheduledAt);
   const t = new Date();
-  return d.getFullYear() === t.getFullYear() && d.getMonth() === t.getMonth() && d.getDate() === t.getDate();
+  return (
+    d.getFullYear() === t.getFullYear() &&
+    d.getMonth() === t.getMonth() &&
+    d.getDate() === t.getDate()
+  );
 }
 
 export function startOfDay(d: Date | string): Date {
@@ -192,8 +202,34 @@ export function daysDiff(a: Date | string, b: Date | string): number {
 }
 
 const FR_DAYS_LONG = ['dimanche', 'lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi'];
-const FR_MONTHS_LONG = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'];
-const FR_MONTHS_SHORT = ['janv.', 'févr.', 'mars', 'avr.', 'mai', 'juin', 'juil.', 'août', 'sept.', 'oct.', 'nov.', 'déc.'];
+const FR_MONTHS_LONG = [
+  'janvier',
+  'février',
+  'mars',
+  'avril',
+  'mai',
+  'juin',
+  'juillet',
+  'août',
+  'septembre',
+  'octobre',
+  'novembre',
+  'décembre',
+];
+const FR_MONTHS_SHORT = [
+  'janv.',
+  'févr.',
+  'mars',
+  'avr.',
+  'mai',
+  'juin',
+  'juil.',
+  'août',
+  'sept.',
+  'oct.',
+  'nov.',
+  'déc.',
+];
 const FR_DAYS_SHORT = ['dim.', 'lun.', 'mar.', 'mer.', 'jeu.', 'ven.', 'sam.'];
 
 export function fmtDateLong(d: Date | string): string {
@@ -208,7 +244,9 @@ export function fmtDateShort(d: Date | string): string {
 
 export function fmtTime(d: Date | string): string {
   const x = typeof d === 'string' ? new Date(d) : d;
-  return x.getHours().toString().padStart(2, '0') + ':' + x.getMinutes().toString().padStart(2, '0');
+  return (
+    x.getHours().toString().padStart(2, '0') + ':' + x.getMinutes().toString().padStart(2, '0')
+  );
 }
 
 export function fmtRel(due: Date | string | undefined): string {

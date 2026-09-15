@@ -1,62 +1,64 @@
 package com.taska.domain.planningcalendar.repository;
 
 import jakarta.persistence.*;
-
 import java.time.Instant;
 import java.util.UUID;
 
 @Entity
 @Table(name = "planning_calendars")
 public class PlanningCalendar {
-    @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID id;
-    @Column(nullable = false)
-    private String name;
-    @Column(name = "created_at", nullable = false, updatable = false)
-    private Instant createdAt;
-    @Column(name = "updated_at", nullable = false)
-    private Instant updatedAt;
+  @Id
+  @GeneratedValue(strategy = GenerationType.UUID)
+  private UUID id;
 
-    @PrePersist
-    void created() {
-        createdAt = updatedAt = Instant.now();
-    }
+  @Column(nullable = false)
+  private String name;
 
-    @PreUpdate
-    void updated() {
-        updatedAt = Instant.now();
-    }
+  @Column(name = "created_at", nullable = false, updatable = false)
+  private Instant createdAt;
 
-    public UUID getId() {
-        return this.id;
-    }
+  @Column(name = "updated_at", nullable = false)
+  private Instant updatedAt;
 
-    public String getName() {
-        return this.name;
-    }
+  @PrePersist
+  void created() {
+    createdAt = updatedAt = Instant.now();
+  }
 
-    public Instant getCreatedAt() {
-        return this.createdAt;
-    }
+  @PreUpdate
+  void updated() {
+    updatedAt = Instant.now();
+  }
 
-    public Instant getUpdatedAt() {
-        return this.updatedAt;
-    }
+  public UUID getId() {
+    return this.id;
+  }
 
-    public void setId(final UUID id) {
-        this.id = id;
-    }
+  public String getName() {
+    return this.name;
+  }
 
-    public void setName(final String name) {
-        this.name = name;
-    }
+  public Instant getCreatedAt() {
+    return this.createdAt;
+  }
 
-    public void setCreatedAt(final Instant createdAt) {
-        this.createdAt = createdAt;
-    }
+  public Instant getUpdatedAt() {
+    return this.updatedAt;
+  }
 
-    public void setUpdatedAt(final Instant updatedAt) {
-        this.updatedAt = updatedAt;
-    }
+  public void setId(final UUID id) {
+    this.id = id;
+  }
+
+  public void setName(final String name) {
+    this.name = name;
+  }
+
+  public void setCreatedAt(final Instant createdAt) {
+    this.createdAt = createdAt;
+  }
+
+  public void setUpdatedAt(final Instant updatedAt) {
+    this.updatedAt = updatedAt;
+  }
 }

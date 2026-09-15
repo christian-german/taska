@@ -13,18 +13,17 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class DeviceRegistrationService {
 
-    private static final Logger log = LoggerFactory.getLogger(DeviceRegistrationService.class);
+  private static final Logger log = LoggerFactory.getLogger(DeviceRegistrationService.class);
 
-    private final DeviceTokenRepository deviceTokenRepository;
+  private final DeviceTokenRepository deviceTokenRepository;
 
-    @Transactional
-    public void register(String token, String accountSubject) {
-        log.debug("Registering a device token");
-        DeviceToken deviceToken = deviceTokenRepository.findByToken(token)
-                .orElseGet(DeviceToken::new);
-        deviceToken.setToken(token);
-        deviceToken.setAccountSubject(accountSubject);
-        deviceTokenRepository.save(deviceToken);
-        log.debug("Device token registered successfully");
-    }
+  @Transactional
+  public void register(String token, String accountSubject) {
+    log.debug("Registering a device token");
+    DeviceToken deviceToken = deviceTokenRepository.findByToken(token).orElseGet(DeviceToken::new);
+    deviceToken.setToken(token);
+    deviceToken.setAccountSubject(accountSubject);
+    deviceTokenRepository.save(deviceToken);
+    log.debug("Device token registered successfully");
+  }
 }

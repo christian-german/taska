@@ -6,7 +6,7 @@ import com.taska.android.data.model.LabelDto
 
 class LabelRepository(private val api: TaskaApi) {
 
-    constructor() : this(RetrofitClient.api)
+  constructor() : this(RetrofitClient.api)
 
-    suspend fun getLabels(): List<LabelDto> = api.getLabels()
+  suspend fun getLabels(): List<LabelDto> = api.getLabels()
 }

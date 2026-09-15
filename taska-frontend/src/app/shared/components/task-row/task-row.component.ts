@@ -8,14 +8,18 @@ import {
   input,
   output,
   signal,
-  ChangeDetectionStrategy
+  ChangeDetectionStrategy,
 } from '@angular/core';
 
 const RRULE_LABELS: Record<string, string> = {
-  'daily': 'quotidien', 'freq=daily': 'quotidien',
-  'weekly': 'hebdomadaire', 'freq=weekly': 'hebdomadaire',
-  'monthly': 'mensuel', 'freq=monthly': 'mensuel',
-  'yearly': 'annuel', 'freq=yearly': 'annuel',
+  daily: 'quotidien',
+  'freq=daily': 'quotidien',
+  weekly: 'hebdomadaire',
+  'freq=weekly': 'hebdomadaire',
+  monthly: 'mensuel',
+  'freq=monthly': 'mensuel',
+  yearly: 'annuel',
+  'freq=yearly': 'annuel',
 };
 function rruleToLabel(rule: string | null | undefined): string {
   if (!rule) return 'récurrente';
@@ -38,52 +42,74 @@ import {
 } from '../../../core/models';
 import { LabelService } from '../../../core/services/label.service';
 import { IconComponent } from '../icon/icon.component';
-import { CheckboxComponent, PriorityFlagComponent, ProjectDotComponent, TagChipComponent } from '../atoms/atoms.component';
+import {
+  CheckboxComponent,
+  PriorityFlagComponent,
+  ProjectDotComponent,
+  TagChipComponent,
+} from '../atoms/atoms.component';
 
 @Component({
   selector: 'app-task-row',
-  imports: [FormsModule, IconComponent, CheckboxComponent, PriorityFlagComponent, ProjectDotComponent, TagChipComponent],
+  imports: [
+    FormsModule,
+    IconComponent,
+    CheckboxComponent,
+    PriorityFlagComponent,
+    ProjectDotComponent,
+    TagChipComponent,
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="row"
-         [class.selected]="selected()"
-         [class.done]="task().isCompleted"
-         [class.completing]="completing()"
-         [attr.data-task-id]="task().id"
-         (click)="onSelect(); $event.stopPropagation()">
-      <app-checkbox
-        [checked]="task().isCompleted"
-        (toggled)="onToggle($event)" />
+    <div
+      class="row"
+      [class.selected]="selected()"
+      [class.done]="task().isCompleted"
+      [class.completing]="completing()"
+      [attr.data-task-id]="task().id"
+      (click)="onSelect(); $event.stopPropagation()"
+    >
+      <app-checkbox [checked]="task().isCompleted" (toggled)="onToggle($event)" />
 
       <div style="min-width: 0;">
         <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
           <app-priority-flag [priority]="task().priority" />
           @if (editing()) {
-            <input #editInput
-                   class="inline-edit script"
-                   style="font-size: 17px;"
-                   [ngModel]="draft()"
-                   (ngModelChange)="draft.set($event)"
-                   (blur)="commitEdit()"
-                   (keydown.enter)="commitEdit(); $event.preventDefault()"
-                   (keydown.escape)="cancelEdit()"
-                   (click)="$event.stopPropagation()" />
+            <input
+              #editInput
+              class="inline-edit script"
+              style="font-size: 17px;"
+              [ngModel]="draft()"
+              (ngModelChange)="draft.set($event)"
+              (blur)="commitEdit()"
+              (keydown.enter)="commitEdit(); $event.preventDefault()"
+              (keydown.escape)="cancelEdit()"
+              (click)="$event.stopPropagation()"
+            />
           } @else {
-            <span class="title script"
-                  style="font-size: 17px; line-height: 1.2; cursor: pointer;"
-                  (dblclick)="startEdit($event)">{{ task().content }}</span>
+            <span
+              class="title script"
+              style="font-size: 17px; line-height: 1.2; cursor: pointer;"
+              (dblclick)="startEdit($event)"
+              >{{ task().content }}</span
+            >
           }
           @if (task().type === 'APPOINTMENT') {
-            <span class="chip" aria-label="Rendez-vous"
-                  style="background: rgba(58, 163, 255, .15); color: #1877B8; font-size: 10.5px;">
+            <span
+              class="chip"
+              aria-label="Rendez-vous"
+              style="background: rgba(58, 163, 255, .15); color: #1877B8; font-size: 10.5px;"
+            >
               <app-icon name="calendar" [size]="10" /> rendez-vous
             </span>
           }
           @if (suggested()) {
-            <span class="chip"
-                  style="background: rgba(255, 216, 77, 0.25); color: #8A6F00; font-size: 10.5px;
+            <span
+              class="chip"
+              style="background: rgba(255, 216, 77, 0.25); color: #8A6F00; font-size: 10.5px;
                          font-family: inherit; display: inline-flex;
-                         align-items: center; gap: 3px;">
+                         align-items: center; gap: 3px;"
+            >
               <app-icon name="zap" [size]="10" /> suggéré
             </span>
           }
@@ -92,12 +118,14 @@ import { CheckboxComponent, PriorityFlagComponent, ProjectDotComponent, TagChipC
         @if (hasMeta()) {
           <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px;">
             @if (dueDate(); as due) {
-              <span class="mono"
-                    [style.display]="'inline-flex'"
-                    [style.align-items]="'center'"
-                    [style.gap.px]="4"
-                    [style.color]="overdue() ? 'var(--p1)' : 'var(--mute)'"
-                    [style.font-size.px]="11">
+              <span
+                class="mono"
+                [style.display]="'inline-flex'"
+                [style.align-items]="'center'"
+                [style.gap.px]="4"
+                [style.color]="overdue() ? 'var(--p1)' : 'var(--mute)'"
+                [style.font-size.px]="11"
+              >
                 <app-icon name="clock" [size]="11" />
                 {{ dueLabel() }}
               </span>
@@ -108,22 +136,28 @@ import { CheckboxComponent, PriorityFlagComponent, ProjectDotComponent, TagChipC
               </span>
             }
             @if (task().recurrenceRule || task().isRecurring) {
-              <span class="mono"
-                    style="display: inline-flex; align-items: center; gap: 3px; color: var(--mute); font-size: 11px;">
+              <span
+                class="mono"
+                style="display: inline-flex; align-items: center; gap: 3px; color: var(--mute); font-size: 11px;"
+              >
                 <app-icon name="repeat" [size]="10" />
                 {{ recurrenceLabel() }}
               </span>
             }
             @if (project(); as p) {
-              <span style="display: inline-flex; align-items: center; gap: 4px; font-size: 11.5px; color: var(--ink-2);">
+              <span
+                style="display: inline-flex; align-items: center; gap: 4px; font-size: 11.5px; color: var(--ink-2);"
+              >
                 <app-project-dot [color]="getColor(p.color)" [size]="7" />
                 <span style="font-weight: 700; font-size: 14px;">{{ p.name }}</span>
               </span>
             }
             @if (task().mentionContext) {
-              <span class="chip"
-                    style="background: rgba(255, 94, 125, 0.15); color: #B22F4E;
-                           font-family: inherit; font-size: 10.5px;">
+              <span
+                class="chip"
+                style="background: rgba(255, 94, 125, 0.15); color: #B22F4E;
+                           font-family: inherit; font-size: 10.5px;"
+              >
                 &#64;{{ task().mentionContext }}
               </span>
             }
@@ -164,7 +198,7 @@ export class TaskRowComponent {
     const t = this.task();
     const time = !isTaskAllDay(t) ? fmtTime(d) : '';
     const rel = fmtRel(d);
-    return time && rel !== 'auj.' ? `${time} · ${rel}` : (time || rel);
+    return time && rel !== 'auj.' ? `${time} · ${rel}` : time || rel;
   });
 
   estimateLabel = computed(() => fmtEstimate(this.task().estimateMinutes ?? null));
@@ -172,8 +206,15 @@ export class TaskRowComponent {
 
   hasMeta = computed(() => {
     const t = this.task();
-    return !!(t.scheduledAt || t.estimateMinutes || t.recurrenceRule || t.isRecurring || this.project() ||
-              t.mentionContext || (t.labels && t.labels.length > 0));
+    return !!(
+      t.scheduledAt ||
+      t.estimateMinutes ||
+      t.recurrenceRule ||
+      t.isRecurring ||
+      this.project() ||
+      t.mentionContext ||
+      (t.labels && t.labels.length > 0)
+    );
   });
 
   constructor() {
@@ -190,7 +231,7 @@ export class TaskRowComponent {
   getColor = getColor;
 
   labelColor(name: string): string {
-    const l = this.allLabels().find(x => x.name === name);
+    const l = this.allLabels().find((x) => x.name === name);
     return getColor(l?.color ?? 'charcoal');
   }
 

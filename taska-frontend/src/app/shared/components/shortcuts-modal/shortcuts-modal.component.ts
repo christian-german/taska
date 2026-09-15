@@ -18,14 +18,18 @@ interface Group {
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 22px;">
           @for (g of groups; track g.h) {
             <div>
-              <div class="mono"
-                   style="font-size: 10.5px; text-transform: uppercase; letter-spacing: .1em;
-                          color: var(--mute); margin-bottom: 8px;">
+              <div
+                class="mono"
+                style="font-size: 10.5px; text-transform: uppercase; letter-spacing: .1em;
+                          color: var(--mute); margin-bottom: 8px;"
+              >
                 {{ g.h }}
               </div>
               @for (it of g.items; track it[0]) {
-                <div style="display: flex; justify-content: space-between; padding: 5px 0;
-                            border-bottom: 1px dashed var(--line);">
+                <div
+                  style="display: flex; justify-content: space-between; padding: 5px 0;
+                            border-bottom: 1px dashed var(--line);"
+                >
                   <span style="font-size: 13px;">{{ it[1] }}</span>
                   <span class="kbd">{{ it[0] }}</span>
                 </div>

@@ -13,33 +13,36 @@ import kotlinx.coroutines.launch
 
 class SnoozeReceiver : BroadcastReceiver() {
 
-    override fun onReceive(context: Context, intent: Intent) {
-        val taskId = intent.getStringExtra("task_id") ?: return
-        val notifId = intent.getIntExtra("notif_id", 0)
+  override fun onReceive(context: Context, intent: Intent) {
+    val taskId = intent.getStringExtra("task_id") ?: return
+    val notifId = intent.getIntExtra("notif_id", 0)
 
-        val pendingResult = goAsync()
-        RetrofitClient.init(context)
+    val pendingResult = goAsync()
+    RetrofitClient.init(context)
 
-        CoroutineScope(Dispatchers.IO).launch {
-            try {
-                val task = RetrofitClient.api.getTask(taskId)
-                val newScheduledAt = task.scheduledAt?.let { addMinutes(it, 15) } ?: return@launch
+    CoroutineScope(Dispatchers.IO).launch {
+      try {
+        val task = RetrofitClient.api.getTask(taskId)
+        val newScheduledAt = task.scheduledAt?.let { addMinutes(it, 15) } ?: return@launch
 
-                RetrofitClient.api.updateTask(
-                    taskId,
-                    task.toTaskUpdateRequest().copy(scheduledAt = newScheduledAt)
-                )
+        RetrofitClient.api.updateTask(
+          taskId,
+          task.toTaskUpdateRequest().copy(scheduledAt = newScheduledAt),
+        )
 
-                NotificationManagerCompat.from(context).cancel(notifId)
-            } catch (e: Exception) {
-                Log.e("SnoozeReceiver", "Erreur lors du report de la tâche", e)
-            } finally {
-                pendingResult.finish()
-            }
-        }
+        NotificationManagerCompat.from(context).cancel(notifId)
+      } catch (e: Exception) {
+        Log.e("SnoozeReceiver", "Erreur lors du report de la tâche", e)
+      } finally {
+        pendingResult.finish()
+      }
     }
+  }
 
-    private fun addMinutes(scheduledAt: String, minutes: Int): String = try {
-        java.time.Instant.parse(scheduledAt).plusSeconds(minutes * 60L).toString()
-    } catch (_: Exception) { scheduledAt }
+  private fun addMinutes(scheduledAt: String, minutes: Int): String =
+    try {
+      java.time.Instant.parse(scheduledAt).plusSeconds(minutes * 60L).toString()
+    } catch (_: Exception) {
+      scheduledAt
+    }
 }

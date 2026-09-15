@@ -1,11 +1,22 @@
-import {ChangeDetectionStrategy, Component, DestroyRef, OnInit, computed, inject, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  DestroyRef,
+  OnInit,
+  computed,
+  inject,
+  signal,
+} from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { Project, Task } from '../../core/models';
 import { TaskService } from '../../core/services/task.service';
 import { ProjectService } from '../../core/services/project.service';
 import { UiStateService } from '../../core/services/ui-state.service';
-import { TaskListComponent, TaskGroup } from '../../shared/components/task-list/task-list.component';
+import {
+  TaskListComponent,
+  TaskGroup,
+} from '../../shared/components/task-list/task-list.component';
 import { PageHeaderComponent } from '../../shared/components/page-header/page-header.component';
 import { EmptyStateComponent } from '../../shared/components/atoms/atoms.component';
 import { IconComponent } from '../../shared/components/icon/icon.component';
@@ -29,7 +40,8 @@ import { IconComponent } from '../../shared/components/icon/icon.component';
           [selectedId]="selectedId()"
           (toggled)="onToggle($event)"
           (selectTask)="onSelect($event)"
-          (updated)="onUpdate($event)" />
+          (updated)="onUpdate($event)"
+        />
       }
     </div>
   `,
@@ -46,28 +58,26 @@ export class InboxComponent implements OnInit {
   selectedId = computed(() => this.ui.selectedTask()?.id ?? null);
   subtitle = computed(() => `${this.tasks().length} tâches non triées`);
 
-  groups = computed<TaskGroup[]>(() => [
-    { key: 'inbox', label: 'À traiter', tasks: this.tasks() },
-  ]);
+  groups = computed<TaskGroup[]>(() => [{ key: 'inbox', label: 'À traiter', tasks: this.tasks() }]);
 
   ngOnInit(): void {
     this.refresh();
-    this.ui.taskCreated$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(task => {
-      const inboxId = this.projects().find(p => p.isInboxProject)?.id;
+    this.ui.taskCreated$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((task) => {
+      const inboxId = this.projects().find((p) => p.isInboxProject)?.id;
       if (!task.isCompleted && task.projectId === inboxId) {
-        this.tasks.update(list => [...list, task]);
+        this.tasks.update((list) => [...list, task]);
       }
     });
-    this.ui.taskDeleted$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(id => {
-      this.tasks.update(list => list.filter(t => t.id !== id));
+    this.ui.taskDeleted$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((id) => {
+      this.tasks.update((list) => list.filter((t) => t.id !== id));
     });
-    this.ui.taskUpdated$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(task => {
-      this.tasks.update(list => {
-        const inboxId = this.projects().find(p => p.isInboxProject)?.id;
-        const inList = list.some(t => t.id === task.id);
+    this.ui.taskUpdated$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((task) => {
+      this.tasks.update((list) => {
+        const inboxId = this.projects().find((p) => p.isInboxProject)?.id;
+        const inList = list.some((t) => t.id === task.id);
         const belongs = task.projectId === inboxId;
-        if (inList && belongs) return list.map(t => t.id === task.id ? task : t);
-        if (inList && !belongs) return list.filter(t => t.id !== task.id);
+        if (inList && belongs) return list.map((t) => (t.id === task.id ? task : t));
+        if (inList && !belongs) return list.filter((t) => t.id !== task.id);
         if (!inList && belongs) return [...list, task];
         return list;
       });
@@ -75,10 +85,10 @@ export class InboxComponent implements OnInit {
   }
 
   private refresh(): void {
-    this.projectService.projects$.subscribe(projects => {
-      const inbox = projects.find(p => p.isInboxProject);
+    this.projectService.projects$.subscribe((projects) => {
+      const inbox = projects.find((p) => p.isInboxProject);
       if (!inbox) return;
-      this.taskService.getTasks({ projectId: inbox.id, showCompleted: false }).subscribe(t => {
+      this.taskService.getTasks({ projectId: inbox.id, showCompleted: false }).subscribe((t) => {
         this.tasks.set(t);
       });
     });
@@ -94,8 +104,8 @@ export class InboxComponent implements OnInit {
   }
 
   onUpdate(payload: { id: string; patch: Partial<Task> }): void {
-    this.taskService.updateTask(payload.id, payload.patch).subscribe(updated => {
-      this.tasks.update(list => list.map(x => x.id === updated.id ? updated : x));
+    this.taskService.updateTask(payload.id, payload.patch).subscribe((updated) => {
+      this.tasks.update((list) => list.map((x) => (x.id === updated.id ? updated : x)));
     });
   }
 }

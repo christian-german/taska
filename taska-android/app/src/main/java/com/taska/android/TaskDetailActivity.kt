@@ -10,17 +10,17 @@ import com.taska.android.ui.taskdetail.TaskDetailViewModel
 import com.taska.android.ui.theme.TaskaTheme
 
 class TaskDetailActivity : ComponentActivity() {
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
-        setContent {
-            TaskaTheme {
-                val viewModel: TaskDetailViewModel = viewModel()
-                TaskDetailScreen(
-                    viewModel = viewModel,
-                    onClose = { finish() }
-                )
-            }
-        }
+  override fun onCreate(savedInstanceState: Bundle?) {
+    super.onCreate(savedInstanceState)
+    enableEdgeToEdge()
+    setContent {
+      TaskaTheme {
+        val viewModel: TaskDetailViewModel = viewModel()
+        TaskDetailScreen(
+          viewModel = viewModel,
+          onClose = { finish() },
+        )
+      }
     }
+  }
 }

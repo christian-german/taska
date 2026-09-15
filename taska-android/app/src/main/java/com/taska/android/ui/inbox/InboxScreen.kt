@@ -33,7 +33,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
@@ -51,198 +50,191 @@ private val DefaultLabelColor = Color(0xFFFF8FAD)
 
 @Composable
 fun InboxScreen(
-    viewModel: InboxViewModel,
-    onTaskClick: (String) -> Unit = {},
-    onSearch: () -> Unit = {},
-    modifier: Modifier = Modifier
+  viewModel: InboxViewModel,
+  onTaskClick: (String) -> Unit = {},
+  onSearch: () -> Unit = {},
+  modifier: Modifier = Modifier,
 ) {
-    val uiState by viewModel.uiState.collectAsState()
+  val uiState by viewModel.uiState.collectAsState()
 
-    Column(
-        modifier = modifier
-            .background(MaterialTheme.colorScheme.background)
-            .statusBarsPadding()
-    ) {
-        InboxHeader(taskCount = uiState.tasks.size, onSearch = onSearch)
+  Column(modifier = modifier.background(MaterialTheme.colorScheme.background).statusBarsPadding()) {
+    InboxHeader(taskCount = uiState.tasks.size, onSearch = onSearch)
 
-        Box(modifier = Modifier.weight(1f)) {
-            when {
-                uiState.isLoading -> {
-                    CircularProgressIndicator(
-                        modifier = Modifier.align(Alignment.Center),
-                        color = TextPrimary
-                    )
-                }
-                uiState.error != null -> {
-                    Text(
-                        text = "Erreur : ${uiState.error}",
-                        modifier = Modifier
-                            .align(Alignment.Center)
-                            .padding(16.dp),
-                        color = TextSecondary,
-                        fontSize = 14.sp
-                    )
-                }
-                else -> {
-                    TaskList(
-                        tasks = uiState.tasks,
-                        labels = uiState.labels,
-                        onTaskComplete = viewModel::closeTask,
-                        onTaskClick = onTaskClick
-                    )
-                }
-            }
+    Box(modifier = Modifier.weight(1f)) {
+      when {
+        uiState.isLoading -> {
+          CircularProgressIndicator(
+            modifier = Modifier.align(Alignment.Center),
+            color = TextPrimary,
+          )
         }
+        uiState.error != null -> {
+          Text(
+            text = "Erreur : ${uiState.error}",
+            modifier = Modifier.align(Alignment.Center).padding(16.dp),
+            color = TextSecondary,
+            fontSize = 14.sp,
+          )
+        }
+        else -> {
+          TaskList(
+            tasks = uiState.tasks,
+            labels = uiState.labels,
+            onTaskComplete = viewModel::closeTask,
+            onTaskClick = onTaskClick,
+          )
+        }
+      }
     }
+  }
 }
 
 @Composable
 private fun InboxHeader(taskCount: Int, onSearch: () -> Unit) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 8.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text(
-            text = buildAnnotatedString {
-                withStyle(
-                    SpanStyle(
-                        fontFamily = com.taska.android.ui.theme.Archivo,
-                        fontStyle = FontStyle.Italic,
-                        fontSize = 32.sp,
-                        fontWeight = FontWeight.Normal,
-                        color = TextPrimary
-                    )
-                ) { append("Inbox") }
-                append("  ")
-                withStyle(
-                    SpanStyle(
-                        fontFamily = com.taska.android.ui.theme.Archivo,
-                        fontSize = 14.sp,
-                        color = TextSecondary,
-                        fontWeight = FontWeight.Normal,
-                        fontStyle = FontStyle.Normal
-                    )
-                ) { append("$taskCount à trier") }
-            },
-            modifier = Modifier.weight(1f)
-        )
-        com.taska.android.ui.shared.SearchAction(onSearch)
-    }
+  Row(
+    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
+    verticalAlignment = Alignment.CenterVertically,
+  ) {
+    Text(
+      text =
+        buildAnnotatedString {
+          withStyle(
+            SpanStyle(
+              fontFamily = com.taska.android.ui.theme.Archivo,
+              fontStyle = FontStyle.Italic,
+              fontSize = 32.sp,
+              fontWeight = FontWeight.Normal,
+              color = TextPrimary,
+            )
+          ) {
+            append("Inbox")
+          }
+          append("  ")
+          withStyle(
+            SpanStyle(
+              fontFamily = com.taska.android.ui.theme.Archivo,
+              fontSize = 14.sp,
+              color = TextSecondary,
+              fontWeight = FontWeight.Normal,
+              fontStyle = FontStyle.Normal,
+            )
+          ) {
+            append("$taskCount à trier")
+          }
+        },
+      modifier = Modifier.weight(1f),
+    )
+    com.taska.android.ui.shared.SearchAction(onSearch)
+  }
 }
 
 @Composable
 private fun TaskList(
-    tasks: List<TaskDto>,
-    labels: Map<String, LabelDto>,
-    onTaskComplete: (String) -> Unit,
-    onTaskClick: (String) -> Unit
+  tasks: List<TaskDto>,
+  labels: Map<String, LabelDto>,
+  onTaskComplete: (String) -> Unit,
+  onTaskClick: (String) -> Unit,
 ) {
-    LazyColumn(modifier = Modifier.fillMaxSize()) {
-        items(tasks, key = { it.id }) { task ->
-            TaskItem(
-                task = task,
-                labels = labels,
-                onComplete = { onTaskComplete(task.id) },
-                onClick = { onTaskClick(task.id) }
-            )
-            HorizontalDivider(color = DividerColor, thickness = 0.5.dp)
-        }
-        item {
-            AddTaskHint()
-        }
+  LazyColumn(modifier = Modifier.fillMaxSize()) {
+    items(tasks, key = { it.id }) { task ->
+      TaskItem(
+        task = task,
+        labels = labels,
+        onComplete = { onTaskComplete(task.id) },
+        onClick = { onTaskClick(task.id) },
+      )
+      HorizontalDivider(color = DividerColor, thickness = 0.5.dp)
     }
+    item { AddTaskHint() }
+  }
 }
 
 @Composable
 private fun TaskItem(
-    task: TaskDto,
-    labels: Map<String, LabelDto>,
-    onComplete: () -> Unit,
-    onClick: () -> Unit
+  task: TaskDto,
+  labels: Map<String, LabelDto>,
+  onComplete: () -> Unit,
+  onClick: () -> Unit,
 ) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable { onClick() }
-            .padding(horizontal = 16.dp, vertical = 14.dp),
-        verticalAlignment = Alignment.Top
-    ) {
-        Box(
-            modifier = Modifier
-                .size(22.dp)
-                .clip(CircleShape)
-                .border(1.5.dp, CheckboxBorder, CircleShape)
-                .clickable { onComplete() }
-        )
-        Spacer(modifier = Modifier.width(14.dp))
-        Column {
-            Text(
-                text = task.content,
-                style = TextStyle(
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Medium,
-                    color = TextPrimary,
-                    lineHeight = 22.sp
-                )
-            )
-            val taskLabels = task.labels?.filter { it.isNotBlank() }.orEmpty()
-            if (taskLabels.isNotEmpty()) {
-                Spacer(modifier = Modifier.height(4.dp))
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    taskLabels.forEach { labelName ->
-                        LabelChip(name = labelName, labelDto = labels[labelName])
-                    }
-                }
-            }
+  Row(
+    modifier =
+      Modifier.fillMaxWidth().clickable { onClick() }.padding(horizontal = 16.dp, vertical = 14.dp),
+    verticalAlignment = Alignment.Top,
+  ) {
+    Box(
+      modifier =
+        Modifier.size(22.dp)
+          .clip(CircleShape)
+          .border(1.5.dp, CheckboxBorder, CircleShape)
+          .clickable { onComplete() }
+    )
+    Spacer(modifier = Modifier.width(14.dp))
+    Column {
+      Text(
+        text = task.content,
+        style =
+          TextStyle(
+            fontSize = 16.sp,
+            fontWeight = FontWeight.Medium,
+            color = TextPrimary,
+            lineHeight = 22.sp,
+          ),
+      )
+      val taskLabels = task.labels?.filter { it.isNotBlank() }.orEmpty()
+      if (taskLabels.isNotEmpty()) {
+        Spacer(modifier = Modifier.height(4.dp))
+        Row(
+          verticalAlignment = Alignment.CenterVertically,
+          horizontalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+          taskLabels.forEach { labelName ->
+            LabelChip(name = labelName, labelDto = labels[labelName])
+          }
         }
+      }
     }
+  }
 }
 
 @Composable
 private fun LabelChip(name: String, labelDto: LabelDto?) {
-    val dotColor = labelDto?.color?.let { parseHexColor(it) } ?: DefaultLabelColor
-    Row(verticalAlignment = Alignment.CenterVertically) {
-        Canvas(modifier = Modifier.size(8.dp)) {
-            drawCircle(color = dotColor)
-        }
-        Spacer(modifier = Modifier.width(5.dp))
-        Text(
-            text = name,
-            style = TextStyle(
-                fontSize = 13.sp,
-                color = TextSecondary,
-                fontWeight = FontWeight.Normal
-            )
-        )
-    }
+  val dotColor = labelDto?.color?.let { parseHexColor(it) } ?: DefaultLabelColor
+  Row(verticalAlignment = Alignment.CenterVertically) {
+    Canvas(modifier = Modifier.size(8.dp)) { drawCircle(color = dotColor) }
+    Spacer(modifier = Modifier.width(5.dp))
+    Text(
+      text = name,
+      style =
+        TextStyle(
+          fontSize = 13.sp,
+          color = TextSecondary,
+          fontWeight = FontWeight.Normal,
+        ),
+    )
+  }
 }
 
 @Composable
 private fun AddTaskHint() {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 14.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text(
-            text = "+ appui long pour glisser vers un projet",
-            style = TextStyle(
-                fontFamily = com.taska.android.ui.theme.Archivo,
-                fontSize = 13.sp,
-                color = TextSecondary
-            )
-        )
-    }
+  Row(
+    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 14.dp),
+    verticalAlignment = Alignment.CenterVertically,
+  ) {
+    Text(
+      text = "+ appui long pour glisser vers un projet",
+      style =
+        TextStyle(
+          fontFamily = com.taska.android.ui.theme.Archivo,
+          fontSize = 13.sp,
+          color = TextSecondary,
+        ),
+    )
+  }
 }
 
-private fun parseHexColor(hex: String): Color? = try {
+private fun parseHexColor(hex: String): Color? =
+  try {
     Color(android.graphics.Color.parseColor(if (hex.startsWith("#")) hex else "#$hex"))
-} catch (e: Exception) {
+  } catch (e: Exception) {
     null
-}
+  }

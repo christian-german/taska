@@ -1,4 +1,13 @@
-import {Component, OnChanges, computed, inject, input, output, signal, ChangeDetectionStrategy} from '@angular/core';
+import {
+  Component,
+  OnChanges,
+  computed,
+  inject,
+  input,
+  output,
+  signal,
+  ChangeDetectionStrategy,
+} from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { DatetimePickerComponent } from '../../shared/components/datetime-picker/datetime-picker.component';
@@ -19,10 +28,14 @@ import {
 } from '../../core/models';
 
 const ESTIMATE_PRESETS = [
-  { minutes: 15, label: '15 min' }, { minutes: 30, label: '30 min' },
-  { minutes: 45, label: '45 min' }, { minutes: 60, label: '1h' },
-  { minutes: 90, label: '1h30' },  { minutes: 120, label: '2h' },
-  { minutes: 180, label: '3h' },   { minutes: 240, label: '4h' },
+  { minutes: 15, label: '15 min' },
+  { minutes: 30, label: '30 min' },
+  { minutes: 45, label: '45 min' },
+  { minutes: 60, label: '1h' },
+  { minutes: 90, label: '1h30' },
+  { minutes: 120, label: '2h' },
+  { minutes: 180, label: '3h' },
+  { minutes: 240, label: '4h' },
 ];
 
 const RECURRENCE_OPTIONS = [
@@ -34,8 +47,10 @@ const RECURRENCE_OPTIONS = [
 ] as const;
 
 const RRULE_TO_KEY: Record<string, string> = {
-  'freq=daily': 'daily', 'freq=weekly': 'weekly',
-  'freq=monthly': 'monthly', 'freq=yearly': 'yearly',
+  'freq=daily': 'daily',
+  'freq=weekly': 'weekly',
+  'freq=monthly': 'monthly',
+  'freq=yearly': 'yearly',
 };
 function normalizeRRuleKey(rule: string | null | undefined): string {
   if (!rule) return '';
@@ -115,8 +130,8 @@ export class TaskDetailComponent implements OnChanges {
   projects = toSignal(this.projectService.projects$, { initialValue: [] as Project[] });
   private allLabels = toSignal(this.labelService.labels$, { initialValue: [] as Label[] });
 
-  currentProject = computed(() =>
-    this.projects().find(p => p.id === this.task().projectId) ?? null
+  currentProject = computed(
+    () => this.projects().find((p) => p.id === this.task().projectId) ?? null,
   );
   scheduledDate = computed(() => {
     const scheduledAt = this.task().scheduledAt;
@@ -127,21 +142,21 @@ export class TaskDetailComponent implements OnChanges {
     return dueAt ? new Date(dueAt) : null;
   });
 
-  completedSubs = computed(() => this.subtasks().filter(s => s.isCompleted).length);
+  completedSubs = computed(() => this.subtasks().filter((s) => s.isCompleted).length);
 
   priorityLabel = computed(() => {
     const priority = this.task().priority;
-    return priority == null ? 'Non définie' : PRIORITY_LABELS[priority] ?? '';
+    return priority == null ? 'Non définie' : (PRIORITY_LABELS[priority] ?? '');
   });
-  taskTypeLabel = computed(() => this.task().type === 'APPOINTMENT' ? 'Rendez-vous' : 'À faire');
+  taskTypeLabel = computed(() => (this.task().type === 'APPOINTMENT' ? 'Rendez-vous' : 'À faire'));
 
   filteredLabels = computed(() => {
     const q = this.tagSearch().toLowerCase();
-    return q ? this.allLabels().filter(l => l.name.toLowerCase().includes(q)) : this.allLabels();
+    return q ? this.allLabels().filter((l) => l.name.toLowerCase().includes(q)) : this.allLabels();
   });
 
   hasExactLabelMatch = computed(() =>
-    this.allLabels().some(l => l.name.toLowerCase() === this.tagSearch().toLowerCase().trim())
+    this.allLabels().some((l) => l.name.toLowerCase() === this.tagSearch().toLowerCase().trim()),
   );
 
   dateRowLabel = computed(() => {
@@ -160,7 +175,9 @@ export class TaskDetailComponent implements OnChanges {
   recurrenceRowLabel = computed(() => {
     const key = this.activeRecurrenceKey();
     if (!key) return 'Ne se répète pas';
-    return RECURRENCE_OPTIONS.find(o => o.value === key)?.label ?? this.task().recurrenceRule ?? key;
+    return (
+      RECURRENCE_OPTIONS.find((o) => o.value === key)?.label ?? this.task().recurrenceRule ?? key
+    );
   });
 
   ngOnChanges(): void {
@@ -173,11 +190,11 @@ export class TaskDetailComponent implements OnChanges {
   }
 
   private loadSubtasks(): void {
-    this.taskService.getSubtasks(this.task().id).subscribe(t => this.subtasks.set(t));
+    this.taskService.getSubtasks(this.task().id).subscribe((t) => this.subtasks.set(t));
   }
 
   private loadComments(): void {
-    this.commentService.getComments(this.task().id).subscribe(c => this.comments.set(c));
+    this.commentService.getComments(this.task().id).subscribe((c) => this.comments.set(c));
   }
 
   getColor = getColor;
@@ -185,7 +202,7 @@ export class TaskDetailComponent implements OnChanges {
   RECURRENCE_OPTIONS = RECURRENCE_OPTIONS;
 
   labelColor(name: string): string {
-    const l = this.allLabels().find(x => x.name === name);
+    const l = this.allLabels().find((x) => x.name === name);
     return getColor(l?.color ?? 'charcoal');
   }
 
@@ -207,9 +224,13 @@ export class TaskDetailComponent implements OnChanges {
   toggleComplete(): void {
     const occurrenceScheduledAt = this.task().occurrenceScheduledAt ?? undefined;
     if (this.task().isCompleted) {
-      this.taskService.reopenTask(this.task().id, occurrenceScheduledAt).subscribe(t => this.taskUpdated.emit(t));
+      this.taskService
+        .reopenTask(this.task().id, occurrenceScheduledAt)
+        .subscribe((t) => this.taskUpdated.emit(t));
     } else {
-      this.taskService.closeTask(this.task().id, occurrenceScheduledAt).subscribe(t => this.taskUpdated.emit(t));
+      this.taskService
+        .closeTask(this.task().id, occurrenceScheduledAt)
+        .subscribe((t) => this.taskUpdated.emit(t));
     }
   }
 
@@ -276,7 +297,7 @@ export class TaskDetailComponent implements OnChanges {
   toggleTag(name: string, e: Event): void {
     e.stopPropagation();
     const labels = this.task().labels.includes(name)
-      ? this.task().labels.filter(l => l !== name)
+      ? this.task().labels.filter((l) => l !== name)
       : [...this.task().labels, name];
     this.save({ labels });
   }
@@ -300,31 +321,33 @@ export class TaskDetailComponent implements OnChanges {
 
   toggleSubtask(s: Task): void {
     const op = s.isCompleted ? this.taskService.reopenTask(s.id) : this.taskService.closeTask(s.id);
-    op.subscribe(updated => {
-      this.subtasks.update(list => list.map(x => x.id === updated.id ? updated : x));
+    op.subscribe((updated) => {
+      this.subtasks.update((list) => list.map((x) => (x.id === updated.id ? updated : x)));
     });
   }
 
   addSubtask(): void {
     const content = this.newSubtaskContent().trim();
     if (!content) return;
-    this.taskService.createTask({
-      content,
-      parentId: this.task().id,
-      projectId: this.task().projectId,
-      priority: 1,
-      labels: [],
-    }).subscribe(sub => {
-      this.subtasks.update(list => [...list, sub]);
-      this.newSubtaskContent.set('');
-    });
+    this.taskService
+      .createTask({
+        content,
+        parentId: this.task().id,
+        projectId: this.task().projectId,
+        priority: 1,
+        labels: [],
+      })
+      .subscribe((sub) => {
+        this.subtasks.update((list) => [...list, sub]);
+        this.newSubtaskContent.set('');
+      });
   }
 
   addComment(): void {
     const content = this.newComment().trim();
     if (!content) return;
-    this.commentService.createComment({ taskId: this.task().id, content }).subscribe(c => {
-      this.comments.update(arr => [...arr, c]);
+    this.commentService.createComment({ taskId: this.task().id, content }).subscribe((c) => {
+      this.comments.update((arr) => [...arr, c]);
       this.newComment.set('');
     });
   }
@@ -358,9 +381,10 @@ export class TaskDetailComponent implements OnChanges {
     if (!patch) return;
     this.pendingPatch.set(null);
     const occurrenceScheduledAt = this.task().occurrenceScheduledAt ?? undefined;
-    this.taskService.updateTask(this.task().id, { ...patch, scope, occurrenceScheduledAt })
+    this.taskService
+      .updateTask(this.task().id, { ...patch, scope, occurrenceScheduledAt })
       .subscribe({
-        next: updated => this.taskUpdated.emit(updated),
+        next: (updated) => this.taskUpdated.emit(updated),
         error: () => undefined,
       });
   }
@@ -383,11 +407,10 @@ export class TaskDetailComponent implements OnChanges {
       this.pendingPatch.set(patch);
       this.showModifyScopeDialog.set(true);
     } else {
-      this.taskService.updateTask(this.task().id, patch)
-        .subscribe({
-          next: updated => this.taskUpdated.emit(updated),
-          error: () => undefined,
-        });
+      this.taskService.updateTask(this.task().id, patch).subscribe({
+        next: (updated) => this.taskUpdated.emit(updated),
+        error: () => undefined,
+      });
     }
   }
 }

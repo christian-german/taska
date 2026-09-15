@@ -3,9 +3,9 @@ package com.taska.domain.planningcalendar;
 /** Values required to validate a weekly planning-calendar window. */
 public interface PlanningCalendarRuleValue {
 
-    Integer dayOfWeek();
+  Integer dayOfWeek();
 
-    Integer startMinute();
+  Integer startMinute();
 
-    Integer endMinute();
+  Integer endMinute();
 }

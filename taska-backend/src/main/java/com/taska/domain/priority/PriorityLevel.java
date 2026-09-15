@@ -1,8 +1,8 @@
 package com.taska.domain.priority;
 
 public enum PriorityLevel {
-    LOW,
-    MEDIUM,
-    HIGH,
-    CRITICAL
+  LOW,
+  MEDIUM,
+  HIGH,
+  CRITICAL
 }

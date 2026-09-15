@@ -1,13 +1,12 @@
 package com.taska.domain.planningcalendar.repository;
 
-import org.springframework.data.jpa.repository.JpaRepository;
-
 import java.util.List;
 import java.util.UUID;
+import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface PlanningCalendarRuleRepository extends JpaRepository<PlanningCalendarRule, UUID> {
 
-    List<PlanningCalendarRule> findByCalendarIdOrderByDayOfWeekAscStartMinuteAsc(UUID calendarId);
+  List<PlanningCalendarRule> findByCalendarIdOrderByDayOfWeekAscStartMinuteAsc(UUID calendarId);
 
-    void deleteByCalendarId(UUID calendarId);
+  void deleteByCalendarId(UUID calendarId);
 }

@@ -1,10 +1,22 @@
-import { ChangeDetectionStrategy, Component, OnInit, computed, effect, inject, input, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  OnInit,
+  computed,
+  effect,
+  inject,
+  input,
+  signal,
+} from '@angular/core';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { Project, Task, getColor } from '../../core/models';
 import { ProjectService } from '../../core/services/project.service';
 import { TaskService } from '../../core/services/task.service';
 import { UiStateService } from '../../core/services/ui-state.service';
-import { TaskListComponent, TaskGroup } from '../../shared/components/task-list/task-list.component';
+import {
+  TaskListComponent,
+  TaskGroup,
+} from '../../shared/components/task-list/task-list.component';
 import { PageHeaderComponent } from '../../shared/components/page-header/page-header.component';
 import { EmptyStateComponent } from '../../shared/components/atoms/atoms.component';
 import { IconComponent } from '../../shared/components/icon/icon.component';
@@ -37,7 +49,8 @@ import { IconComponent } from '../../shared/components/icon/icon.component';
             [selectedId]="selectedId()"
             (toggled)="onToggle($event)"
             (selectTask)="onSelect($event)"
-            (updated)="onUpdate($event)" />
+            (updated)="onUpdate($event)"
+          />
         }
       </div>
     }
@@ -51,18 +64,24 @@ export class ProjectViewComponent implements OnInit {
   private ui = inject(UiStateService);
 
   allProjects = toSignal(this.projectService.projects$, { initialValue: [] as Project[] });
-  project = computed(() => this.allProjects().find(p => p.id === this.id()) ?? null);
+  project = computed(() => this.allProjects().find((p) => p.id === this.id()) ?? null);
 
   allItems = signal<Task[]>([]);
 
   selectedId = computed(() => this.ui.selectedTask()?.id ?? null);
 
-  todoTasks = computed(() => this.allItems().filter(t => !t.isCompleted && !this.isInProgress(t)));
-  doingTasks = computed(() => this.allItems().filter(t => !t.isCompleted && this.isInProgress(t)));
-  doneTasks = computed(() => this.allItems().filter(t => t.isCompleted));
+  todoTasks = computed(() =>
+    this.allItems().filter((t) => !t.isCompleted && !this.isInProgress(t)),
+  );
+  doingTasks = computed(() =>
+    this.allItems().filter((t) => !t.isCompleted && this.isInProgress(t)),
+  );
+  doneTasks = computed(() => this.allItems().filter((t) => t.isCompleted));
 
   groups = computed<TaskGroup[]>(() => {
-    const groups: TaskGroup[] = [{ key: 'todo', label: 'à faire', tasks: this.sortTasks(this.todoTasks()) }];
+    const groups: TaskGroup[] = [
+      { key: 'todo', label: 'à faire', tasks: this.sortTasks(this.todoTasks()) },
+    ];
     if (this.doingTasks().length) {
       groups.push({ key: 'doing', label: 'en cours', tasks: this.doingTasks() });
     }
@@ -91,20 +110,20 @@ export class ProjectViewComponent implements OnInit {
       this.lastLoadedId = id;
       this.load(id);
     });
-    this.ui.taskCreated$.pipe(takeUntilDestroyed()).subscribe(task => {
+    this.ui.taskCreated$.pipe(takeUntilDestroyed()).subscribe((task) => {
       if (task.projectId === this.id()) {
-        this.allItems.update(list => [...list, task]);
+        this.allItems.update((list) => [...list, task]);
       }
     });
-    this.ui.taskDeleted$.pipe(takeUntilDestroyed()).subscribe(id => {
-      this.allItems.update(list => list.filter(t => t.id !== id));
+    this.ui.taskDeleted$.pipe(takeUntilDestroyed()).subscribe((id) => {
+      this.allItems.update((list) => list.filter((t) => t.id !== id));
     });
-    this.ui.taskUpdated$.pipe(takeUntilDestroyed()).subscribe(task => {
-      this.allItems.update(list => {
-        const inList = list.some(t => t.id === task.id);
+    this.ui.taskUpdated$.pipe(takeUntilDestroyed()).subscribe((task) => {
+      this.allItems.update((list) => {
+        const inList = list.some((t) => t.id === task.id);
         const belongs = task.projectId === this.id();
-        if (inList && belongs) return list.map(t => t.id === task.id ? task : t);
-        if (inList && !belongs) return list.filter(t => t.id !== task.id);
+        if (inList && belongs) return list.map((t) => (t.id === task.id ? task : t));
+        if (inList && !belongs) return list.filter((t) => t.id !== task.id);
         if (!inList && belongs) return [...list, task];
         return list;
       });
@@ -114,13 +133,15 @@ export class ProjectViewComponent implements OnInit {
   ngOnInit(): void {}
 
   private load(id: string): void {
-    this.taskService.getTasks({ projectId: id, showCompleted: true }).subscribe(t => this.allItems.set(t));
+    this.taskService
+      .getTasks({ projectId: id, showCompleted: true })
+      .subscribe((t) => this.allItems.set(t));
   }
 
   onToggle(t: Task): void {
     const op = t.isCompleted ? this.taskService.reopenTask(t.id) : this.taskService.closeTask(t.id);
-    op.subscribe(updated => {
-      this.allItems.update(list => list.map(x => x.id === updated.id ? updated : x));
+    op.subscribe((updated) => {
+      this.allItems.update((list) => list.map((x) => (x.id === updated.id ? updated : x)));
     });
   }
 
@@ -129,15 +150,15 @@ export class ProjectViewComponent implements OnInit {
   }
 
   onUpdate(payload: { id: string; patch: Partial<Task> }): void {
-    this.taskService.updateTask(payload.id, payload.patch).subscribe(updated => {
-      this.allItems.update(list => list.map(x => x.id === updated.id ? updated : x));
+    this.taskService.updateTask(payload.id, payload.patch).subscribe((updated) => {
+      this.allItems.update((list) => list.map((x) => (x.id === updated.id ? updated : x)));
     });
   }
 
   private isInProgress(t: Task): boolean {
     // Approximation: a parent task with at least one closed subtask is "in progress"
-    const subs = this.allItems().filter(x => x.parentId === t.id);
-    return subs.length > 0 && subs.some(s => s.isCompleted);
+    const subs = this.allItems().filter((x) => x.parentId === t.id);
+    return subs.length > 0 && subs.some((s) => s.isCompleted);
   }
 
   private sortTasks(arr: Task[]): Task[] {

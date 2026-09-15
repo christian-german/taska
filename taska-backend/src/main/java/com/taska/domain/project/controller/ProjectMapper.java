@@ -10,20 +10,20 @@ import org.mapstruct.MappingConstants;
 
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
 public interface ProjectMapper {
-    @Mapping(target = "order", source = "position")
-    ProjectDto toDto(Project project);
+  @Mapping(target = "order", source = "position")
+  ProjectDto toDto(Project project);
 
-    @Mapping(target = "color", defaultValue = "#808080")
-    @Mapping(target = "position", source = "order", defaultValue = "0")
-    @Mapping(target = "favorite", source = "isFavorite", defaultValue = "false")
-    @Mapping(target = "viewStyle", defaultValue = "LIST")
-    ProjectCreateParameters toParameters(ProjectCreateRequest projectCreateRequest);
+  @Mapping(target = "color", defaultValue = "#808080")
+  @Mapping(target = "position", source = "order", defaultValue = "0")
+  @Mapping(target = "favorite", source = "isFavorite", defaultValue = "false")
+  @Mapping(target = "viewStyle", defaultValue = "LIST")
+  ProjectCreateParameters toParameters(ProjectCreateRequest projectCreateRequest);
 
-    @Mapping(target = "position", source = "order")
-    @Mapping(target = "favorite", source = "isFavorite")
-    ProjectUpdateParameters toParameters(ProjectUpdateRequest projectUpdateRequest);
+  @Mapping(target = "position", source = "order")
+  @Mapping(target = "favorite", source = "isFavorite")
+  ProjectUpdateParameters toParameters(ProjectUpdateRequest projectUpdateRequest);
 
-    @Mapping(target = "position", source = "order")
-    @Mapping(target = "projectId", source = "id")
-    ProjectReorderParameters toParameters(ProjectReorderRequest projectReorderRequest);
+  @Mapping(target = "position", source = "order")
+  @Mapping(target = "projectId", source = "id")
+  ProjectReorderParameters toParameters(ProjectReorderRequest projectReorderRequest);
 }

@@ -17,30 +17,40 @@ import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/c
         [title]="'Supprimer le tag « ' + deletingLabel()!.name + ' » ?'"
         message="Les tâches associées à ce tag ne seront pas supprimées."
         (confirmed)="confirmDeleteLabel()"
-        (cancelled)="deletingLabel.set(null)" />
+        (cancelled)="deletingLabel.set(null)"
+      />
     }
 
     @if (showModal()) {
       <div class="modal-veil" (click)="closeModal()">
-        <div class="modal" (click)="$event.stopPropagation()"
-             style="width: min(420px, 92vw); padding: 24px 24px 20px;">
+        <div
+          class="modal"
+          (click)="$event.stopPropagation()"
+          style="width: min(420px, 92vw); padding: 24px 24px 20px;"
+        >
           <div style="font-size: 17px; font-weight: 600; color: var(--ink); margin-bottom: 18px;">
             {{ editingLabel() ? 'Modifier le tag' : 'Nouveau tag' }}
           </div>
-          <input [ngModel]="modalName()" (ngModelChange)="modalName.set($event)"
-                 (keydown.enter)="saveModal()" (keydown.escape)="closeModal()"
-                 placeholder="Nom du tag"
-                 autofocus
-                 style="width: 100%; padding: 7px 10px; background: var(--bg-2);
+          <input
+            [ngModel]="modalName()"
+            (ngModelChange)="modalName.set($event)"
+            (keydown.enter)="saveModal()"
+            (keydown.escape)="closeModal()"
+            placeholder="Nom du tag"
+            autofocus
+            style="width: 100%; padding: 7px 10px; background: var(--bg-2);
                         border: 1px solid var(--line); border-radius: 7px;
-                        outline: none; color: var(--ink); font-size: 14px;" />
+                        outline: none; color: var(--ink); font-size: 14px;"
+          />
           <div style="display: flex; flex-wrap: wrap; gap: 7px; margin-top: 14px;">
             @for (key of colorKeys; track key) {
-              <button (click)="modalColor.set(key)"
-                      [style.background]="getColor(key)"
-                      [style.outline]="modalColor() === key ? '2px solid var(--ink)' : 'none'"
-                      [style.outline-offset.px]="2"
-                      style="width: 22px; height: 22px; border-radius: 50%; border: 0; cursor: pointer;"></button>
+              <button
+                (click)="modalColor.set(key)"
+                [style.background]="getColor(key)"
+                [style.outline]="modalColor() === key ? '2px solid var(--ink)' : 'none'"
+                [style.outline-offset.px]="2"
+                style="width: 22px; height: 22px; border-radius: 50%; border: 0; cursor: pointer;"
+              ></button>
             }
           </div>
           <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 20px;">
@@ -56,13 +66,17 @@ import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/c
     <div style="padding: 32px 28px;">
       <div style="display: flex; align-items: baseline; gap: 14px;">
         <h1 class="script" style="font-size: 38px; margin: 0; line-height: 1;">Tags</h1>
-        <span class="mono" style="font-size: 12.5px; color: var(--mute);">{{ labels().length }} tags</span>
+        <span class="mono" style="font-size: 12.5px; color: var(--mute);"
+          >{{ labels().length }} tags</span
+        >
       </div>
 
       <div style="margin-top: 24px; display: grid; gap: 6px; max-width: 600px;">
         @for (l of labels(); track l.id) {
-          <div style="display: flex; align-items: center; gap: 12px; padding: 10px 14px;
-                      background: var(--bg-2); border-radius: 10px;">
+          <div
+            style="display: flex; align-items: center; gap: 12px; padding: 10px 14px;
+                      background: var(--bg-2); border-radius: 10px;"
+          >
             <app-project-dot [color]="getColor(l.color)" [size]="11" />
             <span style="flex: 1; font-size: 14px;">{{ l.name }}</span>
             <button class="btn btn-ghost btn-icon" (click)="openEdit(l)" title="Éditer">
@@ -120,14 +134,18 @@ export class LabelsComponent implements OnInit {
     if (!name) return;
     const editing = this.editingLabel();
     if (editing) {
-      this.labelService.updateLabel(editing.id, {
-        name,
-        color: this.modalColor(),
-        order: editing.order,
-        isFavorite: editing.isFavorite,
-      }).subscribe();
+      this.labelService
+        .updateLabel(editing.id, {
+          name,
+          color: this.modalColor(),
+          order: editing.order,
+          isFavorite: editing.isFavorite,
+        })
+        .subscribe();
     } else {
-      this.labelService.createLabel({ name, color: this.modalColor(), isFavorite: false }).subscribe();
+      this.labelService
+        .createLabel({ name, color: this.modalColor(), isFavorite: false })
+        .subscribe();
     }
     this.closeModal();
   }

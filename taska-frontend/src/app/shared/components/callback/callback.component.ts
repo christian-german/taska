@@ -8,7 +8,10 @@ import { OidcSecurityService } from 'angular-auth-oidc-client';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CallbackComponent implements OnInit {
-  constructor(private oidcSecurityService: OidcSecurityService, private router: Router) {}
+  constructor(
+    private oidcSecurityService: OidcSecurityService,
+    private router: Router,
+  ) {}
 
   ngOnInit() {
     this.oidcSecurityService.checkAuth().subscribe(({ isAuthenticated }) => {

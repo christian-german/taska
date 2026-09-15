@@ -27,8 +27,20 @@ export interface NlParsed {
 }
 
 const DAY_TOKENS: Record<string, number> = {
-  lundi: 1, mardi: 2, mercredi: 3, jeudi: 4, vendredi: 5, samedi: 6, dimanche: 0,
-  lun: 1, mar: 2, mer: 3, jeu: 4, ven: 5, sam: 6, dim: 0,
+  lundi: 1,
+  mardi: 2,
+  mercredi: 3,
+  jeudi: 4,
+  vendredi: 5,
+  samedi: 6,
+  dimanche: 0,
+  lun: 1,
+  mar: 2,
+  mer: 3,
+  jeu: 4,
+  ven: 5,
+  sam: 6,
+  dim: 0,
 };
 
 function startOfDay(d: Date): Date {
@@ -120,7 +132,8 @@ export class NlParserService {
     }
 
     // Recurrence
-    const recurRe = /(tous les (lundis?|mardis?|mercredis?|jeudis?|vendredis?|samedis?|dimanches?)|chaque (jour|semaine|mois)|quotidien|hebdo)/gi;
+    const recurRe =
+      /(tous les (lundis?|mardis?|mercredis?|jeudis?|vendredis?|samedis?|dimanches?)|chaque (jour|semaine|mois)|quotidien|hebdo)/gi;
     while ((m = recurRe.exec(text)) !== null) {
       const w = m[0];
       if (/jour|quotidien/i.test(w)) recurrence = 'daily';
@@ -143,7 +156,8 @@ export class NlParserService {
     }
 
     // Date words
-    const dateRe = /\b(aujourd'?hui|demain|apres-?demain|après-?demain|hier|ce soir|ce matin|cet apres-?midi|cet après-?midi|lundi|mardi|mercredi|jeudi|vendredi|samedi|dimanche|lun|mar|mer|jeu|ven|sam|dim)\b/gi;
+    const dateRe =
+      /\b(aujourd'?hui|demain|apres-?demain|après-?demain|hier|ce soir|ce matin|cet apres-?midi|cet après-?midi|lundi|mardi|mercredi|jeudi|vendredi|samedi|dimanche|lun|mar|mer|jeu|ven|sam|dim)\b/gi;
     let baseDate: Date | null = null;
     {
       const localM = dateRe.exec(text);
@@ -152,16 +166,35 @@ export class NlParserService {
         let d = new Date(today);
         if (w.startsWith('aujourd')) d = new Date(today);
         else if (w === 'demain') d.setDate(d.getDate() + 1);
-        else if (w.startsWith('apresdemain') || w.startsWith('après') || w.startsWith('aprèsdemain')) d.setDate(d.getDate() + 2);
+        else if (
+          w.startsWith('apresdemain') ||
+          w.startsWith('après') ||
+          w.startsWith('aprèsdemain')
+        )
+          d.setDate(d.getDate() + 2);
         else if (w === 'hier') d.setDate(d.getDate() - 1);
-        else if (w === 'cesoir') { d = new Date(today); time = time || { h: 19, m: 0 }; hasTime = true; }
-        else if (w === 'cematin') { d = new Date(today); time = time || { h: 9, m: 0 }; hasTime = true; }
-        else if (w === 'cetapresmidi' || w === 'cetapresmidi') { d = new Date(today); time = time || { h: 14, m: 0 }; hasTime = true; }
-        else if (DAY_TOKENS[w] !== undefined) {
+        else if (w === 'cesoir') {
+          d = new Date(today);
+          time = time || { h: 19, m: 0 };
+          hasTime = true;
+        } else if (w === 'cematin') {
+          d = new Date(today);
+          time = time || { h: 9, m: 0 };
+          hasTime = true;
+        } else if (w === 'cetapresmidi' || w === 'cetapresmidi') {
+          d = new Date(today);
+          time = time || { h: 14, m: 0 };
+          hasTime = true;
+        } else if (DAY_TOKENS[w] !== undefined) {
           d = nextWeekday(DAY_TOKENS[w], today);
         }
         baseDate = d;
-        tokens.push({ type: 'date', text: localM[0], start: localM.index, end: localM.index + localM[0].length });
+        tokens.push({
+          type: 'date',
+          text: localM[0],
+          start: localM.index,
+          end: localM.index + localM[0].length,
+        });
       }
     }
 
@@ -170,7 +203,8 @@ export class NlParserService {
       const dmRe = /\b(\d{1,2})\/(\d{1,2})\b/g;
       const dm = dmRe.exec(text);
       if (dm) {
-        const day = parseInt(dm[1], 10), mon = parseInt(dm[2], 10);
+        const day = parseInt(dm[1], 10),
+          mon = parseInt(dm[2], 10);
         if (day >= 1 && day <= 31 && mon >= 1 && mon <= 12) {
           const d = new Date(today.getFullYear(), mon - 1, day);
           if (d < startOfDay(today)) d.setFullYear(d.getFullYear() + 1);

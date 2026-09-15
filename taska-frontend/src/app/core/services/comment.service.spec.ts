@@ -8,7 +8,9 @@ describe('CommentService', () => {
   let service: CommentService;
 
   beforeEach(() => {
-    TestBed.configureTestingModule({ providers: [provideHttpClient(), provideHttpClientTesting()] });
+    TestBed.configureTestingModule({
+      providers: [provideHttpClient(), provideHttpClientTesting()],
+    });
     http = TestBed.inject(HttpTestingController);
     service = TestBed.inject(CommentService);
   });
@@ -18,7 +20,7 @@ describe('CommentService', () => {
   it('uses the camelCase comment query contract', () => {
     service.getComments('task-1', 'project-1').subscribe();
 
-    const request = http.expectOne(candidate => candidate.url.endsWith('/comments'));
+    const request = http.expectOne((candidate) => candidate.url.endsWith('/comments'));
     expect(request.request.params.keys().sort()).toEqual(['projectId', 'taskId']);
     expect(request.request.params.get('taskId')).toBe('task-1');
     expect(request.request.params.get('projectId')).toBe('project-1');

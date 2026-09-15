@@ -28,40 +28,47 @@ import com.taska.android.ui.shared.TaskItem
 
 @Composable
 fun SearchScreen(viewModel: SearchViewModel, onBack: () -> Unit, onTaskClick: (String) -> Unit) {
-    val state by viewModel.uiState.collectAsState()
-    Column(Modifier.fillMaxSize().statusBarsPadding()) {
-        OutlinedTextField(
-            value = state.query,
-            onValueChange = viewModel::updateQuery,
-            modifier = Modifier.fillMaxWidth().padding(8.dp),
-            placeholder = { Text("Rechercher une tâche") },
-            leadingIcon = {
-                IconButton(onClick = onBack) {
-                    Icon(Icons.AutoMirrored.Outlined.ArrowBack, contentDescription = "Retour")
-                }
-            },
-            trailingIcon = { Icon(Icons.Outlined.Search, contentDescription = null) },
-            singleLine = true,
-        )
-        Box(Modifier.fillMaxSize()) {
-            when {
-                state.isLoading -> CircularProgressIndicator(Modifier.align(Alignment.Center))
-                state.error != null -> Text("Erreur : ${state.error}", Modifier.align(Alignment.Center).padding(16.dp))
-                state.query.isBlank() -> Text("Saisissez du texte pour rechercher vos tâches", Modifier.align(Alignment.Center).padding(16.dp))
-                state.results.isEmpty() -> Text("Aucune tâche trouvée", Modifier.align(Alignment.Center).padding(16.dp))
-                else -> LazyColumn(Modifier.fillMaxSize()) {
-                    items(state.results, key = { it.id }) { task ->
-                        TaskItem(
-                            task = task,
-                            project = null,
-                            isOverdue = false,
-                            onToggle = {},
-                            onClick = { onTaskClick(task.id) },
-                        )
-                        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
-                    }
-                }
-            }
+  val state by viewModel.uiState.collectAsState()
+  Column(Modifier.fillMaxSize().statusBarsPadding()) {
+    OutlinedTextField(
+      value = state.query,
+      onValueChange = viewModel::updateQuery,
+      modifier = Modifier.fillMaxWidth().padding(8.dp),
+      placeholder = { Text("Rechercher une tâche") },
+      leadingIcon = {
+        IconButton(onClick = onBack) {
+          Icon(Icons.AutoMirrored.Outlined.ArrowBack, contentDescription = "Retour")
         }
+      },
+      trailingIcon = { Icon(Icons.Outlined.Search, contentDescription = null) },
+      singleLine = true,
+    )
+    Box(Modifier.fillMaxSize()) {
+      when {
+        state.isLoading -> CircularProgressIndicator(Modifier.align(Alignment.Center))
+        state.error != null ->
+          Text("Erreur : ${state.error}", Modifier.align(Alignment.Center).padding(16.dp))
+        state.query.isBlank() ->
+          Text(
+            "Saisissez du texte pour rechercher vos tâches",
+            Modifier.align(Alignment.Center).padding(16.dp),
+          )
+        state.results.isEmpty() ->
+          Text("Aucune tâche trouvée", Modifier.align(Alignment.Center).padding(16.dp))
+        else ->
+          LazyColumn(Modifier.fillMaxSize()) {
+            items(state.results, key = { it.id }) { task ->
+              TaskItem(
+                task = task,
+                project = null,
+                isOverdue = false,
+                onToggle = {},
+                onClick = { onTaskClick(task.id) },
+              )
+              HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+            }
+          }
+      }
     }
+  }
 }

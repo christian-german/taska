@@ -7,6 +7,9 @@ import com.taska.domain.notification.repository.DeviceTokenRepository;
 import com.taska.domain.task.Task;
 import com.taska.domain.task.repository.TaskRepository;
 import com.taska.domain.task.service.TaskService;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,69 +17,69 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
-import java.util.List;
-
 @Service
 @RequiredArgsConstructor
-@ConditionalOnProperty(value = "taska.notification.enabled", havingValue = "true", matchIfMissing = true)
+@ConditionalOnProperty(
+    value = "taska.notification.enabled",
+    havingValue = "true",
+    matchIfMissing = true)
 public class TaskNotificationScheduler {
 
-    private static final Logger log = LoggerFactory.getLogger(TaskNotificationScheduler.class);
+  private static final Logger log = LoggerFactory.getLogger(TaskNotificationScheduler.class);
 
-    private final TaskService taskService;
-    private final TaskRepository taskRepository;
-    private final DeviceTokenRepository deviceTokenRepository;
+  private final TaskService taskService;
+  private final TaskRepository taskRepository;
+  private final DeviceTokenRepository deviceTokenRepository;
 
-    /**
-     * Scheduled job that runs at the configured interval to identify tasks due in approximately
-     * 15 minutes and send Firebase Cloud Messaging push notifications to all registered devices.
-     * Each notified task is flagged with {@code isNotified = true} to prevent duplicate alerts.
-     * The job is a no-op when no device tokens are registered.
-     */
-    @Scheduled(fixedDelayString = "${taska.notification.scheduler-delay}")
-    public void checkUpcomingTasks() {
-        log.debug("Checking for upcoming tasks to notify");
-        Instant in15min = Instant.now().plus(15, ChronoUnit.MINUTES);
-        log.debug("Checking tasks due around {}", in15min);
-        List<Task> tasks = taskService.findTasksDueAround(in15min);
-        log.debug("Found {} tasks due around {}", tasks.size(), in15min);
-        List<String> tokens = deviceTokenRepository.findAll()
-                .stream().map(DeviceToken::getToken).toList();
-        log.debug("Found {} device tokens", tokens.size());
+  /**
+   * Scheduled job that runs at the configured interval to identify tasks due in approximately 15
+   * minutes and send Firebase Cloud Messaging push notifications to all registered devices. Each
+   * notified task is flagged with {@code isNotified = true} to prevent duplicate alerts. The job is
+   * a no-op when no device tokens are registered.
+   */
+  @Scheduled(fixedDelayString = "${taska.notification.scheduler-delay}")
+  public void checkUpcomingTasks() {
+    log.debug("Checking for upcoming tasks to notify");
+    Instant in15min = Instant.now().plus(15, ChronoUnit.MINUTES);
+    log.debug("Checking tasks due around {}", in15min);
+    List<Task> tasks = taskService.findTasksDueAround(in15min);
+    log.debug("Found {} tasks due around {}", tasks.size(), in15min);
+    List<String> tokens =
+        deviceTokenRepository.findAll().stream().map(DeviceToken::getToken).toList();
+    log.debug("Found {} device tokens", tokens.size());
 
-        if (tokens.isEmpty()) {
-            return;
-        }
-
-        for (Task task : tasks) {
-            for (String token : tokens) {
-                sendNotification(token, task.getContent() + " dans 15 min", task.getDescription(), task);
-            }
-            task.setIsNotified(true);
-            taskRepository.save(task);
-        }
+    if (tokens.isEmpty()) {
+      return;
     }
 
-    /**
-     * Sends a Firebase Cloud Messaging data message to a single device token.
-     * The message carries the task ID, title, and body as data payload fields so the
-     * client can display a local notification with the correct content.
-     *
-     * @param token the FCM device token to target
-     * @param title the notification title text
-     * @param body  the notification body text
-     * @param task  the task being notified (used for logging and for the task_id data field)
-     */
-    private void sendNotification(String token, String title, String body, Task task) {
-        log.debug("Sending notification for task {} to device token {}", task.getId(), token);
-        Message message = Message.builder()
-                .setToken(token)
-                .putData("task_id", task.getId().toString())
-                .putData("title", title != null ? title : "")
-                .putData("body", body != null ? body : "")
-                .build();
-        FirebaseMessaging.getInstance().sendAsync(message);
+    for (Task task : tasks) {
+      for (String token : tokens) {
+        sendNotification(token, task.getContent() + " dans 15 min", task.getDescription(), task);
+      }
+      task.setIsNotified(true);
+      taskRepository.save(task);
     }
+  }
+
+  /**
+   * Sends a Firebase Cloud Messaging data message to a single device token. The message carries the
+   * task ID, title, and body as data payload fields so the client can display a local notification
+   * with the correct content.
+   *
+   * @param token the FCM device token to target
+   * @param title the notification title text
+   * @param body the notification body text
+   * @param task the task being notified (used for logging and for the task_id data field)
+   */
+  private void sendNotification(String token, String title, String body, Task task) {
+    log.debug("Sending notification for task {} to device token {}", task.getId(), token);
+    Message message =
+        Message.builder()
+            .setToken(token)
+            .putData("task_id", task.getId().toString())
+            .putData("title", title != null ? title : "")
+            .putData("body", body != null ? body : "")
+            .build();
+    FirebaseMessaging.getInstance().sendAsync(message);
+  }
 }

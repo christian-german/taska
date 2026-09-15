@@ -1,169 +1,360 @@
 <aside class="sb" [class.sidebar-open]="ui.sidebarOpen()">
-  <div style="flex: 1; overflow-y: auto; min-height: 0;">
-  <div class="sb-head">
-    <div class="script" style="font-size: 30px; line-height: 1; color: var(--ink); position: relative;">
-      taska
-      <svg width="56" height="8" viewBox="0 0 56 8" style="display: block; margin-top: 2px;">
-        <path d="M2 5 Q 8 1, 14 5 T 26 5 T 38 5 T 50 5"
-              stroke="var(--orange)" stroke-width="2" fill="none" stroke-linecap="round"/>
-      </svg>
+  <div style="flex: 1; overflow-y: auto; min-height: 0">
+    <div class="sb-head">
+      <div
+        class="script"
+        style="font-size: 30px; line-height: 1; color: var(--ink); position: relative"
+      >
+        taska
+        <svg width="56" height="8" viewBox="0 0 56 8" style="display: block; margin-top: 2px">
+          <path
+            d="M2 5 Q 8 1, 14 5 T 26 5 T 38 5 T 50 5"
+            stroke="var(--orange)"
+            stroke-width="2"
+            fill="none"
+            stroke-linecap="round"
+          />
+        </svg>
+      </div>
     </div>
-  </div>
 
-  <div style="padding: 0 14px 8px;">
-    <button (click)="openSearch()"
-            style="width: 100%; display: flex; align-items: center; gap: 8px; padding: 7px 10px;
-                   border-radius: 8px; background: var(--bg); border: 1px solid var(--line);
-                   color: var(--mute); cursor: pointer; font-size: 13px;">
-      <app-icon name="search" [size]="14" />
-      <span style="flex: 1; text-align: left;">Rechercher</span>
-      <span class="kbd">⌘K</span>
-    </button>
-  </div>
-
-  <div class="sb-section">
-    <div class="h"><a routerLink="/planning-calendars" routerLinkActive="active" style="text-decoration:none;color:inherit;">Calendriers</a></div>
-  </div>
-
-  <div class="sb-section">
-    <div class="h">Vues</div>
-    @for (it of viewItems(); track it.id) {
-      <a [routerLink]="it.route" routerLinkActive="active" class="sb-item">
-        <span class="ic"><app-icon [name]="it.icon" [size]="15" /></span>
-        <span>{{ it.label }}</span>
-        @if (it.count > 0) { <span class="count">{{ it.count }}</span> }
-      </a>
-    }
-  </div>
-
-  <div class="sb-section">
-    <div class="h" style="display: flex; align-items: center; justify-content: space-between;">
-      <span>Projets</span>
-      <button (click)="openCreateProject()"
-              style="background: transparent; border: 0; color: var(--mute); cursor: pointer; padding: 0;">
-        <app-icon name="plus" [size]="13" />
+    <div style="padding: 0 14px 8px">
+      <button
+        (click)="openSearch()"
+        style="
+          width: 100%;
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          padding: 7px 10px;
+          border-radius: 8px;
+          background: var(--bg);
+          border: 1px solid var(--line);
+          color: var(--mute);
+          cursor: pointer;
+          font-size: 13px;
+        "
+      >
+        <app-icon name="search" [size]="14" />
+        <span style="flex: 1; text-align: left">Rechercher</span>
+        <span class="kbd">⌘K</span>
       </button>
     </div>
 
-    @if (activeMenuId()) {
-      <div style="position: fixed; inset: 0; z-index: 19;" (click)="activeMenuId.set(null)"></div>
-    }
+    <div class="sb-section">
+      <div class="h">
+        <a
+          routerLink="/planning-calendars"
+          routerLinkActive="active"
+          style="text-decoration: none; color: inherit"
+          >Calendriers</a
+        >
+      </div>
+    </div>
 
-    @for (node of projectTree(); track node.project.id) {
-      <div style="position: relative;"
-           (mouseenter)="hoveredProjectId.set(node.project.id)"
-           (mouseleave)="onProjectLeave(node.project.id)">
-        <a [routerLink]="['/project', node.project.id]" routerLinkActive="active" class="sb-item">
-          @if (node.depth > 0) {
-            <span [style.width.px]="node.depth * 14" style="flex-shrink: 0;"></span>
-          }
-          <span style="width: 16px; display: flex; justify-content: center; flex-shrink: 0;">
-            <app-project-dot [color]="getColor(node.project.color)" />
-          </span>
-          <span style="flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-            {{ node.project.name }}
-          </span>
-          @if (hoveredProjectId() === node.project.id || activeMenuId() === node.project.id) {
-            @if (node.hasChildren) {
-              <button (click)="toggleCollapse(node.project.id, $event)"
-                      style="background: transparent; border: 0; cursor: pointer; padding: 0 1px;
-                             color: var(--mute); display: flex; align-items: center; border-radius: 3px;"
-                      [title]="collapsedProjectIds().has(node.project.id) ? 'Déplier' : 'Replier'">
-                <app-icon [name]="collapsedProjectIds().has(node.project.id) ? 'chevron-right' : 'chevron-down'" [size]="12" />
-              </button>
-            }
-            <button (click)="toggleProjectMenu(node.project.id, $event)"
-                    style="background: transparent; border: 0; cursor: pointer; padding: 0 2px;
-                           color: var(--mute); font-size: 14px; line-height: 1; border-radius: 4px;
-                           display: flex; align-items: center;">
-              ···
-            </button>
-          } @else if (counts().byProject[node.project.id] > 0) {
-            <span class="count">{{ counts().byProject[node.project.id] }}</span>
+    <div class="sb-section">
+      <div class="h">Vues</div>
+      @for (it of viewItems(); track it.id) {
+        <a [routerLink]="it.route" routerLinkActive="active" class="sb-item">
+          <span class="ic"><app-icon [name]="it.icon" [size]="15" /></span>
+          <span>{{ it.label }}</span>
+          @if (it.count > 0) {
+            <span class="count">{{ it.count }}</span>
           }
         </a>
-        @if (activeMenuId() === node.project.id) {
-          <div style="position: absolute; top: calc(100% + 2px); left: 8px; z-index: 20;
-                      background: var(--bg); border: 1px solid var(--line); border-radius: 8px;
-                      box-shadow: var(--shadow-soft); padding: 4px 0; min-width: 170px;"
-               (click)="$event.stopPropagation()">
-            <button style="width: 100%; display: flex; align-items: center; gap: 8px; padding: 7px 12px;
-                           background: transparent; border: 0; cursor: pointer; font-size: 13px;
-                           color: var(--ink); text-align: left;"
-                    (click)="openEditProject(node.project, $event)">
-              <app-icon name="edit" [size]="13" color="var(--mute)" /> Éditer
-            </button>
-            <button style="width: 100%; display: flex; align-items: center; gap: 8px; padding: 7px 12px;
-                           background: transparent; border: 0; cursor: pointer; font-size: 13px;
-                           color: var(--ink); text-align: left;"
-                    (click)="openImportCsv(node.project.id, $event)">
-              <app-icon name="upload" [size]="13" color="var(--mute)" /> Importer CSV
-            </button>
-            <div style="height: 1px; background: var(--line); margin: 3px 0;"></div>
-            <button style="width: 100%; display: flex; align-items: center; gap: 8px; padding: 7px 12px;
-                           background: transparent; border: 0; cursor: pointer; font-size: 13px;
-                           color: var(--p1); text-align: left;"
-                    (click)="requestDeleteProject(node.project, $event)">
-              <app-icon name="trash" [size]="13" /> Supprimer
-            </button>
-          </div>
-        }
-      </div>
-    }
-
-  </div>
-
-  <div class="sb-section">
-    <div class="h">
-      <a routerLink="/labels" routerLinkActive="active" style="text-decoration: none; color: inherit;">Tags</a>
+      }
     </div>
-      <div style="display: flex; flex-wrap: wrap; gap: 4px; padding: 4px 10px;">
+
+    <div class="sb-section">
+      <div class="h" style="display: flex; align-items: center; justify-content: space-between">
+        <span>Projets</span>
+        <button
+          (click)="openCreateProject()"
+          style="
+            background: transparent;
+            border: 0;
+            color: var(--mute);
+            cursor: pointer;
+            padding: 0;
+          "
+        >
+          <app-icon name="plus" [size]="13" />
+        </button>
+      </div>
+
+      @if (activeMenuId()) {
+        <div style="position: fixed; inset: 0; z-index: 19" (click)="activeMenuId.set(null)"></div>
+      }
+
+      @for (node of projectTree(); track node.project.id) {
+        <div
+          style="position: relative"
+          (mouseenter)="hoveredProjectId.set(node.project.id)"
+          (mouseleave)="onProjectLeave(node.project.id)"
+        >
+          <a [routerLink]="['/project', node.project.id]" routerLinkActive="active" class="sb-item">
+            @if (node.depth > 0) {
+              <span [style.width.px]="node.depth * 14" style="flex-shrink: 0"></span>
+            }
+            <span style="width: 16px; display: flex; justify-content: center; flex-shrink: 0">
+              <app-project-dot [color]="getColor(node.project.color)" />
+            </span>
+            <span
+              style="
+                flex: 1;
+                min-width: 0;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+              "
+            >
+              {{ node.project.name }}
+            </span>
+            @if (hoveredProjectId() === node.project.id || activeMenuId() === node.project.id) {
+              @if (node.hasChildren) {
+                <button
+                  (click)="toggleCollapse(node.project.id, $event)"
+                  style="
+                    background: transparent;
+                    border: 0;
+                    cursor: pointer;
+                    padding: 0 1px;
+                    color: var(--mute);
+                    display: flex;
+                    align-items: center;
+                    border-radius: 3px;
+                  "
+                  [title]="collapsedProjectIds().has(node.project.id) ? 'Déplier' : 'Replier'"
+                >
+                  <app-icon
+                    [name]="
+                      collapsedProjectIds().has(node.project.id) ? 'chevron-right' : 'chevron-down'
+                    "
+                    [size]="12"
+                  />
+                </button>
+              }
+              <button
+                (click)="toggleProjectMenu(node.project.id, $event)"
+                style="
+                  background: transparent;
+                  border: 0;
+                  cursor: pointer;
+                  padding: 0 2px;
+                  color: var(--mute);
+                  font-size: 14px;
+                  line-height: 1;
+                  border-radius: 4px;
+                  display: flex;
+                  align-items: center;
+                "
+              >
+                ···
+              </button>
+            } @else if (counts().byProject[node.project.id] > 0) {
+              <span class="count">{{ counts().byProject[node.project.id] }}</span>
+            }
+          </a>
+          @if (activeMenuId() === node.project.id) {
+            <div
+              style="
+                position: absolute;
+                top: calc(100% + 2px);
+                left: 8px;
+                z-index: 20;
+                background: var(--bg);
+                border: 1px solid var(--line);
+                border-radius: 8px;
+                box-shadow: var(--shadow-soft);
+                padding: 4px 0;
+                min-width: 170px;
+              "
+              (click)="$event.stopPropagation()"
+            >
+              <button
+                style="
+                  width: 100%;
+                  display: flex;
+                  align-items: center;
+                  gap: 8px;
+                  padding: 7px 12px;
+                  background: transparent;
+                  border: 0;
+                  cursor: pointer;
+                  font-size: 13px;
+                  color: var(--ink);
+                  text-align: left;
+                "
+                (click)="openEditProject(node.project, $event)"
+              >
+                <app-icon name="edit" [size]="13" color="var(--mute)" /> Éditer
+              </button>
+              <button
+                style="
+                  width: 100%;
+                  display: flex;
+                  align-items: center;
+                  gap: 8px;
+                  padding: 7px 12px;
+                  background: transparent;
+                  border: 0;
+                  cursor: pointer;
+                  font-size: 13px;
+                  color: var(--ink);
+                  text-align: left;
+                "
+                (click)="openImportCsv(node.project.id, $event)"
+              >
+                <app-icon name="upload" [size]="13" color="var(--mute)" /> Importer CSV
+              </button>
+              <div style="height: 1px; background: var(--line); margin: 3px 0"></div>
+              <button
+                style="
+                  width: 100%;
+                  display: flex;
+                  align-items: center;
+                  gap: 8px;
+                  padding: 7px 12px;
+                  background: transparent;
+                  border: 0;
+                  cursor: pointer;
+                  font-size: 13px;
+                  color: var(--p1);
+                  text-align: left;
+                "
+                (click)="requestDeleteProject(node.project, $event)"
+              >
+                <app-icon name="trash" [size]="13" /> Supprimer
+              </button>
+            </div>
+          }
+        </div>
+      }
+    </div>
+
+    <div class="sb-section">
+      <div class="h">
+        <a
+          routerLink="/labels"
+          routerLinkActive="active"
+          style="text-decoration: none; color: inherit"
+          >Tags</a
+        >
+      </div>
+      <div style="display: flex; flex-wrap: wrap; gap: 4px; padding: 4px 10px">
         @for (l of labels(); track l.id) {
-          <a [routerLink]="['/label', l.name]" style="cursor: pointer; text-decoration: none;">
+          <a [routerLink]="['/label', l.name]" style="cursor: pointer; text-decoration: none">
             <app-tag-chip [name]="l.name" [color]="getColor(l.color)" />
           </a>
         }
       </div>
+    </div>
   </div>
+  <!-- end scrollable -->
 
-  </div><!-- end scrollable -->
-
-  <div style="flex-shrink: 0; position: relative; padding: 12px; border-top: 1px solid var(--line);
-              display: flex; align-items: center; gap: 10px;">
-
+  <div
+    style="
+      flex-shrink: 0;
+      position: relative;
+      padding: 12px;
+      border-top: 1px solid var(--line);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    "
+  >
     @if (showUserMenu()) {
-      <div style="position: fixed; inset: 0; z-index: 10;" (click)="showUserMenu.set(false)"></div>
-      <div style="position: absolute; bottom: calc(100% + 4px); left: 12px; right: 12px; z-index: 11;
-                  background: var(--bg); border: 1px solid var(--line); border-radius: 8px;
-                  padding: 4px 0; box-shadow: 0 4px 16px rgba(0,0,0,.12);">
-        <button (click)="openAbout()"
-                style="width: 100%; display: flex; align-items: center; gap: 8px; padding: 8px 12px;
-                       background: transparent; border: 0; cursor: pointer; font-size: 13px;
-                       color: var(--ink); text-align: left;">
+      <div style="position: fixed; inset: 0; z-index: 10" (click)="showUserMenu.set(false)"></div>
+      <div
+        style="
+          position: absolute;
+          bottom: calc(100% + 4px);
+          left: 12px;
+          right: 12px;
+          z-index: 11;
+          background: var(--bg);
+          border: 1px solid var(--line);
+          border-radius: 8px;
+          padding: 4px 0;
+          box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+        "
+      >
+        <button
+          (click)="openAbout()"
+          style="
+            width: 100%;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            background: transparent;
+            border: 0;
+            cursor: pointer;
+            font-size: 13px;
+            color: var(--ink);
+            text-align: left;
+          "
+        >
           <app-icon name="info" [size]="14" color="var(--mute)" />
           <span>À propos</span>
         </button>
-        <div style="height: 1px; background: var(--line); margin: 3px 0;"></div>
-        <button (click)="logout()"
-                style="width: 100%; display: flex; align-items: center; gap: 8px; padding: 8px 12px;
-                       background: transparent; border: 0; cursor: pointer; font-size: 13px;
-                       color: var(--rose); text-align: left;">
+        <div style="height: 1px; background: var(--line); margin: 3px 0"></div>
+        <button
+          (click)="logout()"
+          style="
+            width: 100%;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            background: transparent;
+            border: 0;
+            cursor: pointer;
+            font-size: 13px;
+            color: var(--rose);
+            text-align: left;
+          "
+        >
           <app-icon name="arrow-left" [size]="14" />
           <span>Se déconnecter</span>
         </button>
       </div>
     }
 
-    <button (click)="showUserMenu.set(!showUserMenu())"
-            style="display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0;
-                   background: transparent; border: 0; padding: 0; cursor: pointer; text-align: left;">
-      <div style="width: 30px; height: 30px; border-radius: 50%; background: var(--orange); color: #fff;
-                  flex-shrink: 0; display: flex; align-items: center; justify-content: center;
-                  font-weight: 600; font-size: 13px;">
+    <button
+      (click)="showUserMenu.set(!showUserMenu())"
+      style="
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex: 1;
+        min-width: 0;
+        background: transparent;
+        border: 0;
+        padding: 0;
+        cursor: pointer;
+        text-align: left;
+      "
+    >
+      <div
+        style="
+          width: 30px;
+          height: 30px;
+          border-radius: 50%;
+          background: var(--orange);
+          color: #fff;
+          flex-shrink: 0;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-weight: 600;
+          font-size: 13px;
+        "
+      >
         {{ userInitial() }}
       </div>
-      <div style="flex: 1; min-width: 0;">
-        <div style="font-size: 12.5px; font-weight: 500; color: var(--ink);">{{ userName() }}</div>
+      <div style="flex: 1; min-width: 0">
+        <div style="font-size: 12.5px; font-weight: 500; color: var(--ink)">{{ userName() }}</div>
       </div>
     </button>
 

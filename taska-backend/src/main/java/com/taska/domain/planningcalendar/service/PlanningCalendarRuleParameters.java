@@ -9,7 +9,7 @@ import jakarta.validation.constraints.NotNull;
 /** Application representation of one weekly planning-calendar window. */
 @ValidPlanningCalendarRuleRange
 public record PlanningCalendarRuleParameters(
-        @NotNull @Min(1) @Max(7) Integer dayOfWeek,
-        @NotNull @Min(0) @Max(1_439) Integer startMinute,
-        @NotNull @Min(1) @Max(1_440) Integer endMinute
-) implements PlanningCalendarRuleValue {}
+    @NotNull @Min(1) @Max(7) Integer dayOfWeek,
+    @NotNull @Min(0) @Max(1_439) Integer startMinute,
+    @NotNull @Min(1) @Max(1_440) Integer endMinute)
+    implements PlanningCalendarRuleValue {}

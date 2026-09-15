@@ -1,50 +1,78 @@
-import {ChangeDetectionStrategy, Component, computed, HostListener, inject, OnInit, signal} from '@angular/core';
-import {Router, RouterOutlet} from '@angular/router';
-import {IconComponent} from './shared/components/icon/icon.component';
-import {SidebarComponent} from './layout/sidebar/sidebar.component';
-import {QuickAddComponent} from './shared/components/quick-add/quick-add.component';
-import {TaskDetailComponent} from './features/task-detail/task-detail.component';
-import {CommandPaletteComponent} from './shared/components/command-palette/command-palette.component';
-import {ShortcutsModalComponent} from './shared/components/shortcuts-modal/shortcuts-modal.component';
-import {ProjectService} from './core/services/project.service';
-import {LabelService} from './core/services/label.service';
-import {UiStateService} from './core/services/ui-state.service';
-import {Project, Task} from './core/models';
-import {attachConsole} from '@tauri-apps/plugin-log';
-import {onOpenUrl} from '@tauri-apps/plugin-deep-link';
-import {UpdateService} from './core/services/update.service';
-import {UpdateDialogComponent} from './layout/update-dialog/UpdateDialogComponent';
-import {AboutDialogComponent} from './layout/about-dialog/about-dialog.component';
-import {AddProjectModalComponent} from './shared/components/add-project-modal/add-project-modal.component';
-import {CsvImportModalComponent} from './shared/components/csv-import-modal/csv-import-modal.component';
-import {ConfirmDialogComponent} from './shared/components/confirm-dialog/confirm-dialog.component';
-import {interval} from 'rxjs';
-import {TaskCreatedToastComponent} from './shared/components/task-created-toast/task-created-toast.component';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  HostListener,
+  inject,
+  OnInit,
+  signal,
+} from '@angular/core';
+import { Router, RouterOutlet } from '@angular/router';
+import { IconComponent } from './shared/components/icon/icon.component';
+import { SidebarComponent } from './layout/sidebar/sidebar.component';
+import { QuickAddComponent } from './shared/components/quick-add/quick-add.component';
+import { TaskDetailComponent } from './features/task-detail/task-detail.component';
+import { CommandPaletteComponent } from './shared/components/command-palette/command-palette.component';
+import { ShortcutsModalComponent } from './shared/components/shortcuts-modal/shortcuts-modal.component';
+import { ProjectService } from './core/services/project.service';
+import { LabelService } from './core/services/label.service';
+import { UiStateService } from './core/services/ui-state.service';
+import { Project, Task } from './core/models';
+import { attachConsole } from '@tauri-apps/plugin-log';
+import { onOpenUrl } from '@tauri-apps/plugin-deep-link';
+import { UpdateService } from './core/services/update.service';
+import { UpdateDialogComponent } from './layout/update-dialog/UpdateDialogComponent';
+import { AboutDialogComponent } from './layout/about-dialog/about-dialog.component';
+import { AddProjectModalComponent } from './shared/components/add-project-modal/add-project-modal.component';
+import { CsvImportModalComponent } from './shared/components/csv-import-modal/csv-import-modal.component';
+import { ConfirmDialogComponent } from './shared/components/confirm-dialog/confirm-dialog.component';
+import { interval } from 'rxjs';
+import { TaskCreatedToastComponent } from './shared/components/task-created-toast/task-created-toast.component';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, IconComponent, SidebarComponent, QuickAddComponent, TaskDetailComponent, CommandPaletteComponent, ShortcutsModalComponent, UpdateDialogComponent, AboutDialogComponent, AddProjectModalComponent, CsvImportModalComponent, ConfirmDialogComponent, TaskCreatedToastComponent],
+  imports: [
+    RouterOutlet,
+    IconComponent,
+    SidebarComponent,
+    QuickAddComponent,
+    TaskDetailComponent,
+    CommandPaletteComponent,
+    ShortcutsModalComponent,
+    UpdateDialogComponent,
+    AboutDialogComponent,
+    AddProjectModalComponent,
+    CsvImportModalComponent,
+    ConfirmDialogComponent,
+    TaskCreatedToastComponent,
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @if (ui.sidebarOpen()) {
       <div class="sidebar-backdrop" (click)="ui.sidebarOpen.set(false)"></div>
     }
 
-    <button class="sidebar-toggle btn btn-ghost btn-icon"
-            (click)="ui.sidebarOpen.set(true)"
-            title="Menu">
-      <app-icon name="menu" [size]="18"/>
+    <button
+      class="sidebar-toggle btn btn-ghost btn-icon"
+      (click)="ui.sidebarOpen.set(true)"
+      title="Menu"
+    >
+      <app-icon name="menu" [size]="18" />
     </button>
 
     <div class="app" [class.has-detail]="hasDetail()">
       <app-sidebar
         (projectModalRequested)="projectModal.set($event)"
         (csvImportRequested)="csvImportProjectId.set($event)"
-        (projectDeleteRequested)="projectPendingDeletion.set($event)" />
+        (projectDeleteRequested)="projectPendingDeletion.set($event)"
+      />
 
-      <main class="scroll" (click)="ui.closeTaskDetail()"
-            style="overflow-y: auto; display: flex; flex-direction: column;">
-        <router-outlet/>
+      <main
+        class="scroll"
+        (click)="ui.closeTaskDetail()"
+        style="overflow-y: auto; display: flex; flex-direction: column;"
+      >
+        <router-outlet />
       </main>
 
       @if (ui.selectedTask(); as task) {
@@ -52,26 +80,30 @@ import {TaskCreatedToastComponent} from './shared/components/task-created-toast/
           [task]="task"
           (close)="ui.closeTaskDetail()"
           (taskUpdated)="onTaskUpdated($event)"
-          (taskDeleted)="onTaskDeleted($event)"/>
+          (taskDeleted)="onTaskDeleted($event)"
+        />
       }
     </div>
 
     @if (ui.showQuickAdd()) {
-      <app-quick-add (close)="ui.showQuickAdd.set(false)"/>
+      <app-quick-add (close)="ui.showQuickAdd.set(false)" />
     }
     @if (ui.showPalette()) {
-      <app-command-palette (close)="ui.showPalette.set(false)"/>
+      <app-command-palette (close)="ui.showPalette.set(false)" />
     }
     @if (ui.showHelp()) {
-      <app-shortcuts-modal (close)="ui.showHelp.set(false)"/>
+      <app-shortcuts-modal (close)="ui.showHelp.set(false)" />
     }
     @if (ui.showAbout()) {
-      <app-about-dialog (close)="ui.showAbout.set(false)"/>
+      <app-about-dialog (close)="ui.showAbout.set(false)" />
     }
-    <app-update-dialog/>
+    <app-update-dialog />
 
     @if (projectModal() !== undefined) {
-      <app-add-project-modal [project]="projectModal() ?? null" (close)="projectModal.set(undefined)" />
+      <app-add-project-modal
+        [project]="projectModal() ?? null"
+        (close)="projectModal.set(undefined)"
+      />
     }
     @if (csvImportProjectId(); as projectId) {
       <app-csv-import-modal [projectId]="projectId" (close)="csvImportProjectId.set(null)" />
@@ -81,9 +113,10 @@ import {TaskCreatedToastComponent} from './shared/components/task-created-toast/
         [title]="'Supprimer « ' + project.name + ' » ?'"
         message="Le projet et toutes ses tâches seront supprimés définitivement."
         (confirmed)="deleteProject(project)"
-        (cancelled)="projectPendingDeletion.set(null)" />
+        (cancelled)="projectPendingDeletion.set(null)"
+      />
     }
-    <app-task-created-toast/>
+    <app-task-created-toast />
   `,
 })
 export class AppComponent implements OnInit {
@@ -105,13 +138,12 @@ export class AppComponent implements OnInit {
   }
 
   ngOnInit(): void {
-
     // Check if we are running in Tauri.
     const isTauri = typeof window !== 'undefined' && '__TAURI_INTERNALS__' in window;
 
     if (isTauri) {
       // Enable console attach for Tauri to log to a file.
-      attachConsole().then(detach => {
+      attachConsole().then((detach) => {
         this.detachConsole = detach;
       });
 
@@ -129,9 +161,7 @@ export class AppComponent implements OnInit {
 
       // Check update every 5 minutes.
       interval(5 * 60 * 1000).subscribe(() => {
-        this.updateService.checkForUpdates().then(
-          () => console.log("Update check OK")
-        );
+        this.updateService.checkForUpdates().then(() => console.log('Update check OK'));
       });
     }
 
@@ -162,9 +192,7 @@ export class AppComponent implements OnInit {
   onKeydown(event: KeyboardEvent): void {
     const target = event.target as HTMLElement;
     const isInput =
-      target?.tagName === 'INPUT' ||
-      target?.tagName === 'TEXTAREA' ||
-      target?.isContentEditable;
+      target?.tagName === 'INPUT' || target?.tagName === 'TEXTAREA' || target?.isContentEditable;
 
     // Cmd/Ctrl shortcuts work even in inputs
     if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') {

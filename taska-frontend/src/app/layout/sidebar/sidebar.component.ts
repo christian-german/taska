@@ -1,4 +1,13 @@
-import {Component, DestroyRef, OnInit, computed, inject, output, signal, ChangeDetectionStrategy} from '@angular/core';
+import {
+  Component,
+  DestroyRef,
+  OnInit,
+  computed,
+  inject,
+  output,
+  signal,
+  ChangeDetectionStrategy,
+} from '@angular/core';
 import { Router, RouterLink, RouterLinkActive, NavigationEnd } from '@angular/router';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { filter, map } from 'rxjs';
@@ -10,7 +19,10 @@ import { ThemeService } from '../../core/services/theme.service';
 import { UiStateService } from '../../core/services/ui-state.service';
 import { Label, Project, Task, getColor, isOverdue } from '../../core/models';
 import { IconComponent } from '../../shared/components/icon/icon.component';
-import { ProjectDotComponent, TagChipComponent } from '../../shared/components/atoms/atoms.component';
+import {
+  ProjectDotComponent,
+  TagChipComponent,
+} from '../../shared/components/atoms/atoms.component';
 
 interface SidebarCount {
   inbox: number;
@@ -29,13 +41,7 @@ interface ProjectNode {
 @Component({
   selector: 'app-sidebar',
   host: { style: 'display: block; height: 100%; min-height: 0; overflow: hidden;' },
-  imports: [
-    RouterLink,
-    RouterLinkActive,
-    IconComponent,
-    ProjectDotComponent,
-    TagChipComponent,
-  ],
+  imports: [RouterLink, RouterLinkActive, IconComponent, ProjectDotComponent, TagChipComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './sidebar.component.html',
 })
@@ -51,7 +57,7 @@ export class SidebarComponent implements OnInit {
 
   private userData = toSignal(
     this.oidcSecurityService.userData$.pipe(map(({ userData }) => userData)),
-    { initialValue: null as any }
+    { initialValue: null as any },
   );
 
   projects = toSignal(this.projectService.projects$, { initialValue: [] as Project[] });
@@ -68,18 +74,18 @@ export class SidebarComponent implements OnInit {
 
   activeProjects = computed(() =>
     this.projects()
-      .filter(p => !p.isInboxProject)
-      .sort((a, b) => a.order - b.order)
+      .filter((p) => !p.isInboxProject)
+      .sort((a, b) => a.order - b.order),
   );
 
   projectTree = computed<ProjectNode[]>(() => {
     const projects = this.activeProjects();
     const collapsed = this.collapsedProjectIds();
-    const allIds = new Set(projects.map(p => p.id));
+    const allIds = new Set(projects.map((p) => p.id));
 
     const byParent = new Map<string, Project[]>();
     for (const p of projects) {
-      const key = (p.parentId && allIds.has(p.parentId)) ? p.parentId : '';
+      const key = p.parentId && allIds.has(p.parentId) ? p.parentId : '';
       const list = byParent.get(key) ?? [];
       list.push(p);
       byParent.set(key, list);
@@ -109,19 +115,18 @@ export class SidebarComponent implements OnInit {
       return d >= now - 86400000 && d <= now + 7 * 86400000;
     };
 
-    const inboxId = this.projects().find(p => p.isInboxProject)?.id;
-    const inbox = tasks.filter(t => !t.isCompleted && t.projectId === inboxId).length;
-    const today = tasks.filter(t =>
-      !t.isCompleted &&
-      t.scheduledAt &&
-      (t.scheduledAt.slice(0, 10) <= todayStr || isOverdue(t))
+    const inboxId = this.projects().find((p) => p.isInboxProject)?.id;
+    const inbox = tasks.filter((t) => !t.isCompleted && t.projectId === inboxId).length;
+    const today = tasks.filter(
+      (t) =>
+        !t.isCompleted && t.scheduledAt && (t.scheduledAt.slice(0, 10) <= todayStr || isOverdue(t)),
     ).length;
-    const week = tasks.filter(t => !t.isCompleted && inWeek(t.scheduledAt)).length;
-    const done = tasks.filter(t => t.isCompleted).length;
+    const week = tasks.filter((t) => !t.isCompleted && inWeek(t.scheduledAt)).length;
+    const done = tasks.filter((t) => t.isCompleted).length;
 
     const byProject: Record<string, number> = {};
-    this.projects().forEach(p => {
-      byProject[p.id] = tasks.filter(t => t.projectId === p.id && !t.isCompleted).length;
+    this.projects().forEach((p) => {
+      byProject[p.id] = tasks.filter((t) => t.projectId === p.id && !t.isCompleted).length;
     });
 
     return { inbox, today, week, done, byProject };
@@ -140,14 +145,16 @@ export class SidebarComponent implements OnInit {
   ngOnInit(): void {
     this.refreshAllTasks();
     // Fermer la sidebar sur mobile lors d'une navigation
-    this.router.events.pipe(
-      filter(e => e instanceof NavigationEnd),
-      takeUntilDestroyed(this.destroyRef),
-    ).subscribe(() => this.ui.sidebarOpen.set(false));
+    this.router.events
+      .pipe(
+        filter((e) => e instanceof NavigationEnd),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe(() => this.ui.sidebarOpen.set(false));
   }
 
   private refreshAllTasks(): void {
-    this.taskService.getTasks({ showCompleted: true }).subscribe(t => this.allTasks.set(t));
+    this.taskService.getTasks({ showCompleted: true }).subscribe((t) => this.allTasks.set(t));
   }
 
   getColor = getColor;
@@ -190,9 +197,10 @@ export class SidebarComponent implements OnInit {
   toggleCollapse(id: string, e: Event): void {
     e.stopPropagation();
     e.preventDefault();
-    this.collapsedProjectIds.update(set => {
+    this.collapsedProjectIds.update((set) => {
       const next = new Set(set);
-      if (next.has(id)) next.delete(id); else next.add(id);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
       return next;
     });
   }

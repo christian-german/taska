@@ -38,9 +38,9 @@ export class ProjectService {
   readonly projects$ = this.projectsSubject.asObservable();
 
   loadProjects(): Observable<Project[]> {
-    return this.http.get<Project[]>(this.base).pipe(
-      tap(projects => this.projectsSubject.next(projects)),
-    );
+    return this.http
+      .get<Project[]>(this.base)
+      .pipe(tap((projects) => this.projectsSubject.next(projects)));
   }
 
   getProject(projectId: string): Observable<Project> {
@@ -48,16 +48,18 @@ export class ProjectService {
   }
 
   createProject(data: ProjectCreateRequest): Observable<Project> {
-    return this.http.post<Project>(this.base, data).pipe(
-      tap(() => this.loadProjects().subscribe()),
-    );
+    return this.http
+      .post<Project>(this.base, data)
+      .pipe(tap(() => this.loadProjects().subscribe()));
   }
 
   updateProject(projectId: string, data: ProjectUpdateRequest): Observable<Project> {
     return this.http.put<Project>(`${this.base}/${projectId}`, data).pipe(
-      tap(updated => {
+      tap((updated) => {
         const current = this.projectsSubject.value;
-        this.projectsSubject.next(current.map(project => (project.id === projectId ? updated : project)));
+        this.projectsSubject.next(
+          current.map((project) => (project.id === projectId ? updated : project)),
+        );
       }),
     );
   }
@@ -65,7 +67,9 @@ export class ProjectService {
   deleteProject(projectId: string): Observable<void> {
     return this.http.delete<void>(`${this.base}/${projectId}`).pipe(
       tap(() => {
-        this.projectsSubject.next(this.projectsSubject.value.filter(project => project.id !== projectId));
+        this.projectsSubject.next(
+          this.projectsSubject.value.filter((project) => project.id !== projectId),
+        );
       }),
     );
   }
@@ -73,8 +77,8 @@ export class ProjectService {
   reorderProjects(items: ReorderItem[]): Observable<void> {
     return this.http.patch<void>(`${this.base}/reorder`, items).pipe(
       tap(() => {
-        const updated = this.projectsSubject.value.map(project => {
-          const item = items.find(reorderItem => reorderItem.id === project.id);
+        const updated = this.projectsSubject.value.map((project) => {
+          const item = items.find((reorderItem) => reorderItem.id === project.id);
           return item ? { ...project, order: item.order } : project;
         });
         this.projectsSubject.next([...updated].sort((a, b) => a.order - b.order));
@@ -85,5 +89,4 @@ export class ProjectService {
   getProjectTasks(projectId: string): Observable<Task[]> {
     return this.http.get<Task[]>(`${this.base}/${projectId}/tasks`);
   }
-
 }

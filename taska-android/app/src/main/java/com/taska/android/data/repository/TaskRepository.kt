@@ -6,64 +6,65 @@ import com.taska.android.data.model.CloseReopenRequest
 import com.taska.android.data.model.DeleteTaskBody
 import com.taska.android.data.model.OccurrenceUpdateRequest
 import com.taska.android.data.model.RecurrenceScope
-import com.taska.android.data.model.TaskDto
 import com.taska.android.data.model.TaskCreateRequest
+import com.taska.android.data.model.TaskDto
 import com.taska.android.data.model.TaskUpdateRequest
 import com.taska.android.widget.TaskWidgetRefresh
 
 class TaskRepository(private val api: TaskaApi) {
 
-    constructor() : this(RetrofitClient.api)
+  constructor() : this(RetrofitClient.api)
 
-    suspend fun getTasks(
-        projectId: String? = null,
-        showCompleted: Boolean = false,
-        date: String? = null,
-        from: String? = null,
-        to: String? = null,
-    ): List<TaskDto> = api.getTasks(projectId, showCompleted, date, from, to)
+  suspend fun getTasks(
+    projectId: String? = null,
+    showCompleted: Boolean = false,
+    date: String? = null,
+    from: String? = null,
+    to: String? = null,
+  ): List<TaskDto> = api.getTasks(projectId, showCompleted, date, from, to)
 
-    suspend fun getTask(id: String): TaskDto = api.getTask(id)
+  suspend fun getTask(id: String): TaskDto = api.getTask(id)
 
-    suspend fun getSubtasks(taskId: String): List<TaskDto> = api.getSubtasks(taskId)
+  suspend fun getSubtasks(taskId: String): List<TaskDto> = api.getSubtasks(taskId)
 
-    suspend fun createTask(request: TaskCreateRequest): TaskDto =
-        api.createTask(request).also { refreshWidgets() }
+  suspend fun createTask(request: TaskCreateRequest): TaskDto =
+    api.createTask(request).also { refreshWidgets() }
 
-    suspend fun updateTask(id: String, request: TaskUpdateRequest): TaskDto =
-        api.updateTask(id, request).also { refreshWidgets() }
+  suspend fun updateTask(id: String, request: TaskUpdateRequest): TaskDto =
+    api.updateTask(id, request).also { refreshWidgets() }
 
-    suspend fun updateFollowingTask(
-        id: String,
-        occurrenceScheduledAt: String,
-        request: TaskUpdateRequest,
-    ): TaskDto = api.updateFollowingTask(id, occurrenceScheduledAt, request).also { refreshWidgets() }
+  suspend fun updateFollowingTask(
+    id: String,
+    occurrenceScheduledAt: String,
+    request: TaskUpdateRequest,
+  ): TaskDto = api.updateFollowingTask(id, occurrenceScheduledAt, request).also { refreshWidgets() }
 
-    suspend fun updateOccurrence(
-        id: String,
-        occurrenceScheduledAt: String,
-        request: OccurrenceUpdateRequest,
-    ): TaskDto = api.updateOccurrence(id, occurrenceScheduledAt, request).also { refreshWidgets() }
+  suspend fun updateOccurrence(
+    id: String,
+    occurrenceScheduledAt: String,
+    request: OccurrenceUpdateRequest,
+  ): TaskDto = api.updateOccurrence(id, occurrenceScheduledAt, request).also { refreshWidgets() }
 
-    suspend fun closeTask(taskId: String, occurrenceScheduledAt: String? = null): TaskDto =
-        api.closeTask(taskId, CloseReopenRequest(occurrenceScheduledAt)).also { refreshWidgets() }
+  suspend fun closeTask(taskId: String, occurrenceScheduledAt: String? = null): TaskDto =
+    api.closeTask(taskId, CloseReopenRequest(occurrenceScheduledAt)).also { refreshWidgets() }
 
-    suspend fun reopenTask(taskId: String, occurrenceScheduledAt: String? = null): TaskDto =
-        api.reopenTask(taskId, CloseReopenRequest(occurrenceScheduledAt)).also { refreshWidgets() }
+  suspend fun reopenTask(taskId: String, occurrenceScheduledAt: String? = null): TaskDto =
+    api.reopenTask(taskId, CloseReopenRequest(occurrenceScheduledAt)).also { refreshWidgets() }
 
-    suspend fun deleteTask(
-        taskId: String,
-        scope: RecurrenceScope? = null,
-        occurrenceScheduledAt: String? = null,
-    ) {
-        val body = when (scope) {
-            RecurrenceScope.THIS_ONLY -> DeleteTaskBody("THIS_ONLY", occurrenceScheduledAt)
-            RecurrenceScope.FROM_THIS -> DeleteTaskBody("FROM_THIS", occurrenceScheduledAt)
-            null -> DeleteTaskBody()
-        }
-        api.deleteTask(taskId, body)
-        refreshWidgets()
-    }
+  suspend fun deleteTask(
+    taskId: String,
+    scope: RecurrenceScope? = null,
+    occurrenceScheduledAt: String? = null,
+  ) {
+    val body =
+      when (scope) {
+        RecurrenceScope.THIS_ONLY -> DeleteTaskBody("THIS_ONLY", occurrenceScheduledAt)
+        RecurrenceScope.FROM_THIS -> DeleteTaskBody("FROM_THIS", occurrenceScheduledAt)
+        null -> DeleteTaskBody()
+      }
+    api.deleteTask(taskId, body)
+    refreshWidgets()
+  }
 
-    private fun refreshWidgets() = TaskWidgetRefresh.request(RetrofitClient.applicationContext)
+  private fun refreshWidgets() = TaskWidgetRefresh.request(RetrofitClient.applicationContext)
 }

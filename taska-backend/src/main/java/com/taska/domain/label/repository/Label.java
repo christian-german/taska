@@ -1,5 +1,6 @@
-package com.taska.domain.label;
+package com.taska.domain.label.repository;
 
+import com.taska.domain.task.repository.Task;
 import jakarta.persistence.*;
 import java.util.UUID;
 
@@ -7,8 +8,7 @@ import java.util.UUID;
  * JPA entity representing a user-defined label in the {@code labels} table.
  *
  * <p>Labels are global tags that can be attached to tasks (stored in the {@code task_labels} join
- * table via {@link com.taska.domain.task.Task#labels}). Label names are unique across the
- * installation.
+ * table via {@link Task#getLabels()}). Label names are unique across the installation.
  */
 @Entity
 @Table(name = "labels")

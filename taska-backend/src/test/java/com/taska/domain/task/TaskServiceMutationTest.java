@@ -8,13 +8,14 @@ import static org.mockito.Mockito.*;
 
 import com.taska.domain.planningcalendar.service.PlanningCalendarService;
 import com.taska.domain.priority.repository.TaskPriorityEvaluationRepository;
-import com.taska.domain.project.Project;
+import com.taska.domain.project.repository.Project;
 import com.taska.domain.project.repository.ProjectRepository;
 import com.taska.domain.task.controller.TaskDto;
 import com.taska.domain.task.controller.TaskMapper;
 import com.taska.domain.task.occurrence.*;
 import com.taska.domain.task.occurrence.repository.TaskInstanceRepository;
 import com.taska.domain.task.occurrence.service.TaskRecurrenceService;
+import com.taska.domain.task.repository.Task;
 import com.taska.domain.task.repository.TaskRepository;
 import com.taska.domain.task.service.TaskCloseReopenParameters;
 import com.taska.domain.task.service.TaskCreateParameters;

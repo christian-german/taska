@@ -87,7 +87,7 @@ public class TaskController {
   /**
    * Creates a new task. Returns HTTP 201 with the created task DTO.
    *
-   * @param taskRequest validated task creation payload
+   * @param taskCreateRequest validated task creation payload
    * @return the created task DTO
    */
   @PostMapping

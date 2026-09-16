@@ -1,6 +1,6 @@
 package com.taska.domain.task.service;
 
-import com.taska.domain.task.Task;
+import com.taska.domain.task.repository.Task;
 import com.taska.domain.task.occurrence.TaskInstance;
 import java.time.Instant;
 

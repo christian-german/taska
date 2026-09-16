@@ -13,6 +13,7 @@ import com.taska.domain.label.controller.LabelController;
 import com.taska.domain.label.controller.LabelExceptionHandler;
 import com.taska.domain.label.controller.LabelMapper;
 import com.taska.domain.label.controller.LabelMapperImpl;
+import com.taska.domain.label.repository.Label;
 import com.taska.domain.label.service.LabelCreateParameters;
 import com.taska.domain.label.service.LabelService;
 import com.taska.domain.label.service.LabelUpdateParameters;

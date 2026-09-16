@@ -1,8 +1,8 @@
 package com.taska.domain.priority.service;
 
-import com.taska.domain.priority.TaskPriorityEvaluation;
+import com.taska.domain.priority.repository.TaskPriorityEvaluation;
 import com.taska.domain.priority.repository.TaskPriorityEvaluationRepository;
-import com.taska.domain.task.Task;
+import com.taska.domain.task.repository.Task;
 import com.taska.domain.task.TaskType;
 import com.taska.domain.task.repository.TaskRepository;
 import com.taska.exception.ResourceNotFoundException;

@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.taska.domain.label.repository.Label;
 import com.taska.domain.label.repository.LabelRepository;
 import com.taska.domain.label.service.LabelCreateParameters;
 import com.taska.domain.label.service.LabelService;

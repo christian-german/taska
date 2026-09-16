@@ -2,9 +2,9 @@ package com.taska.domain.project.service;
 
 import com.taska.domain.planningcalendar.repository.PlanningCalendarRepository;
 import com.taska.domain.planningcalendar.service.PlanningCalendarService;
-import com.taska.domain.project.Project;
+import com.taska.domain.project.repository.Project;
 import com.taska.domain.project.repository.ProjectRepository;
-import com.taska.domain.task.Task;
+import com.taska.domain.task.repository.Task;
 import com.taska.domain.task.repository.TaskRepository;
 import com.taska.exception.ResourceNotFoundException;
 import java.util.List;

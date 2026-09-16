@@ -1,6 +1,6 @@
 package com.taska.mcp;
 
-import com.taska.domain.task.Task;
+import com.taska.domain.task.repository.Task;
 import com.taska.domain.task.TaskType;
 import com.taska.domain.task.occurrence.RecurrenceScope;
 import com.taska.domain.task.occurrence.TaskInstance;

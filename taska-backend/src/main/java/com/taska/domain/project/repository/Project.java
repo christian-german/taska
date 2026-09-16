@@ -1,5 +1,6 @@
-package com.taska.domain.project;
+package com.taska.domain.project.repository;
 
+import com.taska.domain.project.ViewStyle;
 import jakarta.persistence.*;
 import java.time.Instant;
 import java.util.UUID;

@@ -5,6 +5,7 @@ import static org.mockito.Mockito.*;
 
 import com.taska.domain.notification.controller.RegisterDeviceController;
 import com.taska.domain.notification.controller.RegisterDeviceRequest;
+import com.taska.domain.notification.repository.DeviceToken;
 import com.taska.domain.notification.repository.DeviceTokenRepository;
 import com.taska.domain.notification.service.DeviceRegistrationService;
 import java.time.Instant;

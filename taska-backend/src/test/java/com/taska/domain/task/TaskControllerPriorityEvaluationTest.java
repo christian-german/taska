@@ -4,7 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.*;
 
-import com.taska.domain.priority.TaskPriorityEvaluation;
+import com.taska.domain.priority.repository.TaskPriorityEvaluation;
 import com.taska.domain.priority.controller.TaskPriorityEvaluationDto;
 import com.taska.domain.priority.controller.TaskPriorityEvaluationMapper;
 import com.taska.domain.priority.service.TaskPriorityEvaluationService;

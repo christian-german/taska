@@ -1,5 +1,7 @@
 package com.taska.domain.project;
 
+import com.taska.domain.project.repository.Project;
+
 /** Preferred task rendering mode for a {@link Project}. */
 public enum ViewStyle {
   /** Tasks displayed as a flat ordered list (default). */

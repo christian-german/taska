@@ -1,6 +1,6 @@
 package com.taska.domain.project.controller;
 
-import com.taska.domain.project.Project;
+import com.taska.domain.project.repository.Project;
 import com.taska.domain.project.service.ProjectCreateParameters;
 import com.taska.domain.project.service.ProjectReorderParameters;
 import com.taska.domain.project.service.ProjectUpdateParameters;

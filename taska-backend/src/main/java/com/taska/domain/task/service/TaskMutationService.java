@@ -1,7 +1,7 @@
 package com.taska.domain.task.service;
 
 import com.taska.domain.notification.service.TaskChangePublisher;
-import com.taska.domain.task.Task;
+import com.taska.domain.task.repository.Task;
 import java.time.Instant;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;

@@ -1,6 +1,6 @@
 package com.taska.mcp;
 
-import com.taska.domain.project.Project;
+import com.taska.domain.project.repository.Project;
 import com.taska.domain.project.ViewStyle;
 import com.taska.domain.project.service.ProjectCreateParameters;
 import com.taska.domain.project.service.ProjectService;

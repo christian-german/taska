@@ -6,6 +6,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.taska.domain.notification.service.TaskChangePublisher;
+import com.taska.domain.task.repository.Task;
 import com.taska.domain.task.service.TaskCreateParameters;
 import com.taska.domain.task.service.TaskMutationService;
 import com.taska.domain.task.service.TaskService;

@@ -1,6 +1,5 @@
 package com.taska.domain.notification.repository;
 
-import com.taska.domain.notification.DeviceToken;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;

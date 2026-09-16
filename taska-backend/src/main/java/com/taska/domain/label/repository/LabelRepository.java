@@ -1,6 +1,5 @@
 package com.taska.domain.label.repository;
 
-import com.taska.domain.label.Label;
 import java.util.List;
 import java.util.UUID;
 import org.springframework.data.jpa.repository.JpaRepository;

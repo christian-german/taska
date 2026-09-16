@@ -1,6 +1,6 @@
 package com.taska.domain.task.occurrence;
 
-import com.taska.domain.task.Task;
+import com.taska.domain.task.repository.Task;
 import jakarta.persistence.*;
 import java.time.Instant;
 import java.util.UUID;

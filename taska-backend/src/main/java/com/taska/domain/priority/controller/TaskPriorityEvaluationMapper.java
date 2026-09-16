@@ -1,6 +1,6 @@
 package com.taska.domain.priority.controller;
 
-import com.taska.domain.priority.TaskPriorityEvaluation;
+import com.taska.domain.priority.repository.TaskPriorityEvaluation;
 import org.mapstruct.Mapper;
 import org.mapstruct.MappingConstants;
 

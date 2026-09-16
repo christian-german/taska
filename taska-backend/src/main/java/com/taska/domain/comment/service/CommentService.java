@@ -1,6 +1,6 @@
 package com.taska.domain.comment.service;
 
-import com.taska.domain.comment.Comment;
+import com.taska.domain.comment.repository.Comment;
 import com.taska.domain.comment.repository.CommentRepository;
 import com.taska.exception.ResourceNotFoundException;
 import java.util.List;

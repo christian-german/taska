@@ -1,5 +1,6 @@
-package com.taska.domain.task;
+package com.taska.domain.task.repository;
 
+import com.taska.domain.task.TaskType;
 import com.taska.domain.task.occurrence.TaskInstance;
 import jakarta.persistence.*;
 import java.time.Instant;

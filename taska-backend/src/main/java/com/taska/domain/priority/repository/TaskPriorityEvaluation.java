@@ -1,4 +1,4 @@
-package com.taska.domain.priority;
+package com.taska.domain.priority.repository;
 
 import jakarta.persistence.*;
 import java.time.Instant;

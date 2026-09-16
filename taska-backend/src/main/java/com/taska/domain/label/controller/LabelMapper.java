@@ -1,6 +1,6 @@
 package com.taska.domain.label.controller;
 
-import com.taska.domain.label.Label;
+import com.taska.domain.label.repository.Label;
 import com.taska.domain.label.service.LabelCreateParameters;
 import com.taska.domain.label.service.LabelUpdateParameters;
 import org.mapstruct.Mapper;

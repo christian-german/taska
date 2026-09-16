@@ -1,6 +1,6 @@
 package com.taska.domain.comment.controller;
 
-import com.taska.domain.comment.Comment;
+import com.taska.domain.comment.repository.Comment;
 import com.taska.domain.comment.service.CommentCreateParameters;
 import com.taska.domain.comment.service.CommentUpdateParameters;
 import org.mapstruct.Mapper;

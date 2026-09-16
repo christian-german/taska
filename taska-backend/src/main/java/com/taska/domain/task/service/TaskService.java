@@ -4,7 +4,7 @@ import com.taska.config.TaskaProperties;
 import com.taska.domain.planningcalendar.service.PlanningCalendarService;
 import com.taska.domain.priority.repository.TaskPriorityEvaluationRepository;
 import com.taska.domain.project.repository.ProjectRepository;
-import com.taska.domain.task.Task;
+import com.taska.domain.task.repository.Task;
 import com.taska.domain.task.occurrence.*;
 import com.taska.domain.task.occurrence.repository.TaskInstanceRepository;
 import com.taska.domain.task.occurrence.service.TaskRecurrenceService;
@@ -77,7 +77,7 @@ public class TaskService {
    * and not all-day. Manual priority remains absent when the request does not provide one. The
    * recurrence rule is normalised from short aliases (e.g. "daily" → "FREQ=DAILY").
    *
-   * @param taskRequest the task creation payload
+   * @param taskCreateParameters the task creation payload
    * @return the persisted task entity
    */
   public Task create(TaskCreateParameters taskCreateParameters) {
@@ -128,7 +128,7 @@ public class TaskService {
    * </ul>
    *
    * @param taskId the task UUID to update
-   * @param taskRequest the update payload; when {@code scope} is set, {@code occurrenceScheduledAt}
+   * @param taskPatchParameters the update payload; when {@code scope} is set, {@code occurrenceScheduledAt}
    *     must also be provided to identify the target occurrence
    * @return the updated task (or occurrence) as a DTO
    * @throws IllegalArgumentException if {@code scope} is set but {@code occurrenceScheduledAt} is
@@ -146,7 +146,7 @@ public class TaskService {
    * former leaves manual priority unchanged, while the latter clears it.
    *
    * @param taskId task to update
-   * @param taskRequest parsed task fields
+   * @param taskPatchParameters parsed task fields
    * @param priorityProvided whether the caller explicitly supplied the priority field
    * @return the updated task or occurrence
    */
@@ -289,9 +289,9 @@ public class TaskService {
    * Returns occurrences in the requested range, optionally retaining completed non-recurring tasks.
    * Completed recurring occurrences are already represented by their task instances.
    *
-   * @param from
-   * @param to
-   * @param showCompleted
+   * @param from start of the date range (inclusive, UTC)
+   * @param to end of the date range (inclusive, UTC)
+   * @param showCompleted whether completed non-recurring tasks should be included
    */
   public List<TaskResult> findOccurrencesForDateRange(
       LocalDate from, LocalDate to, boolean showCompleted) {
@@ -326,7 +326,7 @@ public class TaskService {
                     Collectors.toMap(
                         TaskInstance::getOccurrenceScheduledAt,
                         taskInstance -> taskInstance,
-                        (existingInstance, duplicateInstance) -> existingInstance)));
+                        (existingInstance, _) -> existingInstance)));
 
     // MODIFIED instances whose scheduledAt was moved into this period from another day.
     Map<UUID, List<TaskInstance>> movedInByTask =
@@ -412,7 +412,7 @@ public class TaskService {
    * </ul>
    *
    * @param taskId the task UUID to delete
-   * @param taskDeleteRequest optional delete request containing the scope and the scheduled
+   * @param taskDeleteParameters optional delete request containing the scope and the scheduled
    *     occurrence instant; when {@code null} or when scope is {@code null}, the task is
    *     permanently deleted regardless of whether it is recurring
    * @throws ResourceNotFoundException if {@code THIS_ONLY} is requested but {@code
@@ -473,7 +473,7 @@ public class TaskService {
    * for the given occurrence.
    *
    * @param taskId the task UUID
-   * @param taskCloseReopenRequest request containing the scheduled occurrence instant; required for
+   * @param taskCloseReopenParameters request containing the scheduled occurrence instant; required for
    *     recurring tasks
    * @return the updated task as a DTO
    * @throws IllegalArgumentException if the task is recurring and {@code occurrenceScheduledAt} is
@@ -529,7 +529,7 @@ public class TaskService {
    * occurrence is deleted, restoring it to its virtual (open) state.
    *
    * @param taskId the task UUID
-   * @param taskCloseReopenRequest optional request containing the scheduled occurrence instant for
+   * @param taskCloseReopenParameters optional request containing the scheduled occurrence instant for
    *     recurring tasks
    * @return the updated task as a DTO
    */
@@ -635,7 +635,8 @@ public class TaskService {
    * notification at its new time.
    *
    * @param task the task entity to mutate in-place
-   * @param taskRequest the update payload; only non-null fields are applied
+   * @param taskPatchParameters the update payload; only non-null fields are applied
+   * @param priorityProvided whether the caller explicitly supplied the priority field
    */
   private void applyPatch(
       Task task, TaskPatchParameters taskPatchParameters, boolean priorityProvided) {

@@ -1,6 +1,5 @@
 package com.taska.domain.project.repository;
 
-import com.taska.domain.project.Project;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;

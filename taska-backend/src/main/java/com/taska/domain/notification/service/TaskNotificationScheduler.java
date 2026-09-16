@@ -2,9 +2,9 @@ package com.taska.domain.notification.service;
 
 import com.google.firebase.messaging.FirebaseMessaging;
 import com.google.firebase.messaging.Message;
-import com.taska.domain.notification.DeviceToken;
+import com.taska.domain.notification.repository.DeviceToken;
 import com.taska.domain.notification.repository.DeviceTokenRepository;
-import com.taska.domain.task.Task;
+import com.taska.domain.task.repository.Task;
 import com.taska.domain.task.repository.TaskRepository;
 import com.taska.domain.task.service.TaskService;
 import java.time.Instant;

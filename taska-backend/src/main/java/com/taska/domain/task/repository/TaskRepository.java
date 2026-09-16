@@ -1,6 +1,5 @@
 package com.taska.domain.task.repository;
 
-import com.taska.domain.task.Task;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;

@@ -1,6 +1,6 @@
 package com.taska.domain.label.service;
 
-import com.taska.domain.label.Label;
+import com.taska.domain.label.repository.Label;
 import com.taska.domain.label.repository.LabelRepository;
 import com.taska.exception.ResourceNotFoundException;
 import java.util.List;

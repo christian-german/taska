@@ -1,6 +1,6 @@
 package com.taska.domain.notification.service;
 
-import com.taska.domain.notification.DeviceToken;
+import com.taska.domain.notification.repository.DeviceToken;
 import com.taska.domain.notification.repository.DeviceTokenRepository;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;

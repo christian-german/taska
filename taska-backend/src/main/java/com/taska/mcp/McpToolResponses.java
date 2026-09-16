@@ -6,21 +6,26 @@ import java.util.function.Supplier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/** Creates safe MCP tool results without exposing backend implementation details. */
-final class McpToolResponses {
+/**
+ * Creates safe MCP tool results without exposing backend implementation details.
+ *
+ * <p>Shared by every feature's MCP adapter, the way the global exception handler is shared by every
+ * HTTP controller.
+ */
+public final class McpToolResponses {
 
   private static final Logger log = LoggerFactory.getLogger(McpToolResponses.class);
 
   private McpToolResponses() {}
 
-  static McpSchema.CallToolResult success(Object operationResult) {
+  public static McpSchema.CallToolResult success(Object operationResult) {
     return McpSchema.CallToolResult.builder()
         .structuredContent(operationResult)
         .addTextContent("Operation completed successfully.")
         .build();
   }
 
-  static McpSchema.CallToolResult execute(Supplier<Object> operation) {
+  public static McpSchema.CallToolResult execute(Supplier<Object> operation) {
     try {
       return success(operation.get());
     } catch (ResourceNotFoundException exception) {
@@ -33,7 +38,7 @@ final class McpToolResponses {
     }
   }
 
-  static McpSchema.CallToolResult error(String message) {
+  public static McpSchema.CallToolResult error(String message) {
     return McpSchema.CallToolResult.builder().isError(true).addTextContent(message).build();
   }
 }

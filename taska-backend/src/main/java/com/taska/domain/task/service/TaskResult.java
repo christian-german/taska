@@ -1,7 +1,7 @@
 package com.taska.domain.task.service;
 
-import com.taska.domain.task.repository.Task;
 import com.taska.domain.task.occurrence.TaskInstance;
+import com.taska.domain.task.repository.Task;
 import java.time.Instant;
 
 /** Application result representing either a base task or one expanded recurring occurrence. */

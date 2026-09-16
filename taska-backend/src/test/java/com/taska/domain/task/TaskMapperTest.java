@@ -7,11 +7,10 @@ import com.taska.domain.task.controller.TaskMapper;
 import com.taska.domain.task.controller.TaskMapperImpl;
 import com.taska.domain.task.occurrence.TaskInstance;
 import com.taska.domain.task.occurrence.TaskInstanceStatus;
+import com.taska.domain.task.repository.Task;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
-
-import com.taska.domain.task.repository.Task;
 import org.junit.jupiter.api.Test;
 
 /**

@@ -1,10 +1,12 @@
-package com.taska.mcp;
+package com.taska.domain.task.mcp;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.taska.domain.task.controller.TaskDto;
+import com.taska.domain.task.controller.TaskMapperImpl;
 import com.taska.domain.task.repository.Task;
 import com.taska.domain.task.service.TaskCloseReopenParameters;
 import com.taska.domain.task.service.TaskCreateParameters;
@@ -21,7 +23,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.authentication.TestingAuthenticationToken;
@@ -32,10 +33,13 @@ class TaskMcpToolsTest {
 
   @Mock private TaskService taskService;
   @Mock private TaskMutationService taskMutationService;
-  @InjectMocks private TaskMcpTools taskMcpTools;
+  private TaskMcpTools taskMcpTools;
 
   @BeforeEach
   void authenticate() {
+    taskMcpTools =
+        new TaskMcpTools(
+            taskService, taskMutationService, new TaskMapperImpl(), new TaskMcpMapperImpl());
     SecurityContextHolder.getContext()
         .setAuthentication(new TestingAuthenticationToken("account-a", null));
   }
@@ -78,6 +82,7 @@ class TaskMcpToolsTest {
                 null,
                 null,
                 null,
+                null,
                 null));
 
     ArgumentCaptor<TaskCreateParameters> taskRequestCaptor =
@@ -88,7 +93,7 @@ class TaskMcpToolsTest {
     assertThat(taskRequestCaptor.getValue().priority()).isNull();
     assertThat(taskRequestCaptor.getValue().scheduledAt()).isNull();
     assertThat(callToolResult.isError()).isFalse();
-    assertThat(callToolResult.structuredContent()).isInstanceOf(TaskMcpTools.TaskOutput.class);
+    assertThat(callToolResult.structuredContent()).isInstanceOf(TaskDto.class);
   }
 
   @Test
@@ -130,6 +135,7 @@ class TaskMcpToolsTest {
                 null,
                 null,
                 null,
+                null,
                 null));
 
     assertThat(callToolResult.isError()).isTrue();
@@ -148,7 +154,7 @@ class TaskMcpToolsTest {
             taskId,
             new TaskMcpTools.TaskUpdateInput(
                 null, null, null, null, null, null, null, null, null, null, null, null, null, null,
-                null, true));
+                null, null, true));
 
     verify(taskMutationService)
         .update(

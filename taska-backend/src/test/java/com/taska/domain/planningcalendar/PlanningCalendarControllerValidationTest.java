@@ -8,6 +8,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.taska.domain.planningcalendar.controller.PlanningCalendarController;
 import com.taska.domain.planningcalendar.controller.PlanningCalendarMapper;
+import com.taska.domain.planningcalendar.controller.PlanningCalendarMapperImpl;
 import com.taska.domain.planningcalendar.service.PlanningCalendarService;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
@@ -24,7 +25,7 @@ class PlanningCalendarControllerValidationTest {
   @BeforeEach
   void setUp() {
     planningCalendarService = mock(PlanningCalendarService.class);
-    PlanningCalendarMapper planningCalendarMapper = new PlanningCalendarMapper() {};
+    PlanningCalendarMapper planningCalendarMapper = new PlanningCalendarMapperImpl();
     mockMvc =
         MockMvcBuilders.standaloneSetup(
                 new PlanningCalendarController(planningCalendarService, planningCalendarMapper))

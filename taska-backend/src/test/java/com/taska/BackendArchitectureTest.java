@@ -13,18 +13,33 @@ class BackendArchitectureTest {
   private static final Path DOMAIN_SOURCE = Path.of("src/main/java/com/taska/domain");
 
   @Test
-  void restTransportTypesLiveInControllerPackages() throws IOException {
+  void transportTypesLiveInAdapterPackages() throws IOException {
     List<Path> misplacedTypes;
     try (var paths = Files.walk(DOMAIN_SOURCE)) {
       misplacedTypes =
           paths
               .filter(path -> path.toString().endsWith(".java"))
               .filter(path -> isTransportType(path.getFileName().toString()))
-              .filter(path -> !path.toString().contains("/controller/"))
+              .filter(path -> !isAdapterPackage(path))
               .toList();
     }
 
     assertThat(misplacedTypes).isEmpty();
+  }
+
+  @Test
+  void theHttpAdapterDoesNotDependOnOtherTransportAdapters() throws IOException {
+    List<Path> invalidDependencies;
+    try (var paths = Files.walk(DOMAIN_SOURCE)) {
+      invalidDependencies =
+          paths
+              .filter(path -> path.toString().endsWith(".java"))
+              .filter(path -> path.toString().contains("/controller/"))
+              .filter(path -> fileContains(path, ".mcp."))
+              .toList();
+    }
+
+    assertThat(invalidDependencies).isEmpty();
   }
 
   @Test
@@ -38,7 +53,7 @@ class BackendArchitectureTest {
                   path ->
                       path.toString().contains("/service/")
                           || path.toString().contains("/repository/"))
-              .filter(this::importsControllerPackage)
+              .filter(this::importsAnAdapterPackage)
               .toList();
     }
 
@@ -95,8 +110,13 @@ class BackendArchitectureTest {
         || fileName.endsWith("ExceptionHandler.java");
   }
 
-  private boolean importsControllerPackage(Path path) {
-    return fileContains(path, ".controller.");
+  private boolean isAdapterPackage(Path path) {
+    String location = path.toString();
+    return location.contains("/controller/") || location.contains("/mcp/");
+  }
+
+  private boolean importsAnAdapterPackage(Path path) {
+    return fileContains(path, ".controller.") || fileContains(path, ".mcp.");
   }
 
   private boolean importsServicePackage(Path path) {

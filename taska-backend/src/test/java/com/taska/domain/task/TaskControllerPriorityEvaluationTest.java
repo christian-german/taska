@@ -4,9 +4,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.*;
 
-import com.taska.domain.priority.repository.TaskPriorityEvaluation;
 import com.taska.domain.priority.controller.TaskPriorityEvaluationDto;
 import com.taska.domain.priority.controller.TaskPriorityEvaluationMapper;
+import com.taska.domain.priority.repository.TaskPriorityEvaluation;
 import com.taska.domain.priority.service.TaskPriorityEvaluationService;
 import com.taska.domain.task.controller.TaskController;
 import com.taska.domain.task.controller.TaskMapper;
@@ -45,7 +45,9 @@ class TaskControllerPriorityEvaluationTest {
     entity.setScore(95);
     entity.setComponents(new ObjectMapper().createObjectNode());
     entity.setComputedAt(Instant.now());
-    var evaluation = TaskPriorityEvaluationDto.from(entity);
+    var evaluation =
+        new TaskPriorityEvaluationDto(
+            entity.getTaskId(), entity.getScore(), entity.getComponents(), entity.getComputedAt());
     when(taskPriorityEvaluationService.findForTask(id)).thenReturn(Optional.of(entity));
     when(priorityEvaluationMapper.toDto(entity)).thenReturn(evaluation);
     var responseEntity = taskController.getPriorityEvaluation(id);

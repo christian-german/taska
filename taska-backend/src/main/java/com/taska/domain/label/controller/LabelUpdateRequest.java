@@ -1,6 +1,5 @@
 package com.taska.domain.label.controller;
 
-import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -17,11 +16,4 @@ public record LabelUpdateRequest(
     @JsonProperty(required = true) @NotBlank String name,
     @JsonProperty(required = true) @NotNull String color,
     @JsonProperty(required = true) @NotNull Integer order,
-    @JsonProperty(required = true) @NotNull Boolean isFavorite) {
-
-  /** Rejects properties outside the label replacement contract. */
-  @JsonAnySetter
-  public void rejectUnknownProperty(String propertyName, Object ignoredValue) {
-    throw new IllegalArgumentException("Unknown label replacement property: " + propertyName);
-  }
-}
+    @JsonProperty(required = true) @NotNull Boolean isFavorite) {}

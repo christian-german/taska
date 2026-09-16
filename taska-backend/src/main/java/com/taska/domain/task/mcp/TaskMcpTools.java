@@ -1,16 +1,13 @@
-package com.taska.mcp;
+package com.taska.domain.task.mcp;
 
-import com.taska.domain.task.repository.Task;
-import com.taska.domain.task.TaskType;
+import com.taska.domain.task.controller.TaskDto;
+import com.taska.domain.task.controller.TaskMapper;
 import com.taska.domain.task.occurrence.RecurrenceScope;
-import com.taska.domain.task.occurrence.TaskInstance;
-import com.taska.domain.task.occurrence.TaskInstanceStatus;
 import com.taska.domain.task.service.TaskCloseReopenParameters;
-import com.taska.domain.task.service.TaskCreateParameters;
 import com.taska.domain.task.service.TaskMutationService;
-import com.taska.domain.task.service.TaskPatchParameters;
 import com.taska.domain.task.service.TaskResult;
 import com.taska.domain.task.service.TaskService;
+import com.taska.mcp.McpToolResponses;
 import io.modelcontextprotocol.spec.McpSchema;
 import java.time.Instant;
 import java.util.List;
@@ -28,6 +25,8 @@ public class TaskMcpTools {
 
   private final TaskService taskService;
   private final TaskMutationService taskMutationService;
+  private final TaskMapper taskMapper;
+  private final TaskMcpMapper taskMcpMapper;
 
   @McpTool(
       name = "list_tasks",
@@ -45,8 +44,7 @@ public class TaskMcpTools {
                         taskListInput.label(),
                         taskListInput.showCompleted())
                     .stream()
-                    .map(TaskResult::base)
-                    .map(TaskOutput::from)
+                    .map(taskMapper::toDto)
                     .toList()));
   }
 
@@ -56,7 +54,7 @@ public class TaskMcpTools {
       generateOutputSchema = true)
   public McpSchema.CallToolResult getTask(@McpToolParam(description = "Task UUID.") UUID taskId) {
     return McpToolResponses.execute(
-        () -> TaskOutput.from(TaskResult.base(taskService.findById(taskId))));
+        () -> taskMapper.toDto(TaskResult.base(taskService.findById(taskId))));
   }
 
   @McpTool(
@@ -70,9 +68,9 @@ public class TaskMcpTools {
           requireContent(taskCreateInput.content());
           validatePriority(taskCreateInput.priority());
           validateEstimate(taskCreateInput.estimateMinutes());
-          Task task =
-              taskMutationService.create(toCreateParameters(taskCreateInput), accountSubject());
-          return TaskOutput.from(TaskResult.base(task));
+          return taskMapper.toDto(
+              taskMutationService.create(
+                  taskMcpMapper.toParameters(taskCreateInput), accountSubject()));
         });
   }
 
@@ -95,9 +93,12 @@ public class TaskMcpTools {
           boolean priorityProvided =
               taskUpdateInput.priority() != null
                   || Boolean.TRUE.equals(taskUpdateInput.clearPriority());
-          return TaskOutput.from(
+          return taskMapper.toDto(
               taskMutationService.update(
-                  taskId, toPatchParameters(taskUpdateInput), priorityProvided, accountSubject()));
+                  taskId,
+                  taskMcpMapper.toParameters(taskUpdateInput),
+                  priorityProvided,
+                  accountSubject()));
         });
   }
 
@@ -115,7 +116,7 @@ public class TaskMcpTools {
           Instant occurrenceScheduledAt) {
     return McpToolResponses.execute(
         () ->
-            TaskOutput.from(
+            taskMapper.toDto(
                 taskMutationService.close(
                     taskId,
                     new TaskCloseReopenParameters(occurrenceScheduledAt),
@@ -136,55 +137,15 @@ public class TaskMcpTools {
           Instant occurrenceScheduledAt) {
     return McpToolResponses.execute(
         () ->
-            TaskOutput.from(
+            taskMapper.toDto(
                 taskMutationService.reopen(
                     taskId,
                     new TaskCloseReopenParameters(occurrenceScheduledAt),
                     accountSubject())));
   }
 
-  private static TaskCreateParameters toCreateParameters(TaskCreateInput taskCreateInput) {
-    return new TaskCreateParameters(
-        taskCreateInput.content(),
-        taskCreateInput.description(),
-        taskCreateInput.projectId(),
-        taskCreateInput.parentId(),
-        taskCreateInput.order() == null ? 0 : taskCreateInput.order(),
-        taskCreateInput.priority(),
-        taskCreateInput.labels(),
-        taskCreateInput.scheduledAt(),
-        taskCreateInput.dueAt(),
-        Boolean.TRUE.equals(taskCreateInput.allDay()),
-        Boolean.TRUE.equals(taskCreateInput.isRecurring()),
-        taskCreateInput.estimateMinutes(),
-        taskCreateInput.mentionContext(),
-        taskCreateInput.recurrenceRule(),
-        TaskType.TODO);
-  }
-
   private static String accountSubject() {
     return SecurityContextHolder.getContext().getAuthentication().getName();
-  }
-
-  private static TaskPatchParameters toPatchParameters(TaskUpdateInput taskUpdateInput) {
-    return new TaskPatchParameters(
-        taskUpdateInput.content(),
-        taskUpdateInput.description(),
-        taskUpdateInput.projectId(),
-        taskUpdateInput.parentId(),
-        taskUpdateInput.order(),
-        taskUpdateInput.priority(),
-        taskUpdateInput.labels(),
-        taskUpdateInput.scheduledAt(),
-        taskUpdateInput.dueAt(),
-        taskUpdateInput.allDay(),
-        taskUpdateInput.isRecurring(),
-        taskUpdateInput.estimateMinutes(),
-        taskUpdateInput.mentionContext(),
-        taskUpdateInput.recurrenceRule(),
-        taskUpdateInput.scope(),
-        taskUpdateInput.occurrenceScheduledAt(),
-        null);
   }
 
   private static void requireContent(String content) {
@@ -241,7 +202,7 @@ public class TaskMcpTools {
       @McpToolParam(required = false) boolean showCompleted) {}
 
   /** Object-root structured result required by current MCP clients. */
-  public record TaskListOutput(List<TaskOutput> tasks) {}
+  public record TaskListOutput(List<TaskDto> tasks) {}
 
   public record TaskCreateInput(
       @McpToolParam(description = "Task title.") String content,
@@ -269,38 +230,7 @@ public class TaskMcpTools {
       @McpToolParam(required = false, description = "Context captured from an @-mention.")
           String mentionContext,
       @McpToolParam(required = false, description = "Recurrence rule.") String recurrenceRule)
-      implements TaskInput {
-    public TaskCreateInput(
-        String content,
-        String description,
-        UUID projectId,
-        UUID parentId,
-        Integer order,
-        Integer priority,
-        List<String> labels,
-        Instant scheduledAt,
-        Boolean allDay,
-        Boolean isRecurring,
-        Integer estimateMinutes,
-        String mentionContext,
-        String recurrenceRule) {
-      this(
-          content,
-          description,
-          projectId,
-          parentId,
-          order,
-          priority,
-          labels,
-          scheduledAt,
-          null,
-          allDay,
-          isRecurring,
-          estimateMinutes,
-          mentionContext,
-          recurrenceRule);
-    }
-  }
+      implements TaskInput {}
 
   public record TaskUpdateInput(
       @McpToolParam(required = false, description = "Replacement task title.") String content,
@@ -332,121 +262,5 @@ public class TaskMcpTools {
           Instant occurrenceScheduledAt,
       @McpToolParam(required = false, description = "Remove the manual priority.")
           Boolean clearPriority)
-      implements TaskInput {
-    public TaskUpdateInput(
-        String content,
-        String description,
-        UUID projectId,
-        UUID parentId,
-        Integer order,
-        Integer priority,
-        List<String> labels,
-        Instant scheduledAt,
-        Boolean allDay,
-        Boolean isRecurring,
-        Integer estimateMinutes,
-        String mentionContext,
-        String recurrenceRule,
-        RecurrenceScope scope,
-        Instant occurrenceScheduledAt,
-        Boolean clearPriority) {
-      this(
-          content,
-          description,
-          projectId,
-          parentId,
-          order,
-          priority,
-          labels,
-          scheduledAt,
-          null,
-          allDay,
-          isRecurring,
-          estimateMinutes,
-          mentionContext,
-          recurrenceRule,
-          scope,
-          occurrenceScheduledAt,
-          clearPriority);
-    }
-  }
-
-  public record TaskOutput(
-      UUID id,
-      String content,
-      String description,
-      UUID projectId,
-      UUID parentId,
-      Integer order,
-      Integer priority,
-      List<String> labels,
-      Boolean isCompleted,
-      Instant scheduledAt,
-      Instant dueAt,
-      Boolean allDay,
-      Boolean isRecurring,
-      Integer estimateMinutes,
-      String mentionContext,
-      String recurrenceRule,
-      Instant createdAt,
-      Instant updatedAt,
-      Instant completedAt,
-      UUID instanceId,
-      Instant occurrenceScheduledAt,
-      Boolean isVirtual,
-      Instant rruleEndsAt) {
-    static TaskOutput from(TaskResult taskResult) {
-      Task task = taskResult.task();
-      TaskInstance taskInstance = taskResult.taskInstance();
-      boolean occurrence = taskResult.occurrenceScheduledAt() != null;
-      String content =
-          occurrence && taskInstance != null && taskInstance.getTitle() != null
-              ? taskInstance.getTitle()
-              : task.getContent();
-      Integer priority =
-          occurrence && taskInstance != null && taskInstance.getPriority() != null
-              ? taskInstance.getPriority()
-              : task.getPriority();
-      Instant scheduledAt =
-          occurrence
-              ? taskInstance != null && taskInstance.getScheduledAt() != null
-                  ? taskInstance.getScheduledAt()
-                  : taskResult.occurrenceScheduledAt()
-              : task.getScheduledAt();
-      Instant dueAt =
-          occurrence && taskInstance != null && taskInstance.getDueAt() != null
-              ? taskInstance.getDueAt()
-              : task.getDueAt();
-      Boolean completed =
-          occurrence
-              ? taskInstance != null && taskInstance.getStatus() == TaskInstanceStatus.DONE
-              : task.getIsCompleted();
-      return new TaskOutput(
-          task.getId(),
-          content,
-          task.getDescription(),
-          task.getProjectId(),
-          task.getParentId(),
-          task.getPosition(),
-          priority,
-          task.getLabels(),
-          completed,
-          scheduledAt,
-          dueAt,
-          task.isAllDay(),
-          task.getIsRecurring(),
-          task.getEstimateMinutes(),
-          task.getMentionContext(),
-          task.getRecurrenceRule(),
-          task.getCreatedAt(),
-          task.getUpdatedAt(),
-          occurrence && taskInstance != null
-              ? taskInstance.getCompletedAt()
-              : task.getCompletedAt(),
-          occurrence && taskInstance != null ? taskInstance.getId() : null,
-          taskResult.occurrenceScheduledAt(),
-          occurrence ? taskInstance == null : null,
-          task.getRruleEndsAt());
-    }
-  }
+      implements TaskInput {}
 }

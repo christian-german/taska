@@ -1,6 +1,5 @@
 package com.taska.domain.label.controller;
 
-import com.fasterxml.jackson.annotation.JsonAnySetter;
 import jakarta.validation.constraints.NotBlank;
 
 /**
@@ -12,11 +11,4 @@ import jakarta.validation.constraints.NotBlank;
  * @param isFavorite whether to star/favourite the label; defaults to {@code false}
  */
 public record LabelCreateRequest(
-    @NotBlank String name, String color, Integer order, Boolean isFavorite) {
-
-  /** Rejects properties outside the label creation contract. */
-  @JsonAnySetter
-  public void rejectUnknownProperty(String propertyName, Object ignoredValue) {
-    throw new IllegalArgumentException("Unknown label creation property: " + propertyName);
-  }
-}
+    @NotBlank String name, String color, Integer order, Boolean isFavorite) {}

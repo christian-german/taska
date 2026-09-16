@@ -1,12 +1,11 @@
 package com.taska.domain.priority.controller;
 
+import com.taska.config.ApiMapperConfig;
 import com.taska.domain.priority.repository.TaskPriorityEvaluation;
 import org.mapstruct.Mapper;
-import org.mapstruct.MappingConstants;
 
-@Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
+@Mapper(config = ApiMapperConfig.class)
 public interface TaskPriorityEvaluationMapper {
-  default TaskPriorityEvaluationDto toDto(TaskPriorityEvaluation taskPriorityEvaluation) {
-    return TaskPriorityEvaluationDto.from(taskPriorityEvaluation);
-  }
+
+  TaskPriorityEvaluationDto toDto(TaskPriorityEvaluation taskPriorityEvaluation);
 }

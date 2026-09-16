@@ -24,8 +24,11 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.MediaType;
+import org.springframework.http.converter.json.JacksonJsonHttpMessageConverter;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import tools.jackson.databind.DeserializationFeature;
+import tools.jackson.databind.json.JsonMapper;
 
 class LabelControllerTest {
 
@@ -39,7 +42,13 @@ class LabelControllerTest {
     mockMvc =
         MockMvcBuilders.standaloneSetup(new LabelController(labelService, labelMapper))
             .setControllerAdvice(new LabelExceptionHandler())
+            .setMessageConverters(new JacksonJsonHttpMessageConverter(applicationJsonMapper()))
             .build();
+  }
+
+  /** Mirrors spring.jackson.deserialization.fail-on-unknown-properties from the application. */
+  private static JsonMapper applicationJsonMapper() {
+    return JsonMapper.builder().enable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES).build();
   }
 
   @Test

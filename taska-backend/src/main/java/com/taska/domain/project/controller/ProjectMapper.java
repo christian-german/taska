@@ -1,14 +1,14 @@
 package com.taska.domain.project.controller;
 
+import com.taska.config.ApiMapperConfig;
 import com.taska.domain.project.repository.Project;
 import com.taska.domain.project.service.ProjectCreateParameters;
 import com.taska.domain.project.service.ProjectReorderParameters;
 import com.taska.domain.project.service.ProjectUpdateParameters;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
-import org.mapstruct.MappingConstants;
 
-@Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
+@Mapper(config = ApiMapperConfig.class)
 public interface ProjectMapper {
   @Mapping(target = "order", source = "position")
   ProjectDto toDto(Project project);

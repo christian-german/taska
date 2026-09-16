@@ -3,7 +3,13 @@ package com.taska.mcp;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 
+import com.taska.domain.project.controller.ProjectMapperImpl;
+import com.taska.domain.project.mcp.ProjectMcpMapperImpl;
+import com.taska.domain.project.mcp.ProjectMcpTools;
 import com.taska.domain.project.service.ProjectService;
+import com.taska.domain.task.controller.TaskMapperImpl;
+import com.taska.domain.task.mcp.TaskMcpMapperImpl;
+import com.taska.domain.task.mcp.TaskMcpTools;
 import com.taska.domain.task.service.TaskMutationService;
 import com.taska.domain.task.service.TaskService;
 import java.net.URI;
@@ -124,14 +130,19 @@ class McpEndpointIntegrationTest {
     ProjectMcpTools projectMcpTools() {
       ProjectService projectService = mock(ProjectService.class);
       org.mockito.Mockito.when(projectService.findAll()).thenReturn(List.of());
-      return new ProjectMcpTools(projectService);
+      return new ProjectMcpTools(
+          projectService, new ProjectMapperImpl(), new ProjectMcpMapperImpl());
     }
 
     @Bean
     TaskMcpTools taskMcpTools() {
       TaskService taskService = mock(TaskService.class);
       org.mockito.Mockito.when(taskService.findAll(null, null, false)).thenReturn(List.of());
-      return new TaskMcpTools(taskService, mock(TaskMutationService.class));
+      return new TaskMcpTools(
+          taskService,
+          mock(TaskMutationService.class),
+          new TaskMapperImpl(),
+          new TaskMcpMapperImpl());
     }
   }
 

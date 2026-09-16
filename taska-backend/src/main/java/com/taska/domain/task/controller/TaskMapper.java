@@ -1,9 +1,10 @@
 package com.taska.domain.task.controller;
 
-import com.taska.domain.task.repository.Task;
+import com.taska.config.ApiMapperConfig;
 import com.taska.domain.task.TaskType;
 import com.taska.domain.task.occurrence.TaskInstance;
 import com.taska.domain.task.occurrence.TaskInstanceStatus;
+import com.taska.domain.task.repository.Task;
 import com.taska.domain.task.service.TaskCloseReopenParameters;
 import com.taska.domain.task.service.TaskCreateParameters;
 import com.taska.domain.task.service.TaskDeleteParameters;
@@ -14,9 +15,8 @@ import java.time.Instant;
 import java.util.UUID;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
-import org.mapstruct.MappingConstants;
 
-@Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
+@Mapper(config = ApiMapperConfig.class)
 public interface TaskMapper {
 
   /**

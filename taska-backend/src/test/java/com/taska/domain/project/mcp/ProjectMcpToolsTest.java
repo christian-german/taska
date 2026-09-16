@@ -1,17 +1,18 @@
-package com.taska.mcp;
+package com.taska.domain.project.mcp;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.taska.domain.project.controller.ProjectMapperImpl;
 import com.taska.domain.project.service.ProjectService;
 import com.taska.exception.ResourceNotFoundException;
 import io.modelcontextprotocol.spec.McpSchema;
 import java.util.List;
 import java.util.UUID;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -19,7 +20,13 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class ProjectMcpToolsTest {
 
   @Mock private ProjectService projectService;
-  @InjectMocks private ProjectMcpTools projectMcpTools;
+  private ProjectMcpTools projectMcpTools;
+
+  @BeforeEach
+  void createTools() {
+    projectMcpTools =
+        new ProjectMcpTools(projectService, new ProjectMapperImpl(), new ProjectMcpMapperImpl());
+  }
 
   @Test
   void listProjectsDelegatesToProjectService() {

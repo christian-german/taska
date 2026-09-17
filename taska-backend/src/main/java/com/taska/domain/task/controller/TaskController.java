@@ -193,7 +193,7 @@ public class TaskController {
 
   /**
    * Reopens a previously completed task. For recurring tasks, a {@code occurrenceScheduledAt} in
-   * the body identifies which occurrence to reopen by removing its DONE instance record.
+   * the body identifies which occurrence to reopen while preserving any occurrence overrides.
    *
    * @param taskId the task UUID
    * @param taskCloseReopenRequest optional request with the scheduled occurrence instant

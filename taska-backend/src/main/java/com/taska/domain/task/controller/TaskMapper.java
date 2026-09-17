@@ -58,8 +58,8 @@ public interface TaskMapper {
 
   /**
    * Builds the HTTP representation of one recurring occurrence. Every effective value comes from
-   * the result itself, which owns the rule deciding when an instance override wins over the series
-   * definition.
+   * the result itself, which owns the rule deciding when a persisted occurrence-state override wins
+   * over the series definition.
    *
    * @param occurrenceResult the expanded occurrence, virtual or materialized
    * @return a fully populated occurrence representation
@@ -88,7 +88,7 @@ public interface TaskMapper {
         task.getRruleEndsAt(),
         occurrenceResult.completed(),
         occurrenceResult.completedAt(),
-        occurrenceResult.instanceId(),
+        occurrenceResult.occurrenceStateId(),
         occurrenceResult.occurrenceScheduledAt(),
         occurrenceResult.virtual());
   }

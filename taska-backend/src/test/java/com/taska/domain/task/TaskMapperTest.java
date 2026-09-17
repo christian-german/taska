@@ -8,8 +8,8 @@ import com.taska.domain.task.controller.RecurringTaskSeriesDto;
 import com.taska.domain.task.controller.TaskMapper;
 import com.taska.domain.task.controller.TaskMapperImpl;
 import com.taska.domain.task.controller.TaskRepresentationKind;
-import com.taska.domain.task.occurrence.TaskInstance;
-import com.taska.domain.task.occurrence.TaskInstanceStatus;
+import com.taska.domain.task.occurrence.TaskOccurrenceState;
+import com.taska.domain.task.occurrence.TaskOccurrenceStatus;
 import com.taska.domain.task.repository.Task;
 import com.taska.domain.task.service.RecurringTaskOccurrenceResult;
 import java.time.Instant;
@@ -19,7 +19,7 @@ import org.junit.jupiter.api.Test;
 
 /**
  * Tests the default method TaskMapper#toOccurrenceDto, which merges a recurring Task with an
- * optional TaskInstance (field-level inheritance logic).
+ * optional TaskOccurrenceState (field-level inheritance logic).
  */
 class TaskMapperTest {
 
@@ -39,14 +39,14 @@ class TaskMapperTest {
     return task;
   }
 
-  private TaskInstance buildInstance(
-      UUID taskId, Instant occurrenceScheduledAt, TaskInstanceStatus status) {
-    TaskInstance taskInstance = new TaskInstance();
-    taskInstance.setId(UUID.randomUUID());
-    taskInstance.setTaskId(taskId);
-    taskInstance.setOccurrenceScheduledAt(occurrenceScheduledAt);
-    taskInstance.setStatus(status);
-    return taskInstance;
+  private TaskOccurrenceState buildOccurrenceState(
+      UUID seriesId, Instant occurrenceScheduledAt, TaskOccurrenceStatus status) {
+    TaskOccurrenceState occurrenceState = new TaskOccurrenceState();
+    occurrenceState.setId(UUID.randomUUID());
+    occurrenceState.setSeriesId(seriesId);
+    occurrenceState.setOccurrenceScheduledAt(occurrenceScheduledAt);
+    occurrenceState.setStatus(status);
+    return occurrenceState;
   }
 
   @Test
@@ -94,8 +94,8 @@ class TaskMapperTest {
   void toOccurrenceDto_doneInstance_isCompletedTrueIsVirtualFalse() {
     Task task = buildTask("My task", 2);
     Instant occurrenceScheduledAt = Instant.parse("2026-05-20T10:00:00Z");
-    TaskInstance instance =
-        buildInstance(task.getId(), occurrenceScheduledAt, TaskInstanceStatus.DONE);
+    TaskOccurrenceState instance =
+        buildOccurrenceState(task.getId(), occurrenceScheduledAt, TaskOccurrenceStatus.DONE);
     instance.setCompletedAt(Instant.parse("2026-05-20T11:00:00Z"));
 
     RecurringTaskOccurrenceDto taskDto =
@@ -114,8 +114,8 @@ class TaskMapperTest {
   void toOccurrenceDto_modifiedInstanceWithTitleAndPriority_usesInstanceValues() {
     Task task = buildTask("Original title", 4);
     Instant occurrenceScheduledAt = Instant.parse("2026-05-20T10:00:00Z");
-    TaskInstance instance =
-        buildInstance(task.getId(), occurrenceScheduledAt, TaskInstanceStatus.MODIFIED);
+    TaskOccurrenceState instance =
+        buildOccurrenceState(task.getId(), occurrenceScheduledAt, TaskOccurrenceStatus.MODIFIED);
     instance.setTitle("Modified title");
     instance.setPriority(1);
 
@@ -133,8 +133,8 @@ class TaskMapperTest {
   void toOccurrenceDto_modifiedInstanceNullTitle_inheritsParentContent() {
     Task task = buildTask("Parent content", 3);
     Instant occurrenceScheduledAt = Instant.parse("2026-05-20T10:00:00Z");
-    TaskInstance instance =
-        buildInstance(task.getId(), occurrenceScheduledAt, TaskInstanceStatus.MODIFIED);
+    TaskOccurrenceState instance =
+        buildOccurrenceState(task.getId(), occurrenceScheduledAt, TaskOccurrenceStatus.MODIFIED);
     instance.setTitle(null);
     instance.setPriority(2);
 
@@ -153,8 +153,8 @@ class TaskMapperTest {
     Task task = buildTask("Task", 2);
     Instant occurrenceScheduledAt = Instant.parse("2026-05-20T10:00:00Z");
     Instant movedScheduledAt = Instant.parse("2026-05-20T14:00:00Z");
-    TaskInstance instance =
-        buildInstance(task.getId(), occurrenceScheduledAt, TaskInstanceStatus.MODIFIED);
+    TaskOccurrenceState instance =
+        buildOccurrenceState(task.getId(), occurrenceScheduledAt, TaskOccurrenceStatus.MODIFIED);
     instance.setScheduledAt(movedScheduledAt);
 
     RecurringTaskOccurrenceDto taskDto =
@@ -179,8 +179,8 @@ class TaskMapperTest {
                 .dueAt())
         .isEqualTo(parentDueAt);
 
-    TaskInstance instance =
-        buildInstance(task.getId(), occurrenceScheduledAt, TaskInstanceStatus.MODIFIED);
+    TaskOccurrenceState instance =
+        buildOccurrenceState(task.getId(), occurrenceScheduledAt, TaskOccurrenceStatus.MODIFIED);
     instance.setDueAt(overrideDueAt);
     assertThat(
             taskMapper
@@ -196,8 +196,8 @@ class TaskMapperTest {
   void toOccurrenceDto_modifiedInstanceAllOverrideFieldsNull_allInheritedFromParent() {
     Task task = buildTask("Parent content", 3);
     Instant occurrenceScheduledAt = Instant.parse("2026-05-20T10:00:00Z");
-    TaskInstance instance =
-        buildInstance(task.getId(), occurrenceScheduledAt, TaskInstanceStatus.MODIFIED);
+    TaskOccurrenceState instance =
+        buildOccurrenceState(task.getId(), occurrenceScheduledAt, TaskOccurrenceStatus.MODIFIED);
     // title, priority and scheduledAt are all null — every field falls back to the parent
 
     RecurringTaskOccurrenceDto taskDto =

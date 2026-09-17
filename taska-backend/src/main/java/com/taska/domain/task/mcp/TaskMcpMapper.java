@@ -61,7 +61,7 @@ public interface TaskMcpMapper {
         task.getCreatedAt(),
         task.getUpdatedAt(),
         occurrenceResult.completedAt(),
-        occurrenceResult.instanceId(),
+        occurrenceResult.occurrenceStateId(),
         occurrenceResult.occurrenceScheduledAt(),
         occurrenceResult.virtual(),
         task.getRruleEndsAt(),

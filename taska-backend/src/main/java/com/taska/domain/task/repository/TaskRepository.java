@@ -43,11 +43,11 @@ public interface TaskRepository extends JpaRepository<Task, UUID> {
       UUID projectId);
 
   /**
-   * Returns incomplete, non-notified, non-all-day tasks with a due date on or before {@code
-   * in15min}. Used by the notification scheduler to identify tasks due in approximately 15 minutes.
+   * Returns incomplete, non-recurring, non-notified, non-all-day tasks scheduled on or before
+   * {@code in15min}. Recurring series are expanded independently into occurrence candidates.
    */
   @Query(
-      "SELECT t FROM Task t WHERE t.isCompleted = false AND t.isNotified = false AND t.allDay = false AND t.scheduledAt IS NOT NULL AND t.scheduledAt <= :in15min")
+      "SELECT t FROM Task t WHERE t.isCompleted = false AND t.isRecurring = false AND t.isNotified = false AND t.allDay = false AND t.scheduledAt IS NOT NULL AND t.scheduledAt <= :in15min")
   List<Task> findTasksDueAround(@Param("in15min") Instant in15min);
 
   /**

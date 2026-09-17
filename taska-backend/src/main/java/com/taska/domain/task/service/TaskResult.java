@@ -1,6 +1,6 @@
 package com.taska.domain.task.service;
 
-import com.taska.domain.task.occurrence.TaskInstance;
+import com.taska.domain.task.occurrence.TaskOccurrenceState;
 import com.taska.domain.task.repository.Task;
 import java.time.Instant;
 import java.util.Objects;
@@ -26,19 +26,19 @@ public sealed interface TaskResult
   }
 
   /**
-   * Creates a task result from a task and a task instance.
+   * Creates a task result from a recurring series and an optional persisted occurrence state.
    *
    * @param task the task to create a result from
-   * @param taskInstance the task instance to create a result from
+   * @param occurrenceState the persisted occurrence state, or {@code null} for a virtual occurrence
    * @param occurrenceScheduledAt the scheduled time of the occurrence
    * @return a task result
    */
   static TaskResult occurrence(
-      Task task, TaskInstance taskInstance, Instant occurrenceScheduledAt) {
+      Task task, TaskOccurrenceState occurrenceState, Instant occurrenceScheduledAt) {
     Objects.requireNonNull(task, "task");
     if (!Boolean.TRUE.equals(task.getIsRecurring())) {
       throw new IllegalArgumentException("An occurrence requires a recurring task");
     }
-    return new RecurringTaskOccurrenceResult(task, taskInstance, occurrenceScheduledAt);
+    return new RecurringTaskOccurrenceResult(task, occurrenceState, occurrenceScheduledAt);
   }
 }

@@ -1,7 +1,7 @@
 package com.taska.domain.task.service;
 
-import com.taska.domain.task.occurrence.TaskInstance;
-import com.taska.domain.task.occurrence.TaskInstanceStatus;
+import com.taska.domain.task.occurrence.TaskOccurrenceState;
+import com.taska.domain.task.occurrence.TaskOccurrenceStatus;
 import com.taska.domain.task.repository.Task;
 import java.time.Instant;
 import java.util.Objects;
@@ -10,20 +10,22 @@ import java.util.UUID;
 /**
  * Application result for one expanded occurrence of a recurring task.
  *
- * <p>An occurrence is virtual until something is persisted for it. Once a {@link TaskInstance}
- * exists, each of its non-null override fields wins over the series definition. That resolution is
- * a domain rule, not a transport concern: every adapter reads it from the accessors below instead
- * of re-deriving it, so the rule has one implementation and one set of tests.
+ * <p>An occurrence is virtual until something is persisted for it. Once a {@link
+ * TaskOccurrenceState} exists, each of its non-null override fields wins over the series
+ * definition. That resolution is a domain rule, not a transport concern: every adapter reads it
+ * from the accessors below instead of re-deriving it, so the rule has one implementation and one
+ * set of tests.
  *
  * @param task the recurring series definition backing this occurrence
- * @param taskInstance the persisted instance when the occurrence has been completed, skipped or
+ * @param occurrenceState persisted state when the occurrence has been completed, skipped or
  *     modified; {@code null} while the occurrence is still virtual
  * @param occurrenceScheduledAt the RRULE instant identifying this occurrence within the series;
  *     distinct from {@link #resolvedScheduledAt()}, which is where the occurrence actually sits in
- *     time once an instance has moved it
+ *     time once persisted state has moved it
  */
 public record RecurringTaskOccurrenceResult(
-    Task task, TaskInstance taskInstance, Instant occurrenceScheduledAt) implements TaskResult {
+    Task task, TaskOccurrenceState occurrenceState, Instant occurrenceScheduledAt)
+    implements TaskResult {
 
   public RecurringTaskOccurrenceResult {
     Objects.requireNonNull(task, "task");
@@ -35,52 +37,52 @@ public record RecurringTaskOccurrenceResult(
 
   /** {@code true} while nothing has been persisted for this occurrence. */
   public boolean virtual() {
-    return taskInstance == null;
+    return occurrenceState == null;
   }
 
-  /** Identifier of the persisted instance, or {@code null} while the occurrence is virtual. */
-  public UUID instanceId() {
-    return taskInstance == null ? null : taskInstance.getId();
+  /** Identifier of the persisted state, or {@code null} while the occurrence is virtual. */
+  public UUID occurrenceStateId() {
+    return occurrenceState == null ? null : occurrenceState.getId();
   }
 
-  /** Title overridden on the instance, falling back to the series content. */
+  /** Title overridden in occurrence state, falling back to the series content. */
   public String resolvedContent() {
-    return taskInstance != null && taskInstance.getTitle() != null
-        ? taskInstance.getTitle()
+    return occurrenceState != null && occurrenceState.getTitle() != null
+        ? occurrenceState.getTitle()
         : task.getContent();
   }
 
-  /** Manual priority overridden on the instance, falling back to the series priority. */
+  /** Manual priority overridden in occurrence state, falling back to the series priority. */
   public Integer resolvedPriority() {
-    return taskInstance != null && taskInstance.getPriority() != null
-        ? taskInstance.getPriority()
+    return occurrenceState != null && occurrenceState.getPriority() != null
+        ? occurrenceState.getPriority()
         : task.getPriority();
   }
 
   /**
-   * Where the occurrence actually sits in time: the instance may have moved it, otherwise it stays
-   * on the RRULE instant that identifies it.
+   * Where the occurrence actually sits in time: persisted state may have moved it, otherwise it
+   * stays on the RRULE instant that identifies it.
    */
   public Instant resolvedScheduledAt() {
-    return taskInstance != null && taskInstance.getScheduledAt() != null
-        ? taskInstance.getScheduledAt()
+    return occurrenceState != null && occurrenceState.getScheduledAt() != null
+        ? occurrenceState.getScheduledAt()
         : occurrenceScheduledAt;
   }
 
-  /** Deadline overridden on the instance, falling back to the series deadline. */
+  /** Deadline overridden in occurrence state, falling back to the series deadline. */
   public Instant resolvedDueAt() {
-    return taskInstance != null && taskInstance.getDueAt() != null
-        ? taskInstance.getDueAt()
+    return occurrenceState != null && occurrenceState.getDueAt() != null
+        ? occurrenceState.getDueAt()
         : task.getDueAt();
   }
 
-  /** Only a persisted instance carries completion; the series definition never does. */
+  /** Only persisted occurrence state carries completion; the series definition never does. */
   public boolean completed() {
-    return taskInstance != null && taskInstance.getStatus() == TaskInstanceStatus.DONE;
+    return occurrenceState != null && occurrenceState.getStatus() == TaskOccurrenceStatus.DONE;
   }
 
-  /** Completion timestamp of the instance, or {@code null} when there is none. */
+  /** Completion timestamp in persisted state, or {@code null} when there is none. */
   public Instant completedAt() {
-    return taskInstance == null ? null : taskInstance.getCompletedAt();
+    return occurrenceState == null ? null : occurrenceState.getCompletedAt();
   }
 }

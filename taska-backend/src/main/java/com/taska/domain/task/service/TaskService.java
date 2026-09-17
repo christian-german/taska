@@ -1,11 +1,12 @@
 package com.taska.domain.task.service;
 
 import com.taska.config.TaskaProperties;
+import com.taska.domain.notification.service.TaskOccurrenceNotificationService;
 import com.taska.domain.planningcalendar.service.PlanningCalendarService;
 import com.taska.domain.priority.repository.TaskPriorityEvaluationRepository;
 import com.taska.domain.project.repository.ProjectRepository;
 import com.taska.domain.task.occurrence.*;
-import com.taska.domain.task.occurrence.repository.TaskInstanceRepository;
+import com.taska.domain.task.occurrence.repository.TaskOccurrenceStateRepository;
 import com.taska.domain.task.occurrence.service.TaskRecurrenceService;
 import com.taska.domain.task.repository.Task;
 import com.taska.domain.task.repository.TaskRepository;
@@ -29,12 +30,13 @@ import org.springframework.transaction.annotation.Transactional;
 public class TaskService {
 
   private final TaskRepository taskRepository;
-  private final TaskInstanceRepository taskInstanceRepository;
+  private final TaskOccurrenceStateRepository taskOccurrenceStateRepository;
   private final TaskRecurrenceService taskRecurrenceService;
   private final ProjectRepository projectRepository;
   private final TaskPriorityEvaluationRepository priorityEvaluationRepository;
   private final TaskaProperties taskaProperties;
   private final PlanningCalendarService planningCalendarService;
+  private final TaskOccurrenceNotificationService taskOccurrenceNotificationService;
 
   /**
    * Returns a list of tasks scoped by the provided project or label criteria.
@@ -119,9 +121,9 @@ public class TaskService {
    * <ul>
    *   <li><b>No scope (or non-recurring task)</b> – a standard patch is applied directly to the
    *       task entity; only non-null request fields overwrite existing values.
-   *   <li><b>{@code THIS_ONLY}</b> – creates or updates a {@link TaskInstance} for the specified
-   *       occurrence, overriding only {@code content}, {@code priority}, {@code scheduledAt}, and
-   *       {@code dueAt}; all other occurrences remain unchanged.
+   *   <li><b>{@code THIS_ONLY}</b> – creates or updates {@link TaskOccurrenceState} for the
+   *       specified occurrence, overriding only {@code content}, {@code priority}, {@code
+   *       scheduledAt}, and {@code dueAt}; all other occurrences remain unchanged.
    *   <li><b>{@code FROM_THIS}</b> – truncates the original series one second before {@code
    *       occurrenceScheduledAt}, then creates a new recurring task starting at that instant with
    *       the requested changes applied.
@@ -166,31 +168,40 @@ public class TaskService {
     return switch (taskPatchParameters.scope()) {
       case THIS_ONLY -> {
         validateOccurrence(task, occurrenceScheduledAt);
-        TaskInstance instance =
-            taskInstanceRepository
-                .findByTaskIdAndOccurrenceScheduledAt(taskId, occurrenceScheduledAt)
-                .orElseGet(TaskInstance::new);
-        instance.setTaskId(taskId);
-        instance.setOccurrenceScheduledAt(occurrenceScheduledAt);
-        instance.setStatus(TaskInstanceStatus.MODIFIED);
+        TaskOccurrenceState occurrenceState =
+            taskOccurrenceStateRepository
+                .findBySeriesIdAndOccurrenceScheduledAt(taskId, occurrenceScheduledAt)
+                .orElseGet(TaskOccurrenceState::new);
+        occurrenceState.setSeriesId(taskId);
+        occurrenceState.setOccurrenceScheduledAt(occurrenceScheduledAt);
+        occurrenceState.setStatus(TaskOccurrenceStatus.MODIFIED);
         if (taskPatchParameters.content() != null) {
-          instance.setTitle(taskPatchParameters.content());
+          occurrenceState.setTitle(taskPatchParameters.content());
         }
         if (priorityProvided && taskPatchParameters.priority() != null) {
-          instance.setPriority(taskPatchParameters.priority());
+          occurrenceState.setPriority(taskPatchParameters.priority());
         }
         if (taskPatchParameters.scheduledAt() != null) {
-          instance.setScheduledAt(taskPatchParameters.scheduledAt());
+          Instant previousScheduledAt =
+              occurrenceState.getScheduledAt() != null
+                  ? occurrenceState.getScheduledAt()
+                  : occurrenceScheduledAt;
+          // Delivery state is keyed by the stable occurrence identity, but it is reset only when
+          // the effective schedule actually changes.
+          if (!taskPatchParameters.scheduledAt().equals(previousScheduledAt)) {
+            taskOccurrenceNotificationService.clear(taskId, occurrenceScheduledAt);
+          }
+          occurrenceState.setScheduledAt(taskPatchParameters.scheduledAt());
         }
         if (taskPatchParameters.scheduledAt() != null) {
           assertScheduleAllowed(
               task.getProjectId(), taskPatchParameters.scheduledAt(), task.isAllDay());
         }
         if (taskPatchParameters.dueAt() != null) {
-          instance.setDueAt(taskPatchParameters.dueAt());
+          occurrenceState.setDueAt(taskPatchParameters.dueAt());
         }
         yield TaskResult.occurrence(
-            task, taskInstanceRepository.save(instance), occurrenceScheduledAt);
+            task, taskOccurrenceStateRepository.save(occurrenceState), occurrenceScheduledAt);
       }
       case FROM_THIS -> {
         task.setRruleEndsAt(occurrenceScheduledAt.minus(1, ChronoUnit.SECONDS));
@@ -264,10 +275,10 @@ public class TaskService {
   /**
    * Returns all task occurrences (both regular and recurring) that fall within the given date
    * range. For recurring tasks, virtual occurrences are generated from the RRULE, with SKIPPED
-   * instances excluded and MODIFIED instances merged in. Non-recurring tasks are included when
+   * occurrence states excluded and MODIFIED states merged in. Non-recurring tasks are included when
    * their due date falls inside the period.
    *
-   * <p>Completed recurring occurrences are already represented by their task instances, so {@code
+   * <p>Completed recurring occurrences are already represented by their persisted states, so {@code
    * showCompleted} only governs completed non-recurring tasks.
    *
    * @param from start of the date range (inclusive, UTC)
@@ -289,72 +300,84 @@ public class TaskService {
     List<TaskResult> taskResults =
         new ArrayList<>(nonRecurring.stream().map(TaskResult::base).toList());
 
-    List<Task> recurringTasks =
+    List<Task> recurringSeries =
         taskRepository.findActiveRecurringTasksForPeriod(periodStart, periodEnd);
-    if (recurringTasks.isEmpty()) {
+    if (recurringSeries.isEmpty()) {
       return taskResults;
     }
 
-    List<UUID> recurringTaskIds = recurringTasks.stream().map(Task::getId).toList();
+    List<UUID> recurringSeriesIds = recurringSeries.stream().map(Task::getId).toList();
 
-    // Instances whose occurrenceScheduledAt falls within the period (for RRULE occurrence
-    // matching).
-    Map<UUID, Map<Instant, TaskInstance>> instancesByTask =
-        taskInstanceRepository
-            .findByTaskIdInAndOccurrenceScheduledAtBetween(recurringTaskIds, periodStart, periodEnd)
+    // State whose occurrenceScheduledAt falls within the period overlays matching RRULE
+    // occurrences.
+    Map<UUID, Map<Instant, TaskOccurrenceState>> statesBySeries =
+        taskOccurrenceStateRepository
+            .findBySeriesIdInAndOccurrenceScheduledAtBetween(
+                recurringSeriesIds, periodStart, periodEnd)
             .stream()
             .collect(
                 Collectors.groupingBy(
-                    TaskInstance::getTaskId,
+                    TaskOccurrenceState::getSeriesId,
                     Collectors.toMap(
-                        TaskInstance::getOccurrenceScheduledAt,
-                        taskInstance -> taskInstance,
-                        (existingInstance, _) -> existingInstance)));
+                        TaskOccurrenceState::getOccurrenceScheduledAt,
+                        occurrenceState -> occurrenceState,
+                        (existingState, _) -> existingState)));
 
-    // MODIFIED instances whose scheduledAt was moved into this period from another day.
-    Map<UUID, List<TaskInstance>> movedInByTask =
-        taskInstanceRepository
-            .findByTaskIdInAndStatusAndScheduledAtBetween(
-                recurringTaskIds, TaskInstanceStatus.MODIFIED, periodStart, periodEnd)
+    // MODIFIED state whose scheduledAt was moved into this period from another day.
+    Map<UUID, List<TaskOccurrenceState>> movedInBySeries =
+        taskOccurrenceStateRepository
+            .findBySeriesIdInAndStatusAndScheduledAtBetween(
+                recurringSeriesIds, TaskOccurrenceStatus.MODIFIED, periodStart, periodEnd)
             .stream()
             .filter(
-                taskInstance ->
-                    taskInstance.getOccurrenceScheduledAt().isBefore(periodStart)
-                        || !taskInstance.getOccurrenceScheduledAt().isBefore(periodEnd))
-            .collect(Collectors.groupingBy(TaskInstance::getTaskId));
+                occurrenceState ->
+                    occurrenceState.getOccurrenceScheduledAt().isBefore(periodStart)
+                        || !occurrenceState.getOccurrenceScheduledAt().isBefore(periodEnd))
+            .collect(Collectors.groupingBy(TaskOccurrenceState::getSeriesId));
 
-    for (Task task : recurringTasks) {
-      Map<Instant, TaskInstance> taskInstances =
-          instancesByTask.getOrDefault(task.getId(), Map.of());
+    for (Task series : recurringSeries) {
+      Map<Instant, TaskOccurrenceState> occurrenceStates =
+          statesBySeries.getOrDefault(series.getId(), Map.of());
       List<Instant> occurrences =
-          taskRecurrenceService.getOccurrencesInRange(task, periodStart, periodEnd);
+          taskRecurrenceService.getOccurrencesInRange(series, periodStart, periodEnd);
 
       for (Instant occurrenceScheduledAt : occurrences) {
-        TaskInstance instance = taskInstances.get(occurrenceScheduledAt);
-        if (instance != null && instance.getStatus() == TaskInstanceStatus.SKIPPED) {
+        TaskOccurrenceState occurrenceState = occurrenceStates.get(occurrenceScheduledAt);
+        if (occurrenceState != null
+            && occurrenceState.getStatus() == TaskOccurrenceStatus.SKIPPED) {
           continue;
         }
         // Skip occurrences whose scheduledAt was moved outside this period.
-        if (instance != null
-            && instance.getScheduledAt() != null
-            && (instance.getScheduledAt().isBefore(periodStart)
-                || !instance.getScheduledAt().isBefore(periodEnd))) {
+        if (occurrenceState != null
+            && occurrenceState.getScheduledAt() != null
+            && (occurrenceState.getScheduledAt().isBefore(periodStart)
+                || !occurrenceState.getScheduledAt().isBefore(periodEnd))) {
           continue;
         }
-        taskResults.add(TaskResult.occurrence(task, instance, occurrenceScheduledAt));
+        taskResults.add(TaskResult.occurrence(series, occurrenceState, occurrenceScheduledAt));
       }
 
       // Add occurrences that were rescheduled into this period from a different day.
-      for (TaskInstance movedInstance : movedInByTask.getOrDefault(task.getId(), List.of())) {
+      for (TaskOccurrenceState movedState :
+          movedInBySeries.getOrDefault(series.getId(), List.of())) {
         taskResults.add(
-            TaskResult.occurrence(task, movedInstance, movedInstance.getOccurrenceScheduledAt()));
+            TaskResult.occurrence(series, movedState, movedState.getOccurrenceScheduledAt()));
       }
     }
 
     return taskResults;
   }
 
-  /** Replaces the fields independently persisted for one recurring occurrence. */
+  /**
+   * Replaces every supported override independently persisted for one recurring occurrence.
+   *
+   * @param taskId recurring series identifier
+   * @param occurrenceScheduledAt stable RRULE-generated occurrence identity
+   * @param taskOccurrenceUpdateParameters replacement values for the occurrence overrides
+   * @return the recurring occurrence with its replacement overrides
+   * @throws IllegalArgumentException if the task is not recurring
+   * @throws ResourceNotFoundException if the task or occurrence does not exist
+   */
   public TaskResult replaceOccurrence(
       UUID taskId,
       Instant occurrenceScheduledAt,
@@ -364,23 +387,35 @@ public class TaskService {
       throw new IllegalArgumentException("Occurrence replacement requires a recurring task");
     }
     validateOccurrence(task, occurrenceScheduledAt);
-    TaskInstance instance =
-        taskInstanceRepository
-            .findByTaskIdAndOccurrenceScheduledAt(taskId, occurrenceScheduledAt)
-            .orElseGet(TaskInstance::new);
-    instance.setTaskId(taskId);
-    instance.setOccurrenceScheduledAt(occurrenceScheduledAt);
-    instance.setStatus(TaskInstanceStatus.MODIFIED);
-    instance.setTitle(taskOccurrenceUpdateParameters.title());
-    instance.setPriority(taskOccurrenceUpdateParameters.priority());
-    instance.setScheduledAt(taskOccurrenceUpdateParameters.scheduledAt());
-    instance.setDueAt(taskOccurrenceUpdateParameters.dueAt());
+    TaskOccurrenceState occurrenceState =
+        taskOccurrenceStateRepository
+            .findBySeriesIdAndOccurrenceScheduledAt(taskId, occurrenceScheduledAt)
+            .orElseGet(TaskOccurrenceState::new);
+    Instant previousScheduledAt =
+        occurrenceState.getScheduledAt() != null
+            ? occurrenceState.getScheduledAt()
+            : occurrenceScheduledAt;
+    Instant replacementScheduledAt =
+        taskOccurrenceUpdateParameters.scheduledAt() != null
+            ? taskOccurrenceUpdateParameters.scheduledAt()
+            : occurrenceScheduledAt;
+    occurrenceState.setSeriesId(taskId);
+    occurrenceState.setOccurrenceScheduledAt(occurrenceScheduledAt);
+    occurrenceState.setStatus(TaskOccurrenceStatus.MODIFIED);
+    occurrenceState.setTitle(taskOccurrenceUpdateParameters.title());
+    occurrenceState.setPriority(taskOccurrenceUpdateParameters.priority());
+    occurrenceState.setScheduledAt(taskOccurrenceUpdateParameters.scheduledAt());
+    occurrenceState.setDueAt(taskOccurrenceUpdateParameters.dueAt());
     if (taskOccurrenceUpdateParameters.scheduledAt() != null) {
       assertScheduleAllowed(
           task.getProjectId(), taskOccurrenceUpdateParameters.scheduledAt(), task.isAllDay());
     }
+    // Clearing by identity allows the same occurrence to fire once at its replacement schedule.
+    if (!replacementScheduledAt.equals(previousScheduledAt)) {
+      taskOccurrenceNotificationService.clear(taskId, occurrenceScheduledAt);
+    }
     return TaskResult.occurrence(
-        task, taskInstanceRepository.save(instance), occurrenceScheduledAt);
+        task, taskOccurrenceStateRepository.save(occurrenceState), occurrenceScheduledAt);
   }
 
   /**
@@ -388,8 +423,8 @@ public class TaskService {
    *
    * <ul>
    *   <li><b>No scope (or non-recurring task)</b> – the task entity is permanently deleted.
-   *   <li><b>{@code THIS_ONLY}</b> – marks the specified occurrence as SKIPPED by creating a {@link
-   *       TaskInstance}; the rest of the series remains intact.
+   *   <li><b>{@code THIS_ONLY}</b> – marks the specified occurrence as SKIPPED by creating {@link
+   *       TaskOccurrenceState}; the rest of the series remains intact.
    *   <li><b>{@code FROM_THIS}</b> – truncates the series one second before {@code
    *       occurrenceScheduledAt} so that no occurrences are generated from that point onwards.
    * </ul>
@@ -419,28 +454,29 @@ public class TaskService {
     switch (taskDeleteParameters.scope()) {
       case THIS_ONLY -> {
         validateOccurrence(task, taskDeleteParameters.occurrenceScheduledAt());
-        TaskInstance taskInstance =
-            taskInstanceRepository
-                .findByTaskIdAndOccurrenceScheduledAt(
+        TaskOccurrenceState occurrenceState =
+            taskOccurrenceStateRepository
+                .findBySeriesIdAndOccurrenceScheduledAt(
                     taskId, taskDeleteParameters.occurrenceScheduledAt())
-                .orElseGet(TaskInstance::new);
+                .orElseGet(TaskOccurrenceState::new);
 
-        if (TaskInstanceStatus.SKIPPED.equals(taskInstance.getStatus())) {
+        if (TaskOccurrenceStatus.SKIPPED.equals(occurrenceState.getStatus())) {
           throw new IllegalArgumentException(
-              "Occurrence " + taskInstance.getId() + " already skipped");
+              "Occurrence " + occurrenceState.getId() + " already skipped");
         }
 
-        if (taskInstance.getId() != null && taskInstance.getStatus() == TaskInstanceStatus.DONE) {
+        if (occurrenceState.getId() != null
+            && occurrenceState.getStatus() == TaskOccurrenceStatus.DONE) {
           throw new IllegalStateException(
               "Cannot skip an already-completed occurrence ("
-                  + taskInstance.getId()
+                  + occurrenceState.getId()
                   + "). Reopen it first.");
         }
 
-        taskInstance.setTaskId(taskId);
-        taskInstance.setOccurrenceScheduledAt(taskDeleteParameters.occurrenceScheduledAt());
-        taskInstance.setStatus(TaskInstanceStatus.SKIPPED);
-        taskInstanceRepository.save(taskInstance);
+        occurrenceState.setSeriesId(taskId);
+        occurrenceState.setOccurrenceScheduledAt(taskDeleteParameters.occurrenceScheduledAt());
+        occurrenceState.setStatus(TaskOccurrenceStatus.SKIPPED);
+        taskOccurrenceStateRepository.save(occurrenceState);
       }
       case FROM_THIS -> {
         task.setRruleEndsAt(
@@ -452,18 +488,19 @@ public class TaskService {
 
   /**
    * Marks a task as completed. For non-recurring tasks the task entity is flagged as completed with
-   * the current timestamp. For recurring tasks, a {@link TaskInstance} with status DONE is created
-   * for the given occurrence.
+   * the current timestamp. For recurring tasks, {@link TaskOccurrenceState} with status DONE is
+   * created for the given occurrence.
    *
    * @param taskId the task UUID
    * @param taskCloseReopenParameters request containing the scheduled occurrence instant; required
    *     for recurring tasks
-   * @return the updated task as a DTO
+   * @return the updated non-recurring task or completed recurring occurrence
    * @throws IllegalArgumentException if the task is recurring and {@code occurrenceScheduledAt} is
    *     not provided
    * @throws ResourceNotFoundException if {@code occurrenceScheduledAt} does not match any
    *     occurrence generated by the task's RRULE
-   * @throws IllegalArgumentException if the specified recurring occurrence is already completed
+   * @throws IllegalArgumentException if the specified recurring occurrence is already completed or
+   *     skipped
    */
   public TaskResult close(UUID taskId, TaskCloseReopenParameters taskCloseReopenParameters) {
     Task task = getOrThrow(taskId);
@@ -487,34 +524,41 @@ public class TaskService {
       return TaskResult.base(saved);
     }
 
-    // For recurring tasks, a TaskInstance is created or updated with status DONE for the given
-    // occurrence.
+    // For recurring tasks, occurrence state is created or updated with status DONE.
     validateOccurrence(task, occurrenceScheduledAt);
-    TaskInstance instance =
-        taskInstanceRepository
-            .findByTaskIdAndOccurrenceScheduledAt(taskId, occurrenceScheduledAt)
-            .orElseGet(TaskInstance::new);
-    if (instance.getId() != null && instance.getStatus() == TaskInstanceStatus.DONE) {
+    TaskOccurrenceState occurrenceState =
+        taskOccurrenceStateRepository
+            .findBySeriesIdAndOccurrenceScheduledAt(taskId, occurrenceScheduledAt)
+            .orElseGet(TaskOccurrenceState::new);
+    if (occurrenceState.getId() != null
+        && occurrenceState.getStatus() == TaskOccurrenceStatus.DONE) {
       throw new IllegalArgumentException("Occurrence already completed: " + occurrenceScheduledAt);
     }
-    instance.setTaskId(taskId);
-    instance.setOccurrenceScheduledAt(occurrenceScheduledAt);
-    instance.setStatus(TaskInstanceStatus.DONE);
-    instance.setCompletedAt(Instant.now());
+    if (occurrenceState.getId() != null
+        && occurrenceState.getStatus() == TaskOccurrenceStatus.SKIPPED) {
+      throw new IllegalArgumentException("Cannot complete a skipped occurrence");
+    }
+    occurrenceState.setSeriesId(taskId);
+    occurrenceState.setOccurrenceScheduledAt(occurrenceScheduledAt);
+    occurrenceState.setStatus(TaskOccurrenceStatus.DONE);
+    occurrenceState.setCompletedAt(Instant.now());
 
     return TaskResult.occurrence(
-        task, taskInstanceRepository.save(instance), occurrenceScheduledAt);
+        task, taskOccurrenceStateRepository.save(occurrenceState), occurrenceScheduledAt);
   }
 
   /**
    * Reopens a previously completed task. For non-recurring tasks the completion flag and timestamp
-   * are cleared. For recurring tasks, the {@link TaskInstance} representing the completed
-   * occurrence is deleted, restoring it to its virtual (open) state.
+   * are cleared. For recurring tasks, the {@link TaskOccurrenceState} representing the completed
+   * occurrence is restored to its previous modified state, or deleted when it has no overrides.
    *
    * @param taskId the task UUID
    * @param taskCloseReopenParameters optional request containing the scheduled occurrence instant
    *     for recurring tasks
-   * @return the updated task as a DTO
+   * @return the reopened non-recurring task or recurring occurrence
+   * @throws IllegalArgumentException if a recurring occurrence identity is missing or the
+   *     occurrence is not completed
+   * @throws ResourceNotFoundException if the task or recurring occurrence does not exist
    */
   public TaskResult reopen(UUID taskId, TaskCloseReopenParameters taskCloseReopenParameters) {
     Task task = getOrThrow(taskId);
@@ -523,13 +567,38 @@ public class TaskService {
             ? taskCloseReopenParameters.occurrenceScheduledAt()
             : null;
 
-    if (!Boolean.TRUE.equals(task.getIsRecurring()) || occurrenceScheduledAt == null) {
+    if (!Boolean.TRUE.equals(task.getIsRecurring())) {
       task.setIsCompleted(false);
       task.setCompletedAt(null);
       return TaskResult.base(taskRepository.save(task));
     }
 
-    taskInstanceRepository.deleteByTaskIdAndOccurrenceScheduledAt(taskId, occurrenceScheduledAt);
+    if (occurrenceScheduledAt == null) {
+      throw new IllegalArgumentException(
+          "occurrenceScheduledAt is required to reopen a recurring occurrence");
+    }
+    validateOccurrence(task, occurrenceScheduledAt);
+    TaskOccurrenceState occurrenceState =
+        taskOccurrenceStateRepository
+            .findBySeriesIdAndOccurrenceScheduledAt(taskId, occurrenceScheduledAt)
+            .orElseThrow(
+                () ->
+                    new IllegalArgumentException(
+                        "Occurrence is not completed: " + occurrenceScheduledAt));
+    if (occurrenceState.getStatus() != TaskOccurrenceStatus.DONE) {
+      throw new IllegalArgumentException("Occurrence is not completed: " + occurrenceScheduledAt);
+    }
+
+    if (hasOverrides(occurrenceState)) {
+      // DONE is also used for previously modified occurrences; restore that prior open state.
+      occurrenceState.setStatus(TaskOccurrenceStatus.MODIFIED);
+      occurrenceState.setCompletedAt(null);
+      return TaskResult.occurrence(
+          task, taskOccurrenceStateRepository.save(occurrenceState), occurrenceScheduledAt);
+    }
+
+    // With no sparse overrides left to preserve, absence is the canonical open representation.
+    taskOccurrenceStateRepository.delete(occurrenceState);
     return TaskResult.occurrence(task, null, occurrenceScheduledAt);
   }
 
@@ -718,5 +787,12 @@ public class TaskService {
       throw new IllegalArgumentException(
           "Scheduled time is outside the project's planning calendar availability");
     }
+  }
+
+  private boolean hasOverrides(TaskOccurrenceState occurrenceState) {
+    return occurrenceState.getTitle() != null
+        || occurrenceState.getPriority() != null
+        || occurrenceState.getScheduledAt() != null
+        || occurrenceState.getDueAt() != null;
   }
 }

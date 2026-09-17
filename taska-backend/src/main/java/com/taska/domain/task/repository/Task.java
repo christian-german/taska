@@ -1,7 +1,7 @@
 package com.taska.domain.task.repository;
 
 import com.taska.domain.task.TaskType;
-import com.taska.domain.task.occurrence.TaskInstance;
+import com.taska.domain.task.occurrence.TaskOccurrenceState;
 import jakarta.persistence.*;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -12,8 +12,8 @@ import java.util.UUID;
  * JPA entity representing a task in the {@code tasks} table.
  *
  * <p>A task can be a top-level item, a subtask (via {@code parentId}), or a recurring series. For
- * recurring tasks, individual occurrences are tracked separately in {@link TaskInstance}. Labels
- * are stored in a join table ({@code task_labels}) and loaded eagerly.
+ * recurring tasks, sparse occurrence state is tracked separately in {@link TaskOccurrenceState}.
+ * Labels are stored in a join table ({@code task_labels}) and loaded eagerly.
  */
 @Entity
 @Table(name = "tasks")

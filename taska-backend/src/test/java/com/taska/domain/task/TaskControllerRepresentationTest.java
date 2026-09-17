@@ -6,11 +6,12 @@ import static org.mockito.Mockito.when;
 
 import com.taska.domain.priority.controller.TaskPriorityEvaluationMapper;
 import com.taska.domain.priority.service.TaskPriorityEvaluationService;
+import com.taska.domain.task.controller.TaskCloseReopenRequest;
 import com.taska.domain.task.controller.TaskController;
 import com.taska.domain.task.controller.TaskDto;
 import com.taska.domain.task.controller.TaskMapperImpl;
 import com.taska.domain.task.controller.TaskRepresentationKind;
-import com.taska.domain.task.occurrence.TaskInstance;
+import com.taska.domain.task.occurrence.TaskOccurrenceState;
 import com.taska.domain.task.repository.Task;
 import com.taska.domain.task.service.RecurringTaskOccurrenceResult;
 import com.taska.domain.task.service.TaskMutationService;
@@ -110,7 +111,7 @@ class TaskControllerRepresentationTest {
   @Test
   void occurrenceReplacementReturnsAnOccurrenceRepresentation() {
     Task task = recurringTask();
-    TaskInstance instance = new TaskInstance();
+    TaskOccurrenceState instance = new TaskOccurrenceState();
     instance.setId(UUID.randomUUID());
     when(taskMutationService.replaceOccurrence(
             org.mockito.ArgumentMatchers.eq(task.getId()),
@@ -130,6 +131,36 @@ class TaskControllerRepresentationTest {
   }
 
   @Test
+  void closeReturnsAnOccurrenceRepresentationForARecurringOccurrence() {
+    Task task = recurringTask();
+    when(taskMutationService.close(
+            task.getId(),
+            new com.taska.domain.task.service.TaskCloseReopenParameters(OCCURRENCE),
+            "account-a"))
+        .thenReturn(occurrenceResult(null));
+
+    TaskDto taskDto =
+        taskController.close(task.getId(), new TaskCloseReopenRequest(OCCURRENCE), jwt());
+
+    assertThat(taskDto.kind()).isEqualTo(TaskRepresentationKind.RECURRING_OCCURRENCE);
+  }
+
+  @Test
+  void reopenReturnsAnOccurrenceRepresentationForARecurringOccurrence() {
+    Task task = recurringTask();
+    when(taskMutationService.reopen(
+            task.getId(),
+            new com.taska.domain.task.service.TaskCloseReopenParameters(OCCURRENCE),
+            "account-a"))
+        .thenReturn(occurrenceResult(null));
+
+    TaskDto taskDto =
+        taskController.reopen(task.getId(), new TaskCloseReopenRequest(OCCURRENCE), jwt());
+
+    assertThat(taskDto.kind()).isEqualTo(TaskRepresentationKind.RECURRING_OCCURRENCE);
+  }
+
+  @Test
   void everyVariantEmitsItsDiscriminatorOnTheWire() {
     JsonMapper jsonMapper = JsonMapper.builder().build();
     TaskMapperImpl taskMapper = new TaskMapperImpl();
@@ -144,7 +175,7 @@ class TaskControllerRepresentationTest {
         .contains("\"kind\":\"RECURRING_OCCURRENCE\"");
   }
 
-  private RecurringTaskOccurrenceResult occurrenceResult(TaskInstance instance) {
+  private RecurringTaskOccurrenceResult occurrenceResult(TaskOccurrenceState instance) {
     return new RecurringTaskOccurrenceResult(recurringTask(), instance, OCCURRENCE);
   }
 

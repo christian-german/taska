@@ -9,7 +9,7 @@ import {
   signal,
 } from '@angular/core';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
-import { Project, Task, getColor } from '../../core/models';
+import { Project, Task, TaskPatch, getColor } from '../../core/models';
 import { ProjectService } from '../../core/services/project.service';
 import { TaskService } from '../../core/services/task.service';
 import { UiStateService } from '../../core/services/ui-state.service';
@@ -149,7 +149,7 @@ export class ProjectViewComponent implements OnInit {
     this.ui.openTaskDetail(t);
   }
 
-  onUpdate(payload: { id: string; patch: Partial<Task> }): void {
+  onUpdate(payload: { id: string; patch: TaskPatch }): void {
     this.taskService.updateTask(payload.id, payload.patch).subscribe((updated) => {
       this.allItems.update((list) => list.map((x) => (x.id === updated.id ? updated : x)));
     });

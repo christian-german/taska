@@ -6,6 +6,7 @@ import com.taska.android.data.model.OccurrenceUpdateRequest
 import com.taska.android.data.model.ProjectDto
 import com.taska.android.data.model.RecurrenceScope
 import com.taska.android.data.model.TaskDto
+import com.taska.android.data.model.TaskRepresentationKind
 import com.taska.android.data.model.toTaskUpdateRequest
 import com.taska.android.data.repository.ProjectRepository
 import com.taska.android.data.repository.TaskRepository
@@ -63,7 +64,7 @@ class DayViewModel(
   fun prevDay() = loadForOffset(_uiState.value.dayOffset - 1)
 
   fun requestRescheduleTask(task: TaskDto, newScheduledAt: String, newEstimateMinutes: Int) {
-    if (task.isRecurring == true && task.occurrenceScheduledAt != null) {
+    if (task.kind == TaskRepresentationKind.RECURRING_OCCURRENCE) {
       _uiState.update {
         it.copy(pendingReschedule = PendingReschedule(task, newScheduledAt, newEstimateMinutes))
       }

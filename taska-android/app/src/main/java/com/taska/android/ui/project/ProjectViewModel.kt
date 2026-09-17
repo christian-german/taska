@@ -53,7 +53,9 @@ class ProjectViewModel(
         val sorted =
           tasks.sortedWith(
             compareByDescending<TaskDto> {
-                it.scheduledAt != null && it.scheduledAt.substring(0, 10) < todayStr
+                it.scheduledAt?.substring(0, 10)?.let { scheduledDate ->
+                  scheduledDate < todayStr
+                } == true
               }
               .thenBy { it.scheduledAt }
           )

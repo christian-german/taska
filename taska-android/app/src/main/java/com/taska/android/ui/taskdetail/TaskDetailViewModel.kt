@@ -9,7 +9,9 @@ import com.taska.android.data.model.ProjectDto
 import com.taska.android.data.model.RecurrenceScope
 import com.taska.android.data.model.TaskCreateRequest
 import com.taska.android.data.model.TaskDto
+import com.taska.android.data.model.TaskRepresentationKind
 import com.taska.android.data.model.TaskUpdateRequest
+import com.taska.android.data.model.copy
 import com.taska.android.data.model.toTaskUpdateRequest
 import com.taska.android.data.repository.LabelRepository
 import com.taska.android.data.repository.ProjectRepository
@@ -128,7 +130,9 @@ class TaskDetailViewModel(
 
   fun requestRescheduleAllDay(millis: Long) {
     val task = _uiState.value.task ?: return
-    if (task.isRecurring == true && instanceOccurrenceScheduledAt != null) {
+    if (
+      task.kind != TaskRepresentationKind.NON_RECURRING && instanceOccurrenceScheduledAt != null
+    ) {
       _uiState.update { it.copy(pendingReschedule = PendingReschedule(millis, null)) }
     } else {
       doReschedule(millis, null, scope = null)
@@ -137,7 +141,9 @@ class TaskDetailViewModel(
 
   fun requestRescheduleWithTime(millis: Long, hour: Int, minute: Int) {
     val task = _uiState.value.task ?: return
-    if (task.isRecurring == true && instanceOccurrenceScheduledAt != null) {
+    if (
+      task.kind != TaskRepresentationKind.NON_RECURRING && instanceOccurrenceScheduledAt != null
+    ) {
       _uiState.update { it.copy(pendingReschedule = PendingReschedule(millis, hour * 60 + minute)) }
     } else {
       doReschedule(millis, hour * 60 + minute, scope = null)
@@ -203,7 +209,9 @@ class TaskDetailViewModel(
 
   fun clearDue() {
     val task = _uiState.value.task ?: return
-    if (task.isRecurring == true && instanceOccurrenceScheduledAt != null) {
+    if (
+      task.kind != TaskRepresentationKind.NON_RECURRING && instanceOccurrenceScheduledAt != null
+    ) {
       _uiState.update { it.copy(pendingReschedule = PendingReschedule(null, null)) }
     } else {
       doClearSchedule(scope = null)

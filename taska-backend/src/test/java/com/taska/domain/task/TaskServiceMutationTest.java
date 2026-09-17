@@ -10,8 +10,9 @@ import com.taska.domain.planningcalendar.service.PlanningCalendarService;
 import com.taska.domain.priority.repository.TaskPriorityEvaluationRepository;
 import com.taska.domain.project.repository.Project;
 import com.taska.domain.project.repository.ProjectRepository;
-import com.taska.domain.task.controller.TaskDto;
+import com.taska.domain.task.controller.RecurringTaskOccurrenceDto;
 import com.taska.domain.task.controller.TaskMapper;
+import com.taska.domain.task.controller.TaskRepresentationKind;
 import com.taska.domain.task.occurrence.*;
 import com.taska.domain.task.occurrence.repository.TaskInstanceRepository;
 import com.taska.domain.task.occurrence.service.TaskRecurrenceService;
@@ -99,8 +100,9 @@ class TaskServiceMutationTest {
     return taskInstance;
   }
 
-  private TaskDto anyDto() {
-    return new TaskDto(
+  private RecurringTaskOccurrenceDto anyDto() {
+    return new RecurringTaskOccurrenceDto(
+        TaskRepresentationKind.RECURRING_OCCURRENCE,
         randomId(),
         "t",
         null,
@@ -109,22 +111,21 @@ class TaskServiceMutationTest {
         0,
         1,
         List.of(),
-        false,
-        null,
-        null,
-        false,
-        false,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
         null,
         null,
         false,
         null,
-        TaskType.TODO);
+        null,
+        null,
+        null,
+        TaskType.TODO,
+        "FREQ=DAILY",
+        null,
+        false,
+        null,
+        null,
+        Instant.now(),
+        true);
   }
 
   private TaskUpdateParameters replacementRequest(UUID projectId, UUID parentId) {

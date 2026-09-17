@@ -28,8 +28,10 @@ export interface PlanningCalendar {
 
 export type RecurrenceScope = 'THIS_ONLY' | 'FROM_THIS';
 export type TaskType = 'TODO' | 'APPOINTMENT';
+export type TaskRepresentationKind = 'NON_RECURRING' | 'RECURRING_SERIES' | 'RECURRING_OCCURRENCE';
 
-export interface Task {
+interface TaskBase {
+  kind: TaskRepresentationKind;
   id: string;
   content: string;
   type: TaskType;
@@ -40,22 +42,75 @@ export interface Task {
   /** Optional manual priority; null means no manual priority is assigned. */
   priority: 1 | 2 | 3 | 4 | null;
   labels: string[];
-  isCompleted: boolean;
   scheduledAt: string | null;
   /** Deadline by which the task should be completed; independent of calendar scheduling. */
   dueAt: string | null;
   allDay: boolean;
-  isRecurring: boolean;
   estimateMinutes?: number | null;
   mentionContext?: string | null;
-  recurrenceRule?: string | null;
   createdAt: string;
   updatedAt: string;
-  completedAt?: string | null;
-  instanceId?: string | null;
-  occurrenceScheduledAt?: string | null;
-  isVirtual?: boolean | null;
-  rruleEndsAt?: string | null;
+}
+
+export interface NonRecurringTask extends TaskBase {
+  kind: 'NON_RECURRING';
+  isCompleted: boolean;
+  completedAt: string | null;
+  recurrenceRule?: never;
+  rruleEndsAt?: never;
+  instanceId?: never;
+  occurrenceScheduledAt?: never;
+  isVirtual?: never;
+}
+
+export interface RecurringTaskSeries extends TaskBase {
+  kind: 'RECURRING_SERIES';
+  recurrenceRule: string | null;
+  rruleEndsAt: string | null;
+  isCompleted?: never;
+  completedAt?: never;
+  instanceId?: never;
+  occurrenceScheduledAt?: never;
+  isVirtual?: never;
+}
+
+export interface RecurringTaskOccurrence extends TaskBase {
+  kind: 'RECURRING_OCCURRENCE';
+  recurrenceRule: string | null;
+  rruleEndsAt: string | null;
+  isCompleted: boolean;
+  completedAt: string | null;
+  instanceId: string | null;
+  occurrenceScheduledAt: string;
+  isVirtual: boolean;
+}
+
+export type Task = NonRecurringTask | RecurringTaskSeries | RecurringTaskOccurrence;
+
+export type TaskPatch = Partial<{
+  content: string;
+  type: TaskType;
+  description: string | null;
+  projectId: string | null;
+  parentId: string | null;
+  order: number;
+  priority: TaskBase['priority'];
+  labels: string[];
+  scheduledAt: string | null;
+  dueAt: string | null;
+  allDay: boolean;
+  isRecurring: boolean;
+  estimateMinutes: number | null;
+  mentionContext: string | null;
+  recurrenceRule: string | null;
+}>;
+
+export function isRecurringTask(task: Task): task is RecurringTaskSeries | RecurringTaskOccurrence {
+  return task.kind !== 'NON_RECURRING';
+}
+
+export function isRecurringTaskOccurrence(task: Task): task is RecurringTaskOccurrence {
+  return task.kind === 'RECURRING_OCCURRENCE';
 }
 
 export interface Label {

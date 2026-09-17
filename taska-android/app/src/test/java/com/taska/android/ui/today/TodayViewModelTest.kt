@@ -3,6 +3,7 @@ package com.taska.android.ui.today
 import com.taska.android.MainDispatcherRule
 import com.taska.android.data.model.RecurrenceScope
 import com.taska.android.data.model.TaskDto
+import com.taska.android.data.model.copy
 import com.taska.android.data.repository.ProjectRepository
 import com.taska.android.data.repository.TaskRepository
 import io.mockk.coEvery

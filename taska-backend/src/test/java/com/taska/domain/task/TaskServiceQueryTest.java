@@ -11,6 +11,7 @@ import com.taska.domain.task.occurrence.repository.TaskInstanceRepository;
 import com.taska.domain.task.occurrence.service.TaskRecurrenceService;
 import com.taska.domain.task.repository.Task;
 import com.taska.domain.task.repository.TaskRepository;
+import com.taska.domain.task.service.RecurringTaskOccurrenceResult;
 import com.taska.domain.task.service.TaskResult;
 import com.taska.domain.task.service.TaskService;
 import java.time.Instant;
@@ -348,7 +349,11 @@ class TaskServiceQueryTest {
 
     List<TaskResult> result = taskService.findOccurrencesForDateRange(newDay, newDay, false);
 
-    assertThat(result).anyMatch(taskResult -> taskResult.taskInstance() == modified);
+    assertThat(result)
+        .anyMatch(
+            taskResult ->
+                taskResult instanceof RecurringTaskOccurrenceResult occurrence
+                    && occurrence.taskInstance() == modified);
   }
 
   // ── 2.10 ─────────────────────────────────────────────────────────────────

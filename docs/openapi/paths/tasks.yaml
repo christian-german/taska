@@ -17,7 +17,7 @@
         content:
           "application/json":
             schema:
-              "$ref": "../schemas/task.yaml#/TaskDto"
+              "$ref": "../schemas/task.yaml#/TaskResourceDto"
       "400":
         "$ref": "../responses.yaml#/BadRequest"
       "401":
@@ -55,7 +55,7 @@
         content:
           "application/json":
             schema:
-              "$ref": "../schemas/task.yaml#/TaskDto"
+              "$ref": "../schemas/task.yaml#/TaskResourceDto"
       "400":
         "$ref": "../responses.yaml#/BadRequest"
       "401":
@@ -142,7 +142,7 @@
         content:
           "application/json":
             schema:
-              "$ref": "../schemas/task.yaml#/TaskDto"
+              "$ref": "../schemas/task.yaml#/RecurringTaskOccurrenceDto"
       "400":
         "$ref": "../responses.yaml#/BadRequest"
       "401":
@@ -192,7 +192,7 @@
         content:
           "application/json":
             schema:
-              "$ref": "../schemas/task.yaml#/TaskDto"
+              "$ref": "../schemas/task.yaml#/RecurringTaskSeriesDto"
       "400":
         "$ref": "../responses.yaml#/BadRequest"
       "401":
@@ -258,7 +258,11 @@
         description: "Inclusive end date of the requested range."
     responses:
       "200":
-        description: "Successful response."
+        description: >-
+          Successful response. Without date filters, items are persisted non-recurring tasks or
+          recurring-series definitions. With `date`, or with both `from` and `to`, items are
+          non-recurring tasks or expanded recurring occurrences; recurring-series definitions are
+          not returned.
         content:
           "application/json":
             schema:
@@ -274,7 +278,10 @@
       "500":
         "$ref": "../responses.yaml#/InternalServerError"
     summary: "List tasks"
-    description: "List tasks for the authenticated Taska principal."
+    description: >-
+      List tasks for the authenticated Taska principal. Supplying `date`, or both `from` and `to`,
+      switches the response from task resources to calendar-displayable tasks and expands recurring
+      series into occurrences.
   post:
     tags:
       - "Tasks"
@@ -292,7 +299,7 @@
         content:
           "application/json":
             schema:
-              "$ref": "../schemas/task.yaml#/TaskDto"
+              "$ref": "../schemas/task.yaml#/TaskResourceDto"
       "400":
         "$ref": "../responses.yaml#/BadRequest"
       "401":
@@ -334,7 +341,7 @@
         content:
           "application/json":
             schema:
-              "$ref": "../schemas/task.yaml#/TaskDto"
+              "$ref": "../schemas/task.yaml#/CompletableTaskDto"
       "400":
         "$ref": "../responses.yaml#/BadRequest"
       "401":
@@ -376,7 +383,7 @@
         content:
           "application/json":
             schema:
-              "$ref": "../schemas/task.yaml#/TaskDto"
+              "$ref": "../schemas/task.yaml#/CompletableTaskDto"
       "400":
         "$ref": "../responses.yaml#/BadRequest"
       "401":
@@ -414,7 +421,7 @@
             schema:
               type: "array"
               items:
-                "$ref": "../schemas/task.yaml#/TaskDto"
+                "$ref": "../schemas/task.yaml#/TaskResourceDto"
       "400":
         "$ref": "../responses.yaml#/BadRequest"
       "401":

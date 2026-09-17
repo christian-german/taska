@@ -7,7 +7,6 @@ import com.taska.domain.project.controller.ProjectMapperImpl;
 import com.taska.domain.project.mcp.ProjectMcpMapperImpl;
 import com.taska.domain.project.mcp.ProjectMcpTools;
 import com.taska.domain.project.service.ProjectService;
-import com.taska.domain.task.controller.TaskMapperImpl;
 import com.taska.domain.task.mcp.TaskMcpMapperImpl;
 import com.taska.domain.task.mcp.TaskMcpTools;
 import com.taska.domain.task.service.TaskMutationService;
@@ -139,10 +138,7 @@ class McpEndpointIntegrationTest {
       TaskService taskService = mock(TaskService.class);
       org.mockito.Mockito.when(taskService.findAll(null, null, false)).thenReturn(List.of());
       return new TaskMcpTools(
-          taskService,
-          mock(TaskMutationService.class),
-          new TaskMapperImpl(),
-          new TaskMcpMapperImpl());
+          taskService, mock(TaskMutationService.class), new TaskMcpMapperImpl());
     }
   }
 

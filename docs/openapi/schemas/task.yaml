@@ -80,102 +80,172 @@ TaskUpdateRequest:
     - "scheduledAt"
     - "type"
 TaskDto:
-  description: "Task returned by the API, including recurring occurrence metadata."
+  description: "Discriminated task resource or recurring-occurrence representation."
+  oneOf:
+    - "$ref": "#/NonRecurringTaskDto"
+    - "$ref": "#/RecurringTaskSeriesDto"
+    - "$ref": "#/RecurringTaskOccurrenceDto"
+  discriminator:
+    propertyName: "kind"
+    mapping:
+      NON_RECURRING: "#/NonRecurringTaskDto"
+      RECURRING_SERIES: "#/RecurringTaskSeriesDto"
+      RECURRING_OCCURRENCE: "#/RecurringTaskOccurrenceDto"
+TaskResourceDto:
+  description: "Persisted task resource returned without occurrence expansion."
+  oneOf:
+    - "$ref": "#/NonRecurringTaskDto"
+    - "$ref": "#/RecurringTaskSeriesDto"
+  discriminator:
+    propertyName: "kind"
+ScheduledTaskDto:
+  description: "Displayable task returned by a date or date-range query."
+  oneOf:
+    - "$ref": "#/NonRecurringTaskDto"
+    - "$ref": "#/RecurringTaskOccurrenceDto"
+  discriminator:
+    propertyName: "kind"
+CompletableTaskDto:
+  description: "Task or recurring occurrence returned by completion and reopening operations."
+  oneOf:
+    - "$ref": "#/NonRecurringTaskDto"
+    - "$ref": "#/RecurringTaskOccurrenceDto"
+  discriminator:
+    propertyName: "kind"
+TaskBaseDto:
   type: "object"
   properties:
     id:
-      description: "Unique identifier of the task."
+      description: "Persisted task identifier; for an occurrence, the backing recurring-series identifier."
       type: "string"
       format: "uuid"
     content:
-      description: "Title or main text of the task."
       type: "string"
     description:
-      description: "Optional longer description of the task."
       type: ["string", "null"]
     projectId:
-      description: "UUID of the project this task belongs to; may be absent for a subtask without a project."
       type: ["string", "null"]
       format: "uuid"
     parentId:
-      description: "Parent task UUID for a subtask; absent for a top-level task."
       type: ["string", "null"]
       format: "uuid"
     order:
-      description: "Display position within the task's container, mapped from the persisted position."
       type: "integer"
       format: "int32"
     priority:
-      description: "Optional manual urgency level from 1 (urgent) through 4 (normal)."
       type: ["integer", "null"]
       format: "int32"
-      maximum: 4
       minimum: 1
+      maximum: 4
     labels:
-      description: "Names of the labels attached to the task."
       type: "array"
       items:
         type: "string"
-    isCompleted:
-      description: "Whether the task or represented occurrence has been completed."
-      type: "boolean"
     scheduledAt:
-      description: "Planned schedule time in UTC; absent when the task is unscheduled."
+      description: "Effective planned time in UTC."
       type: ["string", "null"]
       format: "date-time"
     dueAt:
-      description: "Deadline in UTC; absent when the task has no deadline."
       type: ["string", "null"]
       format: "date-time"
     allDay:
-      description: "Whether the scheduled time has no specific time component."
-      type: "boolean"
-    isRecurring:
-      description: "Whether the task repeats according to a recurrence rule."
       type: "boolean"
     estimateMinutes:
-      description: "Optional estimated duration of the task in minutes."
       type: ["integer", "null"]
       format: "int32"
     mentionContext:
-      description: "Raw context captured when the task was created through an @-mention."
-      type: ["string", "null"]
-    recurrenceRule:
-      description: "iCal4j RRULE string describing the recurrence pattern, for example `FREQ=DAILY`."
       type: ["string", "null"]
     createdAt:
-      description: "Timestamp when the task entity was first created."
-      type: "string"
+      type: ["string", "null"]
       format: "date-time"
     updatedAt:
-      description: "Timestamp of the task entity's most recent update."
-      type: "string"
-      format: "date-time"
-    completedAt:
-      description: "Timestamp when the task was completed; absent while the task is open."
-      type: ["string", "null"]
-      format: "date-time"
-    instanceId:
-      description: "UUID of the persisted recurring-task instance; absent for an unmodified virtual occurrence."
-      type: ["string", "null"]
-      format: "uuid"
-    occurrenceScheduledAt:
-      description: "Exact UTC instant at which this recurring occurrence falls, independently of mutable `scheduledAt`."
-      type: ["string", "null"]
-      format: "date-time"
-    isVirtual:
-      description: "Whether no persisted task instance yet exists for this recurring occurrence."
-      type: ["boolean", "null"]
-    rruleEndsAt:
-      description: "Instant at which the recurrence series is truncated; occurrences at or after it are not generated."
       type: ["string", "null"]
       format: "date-time"
     type:
-      description: "Kind of commitment represented by the task."
       type: "string"
-      enum:
-        - "TODO"
-        - "APPOINTMENT"
+      enum: ["TODO", "APPOINTMENT"]
+  required:
+    - "id"
+    - "content"
+    - "description"
+    - "projectId"
+    - "parentId"
+    - "order"
+    - "priority"
+    - "labels"
+    - "scheduledAt"
+    - "dueAt"
+    - "allDay"
+    - "estimateMinutes"
+    - "mentionContext"
+    - "createdAt"
+    - "updatedAt"
+    - "type"
+NonRecurringTaskDto:
+  allOf:
+    - "$ref": "#/TaskBaseDto"
+    - type: "object"
+      properties:
+        kind:
+          type: "string"
+          const: "NON_RECURRING"
+        isCompleted:
+          type: "boolean"
+        completedAt:
+          type: ["string", "null"]
+          format: "date-time"
+      required: ["kind", "isCompleted", "completedAt"]
+RecurringTaskSeriesDto:
+  allOf:
+    - "$ref": "#/TaskBaseDto"
+    - type: "object"
+      properties:
+        kind:
+          type: "string"
+          const: "RECURRING_SERIES"
+        recurrenceRule:
+          type: ["string", "null"]
+        rruleEndsAt:
+          type: ["string", "null"]
+          format: "date-time"
+      required: ["kind", "recurrenceRule", "rruleEndsAt"]
+RecurringTaskOccurrenceDto:
+  allOf:
+    - "$ref": "#/TaskBaseDto"
+    - type: "object"
+      properties:
+        kind:
+          type: "string"
+          const: "RECURRING_OCCURRENCE"
+        recurrenceRule:
+          type: ["string", "null"]
+        rruleEndsAt:
+          type: ["string", "null"]
+          format: "date-time"
+        isCompleted:
+          type: "boolean"
+        completedAt:
+          type: ["string", "null"]
+          format: "date-time"
+        instanceId:
+          description: "Persisted occurrence-instance ID; null while the occurrence is virtual."
+          type: ["string", "null"]
+          format: "uuid"
+        occurrenceScheduledAt:
+          description: "Immutable RRULE-generated instant that identifies this occurrence."
+          type: "string"
+          format: "date-time"
+        isVirtual:
+          type: "boolean"
+      required:
+        - "kind"
+        - "recurrenceRule"
+        - "rruleEndsAt"
+        - "isCompleted"
+        - "completedAt"
+        - "instanceId"
+        - "occurrenceScheduledAt"
+        - "isVirtual"
 OccurrenceUpdateRequest:
   description: "Changes applied to one recurring task occurrence."
   type: "object"

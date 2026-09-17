@@ -30,6 +30,7 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import {
   Project,
   Task,
+  TaskPatch,
   Label,
   fmtRel,
   fmtTime,
@@ -69,7 +70,7 @@ import {
       [attr.data-task-id]="task().id"
       (click)="onSelect(); $event.stopPropagation()"
     >
-      <app-checkbox [checked]="task().isCompleted" (toggled)="onToggle($event)" />
+      <app-checkbox [checked]="task().isCompleted ?? false" (toggled)="onToggle($event)" />
 
       <div style="min-width: 0;">
         <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
@@ -135,7 +136,7 @@ import {
                 {{ estimateLabel() }}
               </span>
             }
-            @if (task().recurrenceRule || task().isRecurring) {
+            @if (task().kind !== 'NON_RECURRING') {
               <span
                 class="mono"
                 style="display: inline-flex; align-items: center; gap: 3px; color: var(--mute); font-size: 11px;"
@@ -178,7 +179,7 @@ export class TaskRowComponent {
 
   toggled = output<Task>();
   selectTask = output<Task>();
-  updated = output<{ id: string; patch: Partial<Task> }>();
+  updated = output<{ id: string; patch: TaskPatch }>();
 
   private labelService = inject(LabelService);
   private allLabels = toSignal(this.labelService.labels$, { initialValue: [] as Label[] });
@@ -210,7 +211,7 @@ export class TaskRowComponent {
       t.scheduledAt ||
       t.estimateMinutes ||
       t.recurrenceRule ||
-      t.isRecurring ||
+      t.kind !== 'NON_RECURRING' ||
       this.project() ||
       t.mentionContext ||
       (t.labels && t.labels.length > 0)

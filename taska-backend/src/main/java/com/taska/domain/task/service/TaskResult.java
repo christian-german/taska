@@ -3,15 +3,27 @@ package com.taska.domain.task.service;
 import com.taska.domain.task.occurrence.TaskInstance;
 import com.taska.domain.task.repository.Task;
 import java.time.Instant;
+import java.util.Objects;
 
-/** Application result representing either a base task or one expanded recurring occurrence. */
-public record TaskResult(Task task, TaskInstance taskInstance, Instant occurrenceScheduledAt) {
-  public static TaskResult base(Task task) {
-    return new TaskResult(task, null, null);
+/** Exhaustive application result for a task resource or one expanded recurring occurrence. */
+public sealed interface TaskResult
+    permits NonRecurringTaskResult, RecurringTaskOccurrenceResult, RecurringTaskSeriesResult {
+
+  Task task();
+
+  static TaskResult base(Task task) {
+    Objects.requireNonNull(task, "task");
+    return Boolean.TRUE.equals(task.getIsRecurring())
+        ? new RecurringTaskSeriesResult(task)
+        : new NonRecurringTaskResult(task);
   }
 
-  public static TaskResult occurrence(
+  static TaskResult occurrence(
       Task task, TaskInstance taskInstance, Instant occurrenceScheduledAt) {
-    return new TaskResult(task, taskInstance, occurrenceScheduledAt);
+    Objects.requireNonNull(task, "task");
+    if (!Boolean.TRUE.equals(task.getIsRecurring())) {
+      throw new IllegalArgumentException("An occurrence requires a recurring task");
+    }
+    return new RecurringTaskOccurrenceResult(task, taskInstance, occurrenceScheduledAt);
   }
 }

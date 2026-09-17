@@ -209,7 +209,7 @@
             schema:
               type: "array"
               items:
-                "$ref": "../schemas/task.yaml#/TaskDto"
+                "$ref": "../schemas/task.yaml#/TaskResourceDto"
       "400":
         "$ref": "../responses.yaml#/BadRequest"
       "401":

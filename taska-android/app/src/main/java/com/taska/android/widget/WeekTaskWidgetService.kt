@@ -6,10 +6,10 @@ import android.content.Intent
 import android.view.View
 import android.widget.RemoteViews
 import android.widget.RemoteViewsService
-import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import com.taska.android.R
 import com.taska.android.data.model.TaskDto
+import com.taska.android.data.model.TaskJson
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
@@ -71,14 +71,14 @@ internal object WeekWidgetDataStore {
     context
       .getSharedPreferences(PREFS, Context.MODE_PRIVATE)
       .edit()
-      .putString(widgetId.toString(), Gson().toJson(tasks))
+      .putString(widgetId.toString(), TaskJson.gson.toJson(tasks))
       .apply()
 
   fun load(context: Context, widgetId: Int): List<TaskDto> {
     val json =
       context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getString(widgetId.toString(), null)
         ?: return emptyList()
-    return Gson().fromJson(json, object : TypeToken<List<TaskDto>>() {}.type)
+    return TaskJson.gson.fromJson(json, object : TypeToken<List<TaskDto>>() {}.type)
   }
 }
 

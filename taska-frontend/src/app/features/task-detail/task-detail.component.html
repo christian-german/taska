@@ -29,7 +29,7 @@
   <div class="scroll" style="flex: 1; overflow-y: auto; min-height: 0">
     <div style="padding: 20px 22px">
       <div style="display: flex; gap: 12px; align-items: flex-start">
-        <app-checkbox [checked]="task().isCompleted" [size]="22" (toggled)="toggleComplete()" />
+        <app-checkbox [checked]="task().isCompleted ?? false" [size]="22" (toggled)="toggleComplete()" />
         <input
           class="inline-edit script"
           style="font-size: 26px; line-height: 1.1"
@@ -607,7 +607,7 @@
             "
           >
             <app-checkbox
-              [checked]="s.isCompleted"
+              [checked]="s.isCompleted ?? false"
               [priority]="s.priority"
               [size]="16"
               (toggled)="toggleSubtask(s)"

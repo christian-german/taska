@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { of, Subject } from 'rxjs';
-import { Task } from '../../core/models';
+import { NonRecurringTask, RecurringTaskOccurrence, Task } from '../../core/models';
 import { CommentService } from '../../core/services/comment.service';
 import { LabelService } from '../../core/services/label.service';
 import { ProjectService } from '../../core/services/project.service';
@@ -13,7 +13,8 @@ describe('TaskDetailComponent schedule removal', () => {
   let updateResult: Subject<Task>;
   let updateTask: ReturnType<typeof vi.fn>;
 
-  const task = (changes: Partial<Task> = {}): Task => ({
+  const task = (changes: Partial<NonRecurringTask> = {}): NonRecurringTask => ({
+    kind: 'NON_RECURRING',
     id: 'task-1',
     content: 'Plan launch',
     type: 'TODO',
@@ -24,10 +25,20 @@ describe('TaskDetailComponent schedule removal', () => {
     scheduledAt: '2026-08-24T09:00:00Z',
     dueAt: '2026-09-01T00:00:00Z',
     allDay: false,
-    isRecurring: false,
+    completedAt: null,
     createdAt: '',
     updatedAt: '',
     ...changes,
+  });
+
+  const occurrenceTask = (): RecurringTaskOccurrence => ({
+    ...task(),
+    kind: 'RECURRING_OCCURRENCE',
+    recurrenceRule: 'FREQ=DAILY',
+    rruleEndsAt: null,
+    instanceId: null,
+    occurrenceScheduledAt: '2026-08-24T09:00:00Z',
+    isVirtual: true,
   });
 
   beforeEach(async () => {
@@ -86,7 +97,7 @@ describe('TaskDetailComponent schedule removal', () => {
   it('retains recurrence targeting for complete removal', () => {
     fixture.componentRef.setInput(
       'task',
-      task({ isRecurring: true, occurrenceScheduledAt: '2026-08-24T09:00:00Z' }),
+      occurrenceTask(),
     );
     fixture.detectChanges();
 

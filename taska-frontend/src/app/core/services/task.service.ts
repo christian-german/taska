@@ -2,7 +2,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { Observable, switchMap, tap, throwError } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { RecurrenceScope, Task } from '../models';
+import { isRecurringTask, RecurrenceScope, Task, TaskPatch } from '../models';
 import { TaskCreationFeedbackService } from './task-creation-feedback.service';
 
 export interface TaskQueryParams {
@@ -79,7 +79,7 @@ export class TaskService {
 
   updateTask(
     taskId: string,
-    patch: Partial<Task> & {
+    patch: TaskPatch & {
       scope?: RecurrenceScope;
       occurrenceScheduledAt?: string | null;
     },
@@ -119,8 +119,9 @@ export class TaskService {
     );
   }
 
-  private toUpdateRequest(task: Task, changes: Partial<Task>): TaskUpdateRequest {
+  private toUpdateRequest(task: Task, changes: TaskPatch): TaskUpdateRequest {
     const updated = { ...task, ...changes };
+    const recurring = changes.isRecurring ?? isRecurringTask(task);
     return {
       content: updated.content,
       type: updated.type ?? 'TODO',
@@ -133,10 +134,16 @@ export class TaskService {
       scheduledAt: updated.scheduledAt,
       dueAt: updated.dueAt,
       allDay: updated.allDay,
-      isRecurring: updated.isRecurring,
+      isRecurring: recurring,
       estimateMinutes: updated.estimateMinutes ?? null,
       mentionContext: updated.mentionContext ?? null,
-      recurrenceRule: updated.recurrenceRule ?? null,
+      recurrenceRule: recurring
+        ? 'recurrenceRule' in changes
+          ? (changes.recurrenceRule ?? null)
+          : isRecurringTask(task)
+            ? task.recurrenceRule
+            : null
+        : null,
     };
   }
 

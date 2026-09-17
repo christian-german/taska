@@ -8,7 +8,7 @@ import {
   ChangeDetectionStrategy,
 } from '@angular/core';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
-import { Project, Task, daysDiff, fmtDateShort } from '../../core/models';
+import { Project, Task, TaskPatch, daysDiff, fmtDateShort } from '../../core/models';
 import { TaskService } from '../../core/services/task.service';
 import { ProjectService } from '../../core/services/project.service';
 import { UiStateService } from '../../core/services/ui-state.service';
@@ -180,7 +180,7 @@ export class WeekComponent implements OnInit {
     this.ui.openTaskDetail(t);
   }
 
-  onUpdate(payload: { id: string; patch: Partial<Task> }): void {
+  onUpdate(payload: { id: string; patch: TaskPatch }): void {
     this.taskService.updateTask(payload.id, payload.patch).subscribe(() => this.refresh());
   }
 }

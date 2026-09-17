@@ -5,8 +5,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.taska.domain.task.controller.TaskDto;
-import com.taska.domain.task.controller.TaskMapperImpl;
 import com.taska.domain.task.repository.Task;
 import com.taska.domain.task.service.TaskCloseReopenParameters;
 import com.taska.domain.task.service.TaskCreateParameters;
@@ -37,9 +35,7 @@ class TaskMcpToolsTest {
 
   @BeforeEach
   void authenticate() {
-    taskMcpTools =
-        new TaskMcpTools(
-            taskService, taskMutationService, new TaskMapperImpl(), new TaskMcpMapperImpl());
+    taskMcpTools = new TaskMcpTools(taskService, taskMutationService, new TaskMcpMapperImpl());
     SecurityContextHolder.getContext()
         .setAuthentication(new TestingAuthenticationToken("account-a", null));
   }
@@ -93,7 +89,7 @@ class TaskMcpToolsTest {
     assertThat(taskRequestCaptor.getValue().priority()).isNull();
     assertThat(taskRequestCaptor.getValue().scheduledAt()).isNull();
     assertThat(callToolResult.isError()).isFalse();
-    assertThat(callToolResult.structuredContent()).isInstanceOf(TaskDto.class);
+    assertThat(callToolResult.structuredContent()).isInstanceOf(TaskMcpOutput.class);
   }
 
   @Test

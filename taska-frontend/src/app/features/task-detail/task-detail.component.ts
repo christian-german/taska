@@ -18,6 +18,7 @@ import {
   Project,
   RecurrenceScope,
   Task,
+  TaskPatch,
   TaskType,
   fmtDateShort,
   fmtEstimate,
@@ -110,7 +111,7 @@ export class TaskDetailComponent implements OnChanges {
   showDeleteConfirm = signal(false);
   showDeleteScopeDialog = signal(false);
   showModifyScopeDialog = signal(false);
-  pendingPatch = signal<Partial<Task> | null>(null);
+  pendingPatch = signal<TaskPatch | null>(null);
   activeDetailPicker = signal<DetailPicker>(null);
   tagSearch = signal('');
 
@@ -353,7 +354,7 @@ export class TaskDetailComponent implements OnChanges {
   }
 
   deleteTask(): void {
-    if (this.task().isRecurring && this.task().occurrenceScheduledAt) {
+    if (this.task().kind === 'RECURRING_OCCURRENCE') {
       this.showDeleteScopeDialog.set(true);
     } else {
       this.showDeleteConfirm.set(true);
@@ -402,8 +403,8 @@ export class TaskDetailComponent implements OnChanges {
     return fmtDateShort(new Date(dateStr));
   }
 
-  private save(patch: Partial<Task>): void {
-    if (this.task().isRecurring && this.task().occurrenceScheduledAt) {
+  private save(patch: TaskPatch): void {
+    if (this.task().kind === 'RECURRING_OCCURRENCE') {
       this.pendingPatch.set(patch);
       this.showModifyScopeDialog.set(true);
     } else {

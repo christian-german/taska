@@ -5,6 +5,9 @@ import com.taska.domain.task.TaskType;
 import com.taska.domain.task.occurrence.TaskInstance;
 import com.taska.domain.task.occurrence.TaskInstanceStatus;
 import com.taska.domain.task.repository.Task;
+import com.taska.domain.task.service.NonRecurringTaskResult;
+import com.taska.domain.task.service.RecurringTaskOccurrenceResult;
+import com.taska.domain.task.service.RecurringTaskSeriesResult;
 import com.taska.domain.task.service.TaskCloseReopenParameters;
 import com.taska.domain.task.service.TaskCreateParameters;
 import com.taska.domain.task.service.TaskDeleteParameters;
@@ -19,26 +22,29 @@ import org.mapstruct.Mapping;
 @Mapper(config = ApiMapperConfig.class)
 public interface TaskMapper {
 
-  /**
-   * Maps a {@link Task} entity to a {@link TaskDto}. The {@code position} field is exposed as
-   * {@code order}. Occurrence-specific fields ({@code instanceId}, {@code occurrenceScheduledAt},
-   * {@code isVirtual}) are left null; use {@link #toOccurrenceDto} for recurring occurrences.
-   *
-   * @param task the task entity
-   * @return the corresponding DTO
-   */
+  @Mapping(target = "kind", constant = "NON_RECURRING")
   @Mapping(target = "order", source = "position")
-  @Mapping(target = "instanceId", ignore = true)
-  @Mapping(target = "occurrenceScheduledAt", ignore = true)
-  @Mapping(target = "isVirtual", ignore = true)
-  TaskDto toDto(Task task);
+  @Mapping(target = "type", defaultValue = "TODO")
+  NonRecurringTaskDto toNonRecurringDto(Task task);
+
+  @Mapping(target = "kind", constant = "RECURRING_SERIES")
+  @Mapping(target = "order", source = "position")
+  @Mapping(target = "type", defaultValue = "TODO")
+  RecurringTaskSeriesDto toRecurringSeriesDto(Task task);
+
+  default TaskDto toDto(Task task) {
+    return Boolean.TRUE.equals(task.getIsRecurring())
+        ? toRecurringSeriesDto(task)
+        : toNonRecurringDto(task);
+  }
 
   default TaskDto toDto(TaskResult taskResult) {
-    if (taskResult.occurrenceScheduledAt() == null) {
-      return toDto(taskResult.task());
-    }
-    return toOccurrenceDto(
-        taskResult.task(), taskResult.taskInstance(), taskResult.occurrenceScheduledAt());
+    return switch (taskResult) {
+      case NonRecurringTaskResult result -> toNonRecurringDto(result.task());
+      case RecurringTaskSeriesResult result -> toRecurringSeriesDto(result.task());
+      case RecurringTaskOccurrenceResult result ->
+          toOccurrenceDto(result.task(), result.taskInstance(), result.occurrenceScheduledAt());
+    };
   }
 
   @Mapping(target = "position", source = "order", defaultValue = "0")
@@ -67,7 +73,8 @@ public interface TaskMapper {
    * @param occurrenceScheduledAt the exact instant this occurrence falls on according to the RRULE
    * @return a fully populated DTO representing the occurrence
    */
-  default TaskDto toOccurrenceDto(Task task, TaskInstance instance, Instant occurrenceScheduledAt) {
+  default RecurringTaskOccurrenceDto toOccurrenceDto(
+      Task task, TaskInstance instance, Instant occurrenceScheduledAt) {
     String content =
         instance != null && instance.getTitle() != null ? instance.getTitle() : task.getContent();
     Integer priority =
@@ -85,7 +92,8 @@ public interface TaskMapper {
     UUID instanceId = instance != null ? instance.getId() : null;
     boolean isVirtual = instance == null;
 
-    return new TaskDto(
+    return new RecurringTaskOccurrenceDto(
+        TaskRepresentationKind.RECURRING_OCCURRENCE,
         task.getId(),
         content,
         task.getDescription(),
@@ -94,21 +102,20 @@ public interface TaskMapper {
         task.getPosition(),
         priority,
         task.getLabels(),
-        isCompleted,
         scheduledAt,
         dueAt,
         task.isAllDay(),
-        true,
         task.getEstimateMinutes(),
         task.getMentionContext(),
-        task.getRecurrenceRule(),
         task.getCreatedAt(),
         task.getUpdatedAt(),
+        task.getType() == null ? TaskType.TODO : task.getType(),
+        task.getRecurrenceRule(),
+        task.getRruleEndsAt(),
+        isCompleted,
         completedAt,
         instanceId,
         occurrenceScheduledAt,
-        isVirtual,
-        task.getRruleEndsAt(),
-        task.getType() == null ? TaskType.TODO : task.getType());
+        isVirtual);
   }
 }

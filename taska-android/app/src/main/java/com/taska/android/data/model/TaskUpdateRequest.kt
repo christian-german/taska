@@ -38,7 +38,7 @@ fun TaskDto.toTaskUpdateRequest() =
     scheduledAt = scheduledAt,
     dueAt = dueAt,
     allDay = allDay,
-    isRecurring = isRecurring == true,
+    isRecurring = kind != TaskRepresentationKind.NON_RECURRING,
     estimateMinutes = estimateMinutes,
     mentionContext = mentionContext,
     recurrenceRule = recurrenceRule,

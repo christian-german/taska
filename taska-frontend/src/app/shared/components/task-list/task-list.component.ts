@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, input, output } from '@angular/core';
-import { Project, Task, getColor } from '../../../core/models';
+import { Project, Task, TaskPatch, getColor } from '../../../core/models';
 import { TaskRowComponent } from '../task-row/task-row.component';
 import { IconComponent } from '../icon/icon.component';
 
@@ -69,7 +69,7 @@ export class TaskListComponent {
 
   toggled = output<Task>();
   selectTask = output<Task>();
-  updated = output<{ id: string; patch: Partial<Task> }>();
+  updated = output<{ id: string; patch: TaskPatch }>();
 
   private projectMap = computed(() => {
     const m: Record<string, Project> = {};

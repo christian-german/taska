@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.taska.android.data.model.ProjectDto
 import com.taska.android.data.model.RecurrenceScope
 import com.taska.android.data.model.TaskDto
+import com.taska.android.data.model.TaskRepresentationKind
 import com.taska.android.data.repository.ProjectRepository
 import com.taska.android.data.repository.TaskRepository
 import java.text.SimpleDateFormat
@@ -63,9 +64,10 @@ class TodayViewModel(
             .getTasks(showCompleted = false)
             .filter {
               it.isCompleted != true &&
-                it.isRecurring != true &&
-                it.scheduledAt != null &&
-                scheduledAtLocalDate(it.scheduledAt) < todayStr
+                it.kind == TaskRepresentationKind.NON_RECURRING &&
+                it.scheduledAt?.let(::scheduledAtLocalDate)?.let { scheduledDate ->
+                  scheduledDate < todayStr
+                } == true
             }
             .sortedBy { it.scheduledAt }
 
@@ -137,7 +139,7 @@ class TodayViewModel(
   }
 
   fun requestDeleteTask(task: TaskDto) {
-    if (task.isRecurring == true && task.occurrenceScheduledAt != null) {
+    if (task.kind == TaskRepresentationKind.RECURRING_OCCURRENCE) {
       _uiState.update { it.copy(pendingDeleteTask = task) }
     } else {
       confirmDeleteTask(task, scope = null)

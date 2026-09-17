@@ -1,9 +1,11 @@
 package com.taska.android.data.model
 
+import com.google.gson.JsonParseException
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
 import org.junit.Assert.fail
 import org.junit.Test
@@ -16,6 +18,40 @@ import org.junit.Test
  * champs de récurrence et leurs valeurs par défaut.
  */
 class TaskDtoTest {
+
+  @Test
+  fun `givenEachSupportedKind_whenDeserialized_thenConcreteRepresentationIsSelected`() {
+    val commonFields = "\"id\":\"task-1\",\"content\":\"Task\""
+
+    assertTrue(
+      TaskJson.gson.fromJson(
+        "{\"kind\":\"NON_RECURRING\",$commonFields}",
+        TaskDto::class.java,
+      ) is NonRecurringTaskDto
+    )
+    assertTrue(
+      TaskJson.gson.fromJson(
+        "{\"kind\":\"RECURRING_SERIES\",$commonFields}",
+        TaskDto::class.java,
+      ) is RecurringTaskSeriesDto
+    )
+    assertTrue(
+      TaskJson.gson.fromJson(
+        "{\"kind\":\"RECURRING_OCCURRENCE\",$commonFields,\"occurrenceScheduledAt\":\"2026-05-20T09:00:00Z\",\"isVirtual\":true}",
+        TaskDto::class.java,
+      ) is RecurringTaskOccurrenceDto
+    )
+  }
+
+  @Test
+  fun `givenMissingOrUnsupportedKind_whenDeserialized_thenParsingFails`() {
+    assertThrows(JsonParseException::class.java) {
+      TaskJson.gson.fromJson("{\"id\":\"task-1\"}", TaskDto::class.java)
+    }
+    assertThrows(JsonParseException::class.java) {
+      TaskJson.gson.fromJson("{\"kind\":\"UNKNOWN\"}", TaskDto::class.java)
+    }
+  }
 
   // -------------------------------------------------------------------------
   // Builder avec valeurs par défaut surchargeables
@@ -112,14 +148,25 @@ class TaskDtoTest {
 
   @Test
   fun `givenVirtualOccurrence_whenCreated_thenIsVirtualTrue`() {
-    val task = buildTaskDto(isRecurring = true, isVirtual = true, instanceId = null)
+    val task =
+      buildTaskDto(
+        isRecurring = true,
+        isVirtual = true,
+        instanceId = null,
+        occurrenceScheduledAt = "2026-05-20T09:00:00Z",
+      )
 
     assertTrue(task.isVirtual == true)
   }
 
   @Test
   fun `givenVirtualOccurrence_whenCreated_thenIsRecurringTrue`() {
-    val task = buildTaskDto(isRecurring = true, isVirtual = true)
+    val task =
+      buildTaskDto(
+        isRecurring = true,
+        isVirtual = true,
+        occurrenceScheduledAt = "2026-05-20T09:00:00Z",
+      )
 
     assertTrue(task.isRecurring == true)
   }
@@ -156,6 +203,7 @@ class TaskDtoTest {
         isVirtual = false,
         instanceId = instanceId,
         isCompleted = true,
+        occurrenceScheduledAt = "2026-05-20T09:00:00Z",
       )
 
     assertEquals(instanceId, task.instanceId)
@@ -164,7 +212,13 @@ class TaskDtoTest {
   @Test
   fun `givenRealInstanceDone_whenCreated_thenIsVirtualFalse`() {
     val task =
-      buildTaskDto(isRecurring = true, isVirtual = false, instanceId = "uuid", isCompleted = true)
+      buildTaskDto(
+        isRecurring = true,
+        isVirtual = false,
+        instanceId = "uuid",
+        isCompleted = true,
+        occurrenceScheduledAt = "2026-05-20T09:00:00Z",
+      )
 
     assertFalse(task.isVirtual == true)
   }
@@ -172,7 +226,13 @@ class TaskDtoTest {
   @Test
   fun `givenRealInstanceDone_whenCreated_thenIsCompletedTrue`() {
     val task =
-      buildTaskDto(isRecurring = true, isVirtual = false, instanceId = "uuid", isCompleted = true)
+      buildTaskDto(
+        isRecurring = true,
+        isVirtual = false,
+        instanceId = "uuid",
+        isCompleted = true,
+        occurrenceScheduledAt = "2026-05-20T09:00:00Z",
+      )
 
     assertTrue(task.isCompleted == true)
   }
@@ -191,7 +251,7 @@ class TaskDtoTest {
   @Test
   fun `givenOccurrenceScheduledAtISO8601_whenAccessed_thenValuePreserved`() {
     val raw = "2026-05-20T09:00:00Z"
-    val task = buildTaskDto(occurrenceScheduledAt = raw)
+    val task = buildTaskDto(isRecurring = true, occurrenceScheduledAt = raw)
 
     assertEquals(raw, task.occurrenceScheduledAt)
   }

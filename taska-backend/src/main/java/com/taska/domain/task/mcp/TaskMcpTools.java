@@ -1,11 +1,8 @@
 package com.taska.domain.task.mcp;
 
-import com.taska.domain.task.controller.TaskDto;
-import com.taska.domain.task.controller.TaskMapper;
 import com.taska.domain.task.occurrence.RecurrenceScope;
 import com.taska.domain.task.service.TaskCloseReopenParameters;
 import com.taska.domain.task.service.TaskMutationService;
-import com.taska.domain.task.service.TaskResult;
 import com.taska.domain.task.service.TaskService;
 import com.taska.mcp.McpToolResponses;
 import io.modelcontextprotocol.spec.McpSchema;
@@ -25,7 +22,6 @@ public class TaskMcpTools {
 
   private final TaskService taskService;
   private final TaskMutationService taskMutationService;
-  private final TaskMapper taskMapper;
   private final TaskMcpMapper taskMcpMapper;
 
   @McpTool(
@@ -44,7 +40,7 @@ public class TaskMcpTools {
                         taskListInput.label(),
                         taskListInput.showCompleted())
                     .stream()
-                    .map(taskMapper::toDto)
+                    .map(taskMcpMapper::toOutput)
                     .toList()));
   }
 
@@ -53,8 +49,7 @@ public class TaskMcpTools {
       description = "Get a Taska task by its UUID.",
       generateOutputSchema = true)
   public McpSchema.CallToolResult getTask(@McpToolParam(description = "Task UUID.") UUID taskId) {
-    return McpToolResponses.execute(
-        () -> taskMapper.toDto(TaskResult.base(taskService.findById(taskId))));
+    return McpToolResponses.execute(() -> taskMcpMapper.toOutput(taskService.findById(taskId)));
   }
 
   @McpTool(
@@ -68,7 +63,7 @@ public class TaskMcpTools {
           requireContent(taskCreateInput.content());
           validatePriority(taskCreateInput.priority());
           validateEstimate(taskCreateInput.estimateMinutes());
-          return taskMapper.toDto(
+          return taskMcpMapper.toOutput(
               taskMutationService.create(
                   taskMcpMapper.toParameters(taskCreateInput), accountSubject()));
         });
@@ -93,7 +88,7 @@ public class TaskMcpTools {
           boolean priorityProvided =
               taskUpdateInput.priority() != null
                   || Boolean.TRUE.equals(taskUpdateInput.clearPriority());
-          return taskMapper.toDto(
+          return taskMcpMapper.toOutput(
               taskMutationService.update(
                   taskId,
                   taskMcpMapper.toParameters(taskUpdateInput),
@@ -116,7 +111,7 @@ public class TaskMcpTools {
           Instant occurrenceScheduledAt) {
     return McpToolResponses.execute(
         () ->
-            taskMapper.toDto(
+            taskMcpMapper.toOutput(
                 taskMutationService.close(
                     taskId,
                     new TaskCloseReopenParameters(occurrenceScheduledAt),
@@ -137,7 +132,7 @@ public class TaskMcpTools {
           Instant occurrenceScheduledAt) {
     return McpToolResponses.execute(
         () ->
-            taskMapper.toDto(
+            taskMcpMapper.toOutput(
                 taskMutationService.reopen(
                     taskId,
                     new TaskCloseReopenParameters(occurrenceScheduledAt),
@@ -202,7 +197,7 @@ public class TaskMcpTools {
       @McpToolParam(required = false) boolean showCompleted) {}
 
   /** Object-root structured result required by current MCP clients. */
-  public record TaskListOutput(List<TaskDto> tasks) {}
+  public record TaskListOutput(List<TaskMcpOutput> tasks) {}
 
   public record TaskCreateInput(
       @McpToolParam(description = "Task title.") String content,

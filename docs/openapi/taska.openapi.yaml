@@ -74,6 +74,18 @@ components:
       "$ref": "./schemas/task.yaml#/TaskUpdateRequest"
     TaskDto:
       "$ref": "./schemas/task.yaml#/TaskDto"
+    TaskResourceDto:
+      "$ref": "./schemas/task.yaml#/TaskResourceDto"
+    ScheduledTaskDto:
+      "$ref": "./schemas/task.yaml#/ScheduledTaskDto"
+    CompletableTaskDto:
+      "$ref": "./schemas/task.yaml#/CompletableTaskDto"
+    NonRecurringTaskDto:
+      "$ref": "./schemas/task.yaml#/NonRecurringTaskDto"
+    RecurringTaskSeriesDto:
+      "$ref": "./schemas/task.yaml#/RecurringTaskSeriesDto"
+    RecurringTaskOccurrenceDto:
+      "$ref": "./schemas/task.yaml#/RecurringTaskOccurrenceDto"
     OccurrenceUpdateRequest:
       "$ref": "./schemas/task.yaml#/OccurrenceUpdateRequest"
     ProjectCreateRequest:

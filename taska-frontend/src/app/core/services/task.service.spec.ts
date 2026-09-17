@@ -3,7 +3,7 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { TestBed } from '@angular/core/testing';
 import { TaskService } from './task.service';
 import { TaskCreationFeedbackService } from './task-creation-feedback.service';
-import { Task } from '../models';
+import { NonRecurringTask, RecurringTaskSeries, Task } from '../models';
 
 describe('TaskService task creation feedback', () => {
   let http: HttpTestingController;
@@ -99,7 +99,7 @@ describe('TaskService task creation feedback', () => {
   });
 
   it('uses the following-series endpoint with a complete replacement payload', () => {
-    const task = taskFixture({ isRecurring: true, recurrenceRule: 'FREQ=DAILY' });
+    const task = recurringTaskFixture({ recurrenceRule: 'FREQ=DAILY' });
     const occurrence = '2026-08-24T09:00:00Z';
     service
       .updateTask(task.id, {
@@ -130,7 +130,7 @@ describe('TaskService task creation feedback', () => {
   });
 
   it('uses the narrow occurrence endpoint for a single recurring occurrence', () => {
-    const task = taskFixture({ isRecurring: true, recurrenceRule: 'FREQ=DAILY' });
+    const task = recurringTaskFixture({ recurrenceRule: 'FREQ=DAILY' });
     const occurrence = '2026-08-24T09:00:00Z';
     service
       .updateTask(task.id, {
@@ -159,8 +159,9 @@ describe('TaskService task creation feedback', () => {
   });
 });
 
-function taskFixture(overrides: Partial<Task> = {}): Task {
+function taskFixture(overrides: Partial<NonRecurringTask> = {}): NonRecurringTask {
   return {
+    kind: 'NON_RECURRING',
     id: 'task-1',
     content: 'Plan launch',
     type: 'TODO',
@@ -173,11 +174,24 @@ function taskFixture(overrides: Partial<Task> = {}): Task {
     scheduledAt: '2026-08-24T09:00:00Z',
     dueAt: '2026-08-25T09:00:00Z',
     allDay: false,
-    isRecurring: false,
+    completedAt: null,
     estimateMinutes: 30,
     mentionContext: 'context',
     createdAt: '2026-08-01T00:00:00Z',
     updatedAt: '2026-08-01T00:00:00Z',
+    ...overrides,
+  };
+}
+
+function recurringTaskFixture(
+  overrides: Partial<RecurringTaskSeries> = {},
+): RecurringTaskSeries {
+  const { isCompleted: _isCompleted, completedAt: _completedAt, ...base } = taskFixture();
+  return {
+    ...base,
+    kind: 'RECURRING_SERIES',
+    recurrenceRule: 'FREQ=DAILY',
+    rruleEndsAt: null,
     ...overrides,
   };
 }

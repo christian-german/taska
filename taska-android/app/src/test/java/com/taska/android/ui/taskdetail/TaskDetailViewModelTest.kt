@@ -6,6 +6,7 @@ import com.taska.android.data.model.OccurrenceUpdateRequest
 import com.taska.android.data.model.RecurrenceScope
 import com.taska.android.data.model.TaskDto
 import com.taska.android.data.model.TaskUpdateRequest
+import com.taska.android.data.model.copy
 import com.taska.android.data.repository.LabelRepository
 import com.taska.android.data.repository.ProjectRepository
 import com.taska.android.data.repository.TaskRepository

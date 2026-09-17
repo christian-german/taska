@@ -1,5 +1,6 @@
 package com.taska.domain.task.controller;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.taska.domain.task.TaskType;
 import java.time.Instant;
 import java.util.List;
@@ -7,7 +8,6 @@ import java.util.UUID;
 
 /** HTTP representation of one persisted non-recurring task. */
 public record NonRecurringTaskDto(
-    TaskRepresentationKind kind,
     UUID id,
     String content,
     String description,
@@ -26,4 +26,15 @@ public record NonRecurringTaskDto(
     TaskType type,
     Boolean isCompleted,
     Instant completedAt)
-    implements TaskDto {}
+    implements TaskDto {
+
+  /**
+   * The discriminator is carried by the type itself; it is emitted so JSON consumers can narrow the
+   * union, but it is not a constructor component and therefore cannot disagree with the type.
+   */
+  @JsonProperty("kind")
+  @Override
+  public TaskRepresentationKind kind() {
+    return TaskRepresentationKind.NON_RECURRING;
+  }
+}

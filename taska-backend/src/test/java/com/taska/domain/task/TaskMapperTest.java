@@ -11,6 +11,7 @@ import com.taska.domain.task.controller.TaskRepresentationKind;
 import com.taska.domain.task.occurrence.TaskInstance;
 import com.taska.domain.task.occurrence.TaskInstanceStatus;
 import com.taska.domain.task.repository.Task;
+import com.taska.domain.task.service.RecurringTaskOccurrenceResult;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
@@ -78,7 +79,8 @@ class TaskMapperTest {
     Instant occurrenceScheduledAt = Instant.parse("2026-05-20T10:00:00Z");
 
     RecurringTaskOccurrenceDto taskDto =
-        taskMapper.toOccurrenceDto(task, null, occurrenceScheduledAt);
+        taskMapper.toOccurrenceDto(
+            new RecurringTaskOccurrenceResult(task, null, occurrenceScheduledAt));
 
     assertThat(taskDto.isVirtual()).isTrue();
     assertThat(taskDto.instanceId()).isNull();
@@ -97,7 +99,8 @@ class TaskMapperTest {
     instance.setCompletedAt(Instant.parse("2026-05-20T11:00:00Z"));
 
     RecurringTaskOccurrenceDto taskDto =
-        taskMapper.toOccurrenceDto(task, instance, occurrenceScheduledAt);
+        taskMapper.toOccurrenceDto(
+            new RecurringTaskOccurrenceResult(task, instance, occurrenceScheduledAt));
 
     assertThat(taskDto.isCompleted()).isTrue();
     assertThat(taskDto.isVirtual()).isFalse();
@@ -117,7 +120,8 @@ class TaskMapperTest {
     instance.setPriority(1);
 
     RecurringTaskOccurrenceDto taskDto =
-        taskMapper.toOccurrenceDto(task, instance, occurrenceScheduledAt);
+        taskMapper.toOccurrenceDto(
+            new RecurringTaskOccurrenceResult(task, instance, occurrenceScheduledAt));
 
     assertThat(taskDto.content()).isEqualTo("Modified title");
     assertThat(taskDto.priority()).isEqualTo(1);
@@ -135,7 +139,8 @@ class TaskMapperTest {
     instance.setPriority(2);
 
     RecurringTaskOccurrenceDto taskDto =
-        taskMapper.toOccurrenceDto(task, instance, occurrenceScheduledAt);
+        taskMapper.toOccurrenceDto(
+            new RecurringTaskOccurrenceResult(task, instance, occurrenceScheduledAt));
 
     assertThat(taskDto.content()).isEqualTo("Parent content");
     assertThat(taskDto.priority()).isEqualTo(2);
@@ -153,7 +158,8 @@ class TaskMapperTest {
     instance.setScheduledAt(movedScheduledAt);
 
     RecurringTaskOccurrenceDto taskDto =
-        taskMapper.toOccurrenceDto(task, instance, occurrenceScheduledAt);
+        taskMapper.toOccurrenceDto(
+            new RecurringTaskOccurrenceResult(task, instance, occurrenceScheduledAt));
 
     assertThat(taskDto.scheduledAt()).isEqualTo(movedScheduledAt);
   }
@@ -166,13 +172,21 @@ class TaskMapperTest {
     Instant overrideDueAt = Instant.parse("2026-05-20T17:00:00Z");
     task.setDueAt(parentDueAt);
 
-    assertThat(taskMapper.toOccurrenceDto(task, null, occurrenceScheduledAt).dueAt())
+    assertThat(
+            taskMapper
+                .toOccurrenceDto(
+                    new RecurringTaskOccurrenceResult(task, null, occurrenceScheduledAt))
+                .dueAt())
         .isEqualTo(parentDueAt);
 
     TaskInstance instance =
         buildInstance(task.getId(), occurrenceScheduledAt, TaskInstanceStatus.MODIFIED);
     instance.setDueAt(overrideDueAt);
-    assertThat(taskMapper.toOccurrenceDto(task, instance, occurrenceScheduledAt).dueAt())
+    assertThat(
+            taskMapper
+                .toOccurrenceDto(
+                    new RecurringTaskOccurrenceResult(task, instance, occurrenceScheduledAt))
+                .dueAt())
         .isEqualTo(overrideDueAt);
   }
 
@@ -187,7 +201,8 @@ class TaskMapperTest {
     // title, priority and scheduledAt are all null — every field falls back to the parent
 
     RecurringTaskOccurrenceDto taskDto =
-        taskMapper.toOccurrenceDto(task, instance, occurrenceScheduledAt);
+        taskMapper.toOccurrenceDto(
+            new RecurringTaskOccurrenceResult(task, instance, occurrenceScheduledAt));
 
     assertThat(taskDto.content()).isEqualTo("Parent content");
     assertThat(taskDto.priority()).isEqualTo(3);
@@ -205,7 +220,8 @@ class TaskMapperTest {
     Instant occurrenceScheduledAt = Instant.parse("2026-05-20T10:00:00Z");
 
     RecurringTaskOccurrenceDto taskDto =
-        taskMapper.toOccurrenceDto(task, null, occurrenceScheduledAt);
+        taskMapper.toOccurrenceDto(
+            new RecurringTaskOccurrenceResult(task, null, occurrenceScheduledAt));
 
     assertThat(taskDto.kind()).isEqualTo(TaskRepresentationKind.RECURRING_OCCURRENCE);
   }
@@ -216,7 +232,8 @@ class TaskMapperTest {
     Instant occurrenceScheduledAt = Instant.parse("2026-05-20T10:00:00Z");
 
     RecurringTaskOccurrenceDto taskDto =
-        taskMapper.toOccurrenceDto(task, null, occurrenceScheduledAt);
+        taskMapper.toOccurrenceDto(
+            new RecurringTaskOccurrenceResult(task, null, occurrenceScheduledAt));
 
     assertThat(taskDto.occurrenceScheduledAt()).isEqualTo(occurrenceScheduledAt);
   }
@@ -226,7 +243,12 @@ class TaskMapperTest {
     Task task = buildTask("Legacy task", 4);
     task.setType(null);
 
-    assertThat(taskMapper.toOccurrenceDto(task, null, Instant.parse("2026-05-20T10:00:00Z")).type())
+    assertThat(
+            taskMapper
+                .toOccurrenceDto(
+                    new RecurringTaskOccurrenceResult(
+                        task, null, Instant.parse("2026-05-20T10:00:00Z")))
+                .type())
         .isEqualTo(TaskType.TODO);
   }
 
@@ -235,7 +257,12 @@ class TaskMapperTest {
     Task task = buildTask("Doctor visit", 4);
     task.setType(TaskType.APPOINTMENT);
 
-    assertThat(taskMapper.toOccurrenceDto(task, null, Instant.parse("2026-05-20T10:00:00Z")).type())
+    assertThat(
+            taskMapper
+                .toOccurrenceDto(
+                    new RecurringTaskOccurrenceResult(
+                        task, null, Instant.parse("2026-05-20T10:00:00Z")))
+                .type())
         .isEqualTo(TaskType.APPOINTMENT);
   }
 }

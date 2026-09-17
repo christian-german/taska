@@ -2,8 +2,6 @@ package com.taska.domain.task.controller;
 
 import com.taska.config.ApiMapperConfig;
 import com.taska.domain.task.TaskType;
-import com.taska.domain.task.occurrence.TaskInstance;
-import com.taska.domain.task.occurrence.TaskInstanceStatus;
 import com.taska.domain.task.repository.Task;
 import com.taska.domain.task.service.NonRecurringTaskResult;
 import com.taska.domain.task.service.RecurringTaskOccurrenceResult;
@@ -14,20 +12,16 @@ import com.taska.domain.task.service.TaskDeleteParameters;
 import com.taska.domain.task.service.TaskOccurrenceUpdateParameters;
 import com.taska.domain.task.service.TaskResult;
 import com.taska.domain.task.service.TaskUpdateParameters;
-import java.time.Instant;
-import java.util.UUID;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
 @Mapper(config = ApiMapperConfig.class)
 public interface TaskMapper {
 
-  @Mapping(target = "kind", constant = "NON_RECURRING")
   @Mapping(target = "order", source = "position")
   @Mapping(target = "type", defaultValue = "TODO")
   NonRecurringTaskDto toNonRecurringDto(Task task);
 
-  @Mapping(target = "kind", constant = "RECURRING_SERIES")
   @Mapping(target = "order", source = "position")
   @Mapping(target = "type", defaultValue = "TODO")
   RecurringTaskSeriesDto toRecurringSeriesDto(Task task);
@@ -42,8 +36,7 @@ public interface TaskMapper {
     return switch (taskResult) {
       case NonRecurringTaskResult result -> toNonRecurringDto(result.task());
       case RecurringTaskSeriesResult result -> toRecurringSeriesDto(result.task());
-      case RecurringTaskOccurrenceResult result ->
-          toOccurrenceDto(result.task(), result.taskInstance(), result.occurrenceScheduledAt());
+      case RecurringTaskOccurrenceResult result -> toOccurrenceDto(result);
     };
   }
 
@@ -64,46 +57,27 @@ public interface TaskMapper {
   TaskCloseReopenParameters toParameters(TaskCloseReopenRequest taskCloseReopenRequest);
 
   /**
-   * Builds a DTO representing a single occurrence of a recurring task. The instance, when non-null,
-   * may override the title, priority, planned scheduled time, and completion state coming from the
-   * base task. A null instance indicates a virtual (unmodified) occurrence.
+   * Builds the HTTP representation of one recurring occurrence. Every effective value comes from
+   * the result itself, which owns the rule deciding when an instance override wins over the series
+   * definition.
    *
-   * @param task the recurring task template
-   * @param instance optional persisted instance with override values or completion status
-   * @param occurrenceScheduledAt the exact instant this occurrence falls on according to the RRULE
-   * @return a fully populated DTO representing the occurrence
+   * @param occurrenceResult the expanded occurrence, virtual or materialized
+   * @return a fully populated occurrence representation
    */
   default RecurringTaskOccurrenceDto toOccurrenceDto(
-      Task task, TaskInstance instance, Instant occurrenceScheduledAt) {
-    String content =
-        instance != null && instance.getTitle() != null ? instance.getTitle() : task.getContent();
-    Integer priority =
-        instance != null && instance.getPriority() != null
-            ? instance.getPriority()
-            : task.getPriority();
-    Instant scheduledAt =
-        instance != null && instance.getScheduledAt() != null
-            ? instance.getScheduledAt()
-            : occurrenceScheduledAt;
-    Instant dueAt =
-        instance != null && instance.getDueAt() != null ? instance.getDueAt() : task.getDueAt();
-    boolean isCompleted = instance != null && instance.getStatus() == TaskInstanceStatus.DONE;
-    Instant completedAt = instance != null ? instance.getCompletedAt() : null;
-    UUID instanceId = instance != null ? instance.getId() : null;
-    boolean isVirtual = instance == null;
-
+      RecurringTaskOccurrenceResult occurrenceResult) {
+    Task task = occurrenceResult.task();
     return new RecurringTaskOccurrenceDto(
-        TaskRepresentationKind.RECURRING_OCCURRENCE,
         task.getId(),
-        content,
+        occurrenceResult.resolvedContent(),
         task.getDescription(),
         task.getProjectId(),
         task.getParentId(),
         task.getPosition(),
-        priority,
+        occurrenceResult.resolvedPriority(),
         task.getLabels(),
-        scheduledAt,
-        dueAt,
+        occurrenceResult.resolvedScheduledAt(),
+        occurrenceResult.resolvedDueAt(),
         task.isAllDay(),
         task.getEstimateMinutes(),
         task.getMentionContext(),
@@ -112,10 +86,10 @@ public interface TaskMapper {
         task.getType() == null ? TaskType.TODO : task.getType(),
         task.getRecurrenceRule(),
         task.getRruleEndsAt(),
-        isCompleted,
-        completedAt,
-        instanceId,
-        occurrenceScheduledAt,
-        isVirtual);
+        occurrenceResult.completed(),
+        occurrenceResult.completedAt(),
+        occurrenceResult.instanceId(),
+        occurrenceResult.occurrenceScheduledAt(),
+        occurrenceResult.virtual());
   }
 }

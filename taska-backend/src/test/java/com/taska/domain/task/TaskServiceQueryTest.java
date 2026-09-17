@@ -11,7 +11,9 @@ import com.taska.domain.task.occurrence.repository.TaskInstanceRepository;
 import com.taska.domain.task.occurrence.service.TaskRecurrenceService;
 import com.taska.domain.task.repository.Task;
 import com.taska.domain.task.repository.TaskRepository;
+import com.taska.domain.task.service.NonRecurringTaskResult;
 import com.taska.domain.task.service.RecurringTaskOccurrenceResult;
+import com.taska.domain.task.service.RecurringTaskSeriesResult;
 import com.taska.domain.task.service.TaskResult;
 import com.taska.domain.task.service.TaskService;
 import java.time.Instant;
@@ -93,6 +95,42 @@ class TaskServiceQueryTest {
 
   private void useCalendarZone(ZoneId zone) {
     when(calendarProperties.getTimeZone()).thenReturn(zone);
+  }
+
+  @Test
+  void findOccurrencesForDateRange_expandsRecurringTasksAndNeverYieldsASeriesDefinition() {
+    ZoneId paris = ZoneId.of("Europe/Paris");
+    useCalendarZone(paris);
+    Instant start = Instant.parse("2026-05-19T22:00:00Z");
+    Instant end = Instant.parse("2026-05-20T22:00:00Z");
+    Instant occurrence = Instant.parse("2026-05-20T09:00:00Z");
+
+    Task oneOff = new Task();
+    oneOff.setId(UUID.randomUUID());
+    oneOff.setIsRecurring(false);
+    Task series = new Task();
+    series.setId(UUID.randomUUID());
+    series.setIsRecurring(true);
+
+    when(taskRepository.findNonRecurringTasksInPeriod(start, end)).thenReturn(List.of(oneOff));
+    when(taskRepository.findActiveRecurringTasksForPeriod(start, end)).thenReturn(List.of(series));
+    when(taskInstanceRepository.findByTaskIdInAndOccurrenceScheduledAtBetween(
+            List.of(series.getId()), start, end))
+        .thenReturn(List.of());
+    when(taskInstanceRepository.findByTaskIdInAndStatusAndScheduledAtBetween(
+            List.of(series.getId()), TaskInstanceStatus.MODIFIED, start, end))
+        .thenReturn(List.of());
+    when(taskRecurrenceService.getOccurrencesInRange(series, start, end))
+        .thenReturn(List.of(occurrence));
+
+    List<TaskResult> result = taskService.findOccurrencesForDateRange(DATE, DATE, false);
+
+    // A recurring task reaches a date range as expanded occurrences, never as its definition.
+    assertThat(result).noneMatch(RecurringTaskSeriesResult.class::isInstance);
+    assertThat(result)
+        .hasSize(2)
+        .anyMatch(NonRecurringTaskResult.class::isInstance)
+        .anyMatch(RecurringTaskOccurrenceResult.class::isInstance);
   }
 
   @Test

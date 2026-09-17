@@ -10,9 +10,6 @@ import com.taska.domain.planningcalendar.service.PlanningCalendarService;
 import com.taska.domain.priority.repository.TaskPriorityEvaluationRepository;
 import com.taska.domain.project.repository.Project;
 import com.taska.domain.project.repository.ProjectRepository;
-import com.taska.domain.task.controller.RecurringTaskOccurrenceDto;
-import com.taska.domain.task.controller.TaskMapper;
-import com.taska.domain.task.controller.TaskRepresentationKind;
 import com.taska.domain.task.occurrence.*;
 import com.taska.domain.task.occurrence.repository.TaskInstanceRepository;
 import com.taska.domain.task.occurrence.service.TaskRecurrenceService;
@@ -50,9 +47,6 @@ class TaskServiceMutationTest {
   @Mock private TaskRepository taskRepository;
   @Mock private TaskInstanceRepository taskInstanceRepository;
   @Mock private TaskRecurrenceService taskRecurrenceService;
-
-  @Mock(lenient = true)
-  private TaskMapper taskMapper;
 
   @Mock private ProjectRepository projectRepository;
   @Mock private TaskPriorityEvaluationRepository priorityEvaluationRepository;
@@ -98,34 +92,6 @@ class TaskServiceMutationTest {
     taskInstance.setOccurrenceScheduledAt(occurrenceScheduledAt);
     taskInstance.setStatus(status);
     return taskInstance;
-  }
-
-  private RecurringTaskOccurrenceDto anyDto() {
-    return new RecurringTaskOccurrenceDto(
-        TaskRepresentationKind.RECURRING_OCCURRENCE,
-        randomId(),
-        "t",
-        null,
-        null,
-        null,
-        0,
-        1,
-        List.of(),
-        null,
-        null,
-        false,
-        null,
-        null,
-        null,
-        null,
-        TaskType.TODO,
-        "FREQ=DAILY",
-        null,
-        false,
-        null,
-        null,
-        Instant.now(),
-        true);
   }
 
   private TaskUpdateParameters replacementRequest(UUID projectId, UUID parentId) {
@@ -264,7 +230,6 @@ class TaskServiceMutationTest {
     Task task = buildNonRecurringTask(taskId);
     when(taskRepository.findById(taskId)).thenReturn(Optional.of(task));
     when(taskRepository.save(task)).thenReturn(task);
-    when(taskMapper.toDto(task)).thenReturn(anyDto());
 
     taskService.update(taskId, taskRequest(null, null, null), true);
 
@@ -280,7 +245,6 @@ class TaskServiceMutationTest {
     task.setScheduledAt(scheduledAt);
     when(taskRepository.findById(taskId)).thenReturn(Optional.of(task));
     when(taskRepository.save(task)).thenReturn(task);
-    when(taskMapper.toDto(task)).thenReturn(anyDto());
 
     taskService.update(
         taskId,
@@ -315,7 +279,6 @@ class TaskServiceMutationTest {
     task.setCreatedAt(createdAt);
     when(taskRepository.findById(taskId)).thenReturn(Optional.of(task));
     when(taskRepository.save(task)).thenReturn(task);
-    when(taskMapper.toDto(task)).thenReturn(anyDto());
 
     taskService.replace(taskId, replacementRequest(projectId, parentId));
 
@@ -372,7 +335,6 @@ class TaskServiceMutationTest {
     when(planningCalendarService.allows(any(), eq(occurrence), eq(false))).thenReturn(true);
     ArgumentCaptor<Task> saved = ArgumentCaptor.forClass(Task.class);
     when(taskRepository.save(saved.capture())).thenAnswer(invocation -> invocation.getArgument(0));
-    when(taskMapper.toDto(any(Task.class))).thenReturn(anyDto());
 
     taskService.replaceFollowing(taskId, occurrence, request);
 
@@ -413,7 +375,6 @@ class TaskServiceMutationTest {
     when(taskInstanceRepository.findByTaskIdAndOccurrenceScheduledAt(taskId, occurrence))
         .thenReturn(Optional.of(existing));
     when(taskInstanceRepository.save(existing)).thenReturn(existing);
-    when(taskMapper.toOccurrenceDto(task, existing, occurrence)).thenReturn(anyDto());
 
     taskService.replaceOccurrence(
         taskId, occurrence, new TaskOccurrenceUpdateParameters("Occurrence", null, null, null));
@@ -439,7 +400,6 @@ class TaskServiceMutationTest {
     Task task = buildNonRecurringTask(taskId);
     when(taskRepository.findById(taskId)).thenReturn(Optional.of(task));
     when(taskRepository.save(task)).thenReturn(task);
-    when(taskMapper.toDto(task)).thenReturn(anyDto());
 
     taskService.close(taskId, null);
 
@@ -462,7 +422,6 @@ class TaskServiceMutationTest {
         .thenReturn(List.of(occurrenceScheduledAt));
     ArgumentCaptor<TaskInstance> captor = ArgumentCaptor.forClass(TaskInstance.class);
     when(taskInstanceRepository.save(captor.capture())).thenAnswer(inv -> inv.getArgument(0));
-    when(taskMapper.toOccurrenceDto(any(), any(), any())).thenReturn(anyDto());
 
     taskService.close(taskId, new TaskCloseReopenParameters(occurrenceScheduledAt));
 
@@ -508,7 +467,6 @@ class TaskServiceMutationTest {
     when(taskRecurrenceService.getOccurrencesInRange(any(), any(), any()))
         .thenReturn(List.of(occurrenceScheduledAt));
     when(taskInstanceRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
-    when(taskMapper.toOccurrenceDto(any(), any(), any())).thenReturn(anyDto());
 
     taskService.close(taskId, new TaskCloseReopenParameters(occurrenceScheduledAt));
 
@@ -544,7 +502,6 @@ class TaskServiceMutationTest {
 
     when(taskRepository.findById(taskId)).thenReturn(Optional.of(task));
     when(taskRepository.save(task)).thenReturn(task);
-    when(taskMapper.toDto(task)).thenReturn(anyDto());
 
     taskService.reopen(taskId, null);
 
@@ -562,7 +519,6 @@ class TaskServiceMutationTest {
     Instant occurrenceScheduledAt = Instant.parse("2026-05-20T10:00:00Z");
 
     when(taskRepository.findById(taskId)).thenReturn(Optional.of(task));
-    when(taskMapper.toOccurrenceDto(task, null, occurrenceScheduledAt)).thenReturn(anyDto());
 
     taskService.reopen(taskId, new TaskCloseReopenParameters(occurrenceScheduledAt));
 
@@ -584,7 +540,6 @@ class TaskServiceMutationTest {
 
     when(taskRepository.findById(taskId)).thenReturn(Optional.of(task));
     when(taskRepository.save(task)).thenReturn(task);
-    when(taskMapper.toDto(task)).thenReturn(anyDto());
 
     taskService.update(taskId, request, request.priority() != null);
 
@@ -608,7 +563,6 @@ class TaskServiceMutationTest {
         .thenReturn(List.of(occurrenceScheduledAt));
     ArgumentCaptor<TaskInstance> captor = ArgumentCaptor.forClass(TaskInstance.class);
     when(taskInstanceRepository.save(captor.capture())).thenAnswer(inv -> inv.getArgument(0));
-    when(taskMapper.toOccurrenceDto(any(), any(), any())).thenReturn(anyDto());
 
     taskService.update(taskId, request, request.priority() != null);
 
@@ -636,7 +590,6 @@ class TaskServiceMutationTest {
         .thenReturn(List.of(occurrenceScheduledAt));
     ArgumentCaptor<TaskInstance> captor = ArgumentCaptor.forClass(TaskInstance.class);
     when(taskInstanceRepository.save(captor.capture())).thenAnswer(inv -> inv.getArgument(0));
-    when(taskMapper.toOccurrenceDto(any(), any(), any())).thenReturn(anyDto());
 
     taskService.update(taskId, request, request.priority() != null);
 
@@ -661,7 +614,6 @@ class TaskServiceMutationTest {
         .thenReturn(List.of(occurrenceScheduledAt));
     ArgumentCaptor<TaskInstance> captor = ArgumentCaptor.forClass(TaskInstance.class);
     when(taskInstanceRepository.save(captor.capture())).thenAnswer(inv -> inv.getArgument(0));
-    when(taskMapper.toOccurrenceDto(any(), any(), any())).thenReturn(anyDto());
 
     taskService.update(taskId, request, request.priority() != null);
 
@@ -683,7 +635,6 @@ class TaskServiceMutationTest {
     when(taskRecurrenceService.getOccurrencesInRange(any(), any(), any()))
         .thenReturn(List.of(occurrenceScheduledAt));
     when(taskInstanceRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
-    when(taskMapper.toOccurrenceDto(any(), any(), any())).thenReturn(anyDto());
 
     taskService.update(taskId, request, request.priority() != null);
 
@@ -704,7 +655,6 @@ class TaskServiceMutationTest {
     when(taskRepository.findById(taskId)).thenReturn(Optional.of(task));
     ArgumentCaptor<Task> taskCaptor = ArgumentCaptor.forClass(Task.class);
     when(taskRepository.save(taskCaptor.capture())).thenAnswer(inv -> inv.getArgument(0));
-    when(taskMapper.toDto(any(Task.class))).thenReturn(anyDto());
 
     taskService.update(taskId, request, request.priority() != null);
 
@@ -738,7 +688,6 @@ class TaskServiceMutationTest {
     when(taskRepository.findById(taskId)).thenReturn(Optional.of(task));
     ArgumentCaptor<Task> taskCaptor = ArgumentCaptor.forClass(Task.class);
     when(taskRepository.save(taskCaptor.capture())).thenAnswer(inv -> inv.getArgument(0));
-    when(taskMapper.toDto(any(Task.class))).thenReturn(anyDto());
 
     taskService.update(taskId, request, request.priority() != null);
 
@@ -761,7 +710,6 @@ class TaskServiceMutationTest {
     when(taskRepository.findById(taskId)).thenReturn(Optional.of(task));
     ArgumentCaptor<Task> taskCaptor = ArgumentCaptor.forClass(Task.class);
     when(taskRepository.save(taskCaptor.capture())).thenAnswer(inv -> inv.getArgument(0));
-    when(taskMapper.toDto(any(Task.class))).thenReturn(anyDto());
 
     taskService.update(taskId, request, request.priority() != null);
 
@@ -798,7 +746,6 @@ class TaskServiceMutationTest {
     when(taskRepository.findById(taskId)).thenReturn(Optional.of(task));
     ArgumentCaptor<Task> taskCaptor = ArgumentCaptor.forClass(Task.class);
     when(taskRepository.save(taskCaptor.capture())).thenAnswer(inv -> inv.getArgument(0));
-    when(taskMapper.toDto(any(Task.class))).thenReturn(anyDto());
 
     taskService.update(taskId, request, request.priority() != null);
 
@@ -821,7 +768,6 @@ class TaskServiceMutationTest {
     when(taskRepository.findById(taskId)).thenReturn(Optional.of(task));
     ArgumentCaptor<Task> taskCaptor = ArgumentCaptor.forClass(Task.class);
     when(taskRepository.save(taskCaptor.capture())).thenAnswer(inv -> inv.getArgument(0));
-    when(taskMapper.toDto(any(Task.class))).thenReturn(anyDto());
 
     taskService.update(taskId, request, request.priority() != null);
 
@@ -1079,7 +1025,6 @@ class TaskServiceMutationTest {
     task.setType(TaskType.TODO);
     when(taskRepository.findById(taskId)).thenReturn(Optional.of(task));
     when(taskRepository.save(task)).thenReturn(task);
-    when(taskMapper.toDto(task)).thenReturn(anyDto());
 
     taskService.update(
         taskId,

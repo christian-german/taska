@@ -2,8 +2,6 @@ package com.taska.domain.task.mcp;
 
 import com.taska.config.ApiMapperConfig;
 import com.taska.domain.task.TaskType;
-import com.taska.domain.task.occurrence.TaskInstance;
-import com.taska.domain.task.occurrence.TaskInstanceStatus;
 import com.taska.domain.task.repository.Task;
 import com.taska.domain.task.service.NonRecurringTaskResult;
 import com.taska.domain.task.service.RecurringTaskOccurrenceResult;
@@ -11,8 +9,6 @@ import com.taska.domain.task.service.RecurringTaskSeriesResult;
 import com.taska.domain.task.service.TaskCreateParameters;
 import com.taska.domain.task.service.TaskPatchParameters;
 import com.taska.domain.task.service.TaskResult;
-import java.time.Instant;
-import java.util.UUID;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
@@ -31,41 +27,32 @@ public interface TaskMcpMapper {
     return switch (taskResult) {
       case NonRecurringTaskResult result -> toOutput(result.task());
       case RecurringTaskSeriesResult result -> toOutput(result.task());
-      case RecurringTaskOccurrenceResult result ->
-          toOccurrenceOutput(result.task(), result.taskInstance(), result.occurrenceScheduledAt());
+      case RecurringTaskOccurrenceResult result -> toOccurrenceOutput(result);
     };
   }
 
-  default TaskMcpOutput toOccurrenceOutput(
-      Task task, TaskInstance instance, Instant occurrenceScheduledAt) {
-    String content =
-        instance != null && instance.getTitle() != null ? instance.getTitle() : task.getContent();
-    Integer priority =
-        instance != null && instance.getPriority() != null
-            ? instance.getPriority()
-            : task.getPriority();
-    Instant scheduledAt =
-        instance != null && instance.getScheduledAt() != null
-            ? instance.getScheduledAt()
-            : occurrenceScheduledAt;
-    Instant dueAt =
-        instance != null && instance.getDueAt() != null ? instance.getDueAt() : task.getDueAt();
-    boolean isCompleted = instance != null && instance.getStatus() == TaskInstanceStatus.DONE;
-    Instant completedAt = instance != null ? instance.getCompletedAt() : null;
-    UUID instanceId = instance != null ? instance.getId() : null;
-
+  /**
+   * Flattens one recurring occurrence for the MCP schema. The effective values come from the
+   * result, which owns the override rule shared with the HTTP adapter; only the exposed shape is
+   * MCP-specific.
+   *
+   * @param occurrenceResult the expanded occurrence, virtual or materialized
+   * @return the flat MCP representation of that occurrence
+   */
+  default TaskMcpOutput toOccurrenceOutput(RecurringTaskOccurrenceResult occurrenceResult) {
+    Task task = occurrenceResult.task();
     return new TaskMcpOutput(
         task.getId(),
-        content,
+        occurrenceResult.resolvedContent(),
         task.getDescription(),
         task.getProjectId(),
         task.getParentId(),
         task.getPosition(),
-        priority,
+        occurrenceResult.resolvedPriority(),
         task.getLabels(),
-        isCompleted,
-        scheduledAt,
-        dueAt,
+        occurrenceResult.completed(),
+        occurrenceResult.resolvedScheduledAt(),
+        occurrenceResult.resolvedDueAt(),
         task.isAllDay(),
         true,
         task.getEstimateMinutes(),
@@ -73,10 +60,10 @@ public interface TaskMcpMapper {
         task.getRecurrenceRule(),
         task.getCreatedAt(),
         task.getUpdatedAt(),
-        completedAt,
-        instanceId,
-        occurrenceScheduledAt,
-        instance == null,
+        occurrenceResult.completedAt(),
+        occurrenceResult.instanceId(),
+        occurrenceResult.occurrenceScheduledAt(),
+        occurrenceResult.virtual(),
         task.getRruleEndsAt(),
         task.getType() == null ? TaskType.TODO : task.getType());
   }

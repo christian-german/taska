@@ -1,5 +1,6 @@
 package com.taska.domain.task.controller;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.taska.domain.task.TaskType;
 import java.time.Instant;
 import java.util.List;
@@ -7,7 +8,6 @@ import java.util.UUID;
 
 /** HTTP representation of one expanded recurring occurrence. */
 public record RecurringTaskOccurrenceDto(
-    TaskRepresentationKind kind,
     UUID id,
     String content,
     String description,
@@ -31,4 +31,15 @@ public record RecurringTaskOccurrenceDto(
     UUID instanceId,
     Instant occurrenceScheduledAt,
     Boolean isVirtual)
-    implements TaskDto {}
+    implements TaskDto {
+
+  /**
+   * The type itself carries the discriminator; it is emitted so JSON consumers can narrow the
+   * union, but it is not a constructor component and therefore cannot disagree with the type.
+   */
+  @JsonProperty("kind")
+  @Override
+  public TaskRepresentationKind kind() {
+    return TaskRepresentationKind.RECURRING_OCCURRENCE;
+  }
+}

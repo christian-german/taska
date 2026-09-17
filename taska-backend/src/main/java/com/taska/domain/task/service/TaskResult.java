@@ -11,6 +11,13 @@ public sealed interface TaskResult
 
   Task task();
 
+  /**
+   * Creates a task result from a task. The task result can be a non-recurring task result or a
+   * recurring task series result.
+   *
+   * @param task the task to create a result from
+   * @return a task result
+   */
   static TaskResult base(Task task) {
     Objects.requireNonNull(task, "task");
     return Boolean.TRUE.equals(task.getIsRecurring())
@@ -18,6 +25,14 @@ public sealed interface TaskResult
         : new NonRecurringTaskResult(task);
   }
 
+  /**
+   * Creates a task result from a task and a task instance.
+   *
+   * @param task the task to create a result from
+   * @param taskInstance the task instance to create a result from
+   * @param occurrenceScheduledAt the scheduled time of the occurrence
+   * @return a task result
+   */
   static TaskResult occurrence(
       Task task, TaskInstance taskInstance, Instant occurrenceScheduledAt) {
     Objects.requireNonNull(task, "task");

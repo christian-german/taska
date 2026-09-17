@@ -1,9 +1,7 @@
 ## Purpose
 
 Define task contracts for optional manual priority and planned scheduling timestamps.
-
 ## Requirements
-
 ### Requirement: Tasks expose optional manual priority
 The system SHALL allow a task and its applicable recurring-task occurrence representation to have no manual `priority`. A supplied manual priority SHALL continue to satisfy the existing priority-range validation. Task creation, update, persistence, and task representations SHALL preserve an absent priority as `null` rather than assigning priority `4`. A complete `TaskUpdateRequest` with `priority: null` SHALL clear a base task's manual priority; an `OccurrenceUpdateRequest` with `priority: null` SHALL replace the occurrence's supported priority value according to the occurrence-update contract.
 
@@ -146,3 +144,16 @@ The system SHALL expose a recurring occurrence's effective `dueAt`. A virtual oc
 #### Scenario: Update one recurring occurrence deadline
 - **WHEN** a client performs a `THIS_ONLY` update with `dueAt` for a recurring occurrence
 - **THEN** that occurrence SHALL return the new deadline and other occurrences SHALL retain the recurring task's deadline
+
+### Requirement: Variant-specific task fields preserve scheduling and priority semantics
+
+Every task representation SHALL expose its effective nullable `priority`, `scheduledAt`, and `dueAt` values. A recurring occurrence SHALL resolve supported instance overrides before series values. Recurring-series and recurring-occurrence representations SHALL expose recurrence-rule metadata, while a non-recurring representation SHALL not expose recurrence-rule metadata.
+
+#### Scenario: Occurrence inherits nullable values
+- **WHEN** a virtual recurring occurrence has no priority, schedule, or deadline override
+- **THEN** its representation SHALL inherit the applicable values from recurrence expansion and the backing series according to existing scheduling and priority semantics
+
+#### Scenario: Non-recurring task omits recurrence metadata
+- **WHEN** a non-recurring task representation is returned
+- **THEN** it SHALL expose its scheduling, deadline, and priority values
+- **AND** it SHALL not expose `recurrenceRule` or `rruleEndsAt`

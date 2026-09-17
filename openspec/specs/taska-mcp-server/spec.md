@@ -1,9 +1,7 @@
 ## Purpose
 
 Provide a JWT-protected Model Context Protocol server embedded in Taska so compatible clients can work with projects and tasks.
-
 ## Requirements
-
 ### Requirement: MCP task tools use nullable priority and scheduled-at fields
 The MCP server's task create, update, retrieval, completion, reopen, and listing representations SHALL use nullable `priority` and `scheduledAt` fields for the task's manual priority and planned timestamp. The MCP server SHALL preserve a `null` manual priority without substituting priority `4`, and it SHALL NOT accept or return `dueAt` for the planned timestamp.
 
@@ -42,7 +40,7 @@ The MCP endpoint SHALL require a bearer JWT accepted by Taska's existing OAuth2 
 - **THEN** the backend SHALL reject the request without exposing task or project data
 
 ### Requirement: Project management tools
-The MCP server SHALL expose tools to list projects, retrieve a project by identifier, create a project, and update a project. Each project tool SHALL delegate to Taska's project application service and return a project representation containing its identifier and current state.
+The MCP server SHALL expose tools to list projects, retrieve a project by identifier, create a project, and update a project. Each project tool SHALL map its transport input to Taska's transport-independent project application parameters, delegate to the same project application service behavior used by REST, and return a project representation containing its identifier and current state.
 
 #### Scenario: Client lists projects
 - **WHEN** an authenticated MCP client invokes the project-listing tool
@@ -58,30 +56,30 @@ The MCP server SHALL expose tools to list projects, retrieve a project by identi
 
 #### Scenario: Client requests a missing project
 - **WHEN** an authenticated MCP client invokes a project retrieval or update tool for an identifier that does not exist
-- **THEN** the server SHALL return an actionable tool error without exposing internal implementation details
+- **THEN** the tool SHALL return an actionable not-found error without exposing backend implementation details
 
 ### Requirement: Task management tools
-The MCP server SHALL expose tools to list tasks, retrieve a task by identifier, create a task, update a task, complete a task, and reopen a task. Each task tool SHALL delegate to Taska's task application service and preserve existing task validation, inbox defaults, and recurring-task semantics. MCP task tool inputs and outputs SHALL NOT contain section identifiers, and task-list input SHALL NOT contain a named filter shortcut.
+The MCP server SHALL expose tools to list tasks, retrieve a task by identifier, create a task, update a task, complete a task, and reopen a task. Each task tool SHALL map its transport input to Taska's transport-independent task application parameters, delegate to the same authoritative task application behavior used by REST, and preserve existing task validation, inbox defaults, mutation side effects, and recurring-task semantics. MCP task tool inputs and outputs SHALL NOT contain section identifiers, and task-list input SHALL NOT contain a named filter shortcut.
 
 #### Scenario: Client lists scoped tasks
 - **WHEN** an authenticated MCP client invokes the task-listing tool with supported project, label, or completion inputs
-- **THEN** the server SHALL return tasks matching the same semantics as Taska's task service without section data or named filter input
+- **THEN** the server SHALL return only tasks matching those inputs using the task application's query behavior
 
 #### Scenario: Client creates an inbox task
-- **WHEN** an authenticated MCP client invokes the task-creation tool without a project identifier or parent task
+- **WHEN** an authenticated MCP client invokes task creation without a project identifier or parent task
 - **THEN** the server SHALL create the task in Taska's existing inbox project according to current task-service behavior
 
 #### Scenario: Client completes a task
 - **WHEN** an authenticated MCP client invokes the task-completion tool for an incomplete task
-- **THEN** the server SHALL apply Taska's existing completion behavior and return the updated task
+- **THEN** the server SHALL apply the same completion transition and side effects as the equivalent REST operation
 
 #### Scenario: Client reopens a task
 - **WHEN** an authenticated MCP client invokes the task-reopen tool for a completed task
-- **THEN** the server SHALL apply Taska's existing reopen behavior and return the updated task
+- **THEN** the server SHALL apply the same reopen transition and side effects as the equivalent REST operation
 
 #### Scenario: Client mutates a recurring task occurrence
 - **WHEN** an authenticated MCP client updates, completes, or reopens a recurring task occurrence with the required recurrence scope and scheduled occurrence input
-- **THEN** the server SHALL preserve the corresponding existing recurrence behavior
+- **THEN** the server SHALL preserve the existing recurring-task semantics implemented by the task application service
 
 ### Requirement: Safe MCP tool failures
 The MCP server SHALL return actionable tool-level error content when a task or project tool receives invalid input or targets a missing resource. Error content SHALL NOT include stack traces, database details, or bearer-token contents.
@@ -93,3 +91,12 @@ The MCP server SHALL return actionable tool-level error content when a task or p
 #### Scenario: Unexpected tool failure occurs
 - **WHEN** an unexpected exception occurs while processing an MCP tool call
 - **THEN** the server SHALL return a generic safe tool error and log diagnostic detail only on the server
+
+### Requirement: MCP task outputs remain adapter-owned
+
+The MCP task adapter SHALL expose task outputs defined within the MCP adapter and SHALL NOT reuse HTTP task DTO types. The introduction of discriminated HTTP task representations SHALL NOT require MCP clients to consume the HTTP discriminator or its variant-specific schemas.
+
+#### Scenario: MCP task tool returns a task after the HTTP contract changes
+- **WHEN** an authenticated MCP client invokes a task tool after discriminated HTTP task representations are introduced
+- **THEN** the MCP server SHALL return its MCP-owned task output with the existing MCP task field semantics
+- **AND** it SHALL not expose an HTTP transport DTO type as its tool schema

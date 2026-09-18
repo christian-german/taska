@@ -15,6 +15,7 @@ import com.taska.domain.task.occurrence.TaskOccurrenceState;
 import com.taska.domain.task.repository.Task;
 import com.taska.domain.task.service.RecurringTaskOccurrenceResult;
 import com.taska.domain.task.service.TaskMutationService;
+import com.taska.domain.task.service.TaskOccurrenceService;
 import com.taska.domain.task.service.TaskOccurrenceUpdateParameters;
 import com.taska.domain.task.service.TaskResult;
 import com.taska.domain.task.service.TaskService;
@@ -36,10 +37,12 @@ class TaskControllerRepresentationTest {
   private static final Instant OCCURRENCE = Instant.parse("2026-05-20T09:00:00Z");
 
   private final TaskService taskService = mock(TaskService.class);
+  private final TaskOccurrenceService taskOccurrenceService = mock(TaskOccurrenceService.class);
   private final TaskMutationService taskMutationService = mock(TaskMutationService.class);
   private final TaskController taskController =
       new TaskController(
           taskService,
+          taskOccurrenceService,
           taskMutationService,
           new TaskMapperImpl(),
           mock(TaskPriorityEvaluationService.class),
@@ -47,7 +50,7 @@ class TaskControllerRepresentationTest {
 
   @Test
   void dateRangeListingReturnsNonRecurringTasksAndOccurrencesButNeverASeriesDefinition() {
-    when(taskService.findOccurrencesForDateRange(DATE, DATE, false))
+    when(taskOccurrenceService.findOccurrencesForDateRange(DATE, DATE, false))
         .thenReturn(List.of(TaskResult.base(nonRecurringTask()), occurrenceResult(null)));
 
     List<TaskDto> tasks = taskController.getAll(null, null, false, DATE, null, null);
@@ -63,7 +66,7 @@ class TaskControllerRepresentationTest {
 
   @Test
   void openEndedDateRangeListingFollowsTheSameContractAsASingleDay() {
-    when(taskService.findOccurrencesForDateRange(DATE, DATE.plusDays(6), false))
+    when(taskOccurrenceService.findOccurrencesForDateRange(DATE, DATE.plusDays(6), false))
         .thenReturn(List.of(occurrenceResult(null)));
 
     List<TaskDto> tasks = taskController.getAll(null, null, false, null, DATE, DATE.plusDays(6));
@@ -169,8 +172,11 @@ class TaskControllerRepresentationTest {
     // narrow the union.
     assertThat(jsonMapper.writeValueAsString(taskMapper.toNonRecurringDto(nonRecurringTask())))
         .contains("\"kind\":\"NON_RECURRING\"");
-    assertThat(jsonMapper.writeValueAsString(taskMapper.toRecurringSeriesDto(recurringTask())))
-        .contains("\"kind\":\"RECURRING_SERIES\"");
+    Task recurringSeries = recurringTask();
+    recurringSeries.setDueAt(Instant.parse("2026-05-21T17:00:00Z"));
+    assertThat(jsonMapper.writeValueAsString(taskMapper.toRecurringSeriesDto(recurringSeries)))
+        .contains("\"kind\":\"RECURRING_SERIES\"")
+        .doesNotContain("dueAt");
     assertThat(jsonMapper.writeValueAsString(taskMapper.toOccurrenceDto(occurrenceResult(null))))
         .contains("\"kind\":\"RECURRING_OCCURRENCE\"");
   }

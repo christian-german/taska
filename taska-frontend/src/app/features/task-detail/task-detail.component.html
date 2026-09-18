@@ -29,7 +29,11 @@
   <div class="scroll" style="flex: 1; overflow-y: auto; min-height: 0">
     <div style="padding: 20px 22px">
       <div style="display: flex; gap: 12px; align-items: flex-start">
-        <app-checkbox [checked]="task().isCompleted ?? false" [size]="22" (toggled)="toggleComplete()" />
+        <app-checkbox
+          [checked]="task().isCompleted ?? false"
+          [size]="22"
+          (toggled)="toggleComplete()"
+        />
         <input
           class="inline-edit script"
           style="font-size: 26px; line-height: 1.1"
@@ -231,62 +235,62 @@
           }
         </div>
 
-        <!-- Due date row -->
-        <div style="position: relative">
-          <button
-            class="btn btn-ghost"
-            style="
-              width: 100%;
-              display: flex;
-              align-items: center;
-              gap: 8px;
-              padding: 7px 8px;
-              border-radius: 6px;
-              text-align: left;
-            "
-            (click)="openPicker('due', $event)"
-          >
-            <app-icon
-              name="flag"
-              [size]="14"
-              [color]="dueDate() ? 'var(--orange)' : 'var(--mute)'"
-            />
-            <span
-              class="mono"
-              style="font-size: 12px; flex: 1"
-              [style.color]="dueDate() ? 'var(--orange)' : 'var(--mute)'"
-            >
-              {{
-                dueDate()
-                  ? 'À faire avant le ' + formatShort(task().dueAt!)
-                  : 'Ajouter une échéance'
-              }}
-            </span>
-          </button>
-          @if (activeDetailPicker() === 'due') {
-            <div
-              (click)="$event.stopPropagation()"
+        <!-- A series has no absolute deadline; only tasks and individual occurrences do. -->
+        @if (task().kind !== 'RECURRING_SERIES') {
+          <div style="position: relative">
+            <button
+              class="btn btn-ghost"
               style="
-                position: absolute;
-                top: calc(100% + 4px);
-                left: 0;
-                z-index: 20;
-                background: var(--bg);
-                border: 1px solid var(--line);
-                border-radius: 10px;
-                box-shadow: var(--shadow-soft);
-                padding: 12px;
-                min-width: 260px;
+                width: 100%;
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                padding: 7px 8px;
+                border-radius: 6px;
+                text-align: left;
               "
+              (click)="openPicker('due', $event)"
             >
-              <app-datetime-picker
-                [value]="dueDatePickerValue()"
-                [withTime]="true"
-                (valueChange)="onDueDateChange($event)"
+              <app-icon
+                name="flag"
+                [size]="14"
+                [color]="dueDate() ? 'var(--orange)' : 'var(--mute)'"
               />
-            </div>
-          }
-        </div>
+              <span
+                class="mono"
+                style="font-size: 12px; flex: 1"
+                [style.color]="dueDate() ? 'var(--orange)' : 'var(--mute)'"
+              >
+                {{
+                  dueDate() ? 'À faire avant le ' + formatShort(dueAt()!) : 'Ajouter une échéance'
+                }}
+              </span>
+            </button>
+            @if (activeDetailPicker() === 'due') {
+              <div
+                (click)="$event.stopPropagation()"
+                style="
+                  position: absolute;
+                  top: calc(100% + 4px);
+                  left: 0;
+                  z-index: 20;
+                  background: var(--bg);
+                  border: 1px solid var(--line);
+                  border-radius: 10px;
+                  box-shadow: var(--shadow-soft);
+                  padding: 12px;
+                  min-width: 260px;
+                "
+              >
+                <app-datetime-picker
+                  [value]="dueDatePickerValue()"
+                  [withTime]="true"
+                  (valueChange)="onDueDateChange($event)"
+                />
+              </div>
+            }
+          </div>
+        }
 
         <!-- Tags row -->
         <div style="position: relative">

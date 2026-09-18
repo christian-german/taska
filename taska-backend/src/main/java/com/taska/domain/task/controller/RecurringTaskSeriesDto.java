@@ -17,7 +17,6 @@ public record RecurringTaskSeriesDto(
     Integer priority,
     List<String> labels,
     Instant scheduledAt,
-    Instant dueAt,
     Boolean allDay,
     Integer estimateMinutes,
     String mentionContext,

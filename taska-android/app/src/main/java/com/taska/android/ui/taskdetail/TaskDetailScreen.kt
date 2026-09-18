@@ -97,6 +97,7 @@ import com.taska.android.data.model.LabelDto
 import com.taska.android.data.model.ProjectDto
 import com.taska.android.data.model.RecurrenceScope
 import com.taska.android.data.model.TaskDto
+import com.taska.android.data.model.TaskRepresentationKind
 import com.taska.android.ui.shared.RecurrenceScopeDialog
 import com.taska.android.ui.shared.TaskCreationFeedback
 import com.taska.android.ui.theme.frostedChrome
@@ -507,17 +508,19 @@ private fun TaskContent(
       HorizontalDivider(color = DividerColor)
     }
 
-    item {
-      PropertyRow(
-        icon = Icons.Outlined.Event,
-        label = "ÉCHÉANCE",
-        value = task.dueAt?.let { formatTaskDetailDate(it, includeTime = false) },
-        valueColor =
-          task.dueAt?.let { isOverdue(it, false) }?.let { if (it) OverdueColor else TextPrimary }
-            ?: TextSecondary,
-        onClick = { onPropertyClick(ActivePicker.DUE_DATE) },
-      )
-      HorizontalDivider(color = DividerColor)
+    if (task.kind != TaskRepresentationKind.RECURRING_SERIES) {
+      item {
+        PropertyRow(
+          icon = Icons.Outlined.Event,
+          label = "ÉCHÉANCE",
+          value = task.dueAt?.let { formatTaskDetailDate(it, includeTime = false) },
+          valueColor =
+            task.dueAt?.let { isOverdue(it, false) }?.let { if (it) OverdueColor else TextPrimary }
+              ?: TextSecondary,
+          onClick = { onPropertyClick(ActivePicker.DUE_DATE) },
+        )
+        HorizontalDivider(color = DividerColor)
+      }
     }
 
     // RÉPÉTITION

@@ -183,7 +183,7 @@
       content:
         "application/json":
           schema:
-            "$ref": "../schemas/task.yaml#/TaskUpdateRequest"
+            "$ref": "../schemas/task.yaml#/FollowingTaskUpdateRequest"
       required: true
       description: "Request payload."
     responses:

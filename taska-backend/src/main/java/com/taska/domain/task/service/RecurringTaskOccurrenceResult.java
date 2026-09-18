@@ -69,11 +69,9 @@ public record RecurringTaskOccurrenceResult(
         : occurrenceScheduledAt;
   }
 
-  /** Deadline overridden in occurrence state, falling back to the series deadline. */
+  /** Deadline explicitly persisted for this occurrence, or null when it has no override. */
   public Instant resolvedDueAt() {
-    return occurrenceState != null && occurrenceState.getDueAt() != null
-        ? occurrenceState.getDueAt()
-        : task.getDueAt();
+    return occurrenceState != null ? occurrenceState.getDueAt() : null;
   }
 
   /** Only persisted occurrence state carries completion; the series definition never does. */

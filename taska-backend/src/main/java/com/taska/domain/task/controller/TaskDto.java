@@ -29,8 +29,6 @@ public sealed interface TaskDto
 
   Instant scheduledAt();
 
-  Instant dueAt();
-
   Boolean allDay();
 
   Integer estimateMinutes();

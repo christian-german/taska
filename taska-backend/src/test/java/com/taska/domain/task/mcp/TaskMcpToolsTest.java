@@ -159,6 +159,17 @@ class TaskMcpToolsTest {
     assertThat(callToolResult.isError()).isFalse();
   }
 
+  @Test
+  void recurringSeriesOutputKeepsFlatDueAtFieldNull() {
+    Task series = initializedTask();
+    series.setIsRecurring(true);
+    series.setDueAt(Instant.parse("2026-07-30T09:00:00Z"));
+
+    TaskMcpOutput output = new TaskMcpMapperImpl().toOutput(series);
+
+    assertThat(output.dueAt()).isNull();
+  }
+
   private Task initializedTask() {
     Task task = new Task();
     initializeTask(task);

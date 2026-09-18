@@ -16,12 +16,34 @@ import org.mapstruct.Mapping;
 @Mapper(config = ApiMapperConfig.class)
 public interface TaskMcpMapper {
 
+  /** Maps a stored non-recurring task to the flat MCP representation. */
   @Mapping(target = "order", source = "position")
   @Mapping(target = "instanceId", ignore = true)
   @Mapping(target = "occurrenceScheduledAt", ignore = true)
   @Mapping(target = "isVirtual", ignore = true)
   @Mapping(target = "type", defaultValue = "TODO")
-  TaskMcpOutput toOutput(Task task);
+  TaskMcpOutput toStoredTaskOutput(Task task);
+
+  /** Maps a recurring-series definition while intentionally suppressing its invalid deadline. */
+  @Mapping(target = "order", source = "position")
+  @Mapping(target = "dueAt", ignore = true)
+  @Mapping(target = "instanceId", ignore = true)
+  @Mapping(target = "occurrenceScheduledAt", ignore = true)
+  @Mapping(target = "isVirtual", ignore = true)
+  @Mapping(target = "type", defaultValue = "TODO")
+  TaskMcpOutput toRecurringSeriesOutput(Task task);
+
+  /**
+   * Preserves the MCP flat output shape while enforcing the series deadline invariant.
+   *
+   * @param task persisted task definition
+   * @return flat MCP representation with a null deadline for recurring series
+   */
+  default TaskMcpOutput toOutput(Task task) {
+    return Boolean.TRUE.equals(task.getIsRecurring())
+        ? toRecurringSeriesOutput(task)
+        : toStoredTaskOutput(task);
+  }
 
   default TaskMcpOutput toOutput(TaskResult taskResult) {
     return switch (taskResult) {

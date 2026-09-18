@@ -76,6 +76,15 @@ class BackendArchitectureTest {
   }
 
   @Test
+  void taskServiceDoesNotOwnOccurrencePersistenceOrExpansion() {
+    String taskService = readSource(DOMAIN_SOURCE.resolve("task/service/TaskService.java"));
+
+    assertThat(taskService)
+        .doesNotContain("TaskOccurrenceStateRepository")
+        .doesNotContain("TaskRecurrenceService");
+  }
+
+  @Test
   void springComponentsUseFinalDependencyFields() throws IOException {
     List<String> mutableFields;
     try (var paths = Files.walk(DOMAIN_SOURCE)) {

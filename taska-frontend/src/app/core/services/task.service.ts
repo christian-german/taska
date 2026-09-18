@@ -105,11 +105,14 @@ export class TaskService {
               title: 'content' in changes ? changes.content : task.content,
               priority: 'priority' in changes ? changes.priority : task.priority,
               scheduledAt: 'scheduledAt' in changes ? changes.scheduledAt : task.scheduledAt,
-              dueAt: 'dueAt' in changes ? changes.dueAt : task.dueAt,
+              dueAt: 'dueAt' in changes ? changes.dueAt : null,
             },
           );
         }
-        const request = this.toUpdateRequest(task, changes);
+        // A following-occurrences replacement always creates another recurring series.
+        const replacementChanges =
+          scope === 'FROM_THIS' ? { ...changes, isRecurring: true } : changes;
+        const request = this.toUpdateRequest(task, replacementChanges);
         const url =
           scope === 'FROM_THIS'
             ? `${this.base}/${taskId}/occurrences/${encodeURIComponent(occurrenceScheduledAt!)}/following`
@@ -122,6 +125,12 @@ export class TaskService {
   private toUpdateRequest(task: Task, changes: TaskPatch): TaskUpdateRequest {
     const updated = { ...task, ...changes };
     const recurring = changes.isRecurring ?? isRecurringTask(task);
+    const dueAt =
+      'dueAt' in changes
+        ? (changes.dueAt ?? null)
+        : task.kind === 'RECURRING_SERIES'
+          ? null
+          : task.dueAt;
     return {
       content: updated.content,
       type: updated.type ?? 'TODO',
@@ -132,7 +141,8 @@ export class TaskService {
       priority: updated.priority,
       labels: updated.labels ?? [],
       scheduledAt: updated.scheduledAt,
-      dueAt: updated.dueAt,
+      // Complete recurring-series replacements must carry an explicit null deadline.
+      dueAt: recurring ? null : dueAt,
       allDay: updated.allDay,
       isRecurring: recurring,
       estimateMinutes: updated.estimateMinutes ?? null,

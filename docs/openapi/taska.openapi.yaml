@@ -72,6 +72,8 @@ components:
   schemas:
     TaskUpdateRequest:
       "$ref": "./schemas/task.yaml#/TaskUpdateRequest"
+    FollowingTaskUpdateRequest:
+      "$ref": "./schemas/task.yaml#/FollowingTaskUpdateRequest"
     TaskDto:
       "$ref": "./schemas/task.yaml#/TaskDto"
     TaskResourceDto:

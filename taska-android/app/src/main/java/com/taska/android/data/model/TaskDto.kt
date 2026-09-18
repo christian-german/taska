@@ -18,7 +18,11 @@ sealed interface TaskDto {
   val priority: Int?
   val labels: List<String>?
   val scheduledAt: String?
+
+  /** Convenience value for shared UI code; recurring-series JSON has no dueAt field. */
   val dueAt: String?
+    get() = null
+
   val allDay: Boolean
   val estimateMinutes: Int?
   val mentionContext: String?
@@ -84,7 +88,6 @@ data class RecurringTaskSeriesDto(
   override val priority: Int?,
   override val labels: List<String>?,
   override val scheduledAt: String?,
-  override val dueAt: String? = null,
   override val allDay: Boolean = false,
   override val estimateMinutes: Int?,
   override val mentionContext: String? = null,
@@ -182,7 +185,6 @@ fun TaskDto(
       priority = priority,
       labels = labels,
       scheduledAt = scheduledAt,
-      dueAt = dueAt,
       allDay = allDay,
       estimateMinutes = estimateMinutes,
       mentionContext = mentionContext,

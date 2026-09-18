@@ -12,6 +12,7 @@ import com.taska.domain.task.controller.TaskController;
 import com.taska.domain.task.controller.TaskMapper;
 import com.taska.domain.task.controller.TaskUpdateRequest;
 import com.taska.domain.task.service.TaskMutationService;
+import com.taska.domain.task.service.TaskOccurrenceService;
 import com.taska.domain.task.service.TaskService;
 import java.time.Instant;
 import java.util.Optional;
@@ -23,6 +24,7 @@ import tools.jackson.databind.json.JsonMapper;
 
 class TaskControllerPriorityEvaluationTest {
   private final TaskService taskService = mock(TaskService.class);
+  private final TaskOccurrenceService taskOccurrenceService = mock(TaskOccurrenceService.class);
   private final TaskMapper taskMapper = mock(TaskMapper.class);
   private final TaskPriorityEvaluationService taskPriorityEvaluationService =
       mock(TaskPriorityEvaluationService.class);
@@ -32,6 +34,7 @@ class TaskControllerPriorityEvaluationTest {
   private final TaskController taskController =
       new TaskController(
           taskService,
+          taskOccurrenceService,
           taskMutationService,
           taskMapper,
           taskPriorityEvaluationService,

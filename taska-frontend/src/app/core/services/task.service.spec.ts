@@ -123,6 +123,8 @@ describe('TaskService task creation feedback', () => {
     expect(request.request.body).toMatchObject({
       content: 'Future title',
       type: 'TODO',
+      dueAt: null,
+      isRecurring: true,
       recurrenceRule: 'FREQ=DAILY',
     });
     expect(Object.keys(request.request.body)).toHaveLength(15);
@@ -153,7 +155,7 @@ describe('TaskService task creation feedback', () => {
       title: task.content,
       priority: task.priority,
       scheduledAt: null,
-      dueAt: task.dueAt,
+      dueAt: null,
     });
     request.flush(task);
   });
@@ -183,10 +185,13 @@ function taskFixture(overrides: Partial<NonRecurringTask> = {}): NonRecurringTas
   };
 }
 
-function recurringTaskFixture(
-  overrides: Partial<RecurringTaskSeries> = {},
-): RecurringTaskSeries {
-  const { isCompleted: _isCompleted, completedAt: _completedAt, ...base } = taskFixture();
+function recurringTaskFixture(overrides: Partial<RecurringTaskSeries> = {}): RecurringTaskSeries {
+  const {
+    dueAt: _dueAt,
+    isCompleted: _isCompleted,
+    completedAt: _completedAt,
+    ...base
+  } = taskFixture();
   return {
     ...base,
     kind: 'RECURRING_SERIES',

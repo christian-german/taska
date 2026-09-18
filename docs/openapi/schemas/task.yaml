@@ -2,6 +2,16 @@ TaskUpdateRequest:
   description: "Complete task update payload."
   type: "object"
   additionalProperties: false
+  allOf:
+    - if:
+        properties:
+          isRecurring:
+            const: true
+        required: ["isRecurring"]
+      then:
+        properties:
+          dueAt:
+            type: "null"
   properties:
     content:
       description: "Required title or main text of the task; must not be blank."
@@ -44,7 +54,7 @@ TaskUpdateRequest:
       type: ["string", "null"]
       format: "date-time"
     dueAt:
-      description: "Deadline in UTC; use no value when the task has no deadline."
+      description: "Deadline in UTC for a non-recurring task; must be null for a recurring series."
       type: ["string", "null"]
       format: "date-time"
     allDay:
@@ -79,6 +89,17 @@ TaskUpdateRequest:
     - "recurrenceRule"
     - "scheduledAt"
     - "type"
+FollowingTaskUpdateRequest:
+  description: "Complete recurring-series replacement used when splitting from one occurrence."
+  allOf:
+    - "$ref": "#/TaskUpdateRequest"
+    - type: "object"
+      properties:
+        isRecurring:
+          type: "boolean"
+          const: true
+        dueAt:
+          type: "null"
 TaskDto:
   description: "Discriminated task resource or recurring-occurrence representation."
   oneOf:
@@ -145,9 +166,6 @@ TaskBaseDto:
       description: "Effective planned time in UTC."
       type: ["string", "null"]
       format: "date-time"
-    dueAt:
-      type: ["string", "null"]
-      format: "date-time"
     allDay:
       type: "boolean"
     estimateMinutes:
@@ -174,7 +192,6 @@ TaskBaseDto:
     - "priority"
     - "labels"
     - "scheduledAt"
-    - "dueAt"
     - "allDay"
     - "estimateMinutes"
     - "mentionContext"
@@ -194,7 +211,10 @@ NonRecurringTaskDto:
         completedAt:
           type: ["string", "null"]
           format: "date-time"
-      required: ["kind", "isCompleted", "completedAt"]
+        dueAt:
+          type: ["string", "null"]
+          format: "date-time"
+      required: ["kind", "isCompleted", "completedAt", "dueAt"]
 RecurringTaskSeriesDto:
   allOf:
     - "$ref": "#/TaskBaseDto"
@@ -237,6 +257,10 @@ RecurringTaskOccurrenceDto:
           format: "date-time"
         isVirtual:
           type: "boolean"
+        dueAt:
+          description: "Occurrence-specific deadline; null when this occurrence has no override."
+          type: ["string", "null"]
+          format: "date-time"
       required:
         - "kind"
         - "recurrenceRule"
@@ -246,6 +270,7 @@ RecurringTaskOccurrenceDto:
         - "instanceId"
         - "occurrenceScheduledAt"
         - "isVirtual"
+        - "dueAt"
 OccurrenceUpdateRequest:
   description: "Changes applied to one recurring task occurrence."
   type: "object"
@@ -275,6 +300,16 @@ TaskCreateRequest:
   description: "Payload used to create a task."
   type: "object"
   additionalProperties: false
+  allOf:
+    - if:
+        properties:
+          isRecurring:
+            const: true
+        required: ["isRecurring"]
+      then:
+        properties:
+          dueAt:
+            type: "null"
   properties:
     content:
       description: "Required task title or main text; must not be blank."
@@ -311,7 +346,7 @@ TaskCreateRequest:
       type: ["string", "null"]
       format: "date-time"
     dueAt:
-      description: "Deadline in UTC; use no value when the task has no deadline."
+      description: "Deadline in UTC for a non-recurring task; must be null for a recurring series."
       type: ["string", "null"]
       format: "date-time"
     allDay:

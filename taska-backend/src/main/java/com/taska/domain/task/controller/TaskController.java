@@ -7,6 +7,7 @@ import com.taska.domain.task.service.TaskCloseReopenParameters;
 import com.taska.domain.task.service.TaskCreateParameters;
 import com.taska.domain.task.service.TaskDeleteParameters;
 import com.taska.domain.task.service.TaskMutationService;
+import com.taska.domain.task.service.TaskOccurrenceService;
 import com.taska.domain.task.service.TaskOccurrenceUpdateParameters;
 import com.taska.domain.task.service.TaskService;
 import com.taska.domain.task.service.TaskUpdateParameters;
@@ -37,6 +38,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class TaskController {
 
   private final TaskService taskService;
+  private final TaskOccurrenceService taskOccurrenceService;
   private final TaskMutationService taskMutationService;
   private final TaskMapper taskMapper;
   private final TaskPriorityEvaluationService priorityEvaluationService;
@@ -70,12 +72,12 @@ public class TaskController {
           LocalDate to) {
 
     if (date != null) {
-      return taskService.findOccurrencesForDateRange(date, date, showCompleted).stream()
+      return taskOccurrenceService.findOccurrencesForDateRange(date, date, showCompleted).stream()
           .map(taskMapper::toDto)
           .toList();
     }
     if (from != null && to != null) {
-      return taskService.findOccurrencesForDateRange(from, to, showCompleted).stream()
+      return taskOccurrenceService.findOccurrencesForDateRange(from, to, showCompleted).stream()
           .map(taskMapper::toDto)
           .toList();
     }

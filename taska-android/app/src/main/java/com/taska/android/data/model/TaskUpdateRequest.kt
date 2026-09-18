@@ -36,7 +36,8 @@ fun TaskDto.toTaskUpdateRequest() =
     priority = priority,
     labels = labels ?: emptyList(),
     scheduledAt = scheduledAt,
-    dueAt = dueAt,
+    // A complete recurring-series replacement must never reintroduce an absolute deadline.
+    dueAt = if (kind == TaskRepresentationKind.RECURRING_SERIES) null else dueAt,
     allDay = allDay,
     isRecurring = kind != TaskRepresentationKind.NON_RECURRING,
     estimateMinutes = estimateMinutes,

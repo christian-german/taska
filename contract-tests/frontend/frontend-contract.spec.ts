@@ -231,7 +231,7 @@ describe('Angular outgoing OpenAPI contract', () => {
       priority: 2,
       labels: ['work'],
       scheduledAt: OCCURRENCE,
-      dueAt: '2026-09-09T09:00:00Z',
+      dueAt: null,
       allDay: false,
       isRecurring: true,
       estimateMinutes: 30,

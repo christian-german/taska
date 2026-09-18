@@ -1,6 +1,11 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { of, Subject } from 'rxjs';
-import { NonRecurringTask, RecurringTaskOccurrence, Task } from '../../core/models';
+import {
+  NonRecurringTask,
+  RecurringTaskOccurrence,
+  RecurringTaskSeries,
+  Task,
+} from '../../core/models';
 import { CommentService } from '../../core/services/comment.service';
 import { LabelService } from '../../core/services/label.service';
 import { ProjectService } from '../../core/services/project.service';
@@ -41,6 +46,16 @@ describe('TaskDetailComponent schedule removal', () => {
     isVirtual: true,
   });
 
+  const recurringSeries = (): RecurringTaskSeries => {
+    const { dueAt: _dueAt, isCompleted: _isCompleted, completedAt: _completedAt, ...base } = task();
+    return {
+      ...base,
+      kind: 'RECURRING_SERIES',
+      recurrenceRule: 'FREQ=DAILY',
+      rruleEndsAt: null,
+    };
+  };
+
   beforeEach(async () => {
     updateResult = new Subject<Task>();
     updateTask = vi.fn(() => updateResult.asObservable());
@@ -66,7 +81,7 @@ describe('TaskDetailComponent schedule removal', () => {
     component.clearDate(new Event('click'));
 
     expect(updateTask).toHaveBeenCalledWith('task-1', { scheduledAt: null, allDay: false });
-    expect(component.task().dueAt).toBe('2026-09-01T00:00:00Z');
+    expect(component.dueAt()).toBe('2026-09-01T00:00:00Z');
     expect(emitted).toEqual([]);
 
     const serverTask = task({ scheduledAt: null });
@@ -83,6 +98,13 @@ describe('TaskDetailComponent schedule removal', () => {
     ).not.toBeNull();
   });
 
+  it('does not offer a deadline editor for a recurring series', () => {
+    fixture.componentRef.setInput('task', recurringSeries());
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.textContent).not.toContain('Ajouter une échéance');
+  });
+
   it('does not emit an unscheduled task when removal fails', () => {
     const emitted: Task[] = [];
     component.taskUpdated.subscribe((value) => emitted.push(value));
@@ -95,10 +117,7 @@ describe('TaskDetailComponent schedule removal', () => {
   });
 
   it('retains recurrence targeting for complete removal', () => {
-    fixture.componentRef.setInput(
-      'task',
-      occurrenceTask(),
-    );
+    fixture.componentRef.setInput('task', occurrenceTask());
     fixture.detectChanges();
 
     component.clearDate(new Event('click'));

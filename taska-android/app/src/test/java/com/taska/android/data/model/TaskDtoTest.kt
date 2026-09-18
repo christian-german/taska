@@ -53,6 +53,19 @@ class TaskDtoTest {
     }
   }
 
+  @Test
+  fun `givenRecurringSeries_whenSerialized_thenDueAtIsNotOnTheWire`() {
+    val task =
+      TaskJson.gson.fromJson(
+        """{"kind":"RECURRING_SERIES","id":"task-1","content":"Task","dueAt":"2026-05-21T17:00:00Z"}""",
+        TaskDto::class.java,
+      )
+
+    assertTrue(task is RecurringTaskSeriesDto)
+    assertNull(task.dueAt)
+    assertFalse(TaskJson.gson.toJson(task).contains("dueAt"))
+  }
+
   // -------------------------------------------------------------------------
   // Builder avec valeurs par défaut surchargeables
   // -------------------------------------------------------------------------

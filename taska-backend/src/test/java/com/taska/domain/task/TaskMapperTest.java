@@ -165,7 +165,7 @@ class TaskMapperTest {
   }
 
   @Test
-  void toOccurrenceDto_dueAtInheritsFromTaskAndCanBeOverriddenByInstance() {
+  void toOccurrenceDto_dueAtComesOnlyFromOccurrenceOverride() {
     Task task = buildTask("Task", 2);
     Instant occurrenceScheduledAt = Instant.parse("2026-05-20T10:00:00Z");
     Instant parentDueAt = Instant.parse("2026-05-21T17:00:00Z");
@@ -177,7 +177,7 @@ class TaskMapperTest {
                 .toOccurrenceDto(
                     new RecurringTaskOccurrenceResult(task, null, occurrenceScheduledAt))
                 .dueAt())
-        .isEqualTo(parentDueAt);
+        .isNull();
 
     TaskOccurrenceState instance =
         buildOccurrenceState(task.getId(), occurrenceScheduledAt, TaskOccurrenceStatus.MODIFIED);

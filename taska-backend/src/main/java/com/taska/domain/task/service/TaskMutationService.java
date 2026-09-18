@@ -12,13 +12,15 @@ import org.springframework.stereotype.Service;
  *
  * <p>Existing HTTP and MCP contracts encode the mutation target through optional scope and
  * occurrence fields. This boundary translates those contracts to the explicit task, occurrence, or
- * following-series operations exposed by {@link TaskService}.
+ * following-series operations exposed by their dedicated application services.
  */
 @Service
 @RequiredArgsConstructor
 public class TaskMutationService {
 
   private final TaskService taskService;
+  private final TaskOccurrenceService taskOccurrenceService;
+  private final RecurringTaskSeriesService recurringTaskSeriesService;
   private final TaskChangePublisher taskChangePublisher;
 
   /**
@@ -63,10 +65,10 @@ public class TaskMutationService {
       taskResult =
           switch (parameters.scope()) {
             case THIS_ONLY ->
-                taskService.updateOccurrence(
+                taskOccurrenceService.updateOccurrence(
                     taskId, parameters.occurrenceScheduledAt(), parameters, priorityProvided);
             case FROM_THIS ->
-                taskService.updateSeriesFrom(
+                recurringTaskSeriesService.updateSeriesFrom(
                     taskId, parameters.occurrenceScheduledAt(), parameters, priorityProvided);
           };
     }
@@ -102,7 +104,8 @@ public class TaskMutationService {
       Instant occurrenceScheduledAt,
       TaskUpdateParameters parameters,
       String accountSubject) {
-    TaskResult taskResult = taskService.replaceFollowing(taskId, occurrenceScheduledAt, parameters);
+    TaskResult taskResult =
+        recurringTaskSeriesService.replaceFollowing(taskId, occurrenceScheduledAt, parameters);
     publishChange(accountSubject);
     return taskResult;
   }
@@ -122,7 +125,7 @@ public class TaskMutationService {
       TaskOccurrenceUpdateParameters parameters,
       String accountSubject) {
     TaskResult taskResult =
-        taskService.replaceOccurrence(taskId, occurrenceScheduledAt, parameters);
+        taskOccurrenceService.replaceOccurrence(taskId, occurrenceScheduledAt, parameters);
     publishChange(accountSubject);
     return taskResult;
   }
@@ -143,9 +146,11 @@ public class TaskMutationService {
       taskService.deleteTask(taskId);
     } else {
       switch (parameters.scope()) {
-        case THIS_ONLY -> taskService.skipOccurrence(taskId, parameters.occurrenceScheduledAt());
+        case THIS_ONLY ->
+            taskOccurrenceService.skipOccurrence(taskId, parameters.occurrenceScheduledAt());
         case FROM_THIS ->
-            taskService.truncateSeriesFrom(taskId, parameters.occurrenceScheduledAt());
+            recurringTaskSeriesService.truncateSeriesFrom(
+                taskId, parameters.occurrenceScheduledAt());
       }
     }
     publishChange(accountSubject);
@@ -164,7 +169,7 @@ public class TaskMutationService {
     Task task = taskService.findById(taskId);
     TaskResult taskResult =
         Boolean.TRUE.equals(task.getIsRecurring())
-            ? taskService.closeOccurrence(
+            ? taskOccurrenceService.closeOccurrence(
                 taskId, parameters != null ? parameters.occurrenceScheduledAt() : null)
             : taskService.closeTask(taskId);
     publishChange(accountSubject);
@@ -184,7 +189,7 @@ public class TaskMutationService {
     Task task = taskService.findById(taskId);
     TaskResult taskResult =
         Boolean.TRUE.equals(task.getIsRecurring())
-            ? taskService.reopenOccurrence(
+            ? taskOccurrenceService.reopenOccurrence(
                 taskId, parameters != null ? parameters.occurrenceScheduledAt() : null)
             : taskService.reopenTask(taskId);
     publishChange(accountSubject);

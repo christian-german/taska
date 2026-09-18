@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
+import com.taska.config.TaskaProperties;
 import com.taska.domain.notification.service.TaskOccurrenceNotificationService;
 import com.taska.domain.planningcalendar.service.PlanningCalendarService;
 import com.taska.domain.priority.repository.TaskPriorityEvaluationRepository;
@@ -17,7 +18,9 @@ import com.taska.domain.task.occurrence.service.TaskRecurrenceService;
 import com.taska.domain.task.repository.Task;
 import com.taska.domain.task.repository.TaskRepository;
 import com.taska.domain.task.service.RecurringTaskOccurrenceResult;
+import com.taska.domain.task.service.RecurringTaskSeriesService;
 import com.taska.domain.task.service.TaskCreateParameters;
+import com.taska.domain.task.service.TaskOccurrenceService;
 import com.taska.domain.task.service.TaskOccurrenceUpdateParameters;
 import com.taska.domain.task.service.TaskPatchParameters;
 import com.taska.domain.task.service.TaskService;
@@ -28,18 +31,18 @@ import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.dao.DataIntegrityViolationException;
 
 /**
- * Unit tests for explicit TaskService write operations. All repository calls are mocked. Tests
- * focus on what gets persisted and whether the recurring-series definition is left untouched when
- * only one occurrence should change.
+ * Unit tests for explicit task, occurrence, and recurring-series write operations. All repository
+ * calls are mocked. Tests focus on what gets persisted and whether the recurring-series definition
+ * is left untouched when only one occurrence should change.
  */
 @ExtendWith(MockitoExtension.class)
 class TaskServiceMutationTest {
@@ -52,8 +55,32 @@ class TaskServiceMutationTest {
   @Mock private TaskPriorityEvaluationRepository priorityEvaluationRepository;
   @Mock private PlanningCalendarService planningCalendarService;
   @Mock private TaskOccurrenceNotificationService taskOccurrenceNotificationService;
+  @Mock private TaskaProperties taskaProperties;
 
-  @InjectMocks private TaskService taskService;
+  private TaskService taskService;
+  private TaskOccurrenceService taskOccurrenceService;
+  private RecurringTaskSeriesService recurringTaskSeriesService;
+
+  @BeforeEach
+  void createServicesByResponsibility() {
+    taskService =
+        new TaskService(
+            taskRepository,
+            projectRepository,
+            priorityEvaluationRepository,
+            planningCalendarService);
+    taskOccurrenceService =
+        new TaskOccurrenceService(
+            taskService,
+            taskRepository,
+            taskOccurrenceStateRepository,
+            taskRecurrenceService,
+            taskaProperties,
+            taskOccurrenceNotificationService);
+    recurringTaskSeriesService =
+        new RecurringTaskSeriesService(
+            taskService, taskOccurrenceService, taskRepository, priorityEvaluationRepository);
+  }
 
   // ── Helpers ──────────────────────────────────────────────────────────────
 
@@ -211,6 +238,12 @@ class TaskServiceMutationTest {
         content, null, null, null, 0, null, null, null, null, false, false, null, null, null, type);
   }
 
+  private TaskPatchParameters recurringPatch(Instant dueAt) {
+    return new TaskPatchParameters(
+        null, null, null, null, null, null, null, null, dueAt, null, true, null, null, null, null,
+        null, null);
+  }
+
   @Test
   void create_withoutManualPriority_persistsNullRatherThanNormalPriority() {
     UUID inboxId = randomId();
@@ -223,6 +256,33 @@ class TaskServiceMutationTest {
 
     assertThat(created.getPriority()).isNull();
     assertThat(created.getProjectId()).isEqualTo(inboxId);
+  }
+
+  @Test
+  void create_recurringSeriesWithDueAt_rejectsDeadline() {
+    Instant dueAt = Instant.parse("2026-05-21T17:00:00Z");
+    TaskCreateParameters parameters =
+        new TaskCreateParameters(
+            "Recurring",
+            null,
+            randomId(),
+            null,
+            0,
+            null,
+            List.of(),
+            Instant.parse("2026-05-20T09:00:00Z"),
+            dueAt,
+            false,
+            true,
+            null,
+            null,
+            "FREQ=DAILY",
+            TaskType.TODO);
+
+    assertThatThrownBy(() -> taskService.create(parameters))
+        .isInstanceOf(IllegalArgumentException.class)
+        .hasMessageContaining("Recurring series");
+    verify(taskRepository, never()).save(any());
   }
 
   @Test
@@ -256,6 +316,67 @@ class TaskServiceMutationTest {
 
     assertThat(task.getDueAt()).isEqualTo(dueAt);
     assertThat(task.getScheduledAt()).isEqualTo(scheduledAt);
+  }
+
+  @Test
+  void update_convertingTaskToRecurring_clearsExistingDeadline() {
+    UUID taskId = randomId();
+    Task task = buildNonRecurringTask(taskId);
+    task.setDueAt(Instant.parse("2026-05-21T17:00:00Z"));
+    when(taskRepository.findById(taskId)).thenReturn(Optional.of(task));
+    when(taskRepository.save(task)).thenReturn(task);
+
+    taskService.updateTask(taskId, recurringPatch(null), false);
+
+    assertThat(task.getIsRecurring()).isTrue();
+    assertThat(task.getDueAt()).isNull();
+  }
+
+  @Test
+  void update_recurringSeriesWithDueAt_rejectsDeadline() {
+    UUID taskId = randomId();
+    Task task = buildRecurringTask(taskId);
+    when(taskRepository.findById(taskId)).thenReturn(Optional.of(task));
+
+    assertThatThrownBy(
+            () ->
+                taskService.updateTask(
+                    taskId, recurringPatch(Instant.parse("2026-05-21T17:00:00Z")), false))
+        .isInstanceOf(IllegalArgumentException.class)
+        .hasMessageContaining("Recurring series");
+    verify(taskRepository, never()).save(any());
+  }
+
+  @Test
+  void replace_recurringSeriesWithDueAt_rejectsDeadlineWithoutMutation() {
+    UUID taskId = randomId();
+    Task task = buildNonRecurringTask(taskId);
+    when(taskRepository.findById(taskId)).thenReturn(Optional.of(task));
+    TaskUpdateParameters request =
+        new TaskUpdateParameters(
+            "Recurring",
+            TaskType.TODO,
+            null,
+            null,
+            null,
+            0,
+            null,
+            List.of(),
+            Instant.parse("2026-05-20T09:00:00Z"),
+            Instant.parse("2026-05-21T17:00:00Z"),
+            false,
+            true,
+            null,
+            null,
+            "FREQ=DAILY");
+
+    assertThatThrownBy(() -> taskService.replace(taskId, request))
+        .isInstanceOf(IllegalArgumentException.class)
+        .hasMessageContaining("Recurring series");
+
+    assertThat(task.getContent()).isEqualTo("Non-recurring task");
+    assertThat(task.getIsRecurring()).isFalse();
+    verify(taskRepository, never()).save(any());
   }
 
   @Test
@@ -337,7 +458,7 @@ class TaskServiceMutationTest {
     ArgumentCaptor<Task> saved = ArgumentCaptor.forClass(Task.class);
     when(taskRepository.save(saved.capture())).thenAnswer(invocation -> invocation.getArgument(0));
 
-    taskService.replaceFollowing(taskId, occurrence, request);
+    recurringTaskSeriesService.replaceFollowing(taskId, occurrence, request);
 
     List<Task> persisted = saved.getAllValues();
     assertThat(persisted).hasSize(2);
@@ -361,6 +482,51 @@ class TaskServiceMutationTest {
   }
 
   @Test
+  void replaceFollowing_withDueAt_rejectsBeforeSplittingOriginalSeries() {
+    TaskUpdateParameters request =
+        new TaskUpdateParameters(
+            "Following",
+            TaskType.TODO,
+            null,
+            null,
+            null,
+            0,
+            null,
+            List.of(),
+            Instant.parse("2026-05-20T10:00:00Z"),
+            Instant.parse("2026-05-21T17:00:00Z"),
+            false,
+            true,
+            null,
+            null,
+            "FREQ=DAILY");
+
+    assertThatThrownBy(
+            () ->
+                recurringTaskSeriesService.replaceFollowing(
+                    randomId(), Instant.parse("2026-05-20T10:00:00Z"), request))
+        .isInstanceOf(IllegalArgumentException.class)
+        .hasMessageContaining("Recurring series");
+
+    verifyNoInteractions(taskRepository);
+  }
+
+  @Test
+  void updateSeriesFrom_withDueAt_rejectsBeforeSplittingOriginalSeries() {
+    assertThatThrownBy(
+            () ->
+                recurringTaskSeriesService.updateSeriesFrom(
+                    randomId(),
+                    Instant.parse("2026-05-20T10:00:00Z"),
+                    recurringPatch(Instant.parse("2026-05-21T17:00:00Z")),
+                    false))
+        .isInstanceOf(IllegalArgumentException.class)
+        .hasMessageContaining("Recurring series");
+
+    verifyNoInteractions(taskRepository);
+  }
+
+  @Test
   void replaceOccurrence_updatesOnlyItsSupportedOverrides() {
     UUID taskId = randomId();
     Instant occurrence = Instant.parse("2026-05-20T10:00:00Z");
@@ -378,7 +544,7 @@ class TaskServiceMutationTest {
         .thenReturn(Optional.of(existing));
     when(taskOccurrenceStateRepository.save(existing)).thenReturn(existing);
 
-    taskService.replaceOccurrence(
+    taskOccurrenceService.replaceOccurrence(
         taskId, occurrence, new TaskOccurrenceUpdateParameters("Occurrence", null, null, null));
 
     assertThat(task.getContent()).isEqualTo("Recurring task");
@@ -427,7 +593,7 @@ class TaskServiceMutationTest {
     when(taskOccurrenceStateRepository.save(captor.capture()))
         .thenAnswer(inv -> inv.getArgument(0));
 
-    taskService.closeOccurrence(taskId, occurrenceScheduledAt);
+    taskOccurrenceService.closeOccurrence(taskId, occurrenceScheduledAt);
 
     TaskOccurrenceState saved = captor.getValue();
     assertThat(saved.getStatus()).isEqualTo(TaskOccurrenceStatus.DONE);
@@ -455,7 +621,7 @@ class TaskServiceMutationTest {
             taskId, occurrenceScheduledAt))
         .thenReturn(Optional.of(existingDone));
 
-    assertThatThrownBy(() -> taskService.closeOccurrence(taskId, occurrenceScheduledAt))
+    assertThatThrownBy(() -> taskOccurrenceService.closeOccurrence(taskId, occurrenceScheduledAt))
         .isInstanceOf(IllegalArgumentException.class);
   }
 
@@ -474,7 +640,7 @@ class TaskServiceMutationTest {
             taskId, occurrenceScheduledAt))
         .thenReturn(Optional.of(skipped));
 
-    assertThatThrownBy(() -> taskService.closeOccurrence(taskId, occurrenceScheduledAt))
+    assertThatThrownBy(() -> taskOccurrenceService.closeOccurrence(taskId, occurrenceScheduledAt))
         .isInstanceOf(IllegalArgumentException.class)
         .hasMessageContaining("skipped");
     verify(taskOccurrenceStateRepository, never()).save(any());
@@ -501,7 +667,7 @@ class TaskServiceMutationTest {
         .thenReturn(Optional.of(modified));
     when(taskOccurrenceStateRepository.save(modified)).thenReturn(modified);
 
-    taskService.closeOccurrence(taskId, occurrenceScheduledAt);
+    taskOccurrenceService.closeOccurrence(taskId, occurrenceScheduledAt);
 
     assertThat(modified.getStatus()).isEqualTo(TaskOccurrenceStatus.DONE);
     assertThat(modified.getCompletedAt()).isNotNull();
@@ -524,7 +690,7 @@ class TaskServiceMutationTest {
         .thenReturn(List.of(occurrenceScheduledAt));
     when(taskOccurrenceStateRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
 
-    taskService.closeOccurrence(taskId, occurrenceScheduledAt);
+    taskOccurrenceService.closeOccurrence(taskId, occurrenceScheduledAt);
 
     assertThat(task.getIsCompleted()).isFalse();
     assertThat(task.getCompletedAt()).isNull();
@@ -539,7 +705,7 @@ class TaskServiceMutationTest {
   void close_recurringTaskWithNullOccurrenceScheduledAt_throwsIllegalArgumentException() {
     UUID taskId = randomId();
 
-    assertThatThrownBy(() -> taskService.closeOccurrence(taskId, null))
+    assertThatThrownBy(() -> taskOccurrenceService.closeOccurrence(taskId, null))
         .isInstanceOf(IllegalArgumentException.class);
     verify(taskOccurrenceStateRepository, never()).save(any());
   }
@@ -581,7 +747,7 @@ class TaskServiceMutationTest {
             taskId, occurrenceScheduledAt))
         .thenReturn(Optional.of(completed));
 
-    var result = taskService.reopenOccurrence(taskId, occurrenceScheduledAt);
+    var result = taskOccurrenceService.reopenOccurrence(taskId, occurrenceScheduledAt);
 
     verify(taskOccurrenceStateRepository).delete(completed);
     verify(taskOccurrenceNotificationService, never()).clear(any(), any());
@@ -613,7 +779,7 @@ class TaskServiceMutationTest {
         .thenReturn(Optional.of(completed));
     when(taskOccurrenceStateRepository.save(completed)).thenReturn(completed);
 
-    taskService.reopenOccurrence(taskId, occurrenceScheduledAt);
+    taskOccurrenceService.reopenOccurrence(taskId, occurrenceScheduledAt);
 
     assertThat(completed.getStatus()).isEqualTo(TaskOccurrenceStatus.MODIFIED);
     assertThat(completed.getCompletedAt()).isNull();
@@ -656,7 +822,7 @@ class TaskServiceMutationTest {
             taskId, occurrenceScheduledAt))
         .thenReturn(Optional.of(modified));
 
-    assertThatThrownBy(() -> taskService.reopenOccurrence(taskId, occurrenceScheduledAt))
+    assertThatThrownBy(() -> taskOccurrenceService.reopenOccurrence(taskId, occurrenceScheduledAt))
         .isInstanceOf(IllegalArgumentException.class)
         .hasMessageContaining("not completed");
 
@@ -704,7 +870,7 @@ class TaskServiceMutationTest {
     when(taskOccurrenceStateRepository.save(captor.capture()))
         .thenAnswer(inv -> inv.getArgument(0));
 
-    taskService.updateOccurrence(
+    taskOccurrenceService.updateOccurrence(
         taskId, occurrenceScheduledAt, request, request.priority() != null);
 
     TaskOccurrenceState saved = captor.getValue();
@@ -732,7 +898,7 @@ class TaskServiceMutationTest {
     when(taskOccurrenceStateRepository.save(captor.capture()))
         .thenAnswer(inv -> inv.getArgument(0));
 
-    taskService.updateOccurrence(
+    taskOccurrenceService.updateOccurrence(
         taskId, occurrenceScheduledAt, request, request.priority() != null);
 
     TaskOccurrenceState saved = captor.getValue();
@@ -759,7 +925,7 @@ class TaskServiceMutationTest {
     when(taskOccurrenceStateRepository.save(captor.capture()))
         .thenAnswer(inv -> inv.getArgument(0));
 
-    taskService.updateOccurrence(
+    taskOccurrenceService.updateOccurrence(
         taskId, occurrenceScheduledAt, request, request.priority() != null);
 
     TaskOccurrenceState saved = captor.getValue();
@@ -781,7 +947,7 @@ class TaskServiceMutationTest {
         .thenReturn(List.of(occurrenceScheduledAt));
     when(taskOccurrenceStateRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
 
-    taskService.updateOccurrence(
+    taskOccurrenceService.updateOccurrence(
         taskId, occurrenceScheduledAt, request, request.priority() != null);
 
     assertThat(task.getContent()).isEqualTo("Recurring task"); // content unchanged
@@ -802,7 +968,7 @@ class TaskServiceMutationTest {
     ArgumentCaptor<Task> taskCaptor = ArgumentCaptor.forClass(Task.class);
     when(taskRepository.save(taskCaptor.capture())).thenAnswer(inv -> inv.getArgument(0));
 
-    taskService.updateSeriesFrom(
+    recurringTaskSeriesService.updateSeriesFrom(
         taskId, occurrenceScheduledAt, request, request.priority() != null);
 
     List<Task> savedTasks = taskCaptor.getAllValues();
@@ -836,7 +1002,7 @@ class TaskServiceMutationTest {
     ArgumentCaptor<Task> taskCaptor = ArgumentCaptor.forClass(Task.class);
     when(taskRepository.save(taskCaptor.capture())).thenAnswer(inv -> inv.getArgument(0));
 
-    taskService.updateSeriesFrom(
+    recurringTaskSeriesService.updateSeriesFrom(
         taskId, occurrenceScheduledAt, request, request.priority() != null);
 
     Task clone = taskCaptor.getAllValues().get(1);
@@ -859,7 +1025,8 @@ class TaskServiceMutationTest {
     ArgumentCaptor<Task> taskCaptor = ArgumentCaptor.forClass(Task.class);
     when(taskRepository.save(taskCaptor.capture())).thenAnswer(inv -> inv.getArgument(0));
 
-    taskService.updateSeriesFrom(taskId, firstOccurrence, request, request.priority() != null);
+    recurringTaskSeriesService.updateSeriesFrom(
+        taskId, firstOccurrence, request, request.priority() != null);
 
     Task savedOriginal = taskCaptor.getAllValues().getFirst();
     assertThat(savedOriginal.getRruleEndsAt())
@@ -876,7 +1043,9 @@ class TaskServiceMutationTest {
     TaskPatchParameters request = taskRequest("Modified", RecurrenceScope.THIS_ONLY, null);
 
     assertThatThrownBy(
-            () -> taskService.updateOccurrence(taskId, null, request, request.priority() != null))
+            () ->
+                taskOccurrenceService.updateOccurrence(
+                    taskId, null, request, request.priority() != null))
         .isInstanceOf(IllegalArgumentException.class);
     verify(taskOccurrenceStateRepository, never()).save(any());
   }
@@ -896,7 +1065,7 @@ class TaskServiceMutationTest {
     ArgumentCaptor<Task> taskCaptor = ArgumentCaptor.forClass(Task.class);
     when(taskRepository.save(taskCaptor.capture())).thenAnswer(inv -> inv.getArgument(0));
 
-    taskService.updateSeriesFrom(
+    recurringTaskSeriesService.updateSeriesFrom(
         taskId, occurrenceScheduledAt, request, request.priority() != null);
 
     List<Task> saved = taskCaptor.getAllValues();
@@ -919,7 +1088,7 @@ class TaskServiceMutationTest {
     ArgumentCaptor<Task> taskCaptor = ArgumentCaptor.forClass(Task.class);
     when(taskRepository.save(taskCaptor.capture())).thenAnswer(inv -> inv.getArgument(0));
 
-    taskService.updateSeriesFrom(
+    recurringTaskSeriesService.updateSeriesFrom(
         taskId, occurrenceScheduledAt, request, request.priority() != null);
 
     Task clone = taskCaptor.getAllValues().get(1);
@@ -973,7 +1142,7 @@ class TaskServiceMutationTest {
     when(taskOccurrenceStateRepository.save(captor.capture()))
         .thenAnswer(inv -> inv.getArgument(0));
 
-    taskService.skipOccurrence(taskId, occurrenceScheduledAt);
+    taskOccurrenceService.skipOccurrence(taskId, occurrenceScheduledAt);
 
     TaskOccurrenceState saved = captor.getValue();
     assertThat(saved.getStatus()).isEqualTo(TaskOccurrenceStatus.SKIPPED);
@@ -1001,7 +1170,7 @@ class TaskServiceMutationTest {
             taskId, occurrenceScheduledAt))
         .thenReturn(Optional.of(existing));
 
-    assertThatThrownBy(() -> taskService.skipOccurrence(taskId, occurrenceScheduledAt))
+    assertThatThrownBy(() -> taskOccurrenceService.skipOccurrence(taskId, occurrenceScheduledAt))
         .isInstanceOf(IllegalArgumentException.class);
   }
 
@@ -1016,7 +1185,7 @@ class TaskServiceMutationTest {
     when(taskRepository.findById(taskId)).thenReturn(Optional.of(task));
     when(taskRepository.save(task)).thenReturn(task);
 
-    taskService.truncateSeriesFrom(taskId, occurrenceScheduledAt);
+    recurringTaskSeriesService.truncateSeriesFrom(taskId, occurrenceScheduledAt);
 
     assertThat(task.getRruleEndsAt()).isEqualTo(occurrenceScheduledAt.minus(1, ChronoUnit.SECONDS));
     verify(taskRepository).save(task);
@@ -1035,7 +1204,7 @@ class TaskServiceMutationTest {
     when(taskRepository.findById(taskId)).thenReturn(Optional.of(task));
     when(taskRepository.save(task)).thenReturn(task);
 
-    taskService.truncateSeriesFrom(taskId, firstOccurrence);
+    recurringTaskSeriesService.truncateSeriesFrom(taskId, firstOccurrence);
 
     assertThat(task.getRruleEndsAt()).isEqualTo(firstOccurrence.minus(1, ChronoUnit.SECONDS));
   }
@@ -1076,7 +1245,7 @@ class TaskServiceMutationTest {
             taskId, occurrenceScheduledAt))
         .thenReturn(Optional.of(existingDone));
 
-    assertThatThrownBy(() -> taskService.skipOccurrence(taskId, occurrenceScheduledAt))
+    assertThatThrownBy(() -> taskOccurrenceService.skipOccurrence(taskId, occurrenceScheduledAt))
         .isInstanceOf(IllegalStateException.class);
     verify(taskRepository, never()).delete(any());
   }
@@ -1101,7 +1270,7 @@ class TaskServiceMutationTest {
     when(taskRecurrenceService.getOccurrencesInRange(any(), any(), any()))
         .thenReturn(List.of(Instant.parse("2026-05-20T10:00:00Z")));
 
-    assertThatThrownBy(() -> taskService.closeOccurrence(taskId, nonExistent))
+    assertThatThrownBy(() -> taskOccurrenceService.closeOccurrence(taskId, nonExistent))
         .isInstanceOf(ResourceNotFoundException.class);
     verify(taskOccurrenceStateRepository, never()).save(any());
   }
@@ -1125,7 +1294,7 @@ class TaskServiceMutationTest {
         .thenThrow(
             new DataIntegrityViolationException("duplicate key value violates unique constraint"));
 
-    assertThatThrownBy(() -> taskService.closeOccurrence(taskId, occurrenceScheduledAt))
+    assertThatThrownBy(() -> taskOccurrenceService.closeOccurrence(taskId, occurrenceScheduledAt))
         .isInstanceOf(DataIntegrityViolationException.class);
   }
 

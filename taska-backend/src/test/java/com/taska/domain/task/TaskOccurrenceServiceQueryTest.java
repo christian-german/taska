@@ -14,6 +14,7 @@ import com.taska.domain.task.repository.TaskRepository;
 import com.taska.domain.task.service.NonRecurringTaskResult;
 import com.taska.domain.task.service.RecurringTaskOccurrenceResult;
 import com.taska.domain.task.service.RecurringTaskSeriesResult;
+import com.taska.domain.task.service.TaskOccurrenceService;
 import com.taska.domain.task.service.TaskResult;
 import com.taska.domain.task.service.TaskService;
 import java.time.Instant;
@@ -30,19 +31,20 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
- * Unit tests for TaskService#findOccurrencesForDateRange. All repository and recurrence-service
- * calls are mocked.
+ * Unit tests for {@link TaskOccurrenceService#findOccurrencesForDateRange}. All repository and
+ * recurrence-service calls are mocked.
  */
 @ExtendWith(MockitoExtension.class)
-class TaskServiceQueryTest {
+class TaskOccurrenceServiceQueryTest {
 
   @Mock private TaskRepository taskRepository;
   @Mock private TaskOccurrenceStateRepository taskOccurrenceStateRepository;
   @Mock private TaskRecurrenceService taskRecurrenceService;
+  @Mock private TaskService taskService;
   @Mock private TaskaProperties taskaProperties;
   @Mock private TaskaProperties.Calendar calendarProperties;
 
-  @InjectMocks private TaskService taskService;
+  @InjectMocks private TaskOccurrenceService taskOccurrenceService;
 
   // ── Period used by most single-day tests ─────────────────────────────────
 
@@ -123,7 +125,7 @@ class TaskServiceQueryTest {
     when(taskRecurrenceService.getOccurrencesInRange(series, start, end))
         .thenReturn(List.of(occurrence));
 
-    List<TaskResult> result = taskService.findOccurrencesForDateRange(DATE, DATE, false);
+    List<TaskResult> result = taskOccurrenceService.findOccurrencesForDateRange(DATE, DATE, false);
 
     // A recurring task reaches a date range as expanded occurrences, never as its definition.
     assertThat(result).noneMatch(RecurringTaskSeriesResult.class::isInstance);
@@ -143,7 +145,7 @@ class TaskServiceQueryTest {
     when(taskRepository.findNonRecurringTasksInPeriod(start, end)).thenReturn(List.of());
     givenNoRecurringTasks(start, end);
 
-    List<TaskResult> result = taskService.findOccurrencesForDateRange(DATE, DATE, false);
+    List<TaskResult> result = taskOccurrenceService.findOccurrencesForDateRange(DATE, DATE, false);
 
     assertThat(result).isEmpty();
     verify(taskRepository).findNonRecurringTasksInPeriod(start, end);
@@ -160,7 +162,7 @@ class TaskServiceQueryTest {
     when(taskRepository.findNonRecurringTasksInPeriod(start, end)).thenReturn(List.of());
     givenNoRecurringTasks(start, end);
 
-    taskService.findOccurrencesForDateRange(dstStart, dstStart, false);
+    taskOccurrenceService.findOccurrencesForDateRange(dstStart, dstStart, false);
 
     verify(taskRepository).findNonRecurringTasksInPeriod(start, end);
     assertThat(end).isEqualTo(start.plusSeconds(23 * 60 * 60));
@@ -175,7 +177,7 @@ class TaskServiceQueryTest {
     when(taskRepository.findNonRecurringTasksInPeriod(START, END)).thenReturn(List.of(task));
     givenNoRecurringTasks(START, END);
 
-    List<TaskResult> result = taskService.findOccurrencesForDateRange(DATE, DATE, false);
+    List<TaskResult> result = taskOccurrenceService.findOccurrencesForDateRange(DATE, DATE, false);
 
     assertThat(result).containsExactly(TaskResult.base(task));
   }
@@ -189,7 +191,7 @@ class TaskServiceQueryTest {
         .thenReturn(List.of(task));
     givenNoRecurringTasks(START, END);
 
-    List<TaskResult> result = taskService.findOccurrencesForDateRange(DATE, DATE, true);
+    List<TaskResult> result = taskOccurrenceService.findOccurrencesForDateRange(DATE, DATE, true);
 
     assertThat(result).containsExactly(TaskResult.base(task));
     verify(taskRepository).findNonRecurringTasksIncludingCompletedInPeriod(START, END);
@@ -211,7 +213,7 @@ class TaskServiceQueryTest {
     when(taskRecurrenceService.getOccurrencesInRange(task, START, END))
         .thenReturn(List.of(occurrenceScheduledAt));
 
-    List<TaskResult> result = taskService.findOccurrencesForDateRange(DATE, DATE, false);
+    List<TaskResult> result = taskOccurrenceService.findOccurrencesForDateRange(DATE, DATE, false);
 
     assertThat(result).containsExactly(TaskResult.occurrence(task, null, occurrenceScheduledAt));
   }
@@ -233,7 +235,7 @@ class TaskServiceQueryTest {
     when(taskRecurrenceService.getOccurrencesInRange(task, START, END))
         .thenReturn(List.of(occurrenceScheduledAt));
 
-    List<TaskResult> result = taskService.findOccurrencesForDateRange(DATE, DATE, false);
+    List<TaskResult> result = taskOccurrenceService.findOccurrencesForDateRange(DATE, DATE, false);
 
     assertThat(result)
         .containsExactly(TaskResult.occurrence(task, doneInstance, occurrenceScheduledAt));
@@ -256,7 +258,7 @@ class TaskServiceQueryTest {
     when(taskRecurrenceService.getOccurrencesInRange(task, START, END))
         .thenReturn(List.of(occurrenceScheduledAt));
 
-    List<TaskResult> result = taskService.findOccurrencesForDateRange(DATE, DATE, false);
+    List<TaskResult> result = taskOccurrenceService.findOccurrencesForDateRange(DATE, DATE, false);
 
     assertThat(result).isEmpty();
   }
@@ -275,7 +277,7 @@ class TaskServiceQueryTest {
         .thenReturn(List.of());
     when(taskRecurrenceService.getOccurrencesInRange(task, START, END)).thenReturn(List.of());
 
-    List<TaskResult> result = taskService.findOccurrencesForDateRange(DATE, DATE, false);
+    List<TaskResult> result = taskOccurrenceService.findOccurrencesForDateRange(DATE, DATE, false);
 
     assertThat(result).isEmpty();
   }
@@ -300,7 +302,7 @@ class TaskServiceQueryTest {
     when(taskRecurrenceService.getOccurrencesInRange(task2, START, END))
         .thenReturn(List.of(scheduled2));
 
-    List<TaskResult> result = taskService.findOccurrencesForDateRange(DATE, DATE, false);
+    List<TaskResult> result = taskOccurrenceService.findOccurrencesForDateRange(DATE, DATE, false);
 
     assertThat(result)
         .containsExactlyInAnyOrder(
@@ -345,7 +347,7 @@ class TaskServiceQueryTest {
         .thenReturn(List.of(occurrenceScheduledAt));
 
     List<TaskResult> result =
-        taskService.findOccurrencesForDateRange(originalDay, originalDay, false);
+        taskOccurrenceService.findOccurrencesForDateRange(originalDay, originalDay, false);
 
     // Occurrence moved to May 23 — May 21 should be empty.
     assertThat(result).isEmpty();
@@ -386,7 +388,8 @@ class TaskServiceQueryTest {
     when(taskRecurrenceService.getOccurrencesInRange(task, newStart, newEnd))
         .thenReturn(List.of(movedScheduledAt));
 
-    List<TaskResult> result = taskService.findOccurrencesForDateRange(newDay, newDay, false);
+    List<TaskResult> result =
+        taskOccurrenceService.findOccurrencesForDateRange(newDay, newDay, false);
 
     assertThat(result)
         .anyMatch(
@@ -422,7 +425,7 @@ class TaskServiceQueryTest {
     when(taskRecurrenceService.getOccurrencesInRange(task, start, end))
         .thenReturn(List.of(atSkipped, atDone, atVirtual));
 
-    List<TaskResult> result = taskService.findOccurrencesForDateRange(from, to, false);
+    List<TaskResult> result = taskOccurrenceService.findOccurrencesForDateRange(from, to, false);
 
     assertThat(result)
         .containsExactlyInAnyOrder(

@@ -43,8 +43,6 @@ interface TaskBase {
   priority: 1 | 2 | 3 | 4 | null;
   labels: string[];
   scheduledAt: string | null;
-  /** Deadline by which the task should be completed; independent of calendar scheduling. */
-  dueAt: string | null;
   allDay: boolean;
   estimateMinutes?: number | null;
   mentionContext?: string | null;
@@ -54,6 +52,8 @@ interface TaskBase {
 
 export interface NonRecurringTask extends TaskBase {
   kind: 'NON_RECURRING';
+  /** Deadline by which the task should be completed; independent of calendar scheduling. */
+  dueAt: string | null;
   isCompleted: boolean;
   completedAt: string | null;
   recurrenceRule?: never;
@@ -76,6 +76,8 @@ export interface RecurringTaskSeries extends TaskBase {
 
 export interface RecurringTaskOccurrence extends TaskBase {
   kind: 'RECURRING_OCCURRENCE';
+  /** Deadline explicitly assigned to this occurrence; null means no occurrence deadline. */
+  dueAt: string | null;
   recurrenceRule: string | null;
   rruleEndsAt: string | null;
   isCompleted: boolean;

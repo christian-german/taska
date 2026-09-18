@@ -194,37 +194,42 @@ const RECURRENCE_OPTIONS = [
             </div>
 
             <!-- ── DUE DATE ─────────────────────────────────────────── -->
-            <div style="position:relative;">
-              <button
-                style="width:100%;display:flex;align-items:center;gap:10px;font-size:13px;background:transparent;border:0;padding:6px 8px;cursor:pointer;text-align:left;border-radius:7px;color:inherit;"
-                (click)="togglePicker('due')"
-              >
-                <app-icon name="flag" [size]="14" color="#FF8A3D" />
-                <span style="flex:1;" [style.color]="manualDueAt() ? 'var(--ink)' : 'var(--ink-2)'">
-                  {{ dueDateRowLabel() }}
-                </span>
-                @if (manualDueAt()) {
-                  <span
-                    (click)="clearManual($event, 'due')"
-                    style="color:var(--mute);font-size:15px;line-height:1;cursor:pointer;"
-                    >×</span
-                  >
-                }
-              </button>
-
-              @if (activePicker() === 'due') {
-                <div
-                  style="position:absolute;left:0;top:calc(100% + 4px);z-index:56;background:var(--bg);border:1px solid var(--line);border-radius:10px;box-shadow:0 6px 24px rgba(0,0,0,.14);padding:12px;min-width:260px;"
-                  (click)="$event.stopPropagation()"
+            @if (!effectiveRecurrence()) {
+              <div style="position:relative;">
+                <button
+                  style="width:100%;display:flex;align-items:center;gap:10px;font-size:13px;background:transparent;border:0;padding:6px 8px;cursor:pointer;text-align:left;border-radius:7px;color:inherit;"
+                  (click)="togglePicker('due')"
                 >
-                  <app-datetime-picker
-                    [value]="dueDatePickerValue()"
-                    [withTime]="true"
-                    (valueChange)="onDueDateChange($event)"
-                  />
-                </div>
-              }
-            </div>
+                  <app-icon name="flag" [size]="14" color="#FF8A3D" />
+                  <span
+                    style="flex:1;"
+                    [style.color]="manualDueAt() ? 'var(--ink)' : 'var(--ink-2)'"
+                  >
+                    {{ dueDateRowLabel() }}
+                  </span>
+                  @if (manualDueAt()) {
+                    <span
+                      (click)="clearManual($event, 'due')"
+                      style="color:var(--mute);font-size:15px;line-height:1;cursor:pointer;"
+                      >×</span
+                    >
+                  }
+                </button>
+
+                @if (activePicker() === 'due') {
+                  <div
+                    style="position:absolute;left:0;top:calc(100% + 4px);z-index:56;background:var(--bg);border:1px solid var(--line);border-radius:10px;box-shadow:0 6px 24px rgba(0,0,0,.14);padding:12px;min-width:260px;"
+                    (click)="$event.stopPropagation()"
+                  >
+                    <app-datetime-picker
+                      [value]="dueDatePickerValue()"
+                      [withTime]="true"
+                      (valueChange)="onDueDateChange($event)"
+                    />
+                  </div>
+                }
+              </div>
+            }
 
             <!-- ── PROJET ───────────────────────────────────────────── -->
             <div style="position:relative;">
@@ -840,11 +845,12 @@ export class QuickAddComponent implements OnInit {
 
     let scheduledAt: string | null = null;
     const manualDueAt = this.manualDueAt();
-    const dueAt = manualDueAt
-      ? manualDueAt.includes('T')
-        ? manualDueAt
-        : manualDueAt + 'T00:00:00Z'
-      : null;
+    const dueAt =
+      !this.effectiveRecurrence() && manualDueAt
+        ? manualDueAt.includes('T')
+          ? manualDueAt
+          : manualDueAt + 'T00:00:00Z'
+        : null;
     let allDay = false;
     if (manual) {
       scheduledAt = hasTime ? manual : manual + 'T00:00:00Z';

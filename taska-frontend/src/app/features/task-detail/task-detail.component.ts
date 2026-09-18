@@ -138,8 +138,12 @@ export class TaskDetailComponent implements OnChanges {
     const scheduledAt = this.task().scheduledAt;
     return scheduledAt ? new Date(scheduledAt) : null;
   });
+  dueAt = computed(() => {
+    const task = this.task();
+    return task.kind === 'RECURRING_SERIES' ? null : task.dueAt;
+  });
   dueDate = computed(() => {
-    const dueAt = this.task().dueAt;
+    const dueAt = this.dueAt();
     return dueAt ? new Date(dueAt) : null;
   });
 
@@ -276,7 +280,7 @@ export class TaskDetailComponent implements OnChanges {
   }
 
   datePickerValue = computed(() => this.task().scheduledAt ?? '');
-  dueDatePickerValue = computed(() => this.task().dueAt ?? '');
+  dueDatePickerValue = computed(() => this.dueAt() ?? '');
 
   onDatetimeChange(value: string): void {
     const hasTime = value.includes('T');

@@ -20,6 +20,7 @@ import com.taska.domain.task.repository.TaskRepository;
 import com.taska.domain.task.service.RecurringTaskSeriesService;
 import com.taska.domain.task.service.TaskOccurrenceService;
 import com.taska.domain.task.service.TaskPatchParameters;
+import com.taska.domain.task.service.TaskResult;
 import com.taska.domain.task.service.TaskService;
 import com.taska.domain.task.service.TaskUpdateParameters;
 import java.time.Instant;
@@ -323,5 +324,53 @@ class RecurringTaskSeriesServiceTest {
     recurringTaskSeriesService.truncateSeriesFrom(taskId, firstOccurrence);
 
     assertThat(task.getRruleEndsAt()).isEqualTo(firstOccurrence.minus(1, ChronoUnit.SECONDS));
+  }
+
+  @Test
+  void truncateSeriesFrom_detachesTheStatesItStrands() {
+    UUID seriesId = randomId();
+    Task series = buildRecurringTask(seriesId);
+    Instant cut = Instant.parse("2026-05-20T10:00:00Z");
+    when(taskRepository.findById(seriesId)).thenReturn(Optional.of(series));
+
+    recurringTaskSeriesService.truncateSeriesFrom(seriesId, cut);
+
+    assertThat(series.getRruleEndsAt()).isEqualTo(cut.minusSeconds(1));
+    verify(taskOccurrenceStateRepository)
+        .findBySeriesIdAndOccurrenceScheduledAtGreaterThanEqual(seriesId, cut);
+  }
+
+  @Test
+  void updateSeriesFrom_startsTheSuccessorWhereTheCallerMovesTheRhythm() {
+    UUID seriesId = randomId();
+    Task series = buildRecurringTask(seriesId);
+    Instant cut = Instant.parse("2026-05-20T10:00:00Z");
+    Instant movedStart = Instant.parse("2026-05-19T18:00:00Z");
+    when(taskRepository.findById(seriesId)).thenReturn(Optional.of(series));
+    when(taskRepository.save(any(Task.class))).thenAnswer(invocation -> invocation.getArgument(0));
+    TaskPatchParameters parameters =
+        new TaskPatchParameters(
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            movedStart,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            RecurrenceScope.FROM_THIS,
+            cut,
+            null);
+
+    TaskResult result =
+        recurringTaskSeriesService.updateSeriesFrom(seriesId, cut, parameters, false);
+
+    assertThat(result.task().getScheduledAt()).isEqualTo(movedStart);
   }
 }

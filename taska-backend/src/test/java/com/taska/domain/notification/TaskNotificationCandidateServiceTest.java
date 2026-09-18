@@ -150,4 +150,25 @@ class TaskNotificationCandidateServiceTest {
     occurrenceState.setStatus(status);
     return occurrenceState;
   }
+
+  @Test
+  void aSeriesWithAnUnusableRuleDoesNotCostTheOtherTasksTheirNotification() {
+    Task broken = recurringTask(false);
+    Task healthy = recurringTask(false);
+    Instant occurrenceScheduledAt = Instant.parse("2026-05-20T10:10:00Z");
+    when(taskRepository.findActiveRecurringTasksForPeriod(WINDOW_START, WINDOW_END))
+        .thenReturn(List.of(broken, healthy));
+    when(taskOccurrenceStateRepository.findByStatusAndScheduledAtBetween(
+            TaskOccurrenceStatus.MODIFIED, WINDOW_START, WINDOW_END))
+        .thenReturn(List.of());
+    when(taskOccurrenceStateRepository.findBySeriesIdInAndOccurrenceScheduledAtBetween(
+            List.of(broken.getId(), healthy.getId()), WINDOW_START, WINDOW_END))
+        .thenReturn(List.of());
+    when(taskRecurrenceService.getOccurrencesInRange(broken, WINDOW_START, WINDOW_END))
+        .thenThrow(new IllegalArgumentException("Invalid recurrence_rule"));
+    when(taskRecurrenceService.getOccurrencesInRange(healthy, WINDOW_START, WINDOW_END))
+        .thenReturn(List.of(occurrenceScheduledAt));
+
+    assertThat(service.findEligible(WINDOW_START, WINDOW_END)).hasSize(1);
+  }
 }

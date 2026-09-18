@@ -1,143 +1,140 @@
-❯ Sans modifier le code, peux-tu me faire un bilan ici de ce qu'il reste à faire pour envisager la séparation, à minima dans le layer service, des deux notions tasks et occurrence. Et également, réfléchir à ces questions:
-\- Les mappers devraient sortir de la couche controller
+# Résumé de la journée
 
-\- est-ce que "dueAt" sur les définition de tâches récurrentes a encore du sens?
+1. Le point de départ : votre reproduction
 
-- Renommer TaskInstance qui n'est pas représentatif de ce que c'est vraiment : Une modification d'une occurrence d'une série.
+Vous avez créé une série quotidienne, marqué une occurrence future à DONE, puis supprimé la récurrence depuis l'occurrence du jour. Résultat : une ligne is_recurring = true avec recurrence_rule = NULL.
 
-Je rassemble les faits avant de répondre — aucun fichier ne sera modifié.
+L'analyse a fait apparaître trois défauts distincts dans un seul parcours :
 
-Searched for 3 patterns, ran 4 shell commands
+┌───────────────────────────────────────────────────────────┬──────────────────────────────────────────────────────────────┐
+│                          Défaut                           │                            Nature                            │
+├───────────────────────────────────────────────────────────┼──────────────────────────────────────────────────────────────┤
+│ Invariant is_recurring ⇒ recurrence_rule non vérifié      │ ni validation applicative, ni contrainte en base             │
+├───────────────────────────────────────────────────────────┼──────────────────────────────────────────────────────────────┤
+│ Aucune opération « arrêter la récurrence » sur /following │ l'endpoint rejette isRecurring: false, le client a contourné │
+├───────────────────────────────────────────────────────────┼──────────────────────────────────────────────────────────────┤
+│ États d'occurrence orphelins au-delà d'une troncature     │ aucun des trois chemins de troncature ne nettoyait           │
+└───────────────────────────────────────────────────────────┴──────────────────────────────────────────────────────────────┘
 
-Aucun fichier modifié — uniquement de la lecture. Voici l'état des lieux.
+Deux conséquences non évidentes sont apparues à la lecture du code : la ligne corrompue tue toute la campagne de notifications (l'expansion lève hors du @Scheduled, sans try/catch), et les orphelins ne sont pas dormants — la boucle « moved in » affiche les MODIFIED orphelins dans le calendrier.
 
-1. Séparer tâches et occurrences dans le service
+2. Les décisions, et pourquoi
 
-Ce qui est déjà acquis
+La règle de récurrence n'est jamais rétroactive
 
-La partie difficile est faite. TaskResult est scellé sur trois variantes, RecurringTaskOccurrenceResult porte la règle de résolution, TaskRecurrenceService isole déjà l'expansion RRULE, et getOrThrow est redevenu privé. Le compilateur sait désormais distinguer les trois notions ; il reste à ce que le service les traite séparément.
+Modifier la règle en place recalcule les occurrences passées depuis le DTSTART. Un passage de quotidien à hebdomadaire rend inatteignables tous les DONE posés sur des jours que la nouvelle règle ne génère plus : on affirmerait rétroactivement un rythme qui n'a pas eu lieu. Le passé est un fait, pas un paramètre.
+
+Exception conservée : l'édition en place quand la série n'a aucun état — il n'y a rien à préserver, et c'est le cas fréquent de la correction juste après création.
+
+Plus de choix de portée pour la récurrence
+
+Conséquence directe de la précédente : si un changement de règle s'applique toujours « à partir de maintenant », l'utilisateur n'a plus rien à arbitrer. La question « cette occurrence / toute la suite » disparaît pour la récurrence.
+
+Ancre et règle sont deux opérations différentes
+
+Le piège qui brouillait toute la discussion : « décaler l'horaire » désigne deux choses. Sur une occurrence, c'est une ancre MODIFIED — votre exemple du cours de guitare, mécanisme inchangé. Sur la série, l'horaire n'est pas dans la RRULE mais dans scheduled_at, qui sert de DTSTART : le modifier régénère tous les instants, passés compris. C'est donc un paramètre générateur, et ça tronque.
+
+Le flag detached — la décision pivot
+
+C'est votre proposition, et elle a dissous le problème au lieu de l'arbitrer. Une ancre orpheline garde un sens : un DONE est un fait daté, un MODIFIED un placement délibéré. La garder affichable a supprimé trois règles d'un coup — le repoussement de la frontière, l'alerte de perte, et le transfert des ancres vers le successeur.
+
+SKIPPED fait exception et reste supprimé : un saut est une absence, sans objet une fois l'occurrence disparue. Il n'y a rien à afficher.
+
+Flag stocké plutôt que dérivé
+
+Dérivé serait toujours exact et permettrait le réattachement si la règle revenait en arrière. Mais les lectures dominent — l'expansion tourne à chaque vue jour et semaine — alors que le détachement ne survient qu'au changement de règle, c'est-à-dire dans l'opération qui fait déjà le travail de troncature. Contrepartie assumée : pas de réattachement automatique.
+
+Ce qui a été écarté, et pourquoi
+
+Le modèle à périodes de validité (une ligne tasks, un historique de règles) : il ne règle pas le problème d'ancre, puisque celui-ci naît du placement de la frontière, pas de la forme de stockage — votre exemple des courses produit exactement la même orpheline dans ce modèle. Il ne règle que la fragmentation d'id, et déplace la complexité vers le chemin de lecture le plus chaud. Le compromis est l'inverse de l'intuition : l'option qui garde un seul id est la plus coûteuse à lire.
+
+La matérialisation des orphelines en tâches ponctuelles : même résultat visible, chemin de lecture inchangé, mais perte du lien à la série — précisément ce qu'on cherchait à préserver.
+
+La fragmentation d'id est assumée, series_root_id reporté. Coût connu et accepté : commentaires et sous-tâches ne suivent pas le successeur.
+
+Sur TaskOccurrenceState
+
+Confirmé que le DONE futur reste autorisé — « faire les courses la veille » est un usage normal, pas un cas marginal. C'est ce qui a donné du poids à votre exemple et fait émerger le flag.
+
+3. Ce qui a été livré
+
+Lot 1 — les garde-fous. Invariant is_recurring ⇒ recurrence_rule aux quatre chemins d'écriture, doublé d'un CHECK en base (V26) et d'une migration qui bascule les lignes corrompues en non récurrentes. Filtre sur la règle dans les candidats à notification, plus isolation par série pour qu'une règle invalide ne coûte plus ses notifications à tout le monde. Boucle « moved in » bornée par la portée réelle de la série.
+
+Lot 2 — les ancres détachées. Colonne detached (V27), marquage aux trois points de troncature, SKIPPED supprimés, lecture par une requête non adossée aux séries actives — c'était le point délicat, une ancre détachée survit à la portée de sa série. Exposition dans les deux contrats, HTTP et MCP, et dans l'OpenAPI. Alignement de updateSeriesFrom sur replaceFollowing pour le point de départ du successeur.
+
+La migration V27 traite aussi les orphelins déjà en base : votre occurrence terminée devrait réapparaître au déploiement.
+
+205 tests, contre 192 au début de la journée.
+
+4. Ce qui reste ouvert
+
+Le lot 3 : mise à jour des deux clients pour isDetached, décision d'affichage d'une occurrence détachée, retitrage du dialogue générique — il s'affiche aujourd'hui pour n'importe quel champ sous le titre « Modifier la récurrence » — et le renommage en « Arrêter la série ».
+
+Deux décisions volontairement différées : series_root_id et la copie des commentaires et sous-tâches vers le successeur.
+
+Et un défaut de conception relevé mais non traité : /following refuse toujours isRecurring: false, donc « arrêter la série » n'a pas d'expression légitime sur cet endpoint. C'est la cause racine de votre reproduction — DELETE avec scope: FROM_THIS fait déjà le travail, le client se trompe d'appel.
+
+Si vous voulez ce récapitulatif en document partageable plutôt qu'en scrollback, je peux le publier.
+
+
+---
+
+# Dernière discussion
+
+Trois lots
+
+Lot 1 — les garde-fous. Aucune décision requise, que du correctif. C'est ce qui saigne aujourd'hui :
+
+- interdire is_recurring = true sans recurrence_rule — validation applicative + contrainte CHECK + migration qui nettoie les lignes existantes, dont celle de votre repro ;
+- filtrer sur la règle dans TaskNotificationCandidateService et encadrer chaque série d'un try/catch dans le scheduler, pour qu'une ligne aberrante ne coupe plus toutes les notifications ;
+- borner la boucle « moved in » de findOccurrencesForDateRange sur rrule_ends_at, pour que les MODIFIED orphelins cessent de s'afficher.
+
+Lot 2 — la règle non rétroactive. Le cœur de ce qu'on vient de décider :
+
+- toute modification de règle passe par troncature + successeur ;
+- coupure repoussée après le dernier DONE ;
+- suppression des MODIFIED/SKIPPED au-delà, avec le compte renvoyé au client pour l'alerte ;
+- aligner updateSeriesFrom et replaceFollowing, qui ne s'accordent pas sur la date de départ du successeur ;
+- migration ponctuelle nettoyant les orphelins déjà en base.
+
+Ce lot change le comportement de l'API : il demande le travail client en parallèle.
+
+Lot 3 — le confort. series_root_id, le retitrage du dialogue, l'alerte côté front.
+
+Ce que je propose
+
+Je démarre le lot 1 maintenant. Il ne dépend d'aucun arbitrage restant, il est entièrement couvrable par des tests, et il ferme une corruption de données et une panne de notifications qui sont actives en production.
+
+Il reste une seule décision ouverte : series_root_id, oui ou non. Elle ne bloque pas le lot 1, mais c'est la seule qu'on ne pourra pas rattraper — une fois des chaînes de séries créées sans le lien, la relation est perdue. Si vous dites oui, je l'ajoute dans le lot 1 tant qu'on touche aux migrations.
+
+
+# Dernière action effectuée
+
+Lot 1 — les garde-fous
+
+L'invariant is_recurring ⇒ recurrence_rule est posé aux quatre chemins d'écriture — création, patch, remplacement complet, et le successeur construit par updateSeriesFrom qui ne passe pas par replaceMutableFields. Doublé d'un CHECK en base (V26), avec la migration qui bascule les lignes existantes en non récurrentes — dont celle de votre reproduction.
+
+Le test qui a cassé au passage était le bon signal : update_convertingTaskToRecurring convertissait une tâche en série sans fournir de règle, c'est-à-dire fabriquait exactement la ligne qu'on élimine. C'est la fixture que j'ai corrigée, pas la règle.
+
+La panne de notifications est traitée à deux niveaux : eligibleRecurringTask filtre désormais sur la règle non nulle, et l'expansion de chaque série est isolée. Une règle syntaxiquement invalide — cas que le CHECK ne couvre pas — fait désormais perdre ses notifications à cette série seule, plus à toutes les autres.
+
+La boucle « moved in » est bornée par la portée réelle de la série, donc les ancres hors de cette portée cessent de s'afficher par accident.
+
+Lot 2 — les ancres détachées
+
+Le mécanisme est en place de bout en bout : colonne detached (V27), marquage aux trois points de troncature, lecture par une requête indexée sur la date effective, et exposition dans les deux contrats.
+
+Trois choses méritent d'être signalées explicitement :
+
+La requête de lecture n'est pas adossée à la liste des séries actives. C'était le point délicat : une ancre détachée survit à la portée de sa série, donc findActiveRecurringTasksForPeriod ne la retrouverait jamais. Elle est collectée par sa propre date, avant la boucle principale.
+
+Les SKIPPED sont supprimés, pas détachés — un saut est une absence, sans objet une fois l'occurrence disparue. La migration V27 applique la même règle aux orphelins déjà en base : SKIPPED supprimés, DONE et MODIFIED marqués détachés. Votre occurrence terminée puis orpheline par la scission devrait donc réapparaître au déploiement.
+
+updateSeriesFrom honore enfin scheduledAt. Les deux chemins FROM_THIS divergeaient : le successeur était forcé à démarrer à l'instant de coupure. Votre scénario « à partir d'ici, passe au jeudi » est maintenant exprimable par les deux.
 
 Ce qui reste
 
-TaskService : 722 lignes, 14 méthodes publiques, 7 dépendances, 8 tests sur getIsRecurring(). Ces 14 méthodes se répartissent en quatre familles :
+Le contrat OpenAPI porte isDetached en champ requis — les deux clients doivent être mis à jour. Android en particulier : la data class Gson devra accepter le champ, et surtout l'UI doit décider comment rendre une occurrence détachée. C'est le lot 3 avec le retitrage du dialogue et « Arrêter la série ».
 
-┌────────────────────┬─────────────────────────────────────────────────────────────────────┬───────────────────────────────────────────┐
-│      Famille       │                              Méthodes                               │                  Nature                   │
-├────────────────────┼─────────────────────────────────────────────────────────────────────┼───────────────────────────────────────────┤
-│ Ligne tasks pure   │ findAll, findById, create, replace, getSubtasks, findTasksDueAround │ ne connaissent pas la notion d'occurrence │
-├────────────────────┼─────────────────────────────────────────────────────────────────────┼───────────────────────────────────────────┤
-│ Occurrence pure    │ findOccurrencesForDateRange, replaceOccurrence                      │ ne touchent jamais une tâche ponctuelle   │
-├────────────────────┼─────────────────────────────────────────────────────────────────────┼───────────────────────────────────────────┤
-│ Mixtes             │ update, delete, close, reopen                                       │ portent l'aiguillage en leur sein         │
-├────────────────────┼─────────────────────────────────────────────────────────────────────┼───────────────────────────────────────────┤
-│ Structure de série │ replaceFollowing                                                    │ tronque + clone une ligne                 │
-└────────────────────┴─────────────────────────────────────────────────────────────────────┴───────────────────────────────────────────┘
+Et deux points laissés ouverts en connaissance de cause : la fragmentation d'id assumée (on verra pour copier commentaires et sous-tâches), et le point de coupure fixé par défaut à la première occurrence après maintenant — une expression à un endroit si vous voulez autre chose.
 
-Le travail tient dans les quatre méthodes mixtes. Elles ont toutes la même forme : if (pas récurrent || pas d'occurrence fournie) { chemin tâche } else { chemin occurrence }. C'est la forme d'un switch sur un type qui n'existe pas encore au moment de l'appel.
-
-Le point d'aiguillage existe déjà
-
-TaskMutationService est aujourd'hui un décorateur qui ne fait que publier une notification. C'est pourtant exactement le bon endroit pour l'aiguillage : il est indépendant du transport, il est déjà la frontière de mutation, et HTTP comme MCP passent par lui. Il charge la tâche, décide « ponctuelle / série / occurrence », et délègue à TaskService ou à un TaskOccurrenceService.
-
-L'ordre que je suivrais
-
-Étape 1 — Rendre les signatures explicites, sans changer de comportement. Aujourd'hui c'est la forme des paramètres qui décide : close(taskId, params) avec params.occurrenceScheduledAt() == null signifie « tâche », sinon « occurrence ». Tant que ce sera vrai, aucune séparation n'est possible, parce que le service ne peut trancher qu'après avoir lu ses arguments. Il faut passer à closeTask(taskId) / closeOccurrence(taskId, at), et de même pour reopen, delete, update. Mécanique, testable pas à pas, et c'est ce qui rend les trois étapes suivantes faciles. C'est le vrai préalable.
-
-Étape 2 — Déplacer l'aiguillage dans TaskMutationService. Les 8 getIsRecurring() disparaissent de TaskService et deviennent un seul point de décision, en tête de chaîne.
-
-Étape 3 — Extraire TaskOccurrenceService. Il récupère findOccurrencesForDateRange, replaceOccurrence, les branches occurrence de close/reopen/delete/update, validateOccurrence, et devient le seul utilisateur de TaskInstanceRepository et de TaskRecurrenceService. TaskService retombe autour de 350 lignes avec 4 dépendances.
-
-Étape 4 — replaceFollowing et le FROM_THIS de update. Ces deux-là ne sont ni tâche ni occurrence : ils manipulent la structure d'une série (tronquer, cloner). Ils justifient peut-être un troisième service, RecurringSeriesService, ou restent dans TaskService comme opérations sur la définition.
-
-Deux obstacles à anticiper
-
-priorityEvaluationRepository.deleteByTaskId(taskId) est appelé sur 5 chemins de mutation. C'est un effet de bord transverse qui va se retrouver écartelé entre les deux services. Il devrait devenir un événement applicatif — le même mouvement que celui qui ferait disparaître TaskMutationService en tant que décorateur.
-
-TaskServiceMutationTest fait environ 1 080 lignes et couvre les deux natures. Il se scindera selon la même ligne, mais c'est un volume à prévoir.
-
-Ce que la séparation ferait tomber
-
-Quatre défauts connus, tous symptômes de la confusion actuelle :
-
-1. reopen détruit les personnalisations d'une occurrence modifiée (suppression de la ligne au lieu d'un retour à MODIFIED).
-2. Asymétrie close/reopen : sur une série sans occurrence, close rejette, reopen écrit isCompleted = false sur le gabarit.
-3. Le scheduler de notifications traite une série comme une tâche. findTasksDueAround n'a aucun filtre isRecurring, et TaskNotificationScheduler:59 fait task.setIsNotified(true) sur la ligne. Une tâche récurrente est donc notifiée une seule fois dans sa vie, à son DTSTART, puis plus jamais. C'est un vrai bug produit, pas une élégance de code.
-4. TaskPriorityEvaluationService:74 se protège par un !isRecurring ad hoc. Avec des services séparés, cette garde devient structurelle au lieu d'être une condition qu'on peut oublier ailleurs.
-
----
-
-2. Les mappers devraient-ils sortir de controller ?
-
-Non — mais votre intuition pointe un vrai problème, qui n'est pas leur emplacement.
-
-Un mapper existe pour traduire les types d'un transport donné. TaskMapper connaît TaskDto, TaskMcpMapper connaît TaskMcpOutput : aucun des deux n'est réutilisable ailleurs. Les sortir vers un package mapper recréerait une couche technique transverse aux features — exactement ce que l'organisation par feature refuse. Et depuis qu'on a remonté la résolution d'occurrence dans RecurringTaskOccurrenceResult, ils sont devenus fins : de la recopie de champs et des @Mapping. Il n'y a plus de logique à en extraire.
-
-Ce qui gêne réellement, ce sont deux dépendances croisées entre features :
-
-ProjectController  →  TaskMapper                    (project → controller de task)
-TaskController     →  TaskPriorityEvaluationMapper  (task → controller de priority)
-
-Et dans les deux cas, la dépendance existe pour compenser un défaut de découpage, pas parce qu'un mapper serait mal placé :
-
-- GET /projects/{id}/tasks fait doublon avec GET /tasks?projectId=, qui existe déjà et fonctionne. L'endpoint redondant est la seule raison pour laquelle ProjectController a besoin de projeter des tâches. Le supprimer élimine la dépendance sans rien déplacer.
-- La feature priority n'a pas de contrôleur ; son unique endpoint est greffé sur TaskController. Lui donner son propre TaskPriorityEvaluationController — en gardant la même URL /tasks/{taskId}/priority-evaluation — supprime la seconde dépendance et complète une feature aujourd'hui amputée.
-
-Donc : garder les mappers où ils sont, et retirer les deux raisons qu'ont les features de se traverser.
-
----
-
-3. dueAt sur une définition récurrente
-
-Non, il n'a plus de sens — et le code le dit déjà plus fort que je ne le pensais.
-
-Le constat factuel d'abord : aucune requête du dépôt ne filtre sur due_at. Les trois requêtes de période filtrent t.scheduledAt, et findTasksDueAround aussi, malgré son nom. Pire, les Javadoc de findNonRecurringTasksInPeriod et de sa variante annoncent « whose due date falls within [start, end) » alors que le JPQL lit scheduledAt. Tout le vocabulaire « due » du dépôt est faux : un nom de méthode et trois commentaires. dueAt n'est aujourd'hui qu'un champ stocké, recopié et affiché — il ne pilote aucune requête, aucune notification, aucun tri.
-
-Sur le fond ensuite : sur une série, dueAt est un instant absolu unique hérité par toutes les occurrences. Une tâche quotidienne dont dueAt vaut le 20 mai 2026 donne à l'occurrence de mars 2027 une échéance située dix mois dans le passé. Ce n'est pas discutable, c'est simplement dénué de sens.
-
-Au niveau de l'instance, en revanche, dueAt est parfaitement légitime : « cette occurrence-ci est due à telle heure ». C'est une surcharge ponctuelle, pas un gabarit.
-
-Trois issues possibles :
-
-- Retirer dueAt de la définition de série. RecurringTaskSeriesDto le perd, resolvedDueAt() se réduit à l'instance seule. Honnête, et c'est un champ qui ne sert déjà à rien. Coût : rupture de contrat, donc à grouper avec un autre changement client.
-- Le réinterpréter en décalage : dueAfter: Duration sur la série, résolu par occurrence (occurrenceScheduledAt + dueAfter). C'est la sémantique qu'on attend vraiment d'une échéance récurrente, mais c'est un changement de type et un nouveau champ à faire vivre dans les trois clients.
-- Le garder comme valeur d'affichage par défaut, en assumant.
-
-Je ferais la première maintenant et la seconde le jour où le produit demande des échéances sur les occurrences. Indépendamment du choix : le vocabulaire « due » du dépôt est à corriger dès maintenant, il induit en erreur quiconque lit ces requêtes.
-
----
-
-4. Renommer TaskInstance
-
-D'accord sur le principe, avec une nuance sur la définition.
-
-Vous le décrivez comme « une modification d'une occurrence d'une série ». C'est vrai pour le statut MODIFIED, mais la ligne porte aussi DONE et SKIPPED — terminer ou sauter une occurrence n'est pas la modifier. Ce que la ligne matérialise, c'est l'écart entre ce que la RRULE produirait seule et ce qui s'est réellement passé pour cette occurrence : elle a été faite, sautée, ou altérée.
-
-Le code a déjà le bon mot pour son contraire : virtual(). La phrase qui doit rester vraie après le renommage est « une occurrence est virtuelle tant qu'il n'existe pas de X ».
-
-┌────────────────────────┬───────────────────────────────────────────────────────────┐
-│        Candidat        │                          Verdict                          │
-├────────────────────────┼───────────────────────────────────────────────────────────┤
-│ OccurrenceOverride     │ juste pour MODIFIED, faux pour DONE et SKIPPED            │
-├────────────────────────┼───────────────────────────────────────────────────────────┤
-│ PersistedOccurrence    │ s'oppose exactement à virtual(), couvre les trois statuts │
-├────────────────────────┼───────────────────────────────────────────────────────────┤
-│ OccurrenceRecord       │ neutre et correct, un peu pâle                            │
-├────────────────────────┼───────────────────────────────────────────────────────────┤
-│ MaterializedOccurrence │ précis mais jargonneux                                    │
-└────────────────────────┴───────────────────────────────────────────────────────────┘
-
-Ma préférence va à PersistedOccurrence, avec TaskInstanceStatus → OccurrenceStatus.
-
-Deux renommages vont plus loin que le nom de la classe :
-
-taskId sur cette entité désigne toujours une série, jamais une tâche ponctuelle — seriesId dirait la vérité et rendrait la contrainte évidente à la lecture.
-
-instanceId, en revanche, est exposé dans RecurringTaskOccurrenceDto : le renommer touche le contrat et les deux clients. À grouper avec le changement sur dueAt plutôt qu'à faire seul.
-
-Bonne nouvelle sur le coût : en gardant @Table(name = "task_instances"), le renommage Java ne demande aucune migration de base. On peut donc le faire tout de suite et laisser le nom de table diverger, ou aligner la table plus tard dans une migration dédiée.
-
----
-
-Ce que je ferais dans quel ordre
-
-Le renommage de TaskInstance est indolore et améliore la lisibilité de tout ce qui suit — je le passerais en premier. Les deux défauts close/reopen ensuite, puisque vous vouliez les traiter maintenant et qu'ils sont petits. Puis l'étape 1 de la séparation, qui est le vrai verrou. Le bug de notification des récurrentes mérite d'être traité indépendamment et sans attendre : c'est le seul de la liste qui soit visible par un utilisateur.

@@ -401,4 +401,77 @@ class TaskServiceMutationTest {
     assertThat(task.getType()).isEqualTo(TaskType.APPOINTMENT);
     assertThat(task.getContent()).isEqualTo("Non-recurring task");
   }
+
+  @Test
+  void create_recurringWithoutARule_isRejected() {
+    TaskCreateParameters parameters =
+        new TaskCreateParameters(
+            "Series without a rule",
+            null,
+            null,
+            null,
+            0,
+            null,
+            null,
+            null,
+            null,
+            false,
+            true,
+            null,
+            null,
+            null,
+            TaskType.TODO);
+
+    assertThatThrownBy(() -> taskService.create(parameters))
+        .isInstanceOf(IllegalArgumentException.class)
+        .hasMessageContaining("requires a recurrence rule");
+    verify(taskRepository, never()).save(any());
+  }
+
+  @Test
+  void update_convertingToRecurringWithoutARule_isRejectedWithoutMutatingTheTask() {
+    UUID taskId = randomId();
+    Task task = buildNonRecurringTask(taskId);
+    when(taskRepository.findById(taskId)).thenReturn(Optional.of(task));
+    TaskPatchParameters patch =
+        new TaskPatchParameters(
+            null, null, null, null, null, null, null, null, null, null, true, null, null, null,
+            null, null, null);
+
+    assertThatThrownBy(() -> taskService.updateTask(taskId, patch, false))
+        .isInstanceOf(IllegalArgumentException.class)
+        .hasMessageContaining("requires a recurrence rule");
+    assertThat(task.getIsRecurring()).isFalse();
+    verify(taskRepository, never()).save(any());
+  }
+
+  @Test
+  void replace_recurringWithoutARule_isRejectedWithoutMutatingTheTask() {
+    UUID taskId = randomId();
+    Task task = buildNonRecurringTask(taskId);
+    when(taskRepository.findById(taskId)).thenReturn(Optional.of(task));
+    TaskUpdateParameters parameters =
+        new TaskUpdateParameters(
+            "Series without a rule",
+            TaskType.TODO,
+            null,
+            null,
+            null,
+            0,
+            null,
+            List.of(),
+            null,
+            null,
+            false,
+            true,
+            null,
+            null,
+            null);
+
+    assertThatThrownBy(() -> taskService.replace(taskId, parameters))
+        .isInstanceOf(IllegalArgumentException.class)
+        .hasMessageContaining("requires a recurrence rule");
+    assertThat(task.getIsRecurring()).isFalse();
+    verify(taskRepository, never()).save(any());
+  }
 }

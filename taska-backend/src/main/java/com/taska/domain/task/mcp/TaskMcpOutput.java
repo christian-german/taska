@@ -29,5 +29,6 @@ public record TaskMcpOutput(
     UUID instanceId,
     Instant occurrenceScheduledAt,
     Boolean isVirtual,
+    Boolean isDetached,
     Instant rruleEndsAt,
     TaskType type) {}

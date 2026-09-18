@@ -51,6 +51,13 @@ public class TaskOccurrenceState {
   private TaskOccurrenceStatus status;
 
   /**
+   * Whether the series no longer generates {@link #occurrenceScheduledAt}. A detached state stands
+   * on its own: it is still displayed, still belongs to its series, but overlays nothing.
+   */
+  @Column(nullable = false)
+  private boolean detached = false;
+
+  /**
    * Timestamp when the occurrence was completed; non-null only when {@link #status} is {@code
    * DONE}.
    */
@@ -183,5 +190,13 @@ public class TaskOccurrenceState {
 
   public void setUpdatedAt(final Instant updatedAt) {
     this.updatedAt = updatedAt;
+  }
+
+  public boolean isDetached() {
+    return this.detached;
+  }
+
+  public void setDetached(final boolean detached) {
+    this.detached = detached;
   }
 }

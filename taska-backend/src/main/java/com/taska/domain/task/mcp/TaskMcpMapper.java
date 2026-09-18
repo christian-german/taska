@@ -21,6 +21,7 @@ public interface TaskMcpMapper {
   @Mapping(target = "instanceId", ignore = true)
   @Mapping(target = "occurrenceScheduledAt", ignore = true)
   @Mapping(target = "isVirtual", ignore = true)
+  @Mapping(target = "isDetached", ignore = true)
   @Mapping(target = "type", defaultValue = "TODO")
   TaskMcpOutput toStoredTaskOutput(Task task);
 
@@ -30,6 +31,7 @@ public interface TaskMcpMapper {
   @Mapping(target = "instanceId", ignore = true)
   @Mapping(target = "occurrenceScheduledAt", ignore = true)
   @Mapping(target = "isVirtual", ignore = true)
+  @Mapping(target = "isDetached", ignore = true)
   @Mapping(target = "type", defaultValue = "TODO")
   TaskMcpOutput toRecurringSeriesOutput(Task task);
 
@@ -86,6 +88,7 @@ public interface TaskMcpMapper {
         occurrenceResult.occurrenceStateId(),
         occurrenceResult.occurrenceScheduledAt(),
         occurrenceResult.virtual(),
+        occurrenceResult.detached(),
         task.getRruleEndsAt(),
         task.getType() == null ? TaskType.TODO : task.getType());
   }

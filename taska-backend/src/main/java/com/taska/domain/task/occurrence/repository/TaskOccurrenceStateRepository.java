@@ -8,6 +8,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 /** Repository for sparse {@link TaskOccurrenceState} attached to recurring task occurrences. */
 public interface TaskOccurrenceStateRepository extends JpaRepository<TaskOccurrenceState, UUID> {
@@ -49,4 +51,36 @@ public interface TaskOccurrenceStateRepository extends JpaRepository<TaskOccurre
    */
   List<TaskOccurrenceState> findByStatusAndScheduledAtBetween(
       TaskOccurrenceStatus status, Instant from, Instant to);
+
+  /**
+   * Returns every state of one series anchored at or after the given instant, that is every state a
+   * truncation at that instant leaves without a generated occurrence.
+   *
+   * @param seriesId recurring-series identifier
+   * @param occurrenceScheduledAt inclusive lower bound on the anchor
+   * @return the states the truncation strands
+   */
+  List<TaskOccurrenceState> findBySeriesIdAndOccurrenceScheduledAtGreaterThanEqual(
+      UUID seriesId, Instant occurrenceScheduledAt);
+
+  /**
+   * Returns detached states falling inside the period by their effective date, which is their own
+   * scheduled override when they carry one and their anchor otherwise.
+   *
+   * <p>Deliberately not restricted to series that are still active over the period: a detached
+   * state outlives the stretch of time its series generates, which is precisely what detaches it.
+   *
+   * @param periodStart inclusive start of the period
+   * @param periodEnd exclusive end of the period
+   * @return the detached states to display over that period
+   */
+  @Query(
+      """
+      SELECT state FROM TaskOccurrenceState state
+      WHERE state.detached = true
+      AND COALESCE(state.scheduledAt, state.occurrenceScheduledAt) >= :periodStart
+      AND COALESCE(state.scheduledAt, state.occurrenceScheduledAt) < :periodEnd
+      """)
+  List<TaskOccurrenceState> findDetachedInPeriod(
+      @Param("periodStart") Instant periodStart, @Param("periodEnd") Instant periodEnd);
 }

@@ -257,6 +257,12 @@ RecurringTaskOccurrenceDto:
           format: "date-time"
         isVirtual:
           type: "boolean"
+        isDetached:
+          description: >-
+            True when the series no longer generates this occurrence, after a change to its
+            recurrence rule. A detached occurrence keeps its series and its date but overlays
+            nothing: it carries a completion the user recorded or an override they placed there.
+          type: "boolean"
         dueAt:
           description: "Occurrence-specific deadline; null when this occurrence has no override."
           type: ["string", "null"]
@@ -270,6 +276,7 @@ RecurringTaskOccurrenceDto:
         - "instanceId"
         - "occurrenceScheduledAt"
         - "isVirtual"
+        - "isDetached"
         - "dueAt"
 OccurrenceUpdateRequest:
   description: "Changes applied to one recurring task occurrence."

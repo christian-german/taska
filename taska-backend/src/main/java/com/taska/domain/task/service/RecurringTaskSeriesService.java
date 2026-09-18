@@ -44,6 +44,7 @@ public class RecurringTaskSeriesService {
     Task series = taskService.findById(seriesId);
     series.setRruleEndsAt(occurrenceScheduledAt.minus(1, ChronoUnit.SECONDS));
     taskRepository.save(series);
+    taskOccurrenceService.detachStatesFrom(seriesId, occurrenceScheduledAt);
 
     Task successor = new Task();
     successor.setContent(parameters.content() != null ? parameters.content() : series.getContent());
@@ -55,7 +56,11 @@ public class RecurringTaskSeriesService {
     successor.setPosition(series.getPosition());
     successor.setPriority(priorityProvided ? parameters.priority() : series.getPriority());
     successor.setLabels(parameters.labels() != null ? parameters.labels() : series.getLabels());
-    successor.setScheduledAt(occurrenceScheduledAt);
+    // The successor starts where the caller says the new rhythm starts, which is how a series
+    // moves to another day or hour; the cut instant is only the default. Complete replacement
+    // already works this way, and both paths must agree.
+    successor.setScheduledAt(
+        parameters.scheduledAt() != null ? parameters.scheduledAt() : occurrenceScheduledAt);
     successor.setDueAt(null);
     successor.setAllDay(series.isAllDay());
     successor.setIsRecurring(true);
@@ -63,10 +68,12 @@ public class RecurringTaskSeriesService {
         parameters.estimateMinutes() != null
             ? parameters.estimateMinutes()
             : series.getEstimateMinutes());
-    successor.setRecurrenceRule(
+    String successorRecurrenceRule =
         parameters.recurrenceRule() != null
             ? parameters.recurrenceRule()
-            : series.getRecurrenceRule());
+            : series.getRecurrenceRule();
+    TaskDefinitionRules.assertRecurrenceRuleRequired(true, successorRecurrenceRule);
+    successor.setRecurrenceRule(successorRecurrenceRule);
     return TaskResult.base(taskRepository.save(successor));
   }
 
@@ -92,6 +99,7 @@ public class RecurringTaskSeriesService {
     taskOccurrenceService.validateOccurrence(original, occurrenceScheduledAt);
     original.setRruleEndsAt(occurrenceScheduledAt.minus(1, ChronoUnit.SECONDS));
     taskRepository.save(original);
+    taskOccurrenceService.detachStatesFrom(seriesId, occurrenceScheduledAt);
 
     Task replacement = new Task();
     // Reuse the same complete-replacement mapping and planning-calendar validation as base tasks.
@@ -112,5 +120,6 @@ public class RecurringTaskSeriesService {
     Task series = taskService.findById(seriesId);
     series.setRruleEndsAt(occurrenceScheduledAt.minus(1, ChronoUnit.SECONDS));
     taskRepository.save(series);
+    taskOccurrenceService.detachStatesFrom(seriesId, occurrenceScheduledAt);
   }
 }

@@ -37,6 +37,24 @@ class TaskPersistenceInvariantTest {
     assertThatCode(() -> taskRepository.saveAndFlush(task)).doesNotThrowAnyException();
   }
 
+  @Test
+  void aSeriesCannotPersistWithoutARecurrenceRule() {
+    Task series = task(true);
+    series.setRecurrenceRule(null);
+
+    assertThatThrownBy(() -> taskRepository.saveAndFlush(series))
+        .isInstanceOf(DataIntegrityViolationException.class);
+  }
+
+  @Test
+  void aSeriesCannotPersistWithABlankRecurrenceRule() {
+    Task series = task(true);
+    series.setRecurrenceRule("   ");
+
+    assertThatThrownBy(() -> taskRepository.saveAndFlush(series))
+        .isInstanceOf(DataIntegrityViolationException.class);
+  }
+
   private Task task(boolean recurring) {
     Task task = new Task();
     task.setContent(recurring ? "Recurring" : "One-off");

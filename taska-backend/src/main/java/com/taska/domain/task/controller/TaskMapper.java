@@ -90,6 +90,7 @@ public interface TaskMapper {
         occurrenceResult.completedAt(),
         occurrenceResult.occurrenceStateId(),
         occurrenceResult.occurrenceScheduledAt(),
-        occurrenceResult.virtual());
+        occurrenceResult.virtual(),
+        occurrenceResult.detached());
   }
 }

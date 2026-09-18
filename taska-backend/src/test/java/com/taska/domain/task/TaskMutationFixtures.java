@@ -168,9 +168,25 @@ final class TaskMutationFixtures {
         content, null, null, null, 0, null, null, null, null, false, false, null, null, null, type);
   }
 
+  /** Turns a task into a series. A series is nothing without a rule, so this one carries it. */
   static TaskPatchParameters recurringPatch(Instant dueAt) {
     return new TaskPatchParameters(
-        null, null, null, null, null, null, null, null, dueAt, null, true, null, null, null, null,
-        null, null);
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        dueAt,
+        null,
+        true,
+        null,
+        null,
+        "FREQ=DAILY",
+        null,
+        null,
+        null);
   }
 }

@@ -70,6 +70,9 @@ public class TaskService {
   public Task create(TaskCreateParameters taskCreateParameters) {
     TaskDefinitionRules.assertDueAtAllowed(
         taskCreateParameters.recurring(), taskCreateParameters.dueAt());
+    String createdRecurrenceRule = normalizeRRule(taskCreateParameters.recurrenceRule());
+    TaskDefinitionRules.assertRecurrenceRuleRequired(
+        taskCreateParameters.recurring(), createdRecurrenceRule);
     Task task = new Task();
     task.setContent(taskCreateParameters.content());
     task.setType(taskCreateParameters.type());
@@ -85,7 +88,7 @@ public class TaskService {
     task.setIsRecurring(taskCreateParameters.recurring());
     task.setEstimateMinutes(taskCreateParameters.estimateMinutes());
     task.setMentionContext(taskCreateParameters.mentionContext());
-    task.setRecurrenceRule(normalizeRRule(taskCreateParameters.recurrenceRule()));
+    task.setRecurrenceRule(createdRecurrenceRule);
 
     UUID projectId = taskCreateParameters.projectId();
     if (projectId == null && taskCreateParameters.parentId() == null) {
@@ -271,6 +274,11 @@ public class TaskService {
             ? taskPatchParameters.recurring()
             : Boolean.TRUE.equals(task.getIsRecurring());
     TaskDefinitionRules.assertDueAtAllowed(recurring, taskPatchParameters.dueAt());
+    String patchedRecurrenceRule =
+        taskPatchParameters.recurrenceRule() != null
+            ? normalizeRRule(taskPatchParameters.recurrenceRule())
+            : task.getRecurrenceRule();
+    TaskDefinitionRules.assertRecurrenceRuleRequired(recurring, patchedRecurrenceRule);
     if (taskPatchParameters.content() != null) {
       task.setContent(taskPatchParameters.content());
     }
@@ -343,6 +351,9 @@ public class TaskService {
   void replaceMutableFields(Task task, TaskUpdateParameters taskUpdateParameters) {
     TaskDefinitionRules.assertDueAtAllowed(
         taskUpdateParameters.recurring(), taskUpdateParameters.dueAt());
+    String replacementRecurrenceRule = normalizeRRule(taskUpdateParameters.recurrenceRule());
+    TaskDefinitionRules.assertRecurrenceRuleRequired(
+        taskUpdateParameters.recurring(), replacementRecurrenceRule);
     task.setContent(taskUpdateParameters.content());
     task.setType(taskUpdateParameters.type());
     task.setDescription(taskUpdateParameters.description());
@@ -360,7 +371,7 @@ public class TaskService {
     task.setIsRecurring(taskUpdateParameters.recurring());
     task.setEstimateMinutes(taskUpdateParameters.estimateMinutes());
     task.setMentionContext(taskUpdateParameters.mentionContext());
-    task.setRecurrenceRule(normalizeRRule(taskUpdateParameters.recurrenceRule()));
+    task.setRecurrenceRule(replacementRecurrenceRule);
     assertScheduleAllowed(
         taskUpdateParameters.projectId(),
         taskUpdateParameters.scheduledAt(),

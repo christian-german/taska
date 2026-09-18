@@ -26,4 +26,19 @@ final class TaskDefinitionRules {
       throw new IllegalArgumentException("Recurring series cannot have a dueAt deadline");
     }
   }
+
+  /**
+   * Rejects a recurring definition that carries no recurrence rule. Such a row claims to generate
+   * occurrences while holding nothing to generate them from: it is excluded from calendar expansion
+   * and makes the recurrence expander throw wherever it is reached.
+   *
+   * @param recurring whether the resulting task definition is recurring
+   * @param recurrenceRule proposed recurrence rule, already normalised
+   * @throws IllegalArgumentException when a recurring definition has no rule
+   */
+  static void assertRecurrenceRuleRequired(boolean recurring, String recurrenceRule) {
+    if (recurring && (recurrenceRule == null || recurrenceRule.isBlank())) {
+      throw new IllegalArgumentException("Recurring series requires a recurrence rule");
+    }
+  }
 }

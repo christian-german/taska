@@ -40,6 +40,14 @@ public record RecurringTaskOccurrenceResult(
     return occurrenceState == null;
   }
 
+  /**
+   * {@code true} when the series no longer generates this occurrence. The state then stands on its
+   * own: it keeps its series and its date, but overlays nothing.
+   */
+  public boolean detached() {
+    return occurrenceState != null && occurrenceState.isDetached();
+  }
+
   /** Identifier of the persisted state, or {@code null} while the occurrence is virtual. */
   public UUID occurrenceStateId() {
     return occurrenceState == null ? null : occurrenceState.getId();

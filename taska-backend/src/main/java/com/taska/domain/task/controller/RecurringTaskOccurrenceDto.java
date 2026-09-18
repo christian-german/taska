@@ -30,7 +30,8 @@ public record RecurringTaskOccurrenceDto(
     Instant completedAt,
     UUID instanceId,
     Instant occurrenceScheduledAt,
-    Boolean isVirtual)
+    Boolean isVirtual,
+    Boolean isDetached)
     implements TaskDto {
 
   /**

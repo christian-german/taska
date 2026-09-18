@@ -512,4 +512,30 @@ class TaskOccurrenceServiceMutationTest {
     assertThatThrownBy(() -> taskOccurrenceService.closeOccurrence(taskId, occurrenceScheduledAt))
         .isInstanceOf(DataIntegrityViolationException.class);
   }
+
+  @Test
+  void detachStatesFrom_keepsCompletionsAndOverridesButDropsSkips() {
+    UUID seriesId = randomId();
+    Instant cut = Instant.parse("2026-05-20T10:00:00Z");
+    TaskOccurrenceState done = buildOccurrenceState(seriesId, cut, TaskOccurrenceStatus.DONE);
+    TaskOccurrenceState modified =
+        buildOccurrenceState(
+            seriesId, Instant.parse("2026-05-21T10:00:00Z"), TaskOccurrenceStatus.MODIFIED);
+    TaskOccurrenceState skipped =
+        buildOccurrenceState(
+            seriesId, Instant.parse("2026-05-22T10:00:00Z"), TaskOccurrenceStatus.SKIPPED);
+    when(taskOccurrenceStateRepository.findBySeriesIdAndOccurrenceScheduledAtGreaterThanEqual(
+            seriesId, cut))
+        .thenReturn(List.of(done, modified, skipped));
+
+    taskOccurrenceService.detachStatesFrom(seriesId, cut);
+
+    // A completion and a deliberate override survive on their own date; a skip has lost its object.
+    assertThat(done.isDetached()).isTrue();
+    assertThat(modified.isDetached()).isTrue();
+    verify(taskOccurrenceStateRepository).save(done);
+    verify(taskOccurrenceStateRepository).save(modified);
+    verify(taskOccurrenceStateRepository).delete(skipped);
+    verify(taskOccurrenceStateRepository, never()).save(skipped);
+  }
 }

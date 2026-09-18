@@ -67,6 +67,27 @@ public class TaskOccurrenceService {
     List<TaskResult> taskResults =
         new ArrayList<>(nonRecurring.stream().map(TaskResult::base).toList());
 
+    // Detached states outlive the stretch of time their series generates, so they are collected by
+    // their own date instead of through the list of series still active over the period.
+    List<TaskOccurrenceState> detachedStates =
+        taskOccurrenceStateRepository.findDetachedInPeriod(periodStart, periodEnd);
+    if (!detachedStates.isEmpty()) {
+      Map<UUID, Task> detachedSeriesById =
+          taskRepository
+              .findAllById(
+                  detachedStates.stream().map(TaskOccurrenceState::getSeriesId).distinct().toList())
+              .stream()
+              .collect(Collectors.toMap(Task::getId, series -> series));
+      for (TaskOccurrenceState detachedState : detachedStates) {
+        Task series = detachedSeriesById.get(detachedState.getSeriesId());
+        if (series != null && Boolean.TRUE.equals(series.getIsRecurring())) {
+          taskResults.add(
+              TaskResult.occurrence(
+                  series, detachedState, detachedState.getOccurrenceScheduledAt()));
+        }
+      }
+    }
+
     List<Task> recurringSeries =
         taskRepository.findActiveRecurringTasksForPeriod(periodStart, periodEnd);
     if (recurringSeries.isEmpty()) {
@@ -125,12 +146,59 @@ public class TaskOccurrenceService {
 
       for (TaskOccurrenceState movedState :
           movedInBySeries.getOrDefault(series.getId(), List.of())) {
+        // State anchored outside the span its series still covers no longer overlays anything.
+        if (!withinSeriesSpan(series, movedState.getOccurrenceScheduledAt())) {
+          continue;
+        }
         taskResults.add(
             TaskResult.occurrence(series, movedState, movedState.getOccurrenceScheduledAt()));
       }
     }
 
     return taskResults;
+  }
+
+  /**
+   * Resolves the states a truncation strands: those anchored at or after the cut, which the series
+   * no longer generates.
+   *
+   * <p>A completion and a deliberate override are kept and marked detached — they record something
+   * the user did or placed, and stay displayable on their own date. A skip is an absence: once the
+   * occurrence it excluded is gone, it has no object, so it is removed.
+   *
+   * @param seriesId recurring-series being truncated
+   * @param cutInstant first instant the series no longer generates
+   */
+  @Transactional
+  public void detachStatesFrom(UUID seriesId, Instant cutInstant) {
+    List<TaskOccurrenceState> stranded =
+        taskOccurrenceStateRepository.findBySeriesIdAndOccurrenceScheduledAtGreaterThanEqual(
+            seriesId, cutInstant);
+    for (TaskOccurrenceState occurrenceState : stranded) {
+      if (occurrenceState.getStatus() == TaskOccurrenceStatus.SKIPPED) {
+        taskOccurrenceStateRepository.delete(occurrenceState);
+        continue;
+      }
+      occurrenceState.setDetached(true);
+      taskOccurrenceStateRepository.save(occurrenceState);
+    }
+  }
+
+  /**
+   * Tells whether an anchor still falls inside the stretch of time its series generates, that is
+   * between its start and its truncation point.
+   *
+   * @param series recurring series the state belongs to
+   * @param occurrenceScheduledAt anchor identifying the occurrence
+   * @return {@code true} when the series still covers that instant
+   */
+  private boolean withinSeriesSpan(Task series, Instant occurrenceScheduledAt) {
+    if (series.getScheduledAt() != null
+        && occurrenceScheduledAt.isBefore(series.getScheduledAt())) {
+      return false;
+    }
+    return series.getRruleEndsAt() == null
+        || occurrenceScheduledAt.isBefore(series.getRruleEndsAt());
   }
 
   /**

@@ -16,6 +16,8 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,6 +26,8 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional(readOnly = true)
 @RequiredArgsConstructor
 public class TaskNotificationCandidateService {
+
+  private static final Logger log = LoggerFactory.getLogger(TaskNotificationCandidateService.class);
 
   private final TaskRepository taskRepository;
   private final TaskOccurrenceStateRepository taskOccurrenceStateRepository;
@@ -103,8 +107,7 @@ public class TaskNotificationCandidateService {
     for (Task recurringSeries : recurringSeriesById.values()) {
       Map<Instant, TaskOccurrenceState> occurrenceStates =
           statesBySeries.getOrDefault(recurringSeries.getId(), Map.of());
-      for (Instant occurrenceScheduledAt :
-          taskRecurrenceService.getOccurrencesInRange(recurringSeries, windowStart, windowEnd)) {
+      for (Instant occurrenceScheduledAt : occurrencesOf(recurringSeries, windowStart, windowEnd)) {
         TaskOccurrenceState occurrenceState = occurrenceStates.get(occurrenceScheduledAt);
         if (unavailable(occurrenceState)) {
           continue;
@@ -138,7 +141,27 @@ public class TaskNotificationCandidateService {
   }
 
   private boolean eligibleRecurringTask(Task task) {
-    return Boolean.TRUE.equals(task.getIsRecurring()) && !task.isAllDay();
+    return Boolean.TRUE.equals(task.getIsRecurring())
+        && !task.isAllDay()
+        && task.getRecurrenceRule() != null;
+  }
+
+  /**
+   * Expands one series, treating an unusable recurrence rule as "no occurrence" rather than letting
+   * it abort the sweep. A single malformed rule must not cost every other task its notification.
+   *
+   * @param series recurring series to expand
+   * @param windowStart inclusive start of the notification window
+   * @param windowEnd exclusive end of the notification window
+   * @return the occurrence instants, or an empty list when the rule cannot be expanded
+   */
+  private List<Instant> occurrencesOf(Task series, Instant windowStart, Instant windowEnd) {
+    try {
+      return taskRecurrenceService.getOccurrencesInRange(series, windowStart, windowEnd);
+    } catch (RuntimeException exception) {
+      log.warn("Skipping series {} with an unusable recurrence rule", series.getId(), exception);
+      return List.of();
+    }
   }
 
   private boolean outsideWindow(Instant instant, Instant windowStart, Instant windowEnd) {

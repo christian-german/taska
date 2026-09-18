@@ -265,4 +265,33 @@ class TaskMapperTest {
                 .type())
         .isEqualTo(TaskType.APPOINTMENT);
   }
+
+  @Test
+  void toOccurrenceDto_detachedState_isReportedAsDetached() {
+    Task task = buildTask("Recurring task", 2);
+    Instant occurrenceScheduledAt = Instant.parse("2026-05-20T10:00:00Z");
+    TaskOccurrenceState detached =
+        buildOccurrenceState(task.getId(), occurrenceScheduledAt, TaskOccurrenceStatus.DONE);
+    detached.setDetached(true);
+
+    assertThat(
+            taskMapper
+                .toOccurrenceDto(
+                    new RecurringTaskOccurrenceResult(task, detached, occurrenceScheduledAt))
+                .isDetached())
+        .isTrue();
+  }
+
+  @Test
+  void toOccurrenceDto_generatedOccurrence_isNotReportedAsDetached() {
+    Task task = buildTask("Recurring task", 2);
+    Instant occurrenceScheduledAt = Instant.parse("2026-05-20T10:00:00Z");
+
+    assertThat(
+            taskMapper
+                .toOccurrenceDto(
+                    new RecurringTaskOccurrenceResult(task, null, occurrenceScheduledAt))
+                .isDetached())
+        .isFalse();
+  }
 }

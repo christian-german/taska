@@ -432,4 +432,57 @@ class TaskOccurrenceServiceQueryTest {
             TaskResult.occurrence(task, done, atDone),
             TaskResult.occurrence(task, null, atVirtual));
   }
+
+  @Test
+  void findOccurrencesForDateRange_movedStateAnchoredBeyondTheTruncation_isNotDisplayed() {
+    // A series truncated before an anchor no longer generates it, so the anchor overlays nothing:
+    // it must not keep surfacing through the moved-in path.
+    Task series = buildRecurringTask();
+    series.setRruleEndsAt(Instant.parse("2026-05-19T23:59:59Z"));
+    Instant anchorBeyondTruncation = Instant.parse("2026-05-20T09:00:00Z");
+    TaskOccurrenceState moved =
+        buildOccurrenceState(series.getId(), anchorBeyondTruncation, TaskOccurrenceStatus.MODIFIED);
+    moved.setScheduledAt(Instant.parse("2026-05-20T15:00:00Z"));
+
+    when(taskRepository.findNonRecurringTasksInPeriod(START, END)).thenReturn(List.of());
+    when(taskRepository.findActiveRecurringTasksForPeriod(START, END)).thenReturn(List.of(series));
+    when(taskOccurrenceStateRepository.findBySeriesIdInAndOccurrenceScheduledAtBetween(
+            eq(List.of(series.getId())), eq(START), eq(END)))
+        .thenReturn(List.of());
+    when(taskOccurrenceStateRepository.findBySeriesIdInAndStatusAndScheduledAtBetween(
+            eq(List.of(series.getId())), eq(TaskOccurrenceStatus.MODIFIED), eq(START), eq(END)))
+        .thenReturn(List.of(moved));
+    when(taskRecurrenceService.getOccurrencesInRange(series, START, END)).thenReturn(List.of());
+
+    assertThat(taskOccurrenceService.findOccurrencesForDateRange(DATE, DATE, false)).isEmpty();
+  }
+
+  @Test
+  void findOccurrencesForDateRange_detachedStateIsDisplayedEvenWithoutAnActiveSeries() {
+    // The series was truncated long ago, so it is not active over this period; the completion the
+    // user recorded must still appear on its own date.
+    Task series = buildRecurringTask();
+    series.setRruleEndsAt(Instant.parse("2026-01-01T00:00:00Z"));
+    TaskOccurrenceState detached =
+        buildOccurrenceState(
+            series.getId(), Instant.parse("2026-05-20T09:00:00Z"), TaskOccurrenceStatus.DONE);
+    detached.setDetached(true);
+
+    when(taskRepository.findNonRecurringTasksInPeriod(START, END)).thenReturn(List.of());
+    when(taskOccurrenceStateRepository.findDetachedInPeriod(START, END))
+        .thenReturn(List.of(detached));
+    when(taskRepository.findAllById(List.of(series.getId()))).thenReturn(List.of(series));
+    when(taskRepository.findActiveRecurringTasksForPeriod(START, END)).thenReturn(List.of());
+
+    List<TaskResult> result = taskOccurrenceService.findOccurrencesForDateRange(DATE, DATE, false);
+
+    assertThat(result)
+        .singleElement()
+        .isInstanceOfSatisfying(
+            RecurringTaskOccurrenceResult.class,
+            occurrence -> {
+              assertThat(occurrence.detached()).isTrue();
+              assertThat(occurrence.completed()).isTrue();
+            });
+  }
 }

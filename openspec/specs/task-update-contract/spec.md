@@ -4,12 +4,22 @@ Define complete-replacement contracts for base tasks, following recurring series
 ## Requirements
 ### Requirement: Base task updates replace the complete mutable task representation
 
-The system SHALL expose `PUT /tasks/{taskId}` as a full replacement operation for a non-occurrence task. The request body SHALL be a typed `TaskUpdateRequest` containing every mutable base-task property: content, type, description, projectId, parentId, order, priority, labels, scheduledAt, dueAt, allDay, isRecurring, estimateMinutes, mentionContext, and recurrenceRule. The request SHALL NOT contain a section identifier or output-only task fields such as ID, completion state, timestamps, or occurrence metadata. The system SHALL reject incomplete or invalid replacement requests without changing the task. A successful replacement SHALL return `NonRecurringTaskDto` when the resulting task is non-recurring or `RecurringTaskSeriesDto` when it is recurring.
+The system SHALL expose `PUT /tasks/{taskId}` as a full replacement operation for a non-occurrence task. The request body SHALL be a typed `TaskUpdateRequest` containing every mutable base-task property: content, type, description, projectId, parentId, order, priority, labels, scheduledAt, dueAt, allDay, isRecurring, estimateMinutes, mentionContext, and recurrenceRule. The request SHALL NOT contain a section identifier or output-only task fields such as ID, completion state, timestamps, or occurrence metadata. The system SHALL reject incomplete or invalid replacement requests without changing the task. When `isRecurring` is true, `dueAt` MUST be null. A successful replacement SHALL return `NonRecurringTaskDto` when the resulting task is non-recurring or `RecurringTaskSeriesDto` when it is recurring.
 
-#### Scenario: Replace a task with complete mutable values
-- **WHEN** a client sends a valid complete `TaskUpdateRequest` to `PUT /tasks/{taskId}`
+#### Scenario: Replace a non-recurring task with complete mutable values
+- **WHEN** a client sends a valid complete non-recurring `TaskUpdateRequest` to `PUT /tasks/{taskId}`
 - **THEN** the system SHALL replace every mutable base-task property with the supplied value
 - **AND** it SHALL return the resulting discriminated task representation without a section identifier
+
+#### Scenario: Replace a task as a recurring series without a deadline
+- **WHEN** a client sends a complete `TaskUpdateRequest` with `isRecurring: true` and `dueAt: null`
+- **THEN** the system SHALL persist the recurring-series definition with no deadline
+- **AND** it SHALL return a `RecurringTaskSeriesDto` without a `dueAt` property
+
+#### Scenario: Recurring base-task replacement with a deadline is rejected
+- **WHEN** a client sends a complete `TaskUpdateRequest` with `isRecurring: true` and a non-null `dueAt`
+- **THEN** the system SHALL reject the request
+- **AND** it SHALL leave the existing task unchanged
 
 #### Scenario: Partial base-task update is rejected
 - **WHEN** a client omits a required mutable property from `PUT /tasks/{taskId}`
@@ -22,16 +32,20 @@ The system SHALL expose `PUT /tasks/{taskId}` as a full replacement operation fo
 
 ### Requirement: Following-series updates split and replace a complete series
 
-The system SHALL expose a dedicated `PUT /tasks/{taskId}/occurrences/{occurrenceScheduledAt}/following` endpoint for a recurring task. It SHALL accept a complete `TaskUpdateRequest`, end the original series immediately before the identified occurrence, and create a new recurring task from every supplied mutable value. The new series SHALL begin from the supplied replacement schedule and SHALL be returned as a `RecurringTaskSeriesDto` representation.
+The system SHALL expose a dedicated `PUT /tasks/{taskId}/occurrences/{occurrenceScheduledAt}/following` endpoint for a recurring task. It SHALL accept a complete `TaskUpdateRequest` with `isRecurring: true` and `dueAt: null`, end the original series immediately before the identified occurrence, and create a new recurring task from every supported supplied mutable value. The new series SHALL begin from the supplied replacement schedule and SHALL be returned as a `RecurringTaskSeriesDto` representation without a `dueAt` property.
 
 #### Scenario: Replace the following series
-- **WHEN** a client sends a valid complete `TaskUpdateRequest` to the following-series endpoint for a valid recurring occurrence
+- **WHEN** a client sends a valid complete `TaskUpdateRequest` with `dueAt: null` to the following-series endpoint for a valid recurring occurrence
 - **THEN** the system SHALL end the original series before that occurrence
 - **AND** it SHALL create a new recurring series from the supplied representation
-- **AND** it SHALL return `kind: RECURRING_SERIES`
+- **AND** it SHALL return `kind: RECURRING_SERIES` without a `dueAt` property
 
-#### Scenario: Following-series update preserves explicit nulls
-- **WHEN** a client supplies `priority`, `scheduledAt`, or `dueAt` as `null` in a valid following-series replacement request
+#### Scenario: Following-series update rejects a deadline
+- **WHEN** a client supplies a non-null `dueAt` in a following-series replacement request
+- **THEN** the system SHALL reject the request without splitting the original series
+
+#### Scenario: Following-series update preserves supported explicit nulls
+- **WHEN** a client supplies `priority` or `scheduledAt` as null in a valid following-series replacement request
 - **THEN** the new series SHALL persist each supplied null value
 
 #### Scenario: Following-series update requires a valid occurrence

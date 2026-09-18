@@ -6,6 +6,7 @@ import java.time.Instant;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Transport-independent mutation boundary that applies task changes and their shared side effects.
@@ -16,6 +17,7 @@ import org.springframework.stereotype.Service;
  */
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class TaskMutationService {
 
   private final TaskService taskService;
@@ -30,6 +32,7 @@ public class TaskMutationService {
    * @param accountSubject account receiving the change signal
    * @return the created task
    */
+  @Transactional
   public Task create(TaskCreateParameters parameters, String accountSubject) {
     Task task = taskService.create(parameters);
     publishChange(accountSubject);
@@ -47,6 +50,7 @@ public class TaskMutationService {
    * @return the updated task, occurrence, or successor series
    * @throws IllegalArgumentException if a recurrence scope has no occurrence identity
    */
+  @Transactional
   public TaskResult update(
       UUID taskId,
       TaskPatchParameters parameters,
@@ -84,6 +88,7 @@ public class TaskMutationService {
    * @param accountSubject account receiving the change signal
    * @return the replaced task or series
    */
+  @Transactional
   public TaskResult replace(UUID taskId, TaskUpdateParameters parameters, String accountSubject) {
     TaskResult taskResult = taskService.replace(taskId, parameters);
     publishChange(accountSubject);
@@ -99,6 +104,7 @@ public class TaskMutationService {
    * @param accountSubject account receiving the change signal
    * @return the successor series
    */
+  @Transactional
   public TaskResult replaceFollowing(
       UUID taskId,
       Instant occurrenceScheduledAt,
@@ -119,6 +125,7 @@ public class TaskMutationService {
    * @param accountSubject account receiving the change signal
    * @return the replaced occurrence
    */
+  @Transactional
   public TaskResult replaceOccurrence(
       UUID taskId,
       Instant occurrenceScheduledAt,
@@ -138,6 +145,7 @@ public class TaskMutationService {
    * @param parameters optional recurrence deletion scope
    * @param accountSubject account receiving the change signal
    */
+  @Transactional
   public void delete(UUID taskId, TaskDeleteParameters parameters, String accountSubject) {
     Task task = taskService.findById(taskId);
     if (parameters == null
@@ -164,6 +172,7 @@ public class TaskMutationService {
    * @param accountSubject account receiving the change signal
    * @return the completed task or occurrence
    */
+  @Transactional
   public TaskResult close(
       UUID taskId, TaskCloseReopenParameters parameters, String accountSubject) {
     Task task = taskService.findById(taskId);
@@ -184,6 +193,7 @@ public class TaskMutationService {
    * @param accountSubject account receiving the change signal
    * @return the reopened task or occurrence
    */
+  @Transactional
   public TaskResult reopen(
       UUID taskId, TaskCloseReopenParameters parameters, String accountSubject) {
     Task task = taskService.findById(taskId);

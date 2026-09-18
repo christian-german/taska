@@ -68,7 +68,8 @@ public class TaskService {
    */
   @Transactional
   public Task create(TaskCreateParameters taskCreateParameters) {
-    assertDueAtAllowed(taskCreateParameters.recurring(), taskCreateParameters.dueAt());
+    TaskDefinitionRules.assertDueAtAllowed(
+        taskCreateParameters.recurring(), taskCreateParameters.dueAt());
     Task task = new Task();
     task.setContent(taskCreateParameters.content());
     task.setType(taskCreateParameters.type());
@@ -269,7 +270,7 @@ public class TaskService {
         taskPatchParameters.recurring() != null
             ? taskPatchParameters.recurring()
             : Boolean.TRUE.equals(task.getIsRecurring());
-    assertDueAtAllowed(recurring, taskPatchParameters.dueAt());
+    TaskDefinitionRules.assertDueAtAllowed(recurring, taskPatchParameters.dueAt());
     if (taskPatchParameters.content() != null) {
       task.setContent(taskPatchParameters.content());
     }
@@ -340,7 +341,8 @@ public class TaskService {
    * @param taskUpdateParameters complete replacement values
    */
   void replaceMutableFields(Task task, TaskUpdateParameters taskUpdateParameters) {
-    assertDueAtAllowed(taskUpdateParameters.recurring(), taskUpdateParameters.dueAt());
+    TaskDefinitionRules.assertDueAtAllowed(
+        taskUpdateParameters.recurring(), taskUpdateParameters.dueAt());
     task.setContent(taskUpdateParameters.content());
     task.setType(taskUpdateParameters.type());
     task.setDescription(taskUpdateParameters.description());
@@ -386,19 +388,6 @@ public class TaskService {
     if (!planningCalendarService.allows(calendarId, scheduledAt, allDay)) {
       throw new IllegalArgumentException(
           "Scheduled time is outside the project's planning calendar availability");
-    }
-  }
-
-  /**
-   * Rejects the invalid combination of a recurring-series definition and an absolute deadline.
-   *
-   * @param recurring whether the resulting task definition is recurring
-   * @param dueAt proposed absolute deadline
-   * @throws IllegalArgumentException when a recurring series is assigned a deadline
-   */
-  void assertDueAtAllowed(boolean recurring, Instant dueAt) {
-    if (recurring && dueAt != null) {
-      throw new IllegalArgumentException("Recurring series cannot have a dueAt deadline");
     }
   }
 }

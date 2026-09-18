@@ -40,7 +40,7 @@ public class RecurringTaskSeriesService {
       throw new IllegalArgumentException(
           "occurrenceScheduledAt is required when scope is provided");
     }
-    taskService.assertDueAtAllowed(true, parameters.dueAt());
+    TaskDefinitionRules.assertDueAtAllowed(true, parameters.dueAt());
     Task series = taskService.findById(seriesId);
     series.setRruleEndsAt(occurrenceScheduledAt.minus(1, ChronoUnit.SECONDS));
     taskRepository.save(series);
@@ -84,7 +84,7 @@ public class RecurringTaskSeriesService {
     if (!parameters.recurring()) {
       throw new IllegalArgumentException("Following-series replacement must remain recurring");
     }
-    taskService.assertDueAtAllowed(true, parameters.dueAt());
+    TaskDefinitionRules.assertDueAtAllowed(true, parameters.dueAt());
     Task original = taskService.findById(seriesId);
     if (!Boolean.TRUE.equals(original.getIsRecurring())) {
       throw new IllegalArgumentException("Following-series replacement requires a recurring task");

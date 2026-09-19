@@ -1,10 +1,10 @@
-"/projects/{id}":
+"/projects/{projectId}":
   get:
     tags:
       - "Projects"
     operationId: "getProject"
     parameters:
-      - name: "id"
+      - name: "projectId"
         in: "path"
         required: true
         schema:
@@ -35,7 +35,7 @@
       - "Projects"
     operationId: "updateProject"
     parameters:
-      - name: "id"
+      - name: "projectId"
         in: "path"
         required: true
         schema:
@@ -46,7 +46,7 @@
       content:
         "application/json":
           schema:
-            "$ref": "../schemas/project.yaml#/ProjectRequest"
+            "$ref": "../schemas/project.yaml#/ProjectUpdateRequest"
       required: true
       description: "Request payload."
     responses:
@@ -77,7 +77,7 @@
       - "Projects"
     operationId: "deleteProject"
     parameters:
-      - name: "id"
+      - name: "projectId"
         in: "path"
         required: true
         schema:
@@ -131,7 +131,7 @@
       content:
         "application/json":
           schema:
-            "$ref": "../schemas/project.yaml#/ProjectRequest"
+            "$ref": "../schemas/project.yaml#/ProjectCreateRequest"
       required: true
       description: "Request payload."
     responses:
@@ -147,6 +147,8 @@
         "$ref": "../responses.yaml#/Unauthorized"
       "403":
         "$ref": "../responses.yaml#/Forbidden"
+      "404":
+        "$ref": "../responses.yaml#/NotFound"
       "409":
         "$ref": "../responses.yaml#/Conflict"
       "422":
@@ -186,13 +188,13 @@
         "$ref": "../responses.yaml#/InternalServerError"
     summary: "Reorder projects"
     description: "Reorder projects for the authenticated Taska principal."
-"/projects/{id}/tasks":
+"/projects/{projectId}/tasks":
   get:
     tags:
       - "Projects"
     operationId: "listProjectTasks"
     parameters:
-      - name: "id"
+      - name: "projectId"
         in: "path"
         required: true
         schema:
@@ -207,7 +209,7 @@
             schema:
               type: "array"
               items:
-                "$ref": "../schemas/task.yaml#/TaskDto"
+                "$ref": "../schemas/task.yaml#/TaskResourceDto"
       "400":
         "$ref": "../responses.yaml#/BadRequest"
       "401":
@@ -220,37 +222,3 @@
         "$ref": "../responses.yaml#/InternalServerError"
     summary: "List project tasks"
     description: "List project tasks for the authenticated Taska principal."
-"/projects/{id}/sections":
-  get:
-    tags:
-      - "Projects"
-    operationId: "listProjectSections"
-    parameters:
-      - name: "id"
-        in: "path"
-        required: true
-        schema:
-          type: "string"
-          format: "uuid"
-        description: "Resource identifier."
-    responses:
-      "200":
-        description: "Successful response."
-        content:
-          "application/json":
-            schema:
-              type: "array"
-              items:
-                "$ref": "../schemas/section.yaml#/SectionDto"
-      "400":
-        "$ref": "../responses.yaml#/BadRequest"
-      "401":
-        "$ref": "../responses.yaml#/Unauthorized"
-      "403":
-        "$ref": "../responses.yaml#/Forbidden"
-      "404":
-        "$ref": "../responses.yaml#/NotFound"
-      "500":
-        "$ref": "../responses.yaml#/InternalServerError"
-    summary: "List project sections"
-    description: "List project sections for the authenticated Taska principal."

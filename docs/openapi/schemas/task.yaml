@@ -1,55 +1,82 @@
 TaskUpdateRequest:
   description: "Complete task update payload."
   type: "object"
+  additionalProperties: false
+  allOf:
+    - if:
+        properties:
+          isRecurring:
+            const: true
+        required: ["isRecurring"]
+      then:
+        required: ["scheduledAt"]
+        properties:
+          scheduledAt:
+            type: "string"
+            format: "date-time"
+          dueAt:
+            type: "null"
   properties:
     content:
+      description: "Required title or main text of the task; must not be blank."
       type: "string"
       minLength: 1
     type:
+      description: "Kind of commitment represented by the task."
       type: "string"
       enum:
         - "TODO"
         - "APPOINTMENT"
     description:
-      type: "string"
+      description: "Optional longer description of the task."
+      type: ["string", "null"]
     projectId:
-      type: "string"
-      format: "uuid"
-    sectionId:
-      type: "string"
+      description: "UUID of the project to which the task is assigned."
+      type: ["string", "null"]
       format: "uuid"
     parentId:
-      type: "string"
+      description: "Parent task UUID when this task is a subtask."
+      type: ["string", "null"]
       format: "uuid"
     order:
+      description: "Display position within the task's container."
       type: "integer"
       format: "int32"
     priority:
-      type: "integer"
+      description: "Optional manual urgency level from 1 (urgent) through 4 (normal)."
+      type: ["integer", "null"]
       format: "int32"
       maximum: 4
       minimum: 1
     labels:
+      description: "Complete list of label names to attach to the task."
       type: "array"
       items:
         type: "string"
     scheduledAt:
-      type: "string"
+      description: "Planned schedule time in UTC; required and non-null for a recurring series, otherwise nullable for an unscheduled task."
+      type: ["string", "null"]
       format: "date-time"
     dueAt:
-      type: "string"
+      description: "Deadline in UTC for a non-recurring task; must be null for a recurring series."
+      type: ["string", "null"]
       format: "date-time"
     allDay:
+      description: "Whether the scheduled time has no specific time component."
       type: "boolean"
     isRecurring:
+      description: "Whether the task repeats according to a recurrence rule."
       type: "boolean"
     estimateMinutes:
-      type: "integer"
+      description: "Optional estimated duration of the task in minutes."
+      type: ["integer", "null"]
       format: "int32"
     mentionContext:
-      type: "string"
+      description: "Raw context captured when the task was created through an @-mention."
+      type: ["string", "null"]
     recurrenceRule:
-      type: "string"
+      description: "iCal4j RRULE string describing the task's recurrence pattern."
+      type: ["string", "null"]
   required:
     - "allDay"
     - "content"
@@ -65,198 +92,346 @@ TaskUpdateRequest:
     - "projectId"
     - "recurrenceRule"
     - "scheduledAt"
-    - "sectionId"
     - "type"
+FollowingTaskUpdateRequest:
+  description: "Complete recurring-series replacement used when splitting from one occurrence."
+  allOf:
+    - "$ref": "#/TaskUpdateRequest"
+    - type: "object"
+      properties:
+        isRecurring:
+          type: "boolean"
+          const: true
+        dueAt:
+          type: "null"
 TaskDto:
-  description: "Task returned by the API, including recurring occurrence metadata."
+  description: "Discriminated task resource or recurring-occurrence representation."
+  oneOf:
+    - "$ref": "#/NonRecurringTaskDto"
+    - "$ref": "#/RecurringTaskSeriesDto"
+    - "$ref": "#/RecurringTaskOccurrenceDto"
+  discriminator:
+    propertyName: "kind"
+    mapping:
+      NON_RECURRING: "#/NonRecurringTaskDto"
+      RECURRING_SERIES: "#/RecurringTaskSeriesDto"
+      RECURRING_OCCURRENCE: "#/RecurringTaskOccurrenceDto"
+TaskResourceDto:
+  description: "Persisted task resource returned without occurrence expansion."
+  oneOf:
+    - "$ref": "#/NonRecurringTaskDto"
+    - "$ref": "#/RecurringTaskSeriesDto"
+  discriminator:
+    propertyName: "kind"
+ScheduledTaskDto:
+  description: "Displayable task returned by a date or date-range query."
+  oneOf:
+    - "$ref": "#/NonRecurringTaskDto"
+    - "$ref": "#/RecurringTaskOccurrenceDto"
+  discriminator:
+    propertyName: "kind"
+CompletableTaskDto:
+  description: "Task or recurring occurrence returned by completion and reopening operations."
+  oneOf:
+    - "$ref": "#/NonRecurringTaskDto"
+    - "$ref": "#/RecurringTaskOccurrenceDto"
+  discriminator:
+    propertyName: "kind"
+TaskBaseDto:
   type: "object"
   properties:
     id:
+      description: "Persisted task identifier; for an occurrence, the backing recurring-series identifier."
       type: "string"
       format: "uuid"
     content:
       type: "string"
     description:
-      type: "string"
+      type: ["string", "null"]
     projectId:
-      type: "string"
-      format: "uuid"
-    sectionId:
-      type: "string"
+      type: ["string", "null"]
       format: "uuid"
     parentId:
-      type: "string"
+      type: ["string", "null"]
       format: "uuid"
     order:
       type: "integer"
       format: "int32"
     priority:
-      type: "integer"
+      type: ["integer", "null"]
       format: "int32"
+      minimum: 1
+      maximum: 4
     labels:
       type: "array"
       items:
         type: "string"
-    isCompleted:
-      type: "boolean"
     scheduledAt:
-      type: "string"
-      format: "date-time"
-    dueAt:
-      type: "string"
+      description: "Effective planned time in UTC."
+      type: ["string", "null"]
       format: "date-time"
     allDay:
       type: "boolean"
-    isRecurring:
-      type: "boolean"
     estimateMinutes:
-      type: "integer"
+      type: ["integer", "null"]
       format: "int32"
     mentionContext:
-      type: "string"
-    recurrenceRule:
-      type: "string"
+      type: ["string", "null"]
     createdAt:
-      type: "string"
+      type: ["string", "null"]
       format: "date-time"
     updatedAt:
-      type: "string"
-      format: "date-time"
-    completedAt:
-      type: "string"
-      format: "date-time"
-    instanceId:
-      type: "string"
-      format: "uuid"
-    occurrenceScheduledAt:
-      type: "string"
-      format: "date-time"
-    isVirtual:
-      type: "boolean"
-    rruleEndsAt:
-      type: "string"
+      type: ["string", "null"]
       format: "date-time"
     type:
       type: "string"
-      enum:
-        - "TODO"
-        - "APPOINTMENT"
+      enum: ["TODO", "APPOINTMENT"]
+  required:
+    - "id"
+    - "content"
+    - "description"
+    - "projectId"
+    - "parentId"
+    - "order"
+    - "priority"
+    - "labels"
+    - "scheduledAt"
+    - "allDay"
+    - "estimateMinutes"
+    - "mentionContext"
+    - "createdAt"
+    - "updatedAt"
+    - "type"
+NonRecurringTaskDto:
+  allOf:
+    - "$ref": "#/TaskBaseDto"
+    - type: "object"
+      properties:
+        kind:
+          type: "string"
+          const: "NON_RECURRING"
+        isCompleted:
+          type: "boolean"
+        completedAt:
+          type: ["string", "null"]
+          format: "date-time"
+        dueAt:
+          type: ["string", "null"]
+          format: "date-time"
+      required: ["kind", "isCompleted", "completedAt", "dueAt"]
+RecurringTaskSeriesDto:
+  allOf:
+    - "$ref": "#/TaskBaseDto"
+    - type: "object"
+      properties:
+        kind:
+          type: "string"
+          const: "RECURRING_SERIES"
+        recurrenceRule:
+          type: ["string", "null"]
+        rruleEndsAt:
+          type: ["string", "null"]
+          format: "date-time"
+      required: ["kind", "recurrenceRule", "rruleEndsAt"]
+RecurringTaskOccurrenceDto:
+  allOf:
+    - "$ref": "#/TaskBaseDto"
+    - type: "object"
+      properties:
+        kind:
+          type: "string"
+          const: "RECURRING_OCCURRENCE"
+        recurrenceRule:
+          type: ["string", "null"]
+        rruleEndsAt:
+          type: ["string", "null"]
+          format: "date-time"
+        isCompleted:
+          type: "boolean"
+        completedAt:
+          type: ["string", "null"]
+          format: "date-time"
+        instanceId:
+          description: "Persisted occurrence-instance ID; null while the occurrence is virtual."
+          type: ["string", "null"]
+          format: "uuid"
+        occurrenceScheduledAt:
+          description: "Immutable RRULE-generated instant that identifies this occurrence."
+          type: "string"
+          format: "date-time"
+        isVirtual:
+          type: "boolean"
+        isDetached:
+          description: >-
+            True when the series no longer generates this occurrence, after a change to its
+            recurrence rule. A detached occurrence keeps its series and its date but overlays
+            nothing: it carries a completion the user recorded or an override they placed there.
+          type: "boolean"
+        dueAt:
+          description: "Occurrence-specific deadline; null when this occurrence has no override."
+          type: ["string", "null"]
+          format: "date-time"
+      required:
+        - "kind"
+        - "recurrenceRule"
+        - "rruleEndsAt"
+        - "isCompleted"
+        - "completedAt"
+        - "instanceId"
+        - "occurrenceScheduledAt"
+        - "isVirtual"
+        - "isDetached"
+        - "dueAt"
 OccurrenceUpdateRequest:
   description: "Changes applied to one recurring task occurrence."
   type: "object"
+  additionalProperties: false
   properties:
     title:
+      description: "Required replacement title for this recurring occurrence; must not be blank."
       type: "string"
       minLength: 1
     priority:
-      type: "integer"
+      description: "Optional replacement urgency level from 1 (urgent) through 4 (normal)."
+      type: ["integer", "null"]
       format: "int32"
       maximum: 4
       minimum: 1
     scheduledAt:
-      type: "string"
+      description: "Optional replacement schedule time in UTC for this occurrence."
+      type: ["string", "null"]
       format: "date-time"
     dueAt:
-      type: "string"
+      description: "Optional replacement deadline in UTC for this occurrence."
+      type: ["string", "null"]
       format: "date-time"
   required:
     - "title"
-TaskRequest:
+TaskCreateRequest:
   description: "Payload used to create a task."
   type: "object"
+  additionalProperties: false
+  allOf:
+    - if:
+        properties:
+          isRecurring:
+            const: true
+        required: ["isRecurring"]
+      then:
+        required: ["scheduledAt"]
+        properties:
+          scheduledAt:
+            type: "string"
+            format: "date-time"
+          dueAt:
+            type: "null"
   properties:
     content:
+      description: "Required task title or main text; must not be blank."
       type: "string"
       minLength: 1
     description:
-      type: "string"
+      description: "Optional longer description."
+      type: ["string", "null"]
     projectId:
-      type: "string"
-      format: "uuid"
-    sectionId:
-      type: "string"
+      description: "Project to assign the task to; creation without a project or parent places the task in the inbox."
+      type: ["string", "null"]
       format: "uuid"
     parentId:
-      type: "string"
+      description: "Parent task UUID used to create this task as a subtask."
+      type: ["string", "null"]
       format: "uuid"
     order:
-      type: "integer"
+      description: "Display position within the task's container; defaults to 0 on creation."
+      type: ["integer", "null"]
       format: "int32"
     priority:
-      type: "integer"
+      description: "Optional manual urgency level from 1 (urgent) through 4 (normal)."
+      type: ["integer", "null"]
       format: "int32"
       maximum: 4
       minimum: 1
     labels:
-      type: "array"
+      description: "Label names to attach; replaces the existing label list on update."
+      type: ["array", "null"]
       items:
         type: "string"
     scheduledAt:
-      type: "string"
+      description: "Planned schedule time in UTC; required and non-null when isRecurring is true, otherwise optional for an unscheduled task."
+      type: ["string", "null"]
       format: "date-time"
     dueAt:
-      type: "string"
+      description: "Deadline in UTC for a non-recurring task; must be null for a recurring series."
+      type: ["string", "null"]
       format: "date-time"
     allDay:
-      type: "boolean"
+      description: "Whether the scheduled time has no specific time component; defaults to false."
+      type: ["boolean", "null"]
     isRecurring:
-      type: "boolean"
+      description: "Whether the task repeats; defaults to false on creation."
+      type: ["boolean", "null"]
     estimateMinutes:
-      type: "integer"
+      description: "Optional positive estimated duration of the task in minutes."
+      type: ["integer", "null"]
       format: "int32"
-      minimum: 0
+      minimum: 1
     mentionContext:
-      type: "string"
+      description: "Raw context captured when the task was created through an @-mention."
+      type: ["string", "null"]
     recurrenceRule:
-      type: "string"
-    scope:
-      type: "string"
-      enum:
-        - "THIS_ONLY"
-        - "FROM_THIS"
-    occurrenceScheduledAt:
-      type: "string"
-      format: "date-time"
+      description: "iCal4j RRULE or shorthand alias (`daily`, `weekly`, `monthly`, or `yearly`), normalized on save."
+      type: ["string", "null"]
     type:
-      type: "string"
+      description: "Kind of commitment represented by the task."
+      type: ["string", "null"]
       enum:
         - "TODO"
         - "APPOINTMENT"
+        - null
   required:
     - "content"
 TaskCloseReopenRequest:
   description: "Identifies the recurring occurrence affected by a close or reopen operation."
   type: "object"
+  additionalProperties: false
   properties:
     occurrenceScheduledAt:
-      type: "string"
+      description: "UTC instant identifying the recurring occurrence to close or reopen; required for recurring tasks."
+      type: ["string", "null"]
       format: "date-time"
 TaskPriorityEvaluationDto:
   description: "Computed priority evaluation for a task."
   type: "object"
   properties:
     taskId:
+      description: "Unique identifier of the task that was evaluated."
       type: "string"
       format: "uuid"
     score:
+      description: "Computed aggregate priority score for the task."
       type: "integer"
       format: "int32"
     components:
+      description: "Extensible JSON details describing the factors that contributed to the score."
       "$ref": "./task.yaml#/PriorityEvaluationComponents"
     computedAt:
+      description: "Timestamp when the priority evaluation was computed."
       type: "string"
       format: "date-time"
 TaskDeleteRequest:
   description: "Controls deletion of a recurring task occurrence or series."
   type: "object"
+  additionalProperties: false
   properties:
     scope:
-      type: "string"
+      description: "For a recurring task, skip only this occurrence or truncate the series from this occurrence onward."
+      type: ["string", "null"]
       enum:
         - "THIS_ONLY"
         - "FROM_THIS"
     occurrenceScheduledAt:
-      type: "string"
+      description: "UTC instant identifying the recurring occurrence to delete; required when a recurrence scope is supplied."
+      type: ["string", "null"]
       format: "date-time"
 PriorityEvaluationComponents:
   type: "object"

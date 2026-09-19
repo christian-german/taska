@@ -12,35 +12,33 @@ import org.junit.Rule
 import org.junit.Test
 
 class AddTaskViewModelTest {
-    @get:Rule
-    val dispatcherRule = MainDispatcherRule()
+  @get:Rule val dispatcherRule = MainDispatcherRule()
 
-    private val taskRepository = mockk<TaskRepository>()
-    private val projectRepository = mockk<ProjectRepository> {
-        coEvery { getProjects() } returns emptyList()
-    }
+  private val taskRepository = mockk<TaskRepository>()
+  private val projectRepository =
+    mockk<ProjectRepository> { coEvery { getProjects() } returns emptyList() }
 
-    @Test
-    fun `successful creation invokes success feedback callback once`() = runTest {
-        coEvery { taskRepository.createTask(any()) } returns mockk<TaskDto>()
-        val onSuccess = mockk<() -> Unit>(relaxed = true)
-        val viewModel = AddTaskViewModel(taskRepository, projectRepository)
-        viewModel.updateContent("New task")
+  @Test
+  fun `successful creation invokes success feedback callback once`() = runTest {
+    coEvery { taskRepository.createTask(any()) } returns mockk<TaskDto>()
+    val onSuccess = mockk<() -> Unit>(relaxed = true)
+    val viewModel = AddTaskViewModel(taskRepository, projectRepository)
+    viewModel.updateContent("New task")
 
-        viewModel.createTask(onSuccess)
+    viewModel.createTask(onSuccess)
 
-        verify(exactly = 1) { onSuccess() }
-    }
+    verify(exactly = 1) { onSuccess() }
+  }
 
-    @Test
-    fun `failed creation does not invoke success feedback callback`() = runTest {
-        coEvery { taskRepository.createTask(any()) } throws IllegalStateException("failed")
-        val onSuccess = mockk<() -> Unit>(relaxed = true)
-        val viewModel = AddTaskViewModel(taskRepository, projectRepository)
-        viewModel.updateContent("New task")
+  @Test
+  fun `failed creation does not invoke success feedback callback`() = runTest {
+    coEvery { taskRepository.createTask(any()) } throws IllegalStateException("failed")
+    val onSuccess = mockk<() -> Unit>(relaxed = true)
+    val viewModel = AddTaskViewModel(taskRepository, projectRepository)
+    viewModel.updateContent("New task")
 
-        viewModel.createTask(onSuccess)
+    viewModel.createTask(onSuccess)
 
-        verify(exactly = 0) { onSuccess() }
-    }
+    verify(exactly = 0) { onSuccess() }
+  }
 }

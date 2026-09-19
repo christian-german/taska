@@ -1,0 +1,11 @@
+###
+POST {{api}}/labels
+Authorization: Bearer {{$auth.token("user")}}
+Content-Type: application/json
+
+{
+  "name": "0",
+  "color": "",
+  "order": 2147483646,
+  "isFavorite": false
+}

@@ -8,27 +8,22 @@ export const routes: Routes = [
   {
     path: 'inbox',
     canActivate: [AutoLoginPartialRoutesGuard],
-    loadComponent: () => import('./features/inbox/inbox.component').then(m => m.InboxComponent),
+    loadComponent: () => import('./features/inbox/inbox.component').then((m) => m.InboxComponent),
   },
   {
     path: 'today',
     canActivate: [AutoLoginPartialRoutesGuard],
-    loadComponent: () => import('./features/today/today.component').then(m => m.TodayComponent),
+    loadComponent: () => import('./features/today/today.component').then((m) => m.TodayComponent),
   },
   {
     path: 'week',
     canActivate: [AutoLoginPartialRoutesGuard],
-    loadComponent: () => import('./features/week/week.component').then(m => m.WeekComponent),
+    loadComponent: () => import('./features/week/week.component').then((m) => m.WeekComponent),
   },
   {
     path: 'done',
     canActivate: [AutoLoginPartialRoutesGuard],
-    loadComponent: () => import('./features/done/done.component').then(m => m.DoneComponent),
-  },
-  {
-    path: 'stats',
-    canActivate: [AutoLoginPartialRoutesGuard],
-    loadComponent: () => import('./features/stats/stats.component').then(m => m.StatsComponent),
+    loadComponent: () => import('./features/done/done.component').then((m) => m.DoneComponent),
   },
   {
     path: 'upcoming',
@@ -38,33 +33,28 @@ export const routes: Routes = [
   {
     path: 'project/:id',
     canActivate: [AutoLoginPartialRoutesGuard],
-    loadComponent: () => import('./features/project-view/project-view.component').then(m => m.ProjectViewComponent),
+    loadComponent: () =>
+      import('./features/project-view/project-view.component').then((m) => m.ProjectViewComponent),
   },
   {
     path: 'labels',
     canActivate: [AutoLoginPartialRoutesGuard],
-    loadComponent: () => import('./features/labels/labels.component').then(m => m.LabelsComponent),
+    loadComponent: () =>
+      import('./features/labels/labels.component').then((m) => m.LabelsComponent),
   },
   {
     path: 'label/:name',
     canActivate: [AutoLoginPartialRoutesGuard],
-    loadComponent: () => import('./features/label-tasks/label-tasks.component').then(m => m.LabelTasksComponent),
+    loadComponent: () =>
+      import('./features/label-tasks/label-tasks.component').then((m) => m.LabelTasksComponent),
   },
   {
-    path: 'filters',
+    path: 'planning-calendars',
     canActivate: [AutoLoginPartialRoutesGuard],
-    loadComponent: () => import('./features/filters/filters.component').then(m => m.FiltersComponent),
+    loadComponent: () =>
+      import('./features/planning-calendars/planning-calendars.component').then(
+        (m) => m.PlanningCalendarsComponent,
+      ),
   },
-  {
-    path: 'filter/:id',
-    canActivate: [AutoLoginPartialRoutesGuard],
-    loadComponent: () => import('./features/filter-tasks/filter-tasks.component').then(m => m.FilterTasksComponent),
-  },
-  {
-    path: 'time',
-    canActivate: [AutoLoginPartialRoutesGuard],
-    loadComponent: () => import('./features/time-tracker/time-tracker.component').then(m => m.TimeTrackerComponent),
-  },
-  { path: 'planning-calendars', canActivate: [AutoLoginPartialRoutesGuard], loadComponent: () => import('./features/planning-calendars/planning-calendars.component').then(m => m.PlanningCalendarsComponent) },
   { path: '**', redirectTo: '' },
 ];

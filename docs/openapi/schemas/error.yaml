@@ -29,6 +29,7 @@ ProblemDetails:
       type: "string"
       description: "Stable, machine-readable Taska error code."
     violations:
+      description: "Individual field or parameter validation failures."
       type: "array"
       items:
         "$ref": "./error.yaml#/Violation"
@@ -40,6 +41,8 @@ Violation:
     - "message"
   properties:
     field:
+      description: "Name of the invalid input field or parameter."
       type: "string"
     message:
+      description: "Human-readable explanation of the validation failure."
       type: "string"

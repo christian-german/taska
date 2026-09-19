@@ -1,9 +1,11 @@
 package com.taska.security;
 
 import com.taska.config.TaskaProperties;
+import java.time.Duration;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.NonNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.security.oauth2.server.resource.autoconfigure.OAuth2ResourceServerProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -20,103 +22,106 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
-import java.time.Duration;
-
 @Configuration
 @RequiredArgsConstructor
-@Slf4j
 public class WebSecurityConfiguration {
 
-    private final OAuth2ResourceServerProperties oAuth2ResourceServerProperties;
-    private final TaskaProperties taskaProperties;
+  private static final Logger log = LoggerFactory.getLogger(WebSecurityConfiguration.class);
 
-    /**
-     * Configures the main security filter chain. CSRF is disabled (stateless API), CORS is
-     * enabled with default settings, sessions are never created, and all endpoints require an
-     * authenticated OAuth2 JWT except the actuator health check.
-     *
-     * @param http the {@link HttpSecurity} builder
-     * @return the configured {@link SecurityFilterChain}
-     */
-    @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) {
-        http
-                .csrf(AbstractHttpConfigurer::disable)
-                .cors(Customizer.withDefaults())
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/actuator/health/**").permitAll()
-                        .requestMatchers("/mcp/**").authenticated()
-                        .anyRequest().authenticated()
-                )
-                .oauth2ResourceServer(oauth2 -> oauth2
-                        .jwt(_ -> {
-                        })
-                );
+  private final OAuth2ResourceServerProperties oAuth2ResourceServerProperties;
+  private final TaskaProperties taskaProperties;
 
-        return http.build();
+  /**
+   * Configures the main security filter chain. CSRF is disabled (stateless API), CORS is enabled
+   * with default settings, sessions are never created, and all endpoints require an authenticated
+   * OAuth2 JWT except the actuator health check.
+   *
+   * @param http the {@link HttpSecurity} builder
+   * @return the configured {@link SecurityFilterChain}
+   */
+  @Bean
+  public SecurityFilterChain securityFilterChain(HttpSecurity http) {
+    http.csrf(AbstractHttpConfigurer::disable)
+        .cors(Customizer.withDefaults())
+        .sessionManagement(
+            session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+        .authorizeHttpRequests(
+            auth ->
+                auth.requestMatchers("/actuator/health/**")
+                    .permitAll()
+                    .requestMatchers("/mcp/**")
+                    .authenticated()
+                    .anyRequest()
+                    .authenticated())
+        .oauth2ResourceServer(oauth2 -> oauth2.jwt(_ -> {}));
+
+    return http.build();
+  }
+
+  /**
+   * Configures CORS to allow all origins, methods, and headers on every endpoint. This is
+   * intentionally permissive; restrict in production if the API is not intended to be publicly
+   * accessible from any origin.
+   *
+   * @return a {@link WebMvcConfigurer} that registers the CORS mapping
+   */
+  @Bean
+  public WebMvcConfigurer corsConfigurer() {
+
+    return new WebMvcConfigurer() {
+      @Override
+      public void addCorsMappings(@NonNull CorsRegistry registry) {
+        registry
+            .addMapping("/**")
+            .allowedOrigins("*")
+            .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH")
+            .allowedHeaders("*");
+      }
+    };
+  }
+
+  /**
+   * Configures and returns a {@link JwtDecoder} bean for decoding JWT tokens. The decoder is
+   * initialized using the issuer URI specified in the application properties and optionally
+   * customizes the JWT validation logic based on configuration. Additionally, HTTP connection and
+   * read timeout settings are applied.
+   *
+   * @return a fully configured {@link JwtDecoder} instance for validating and decoding JWT tokens
+   */
+  @Bean
+  public JwtDecoder jwtTokenDecoder() {
+
+    if (oAuth2ResourceServerProperties.getJwt().getIssuerUri() == null) {
+      throw new IllegalStateException(
+          "spring.security.oauth2.resourceserver.jwt.issuer-uri must be set");
     }
 
-    /**
-     * Configures CORS to allow all origins, methods, and headers on every endpoint.
-     * This is intentionally permissive; restrict in production if the API is not intended to be
-     * publicly accessible from any origin.
-     *
-     * @return a {@link WebMvcConfigurer} that registers the CORS mapping
-     */
-    @Bean
-    public WebMvcConfigurer corsConfigurer() {
+    NimbusJwtDecoder nimbusJwtDecoder;
 
-        return new WebMvcConfigurer() {
-            @Override
-            public void addCorsMappings(@NonNull CorsRegistry registry) {
-                registry.addMapping("/**")
-                        .allowedOrigins("*")
-                        .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH")
-                        .allowedHeaders("*");
-            }
-        };
+    if (taskaProperties.getSecurity().isIncreaseTimeout()) {
+      SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
+      factory.setConnectTimeout(Duration.ofSeconds(5));
+      factory.setReadTimeout(Duration.ofSeconds(10));
+
+      RestTemplate restTemplate = new RestTemplate(factory);
+
+      nimbusJwtDecoder =
+          NimbusJwtDecoder.withIssuerLocation(
+                  oAuth2ResourceServerProperties.getJwt().getIssuerUri())
+              .restOperations(restTemplate)
+              .build();
+    } else {
+      nimbusJwtDecoder =
+          NimbusJwtDecoder.withIssuerLocation(
+                  oAuth2ResourceServerProperties.getJwt().getIssuerUri())
+              .build();
     }
 
-    /**
-     * Configures and returns a {@link JwtDecoder} bean for decoding JWT tokens.
-     * The decoder is initialized using the issuer URI specified in the application
-     * properties and optionally customizes the JWT validation logic based on configuration.
-     * Additionally, HTTP connection and read timeout settings are applied.
-     *
-     * @return a fully configured {@link JwtDecoder} instance for validating and decoding JWT tokens
-     */
-    @Bean
-    public JwtDecoder jwtTokenDecoder() {
-
-        if (oAuth2ResourceServerProperties.getJwt().getIssuerUri() == null) {
-            throw new IllegalStateException("spring.security.oauth2.resourceserver.jwt.issuer-uri must be set");
-        }
-
-        NimbusJwtDecoder nimbusJwtDecoder;
-
-        if (taskaProperties.getSecurity().isIncreaseTimeout()) {
-            SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
-            factory.setConnectTimeout(Duration.ofSeconds(5));
-            factory.setReadTimeout(Duration.ofSeconds(10));
-
-            RestTemplate restTemplate = new RestTemplate(factory);
-
-            nimbusJwtDecoder = NimbusJwtDecoder
-                    .withIssuerLocation(oAuth2ResourceServerProperties.getJwt().getIssuerUri())
-                    .restOperations(restTemplate)
-                    .build();
-        } else {
-            nimbusJwtDecoder = NimbusJwtDecoder
-                    .withIssuerLocation(oAuth2ResourceServerProperties.getJwt().getIssuerUri())
-                    .build();
-        }
-
-        // Customize JWT validation logic if required
-        if (taskaProperties.getSecurity().isDisableIssuerValidation()) {
-            nimbusJwtDecoder.setJwtValidator(JwtValidators.createDefault());
-        }
-
-        return nimbusJwtDecoder;
+    // Customize JWT validation logic if required
+    if (taskaProperties.getSecurity().isDisableIssuerValidation()) {
+      nimbusJwtDecoder.setJwtValidator(JwtValidators.createDefault());
     }
+
+    return nimbusJwtDecoder;
+  }
 }

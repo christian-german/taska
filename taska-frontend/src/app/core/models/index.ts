@@ -1,35 +1,10 @@
 export type ViewStyle = 'LIST' | 'BOARD' | 'CALENDAR';
 
-export interface TimeEntry {
-  id: string;
-  startAt: string;    // ISO 8601 UTC, e.g. "2024-05-03T10:00:00Z"
-  endAt: string;      // ISO 8601 UTC, e.g. "2024-05-03T11:30:00Z"
-  projectId: string;
-  description: string;
-  notes?: string;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export function timeEntryDuration(e: TimeEntry): number {
-  return Math.round((new Date(e.endAt).getTime() - new Date(e.startAt).getTime()) / 60000);
-}
-
-export interface Filter {
-  id: string;
-  name: string;
-  color: string;
-  isFavorite: boolean;
-  order: number;
-  projectId?: string;
-  hasDate?: boolean;
-}
-
 export interface Project {
   id: string;
   name: string;
   color: string;
-  parentId?: string;
+  parentId?: string | null;
   order: number;
   isFavorite: boolean;
   viewStyle: ViewStyle;
@@ -39,49 +14,108 @@ export interface Project {
   updatedAt: string;
 }
 
-export interface PlanningCalendarRule { dayOfWeek: number; startMinute: number; endMinute: number; }
-export interface PlanningCalendar { id: string; name: string; rules: PlanningCalendarRule[]; }
+export interface PlanningCalendarRule {
+  dayOfWeek: number;
+  startMinute: number;
+  endMinute: number;
+}
 
-export interface Section {
+export interface PlanningCalendar {
   id: string;
   name: string;
-  projectId: string;
-  order: number;
-  createdAt: string;
+  rules: PlanningCalendarRule[];
 }
 
 export type RecurrenceScope = 'THIS_ONLY' | 'FROM_THIS';
 export type TaskType = 'TODO' | 'APPOINTMENT';
+export type TaskRepresentationKind = 'NON_RECURRING' | 'RECURRING_SERIES' | 'RECURRING_OCCURRENCE';
 
-export interface Task {
+interface TaskBase {
+  kind: TaskRepresentationKind;
   id: string;
   content: string;
-  /** Missing only for responses from servers predating task types. */
-  type?: TaskType;
-  description?: string;
-  projectId?: string;
-  sectionId?: string;
-  parentId?: string;
+  type: TaskType;
+  description?: string | null;
+  projectId?: string | null;
+  parentId?: string | null;
   order: number;
   /** Optional manual priority; null means no manual priority is assigned. */
   priority: 1 | 2 | 3 | 4 | null;
   labels: string[];
-  isCompleted: boolean;
   scheduledAt: string | null;
+  allDay: boolean;
+  estimateMinutes?: number | null;
+  mentionContext?: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface NonRecurringTask extends TaskBase {
+  kind: 'NON_RECURRING';
   /** Deadline by which the task should be completed; independent of calendar scheduling. */
+  dueAt: string | null;
+  isCompleted: boolean;
+  completedAt: string | null;
+  recurrenceRule?: never;
+  rruleEndsAt?: never;
+  instanceId?: never;
+  occurrenceScheduledAt?: never;
+  isVirtual?: never;
+  isDetached?: never;
+}
+
+export interface RecurringTaskSeries extends TaskBase {
+  kind: 'RECURRING_SERIES';
+  recurrenceRule: string | null;
+  rruleEndsAt: string | null;
+  isCompleted?: never;
+  completedAt?: never;
+  instanceId?: never;
+  occurrenceScheduledAt?: never;
+  isVirtual?: never;
+  isDetached?: never;
+}
+
+export interface RecurringTaskOccurrence extends TaskBase {
+  kind: 'RECURRING_OCCURRENCE';
+  /** Deadline explicitly assigned to this occurrence; null means no occurrence deadline. */
+  dueAt: string | null;
+  recurrenceRule: string | null;
+  rruleEndsAt: string | null;
+  isCompleted: boolean;
+  completedAt: string | null;
+  instanceId: string | null;
+  occurrenceScheduledAt: string;
+  isVirtual: boolean;
+  isDetached: boolean;
+}
+
+export type Task = NonRecurringTask | RecurringTaskSeries | RecurringTaskOccurrence;
+
+export type TaskPatch = Partial<{
+  content: string;
+  type: TaskType;
+  description: string | null;
+  projectId: string | null;
+  parentId: string | null;
+  order: number;
+  priority: TaskBase['priority'];
+  labels: string[];
+  scheduledAt: string | null;
   dueAt: string | null;
   allDay: boolean;
   isRecurring: boolean;
-  estimateMinutes?: number;
-  mentionContext?: string;
-  recurrenceRule?: string;
-  createdAt: string;
-  updatedAt: string;
-  completedAt?: string;
-  instanceId?: string | null;
-  occurrenceScheduledAt?: string | null;
-  isVirtual?: boolean;
-  rruleEndsAt?: string | null;
+  estimateMinutes: number | null;
+  mentionContext: string | null;
+  recurrenceRule: string | null;
+}>;
+
+export function isRecurringTask(task: Task): task is RecurringTaskSeries | RecurringTaskOccurrence {
+  return task.kind !== 'NON_RECURRING';
+}
+
+export function isRecurringTaskOccurrence(task: Task): task is RecurringTaskOccurrence {
+  return task.kind === 'RECURRING_OCCURRENCE';
 }
 
 export interface Label {
@@ -94,34 +128,10 @@ export interface Label {
 
 export interface Comment {
   id: string;
-  taskId?: string;
-  projectId?: string;
+  taskId?: string | null;
+  projectId?: string | null;
   content: string;
   createdAt: string;
-}
-
-export interface DailyCount {
-  date: string;
-  count: number;
-}
-
-export interface ProjectStat {
-  projectId: string;
-  name: string;
-  color: string;
-  total: number;
-  done: number;
-}
-
-export interface StatsOverview {
-  totalCompleted: number;
-  totalActive: number;
-  overdue: number;
-  streakDays: number;
-  completedThisWeek: number;
-  remainingMinutes: number;
-  last14Days: DailyCount[];
-  byProject: ProjectStat[];
 }
 
 export const PROJECT_COLORS: Record<string, string> = {
@@ -170,14 +180,20 @@ export function hexToRgba(hex: string | undefined, a: number): string {
   if (!hex) return `rgba(138,132,122,${a})`;
   if (hex.startsWith('rgba') || hex.startsWith('rgb')) return hex;
   let h = hex.replace('#', '');
-  if (h.length === 3) h = h.split('').map(c => c + c).join('');
+  if (h.length === 3)
+    h = h
+      .split('')
+      .map((c) => c + c)
+      .join('');
   const r = parseInt(h.slice(0, 2), 16);
   const g = parseInt(h.slice(2, 4), 16);
   const b = parseInt(h.slice(4, 6), 16);
   return `rgba(${r},${g},${b},${a})`;
 }
 
-export function isOverdue(taskOrDate: Pick<Task, 'scheduledAt' | 'allDay' | 'isCompleted'> | string | undefined): boolean {
+export function isOverdue(
+  taskOrDate: Pick<Task, 'scheduledAt' | 'allDay' | 'isCompleted'> | string | undefined,
+): boolean {
   if (!taskOrDate) return false;
   const todayMidnight = new Date();
   todayMidnight.setHours(0, 0, 0, 0);
@@ -224,7 +240,11 @@ export function isToday(scheduledAt?: string | null): boolean {
   if (!scheduledAt) return false;
   const d = new Date(scheduledAt);
   const t = new Date();
-  return d.getFullYear() === t.getFullYear() && d.getMonth() === t.getMonth() && d.getDate() === t.getDate();
+  return (
+    d.getFullYear() === t.getFullYear() &&
+    d.getMonth() === t.getMonth() &&
+    d.getDate() === t.getDate()
+  );
 }
 
 export function startOfDay(d: Date | string): Date {
@@ -242,8 +262,34 @@ export function daysDiff(a: Date | string, b: Date | string): number {
 }
 
 const FR_DAYS_LONG = ['dimanche', 'lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi'];
-const FR_MONTHS_LONG = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'];
-const FR_MONTHS_SHORT = ['janv.', 'févr.', 'mars', 'avr.', 'mai', 'juin', 'juil.', 'août', 'sept.', 'oct.', 'nov.', 'déc.'];
+const FR_MONTHS_LONG = [
+  'janvier',
+  'février',
+  'mars',
+  'avril',
+  'mai',
+  'juin',
+  'juillet',
+  'août',
+  'septembre',
+  'octobre',
+  'novembre',
+  'décembre',
+];
+const FR_MONTHS_SHORT = [
+  'janv.',
+  'févr.',
+  'mars',
+  'avr.',
+  'mai',
+  'juin',
+  'juil.',
+  'août',
+  'sept.',
+  'oct.',
+  'nov.',
+  'déc.',
+];
 const FR_DAYS_SHORT = ['dim.', 'lun.', 'mar.', 'mer.', 'jeu.', 'ven.', 'sam.'];
 
 export function fmtDateLong(d: Date | string): string {
@@ -258,7 +304,9 @@ export function fmtDateShort(d: Date | string): string {
 
 export function fmtTime(d: Date | string): string {
   const x = typeof d === 'string' ? new Date(d) : d;
-  return x.getHours().toString().padStart(2, '0') + ':' + x.getMinutes().toString().padStart(2, '0');
+  return (
+    x.getHours().toString().padStart(2, '0') + ':' + x.getMinutes().toString().padStart(2, '0')
+  );
 }
 
 export function fmtRel(due: Date | string | undefined): string {

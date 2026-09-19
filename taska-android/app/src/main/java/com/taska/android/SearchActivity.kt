@@ -12,27 +12,27 @@ import com.taska.android.ui.search.SearchViewModel
 import com.taska.android.ui.theme.TaskaTheme
 
 class SearchActivity : ComponentActivity() {
-    private val viewModel: SearchViewModel by viewModels()
+  private val viewModel: SearchViewModel by viewModels()
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        RetrofitClient.init(this)
-        enableEdgeToEdge()
-        setContent {
-            TaskaTheme {
-                SearchScreen(
-                    viewModel = viewModel,
-                    onBack = onBackPressedDispatcher::onBackPressed,
-                    onTaskClick = { taskId ->
-                        startActivity(Intent(this, TaskDetailActivity::class.java).putExtra("task_id", taskId))
-                    },
-                )
-            }
-        }
+  override fun onCreate(savedInstanceState: Bundle?) {
+    super.onCreate(savedInstanceState)
+    RetrofitClient.init(this)
+    enableEdgeToEdge()
+    setContent {
+      TaskaTheme {
+        SearchScreen(
+          viewModel = viewModel,
+          onBack = onBackPressedDispatcher::onBackPressed,
+          onTaskClick = { taskId ->
+            startActivity(Intent(this, TaskDetailActivity::class.java).putExtra("task_id", taskId))
+          },
+        )
+      }
     }
+  }
 
-    override fun onResume() {
-        super.onResume()
-        if (!isFinishing) viewModel.load()
-    }
+  override fun onResume() {
+    super.onResume()
+    if (!isFinishing) viewModel.load()
+  }
 }

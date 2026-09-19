@@ -1,0 +1,25 @@
+###
+POST {{api}}/projects
+Authorization: Bearer {{$auth.token("user")}}
+Content-Type: application/json
+
+{
+  "name": "0",
+  "color": "",
+  "parentId": "e3e70682-c209-1cac-a29f-6fbed82c07cd",
+  "clearParent": false,
+  "order": 0,
+  "isFavorite": false,
+  "viewStyle": "CALENDAR",
+  "planningCalendarId": "00000000-0000-0000-0000-000000000001"
+}
+
+###
+POST {{api}}/projects
+Authorization: Bearer {{$auth.token("user")}}
+Content-Type: application/json
+
+{
+  "name": "0"
+}
+

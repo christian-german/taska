@@ -11,45 +11,42 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 data class DrawerUiState(
-    val childrenMap: Map<String?, List<ProjectDto>> = emptyMap(),
-    val expandedIds: Set<String> = emptySet(),
-    val isLoading: Boolean = false
+  val childrenMap: Map<String?, List<ProjectDto>> = emptyMap(),
+  val expandedIds: Set<String> = emptySet(),
+  val isLoading: Boolean = false,
 )
 
-class DrawerViewModel(
-    private val projectRepo: ProjectRepository,
-) : ViewModel() {
+class DrawerViewModel(private val projectRepo: ProjectRepository) : ViewModel() {
 
-    constructor() : this(ProjectRepository())
+  constructor() : this(ProjectRepository())
 
-    private val _uiState = MutableStateFlow(DrawerUiState())
-    val uiState: StateFlow<DrawerUiState> = _uiState.asStateFlow()
+  private val _uiState = MutableStateFlow(DrawerUiState())
+  val uiState: StateFlow<DrawerUiState> = _uiState.asStateFlow()
 
-    init {
-        load()
-    }
+  init {
+    load()
+  }
 
-    fun load() {
-        viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true) }
-            try {
-                val projects = projectRepo.getProjects()
-                    .filter { it.isInboxProject != true }
-                    .sortedBy { it.order }
-                _uiState.update {
-                    it.copy(childrenMap = projects.groupBy { p -> p.parentId }, isLoading = false)
-                }
-            } catch (e: Exception) {
-                _uiState.update { it.copy(isLoading = false) }
-            }
+  fun load() {
+    viewModelScope.launch {
+      _uiState.update { it.copy(isLoading = true) }
+      try {
+        val projects =
+          projectRepo.getProjects().filter { it.isInboxProject != true }.sortedBy { it.order }
+        _uiState.update {
+          it.copy(childrenMap = projects.groupBy { p -> p.parentId }, isLoading = false)
         }
+      } catch (e: Exception) {
+        _uiState.update { it.copy(isLoading = false) }
+      }
     }
+  }
 
-    fun toggleExpand(projectId: String) {
-        _uiState.update { state ->
-            val next = state.expandedIds.toMutableSet()
-            if (projectId in next) next.remove(projectId) else next.add(projectId)
-            state.copy(expandedIds = next)
-        }
+  fun toggleExpand(projectId: String) {
+    _uiState.update { state ->
+      val next = state.expandedIds.toMutableSet()
+      if (projectId in next) next.remove(projectId) else next.add(projectId)
+      state.copy(expandedIds = next)
     }
+  }
 }

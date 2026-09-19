@@ -1,6 +1,6 @@
-import {Injectable, signal} from '@angular/core';
+import { Injectable, signal } from '@angular/core';
 
-@Injectable({providedIn: 'root'})
+@Injectable({ providedIn: 'root' })
 export class TaskCreationFeedbackService {
   readonly visible = signal(false);
   private dismissal?: ReturnType<typeof setTimeout>;

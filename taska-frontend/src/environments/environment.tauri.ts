@@ -6,6 +6,6 @@ export const environment = {
     clientId: 'taska-client',
     redirectUri: 'http://tauri.localhost/callback',
     postLogoutRedirectUri: 'http://tauri.localhost',
-    scope: 'openid profile email offline_access'
-  }
+    scope: 'openid profile email offline_access',
+  },
 };

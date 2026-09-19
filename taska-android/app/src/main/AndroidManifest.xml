@@ -62,10 +62,6 @@
                 android:exported="false"
                 android:theme="@style/Theme.Taska"/>
         <activity
-                android:name=".TrackerActivity"
-                android:exported="false"
-                android:theme="@style/Theme.Taska"/>
-        <activity
                 android:name=".TaskDetailActivity"
                 android:exported="false"
                 android:theme="@style/Theme.Taska"/>

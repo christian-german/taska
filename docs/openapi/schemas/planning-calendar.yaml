@@ -1,39 +1,76 @@
-PlanningCalendarRequest:
-  description: "Payload used to create or update a planning calendar."
+PlanningCalendarCreateRequest:
+  description: "Payload used to create a planning calendar."
   type: "object"
+  additionalProperties: false
   properties:
     name:
+      description: "Required display name of the planning calendar; must not be blank."
       type: "string"
       minLength: 1
     rules:
+      description: "Optional initial availability windows; omission creates an empty rule set."
+      type: ["array", "null"]
+      items:
+        "$ref": "./planning-calendar.yaml#/Rule"
+  required:
+    - "name"
+PlanningCalendarUpdateRequest:
+  description: "Complete replacement of a planning calendar's mutable properties."
+  type: "object"
+  additionalProperties: false
+  properties:
+    name:
+      description: "Required replacement display name; must not be blank."
+      type: "string"
+      minLength: 1
+    rules:
+      description: "Complete replacement rule set; an empty array clears all existing rules."
       type: "array"
       items:
         "$ref": "./planning-calendar.yaml#/Rule"
   required:
     - "name"
+    - "rules"
 Rule:
   description: "A planning window expressed as weekday and minute offsets."
   type: "object"
+  additionalProperties: false
   properties:
     dayOfWeek:
+      description: "ISO-8601 weekday number from 1 (Monday) through 7 (Sunday)."
       type: "integer"
       format: "int32"
+      minimum: 1
+      maximum: 7
     startMinute:
+      description: "Inclusive start of the availability window as minutes after midnight, from 0 through 1439."
       type: "integer"
       format: "int32"
+      minimum: 0
+      maximum: 1439
     endMinute:
+      description: "Exclusive end of the availability window as minutes after midnight, after `startMinute` and at most 1440."
       type: "integer"
       format: "int32"
+      minimum: 1
+      maximum: 1440
+  required:
+    - "dayOfWeek"
+    - "startMinute"
+    - "endMinute"
 PlanningCalendarDto:
   description: "Planning calendar returned by the API."
   type: "object"
   properties:
     id:
+      description: "Unique identifier of the planning calendar."
       type: "string"
       format: "uuid"
     name:
+      description: "Display name of the planning calendar."
       type: "string"
     rules:
+      description: "Availability windows ordered by weekday and start minute."
       type: "array"
       items:
         "$ref": "./planning-calendar.yaml#/Rule"

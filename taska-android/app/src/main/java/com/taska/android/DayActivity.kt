@@ -26,76 +26,86 @@ import com.taska.android.ui.theme.TaskaTheme
 
 class DayActivity : ComponentActivity() {
 
-    private val dayViewModel: DayViewModel by viewModels()
+  private val dayViewModel: DayViewModel by viewModels()
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
-        setContent {
-            TaskaTheme {
-                val addTaskViewModel: AddTaskViewModel = viewModel()
-                var showAddTask by remember { mutableStateOf(false) }
+  override fun onCreate(savedInstanceState: Bundle?) {
+    super.onCreate(savedInstanceState)
+    enableEdgeToEdge()
+    setContent {
+      TaskaTheme {
+        val addTaskViewModel: AddTaskViewModel = viewModel()
+        var showAddTask by remember { mutableStateOf(false) }
 
-                WithDrawer(
-                    onInboxSelected = {
-                        startActivity(Intent(this@DayActivity, MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT))
-                    },
-                    onProjectSelected = { projectId ->
-                        startActivity(
-                            Intent(this@DayActivity, ProjectActivity::class.java)
-                                .putExtra("project_id", projectId)
-                                .putExtra("nav_current", NavDestination.DAY.name)
-                        )
-                    }
-                ) {
-                    Column(modifier = Modifier.fillMaxSize()) {
-                        DayScreen(
-                            viewModel = dayViewModel,
-                            onTaskClick = { taskId, occurrenceScheduledAt ->
-                                startActivity(
-                                    Intent(this@DayActivity, TaskDetailActivity::class.java).apply {
-                                        putExtra("task_id", taskId)
-                                        occurrenceScheduledAt?.let { putExtra("scheduled_at", it) }
-                                    }
-                                )
-                            },
-                            onSearch = { startActivity(Intent(this@DayActivity, SearchActivity::class.java)) },
-            modifier = Modifier.weight(1f)
-                        )
-                        BottomNavBar(
-                            current = NavDestination.DAY,
-                            onNavigate = { dest ->
-                                when (dest) {
-                                    NavDestination.TODAY -> startActivity(Intent(this@DayActivity, TodayActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT))
-                                    NavDestination.DAY -> Unit
-                                    NavDestination.WEEK -> startActivity(Intent(this@DayActivity, WeekActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT))
-                                    NavDestination.TRACKER -> startActivity(Intent(this@DayActivity, TrackerActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT))
-                                    NavDestination.INBOX -> Unit
-                                }
-                            },
-                            onAddClick = { showAddTask = true }
-                        )
-                    }
-                }
-
-                if (showAddTask) {
-                    AddTaskBottomSheet(
-                        viewModel = addTaskViewModel,
-                        onDismiss = { showAddTask = false },
-                        onTaskCreated = {
-                            handleCalendarTaskCreated(
-                                dismissTaskCreation = { showAddTask = false },
-                                refreshCalendar = dayViewModel::load,
-                            )
-                        }
+        WithDrawer(
+          onInboxSelected = {
+            startActivity(
+              Intent(this@DayActivity, MainActivity::class.java)
+                .addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT)
+            )
+          },
+          onProjectSelected = { projectId ->
+            startActivity(
+              Intent(this@DayActivity, ProjectActivity::class.java)
+                .putExtra("project_id", projectId)
+                .putExtra("nav_current", NavDestination.DAY.name)
+            )
+          },
+        ) {
+          Column(modifier = Modifier.fillMaxSize()) {
+            DayScreen(
+              viewModel = dayViewModel,
+              onTaskClick = { taskId, occurrenceScheduledAt ->
+                startActivity(
+                  Intent(this@DayActivity, TaskDetailActivity::class.java).apply {
+                    putExtra("task_id", taskId)
+                    occurrenceScheduledAt?.let { putExtra("scheduled_at", it) }
+                  }
+                )
+              },
+              onSearch = { startActivity(Intent(this@DayActivity, SearchActivity::class.java)) },
+              modifier = Modifier.weight(1f),
+            )
+            BottomNavBar(
+              current = NavDestination.DAY,
+              onNavigate = { dest ->
+                when (dest) {
+                  NavDestination.TODAY ->
+                    startActivity(
+                      Intent(this@DayActivity, TodayActivity::class.java)
+                        .addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT)
                     )
+                  NavDestination.DAY -> Unit
+                  NavDestination.WEEK ->
+                    startActivity(
+                      Intent(this@DayActivity, WeekActivity::class.java)
+                        .addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT)
+                    )
+                  NavDestination.INBOX -> Unit
                 }
-            }
+              },
+              onAddClick = { showAddTask = true },
+            )
+          }
         }
-    }
 
-    override fun onResume() {
-        super.onResume()
-        dayViewModel.load()
+        if (showAddTask) {
+          AddTaskBottomSheet(
+            viewModel = addTaskViewModel,
+            onDismiss = { showAddTask = false },
+            onTaskCreated = {
+              handleCalendarTaskCreated(
+                dismissTaskCreation = { showAddTask = false },
+                refreshCalendar = dayViewModel::load,
+              )
+            },
+          )
+        }
+      }
     }
+  }
+
+  override fun onResume() {
+    super.onResume()
+    dayViewModel.load()
+  }
 }

@@ -1,10 +1,10 @@
-"/comments/{id}":
+"/comments/{commentId}":
   put:
     tags:
       - "Comments"
     operationId: "updateComment"
     parameters:
-      - name: "id"
+      - name: "commentId"
         in: "path"
         required: true
         schema:
@@ -15,7 +15,7 @@
       content:
         "application/json":
           schema:
-            "$ref": "../schemas/comment.yaml#/CommentRequest"
+            "$ref": "../schemas/comment.yaml#/CommentUpdateRequest"
       required: true
       description: "Request payload."
     responses:
@@ -46,7 +46,7 @@
       - "Comments"
     operationId: "deleteComment"
     parameters:
-      - name: "id"
+      - name: "commentId"
         in: "path"
         required: true
         schema:
@@ -76,14 +76,14 @@
       - "Comments"
     operationId: "listComments"
     parameters:
-      - name: "task_id"
+      - name: "taskId"
         in: "query"
         required: false
         schema:
           type: "string"
           format: "uuid"
         description: "Restrict results to this task identifier."
-      - name: "project_id"
+      - name: "projectId"
         in: "query"
         required: false
         schema:
@@ -117,7 +117,7 @@
       content:
         "application/json":
           schema:
-            "$ref": "../schemas/comment.yaml#/CommentRequest"
+            "$ref": "../schemas/comment.yaml#/CommentCreateRequest"
       required: true
       description: "Request payload."
     responses:

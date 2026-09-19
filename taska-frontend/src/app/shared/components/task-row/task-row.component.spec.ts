@@ -1,65 +1,72 @@
-import {ComponentFixture, TestBed} from '@angular/core/testing';
-import {of} from 'rxjs';
-import {Project, Task} from '../../../core/models';
-import {LabelService} from '../../../core/services/label.service';
-import {TaskRowComponent} from './task-row.component';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { of } from 'rxjs';
+import { RecurringTaskOccurrence } from '../../../core/models';
+import { LabelService } from '../../../core/services/label.service';
+import { TaskRowComponent } from './task-row.component';
 
-describe('TaskRowComponent presentation', () => {
+describe('TaskRowComponent detached occurrence', () => {
   let fixture: ComponentFixture<TaskRowComponent>;
-
-  const task: Task = {
-    id: 'task-1',
-    content: 'Prepare launch',
-    order: 1,
-    priority: 4,
-    labels: ['work'],
-    isCompleted: false,
-    scheduledAt: '2026-08-24T09:00:00Z',
-    dueAt: null,
-    allDay: false,
-    estimateMinutes: 45,
-    isRecurring: true,
-    recurrenceRule: 'weekly',
-    mentionContext: 'alex',
-    type: 'APPOINTMENT',
-    createdAt: '',
-    updatedAt: '',
-  };
-
-  const project: Project = {
-    id: 'project-1',
-    name: 'Launch',
-    color: 'blue',
-    order: 1,
-    isFavorite: false,
-    viewStyle: 'LIST',
-    isInboxProject: false,
-    planningCalendarId: 'calendar-1',
-    createdAt: '',
-    updatedAt: '',
-  };
+  let component: TaskRowComponent;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [TaskRowComponent],
-      providers: [{provide: LabelService, useValue: {labels$: of([])}}],
+      providers: [{ provide: LabelService, useValue: { labels$: of([]) } }],
     }).compileComponents();
     fixture = TestBed.createComponent(TaskRowComponent);
-    fixture.componentRef.setInput('task', task);
-    fixture.componentRef.setInput('project', project);
-    fixture.detectChanges();
+    component = fixture.componentInstance;
   });
 
-  it('omits suggestion markers while retaining unrelated task metadata', () => {
-    const text = (fixture.nativeElement as HTMLElement).textContent ?? '';
+  it('shows the detached badge and targets inline edits to this occurrence', () => {
+    const occurrence = detachedOccurrence();
+    fixture.componentRef.setInput('task', occurrence);
+    fixture.detectChanges();
+    const updates: unknown[] = [];
+    component.updated.subscribe((update) => updates.push(update));
 
-    expect(text).not.toContain('suggéré');
-    expect(fixture.nativeElement.querySelector('app-icon[name="zap"]')).toBeNull();
-    expect(text).toContain('rendez-vous');
-    expect(text).toContain('45min');
-    expect(text).toContain('hebdomadaire');
-    expect(text).toContain('Launch');
-    expect(text).toContain('@alex');
-    expect(text).toContain('work');
+    component.draft.set('Updated occurrence');
+    component.commitEdit();
+
+    expect(fixture.nativeElement.textContent).toContain('Hors série');
+    expect(updates).toEqual([
+      {
+        id: occurrence.id,
+        patch: {
+          content: 'Updated occurrence',
+          scope: 'THIS_ONLY',
+          occurrenceScheduledAt: occurrence.occurrenceScheduledAt,
+        },
+      },
+    ]);
   });
 });
+
+function detachedOccurrence(): RecurringTaskOccurrence {
+  return {
+    kind: 'RECURRING_OCCURRENCE',
+    id: 'task-1',
+    content: 'Detached occurrence',
+    type: 'TODO',
+    description: null,
+    projectId: null,
+    parentId: null,
+    order: 0,
+    priority: null,
+    labels: [],
+    scheduledAt: '2026-08-24T09:00:00Z',
+    dueAt: null,
+    allDay: false,
+    estimateMinutes: null,
+    mentionContext: null,
+    createdAt: '2026-08-01T00:00:00Z',
+    updatedAt: '2026-08-01T00:00:00Z',
+    recurrenceRule: 'FREQ=DAILY',
+    rruleEndsAt: '2026-08-23T09:00:00Z',
+    isCompleted: false,
+    completedAt: null,
+    instanceId: 'instance-1',
+    occurrenceScheduledAt: '2026-08-24T09:00:00Z',
+    isVirtual: false,
+    isDetached: true,
+  };
+}

@@ -1,10 +1,10 @@
-"/labels/{id}":
+"/labels/{labelId}":
   get:
     tags:
       - "Labels"
     operationId: "getLabel"
     parameters:
-      - name: "id"
+      - name: "labelId"
         in: "path"
         required: true
         schema:
@@ -35,7 +35,7 @@
       - "Labels"
     operationId: "updateLabel"
     parameters:
-      - name: "id"
+      - name: "labelId"
         in: "path"
         required: true
         schema:
@@ -46,7 +46,7 @@
       content:
         "application/json":
           schema:
-            "$ref": "../schemas/label.yaml#/LabelRequest"
+            "$ref": "../schemas/label.yaml#/LabelUpdateRequest"
       required: true
       description: "Request payload."
     responses:
@@ -77,7 +77,7 @@
       - "Labels"
     operationId: "deleteLabel"
     parameters:
-      - name: "id"
+      - name: "labelId"
         in: "path"
         required: true
         schema:
@@ -131,7 +131,7 @@
       content:
         "application/json":
           schema:
-            "$ref": "../schemas/label.yaml#/LabelRequest"
+            "$ref": "../schemas/label.yaml#/LabelCreateRequest"
       required: true
       description: "Request payload."
     responses:

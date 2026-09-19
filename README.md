@@ -44,12 +44,25 @@ npm start          # dev server on :4200 with API proxy
 ## REST API
 
 ### Projects  `GET/POST /projects`
-### Sections  `GET/POST /sections?project_id=`
-### Tasks     `GET/POST /tasks?project_id=&filter=today|overdue|upcoming`
+### Tasks     `GET/POST /tasks?projectId=`
 ### Labels    `GET/POST /labels`
-### Comments  `GET/POST /comments?task_id=`
+### Comments  `GET/POST /comments?taskId=`
 
-Task lifecycle: `POST /tasks/{id}/close` · `POST /tasks/{id}/reopen`
+Task lifecycle: `POST /tasks/{taskId}/close` · `POST /tasks/{taskId}/reopen`
+
+## OpenAPI contract tests
+
+Run the standalone Schemathesis test stack from the repository root:
+
+```bash
+./contract-tests/verify-contract.sh
+```
+
+The command builds the backend from the current local sources, starts isolated Taska and
+Authentik dependencies, tests `docs/openapi/taska.openapi.yaml`, writes human- and
+agent-readable reports under `contract-tests/reports/`, and tears the stack down. It is
+intentionally independent from the backend Maven build. See
+[`contract-tests/README.md`](contract-tests/README.md) for report details and prerequisites.
 
 ## MCP Server
 
@@ -70,17 +83,17 @@ Task and project tools call the backend application services directly, so they f
 - **Tasks**: optional priority (p1–p4), calendar scheduling (`scheduledAt`), independent deadlines (`dueAt`), labels, sub-tasks, comments
 
 `scheduledAt` (`scheduled_at` in storage) controls calendar placement, date-based views, recurrence scheduling, and notifications. `dueAt` (`due_at`) is the optional deadline by which a task should be completed; it does not reschedule a task or affect notifications. REST and MCP task create/update responses accept and return both fields independently.
-- **Projects**: colors, favorites, nested projects, sections
+- **Projects**: colors, favorites, nested projects
 - **Quick Add**: press `Q` — supports `#project`, `@label`, `p1–p4`, `today/tomorrow`
-- **Drag & Drop**: reorder tasks within sections (Angular CDK)
+- **Drag & Drop**: reorder tasks (Angular CDK)
 - **Dark mode**: auto-detects system preference, toggleable in sidebar
 - **Optimistic UI**: completions animate immediately before server confirmation
 
 ## Data Model
 
 ```
-Project → Sections → Tasks → Sub-tasks
-                           → Comments
+Project → Tasks → Sub-tasks
+              → Comments
 Labels ←→ Tasks (string references)
 ```
 

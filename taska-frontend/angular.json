@@ -50,10 +50,7 @@
                 "input": "public"
               }
             ],
-            "styles": [
-              "src/tailwind-generated.css",
-              "src/styles.css"
-            ]
+            "styles": ["src/tailwind-generated.css", "src/styles.css"]
           },
           "configurations": {
             "production": {
@@ -145,6 +142,7 @@
             "tsConfig": "tsconfig.spec.json",
             "buildTarget": "taska-frontend:build:development"
           }
+        }
       }
     }
   }

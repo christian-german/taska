@@ -1,0 +1,15 @@
+###
+POST {{api}}/planning-calendars
+Authorization: Bearer {{$auth.token("user")}}
+Content-Type: application/json
+
+{
+  "name": "0",
+  "rules": [
+    {
+      "dayOfWeek": 1,
+      "endMinute": 1,
+      "startMinute": 1438
+    }
+  ]
+}

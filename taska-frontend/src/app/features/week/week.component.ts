@@ -1,10 +1,21 @@
-import {Component, DestroyRef, OnInit, computed, inject, signal, ChangeDetectionStrategy} from '@angular/core';
+import {
+  Component,
+  DestroyRef,
+  OnInit,
+  computed,
+  inject,
+  signal,
+  ChangeDetectionStrategy,
+} from '@angular/core';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
-import { Project, Task, daysDiff, fmtDateShort } from '../../core/models';
+import { Project, Task, TaskPatch, daysDiff, fmtDateShort } from '../../core/models';
 import { TaskService } from '../../core/services/task.service';
 import { ProjectService } from '../../core/services/project.service';
 import { UiStateService } from '../../core/services/ui-state.service';
-import { TaskListComponent, TaskGroup } from '../../shared/components/task-list/task-list.component';
+import {
+  TaskListComponent,
+  TaskGroup,
+} from '../../shared/components/task-list/task-list.component';
 import { PageHeaderComponent } from '../../shared/components/page-header/page-header.component';
 import { EmptyStateComponent } from '../../shared/components/atoms/atoms.component';
 import { IconComponent } from '../../shared/components/icon/icon.component';
@@ -18,16 +29,29 @@ const FR_DAYS = ['dimanche', 'lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 
   template: `
     <app-page-header [title]="title()" [subtitle]="subtitle()">
       <div actions style="display: flex; align-items: center; gap: 4px;">
-        <button class="btn btn-ghost" style="padding: 5px 8px;"
-                (click)="prevWeek()" title="Semaine précédente">
+        <button
+          class="btn btn-ghost"
+          style="padding: 5px 8px;"
+          (click)="prevWeek()"
+          title="Semaine précédente"
+        >
           <app-icon name="chevron-left" [size]="16" />
         </button>
         @if (weekOffset() !== 0) {
-          <button class="btn btn-ghost" style="padding: 5px 10px; font-size: 12px;"
-                  (click)="resetWeek()">aujourd'hui</button>
+          <button
+            class="btn btn-ghost"
+            style="padding: 5px 10px; font-size: 12px;"
+            (click)="resetWeek()"
+          >
+            aujourd'hui
+          </button>
         }
-        <button class="btn btn-ghost" style="padding: 5px 8px;"
-                (click)="nextWeek()" title="Semaine suivante">
+        <button
+          class="btn btn-ghost"
+          style="padding: 5px 8px;"
+          (click)="nextWeek()"
+          title="Semaine suivante"
+        >
           <app-icon name="chevron-right" [size]="16" />
         </button>
       </div>
@@ -45,7 +69,8 @@ const FR_DAYS = ['dimanche', 'lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 
           [selectedId]="selectedId()"
           (toggled)="onToggle($event)"
           (selectTask)="onSelect($event)"
-          (updated)="onUpdate($event)" />
+          (updated)="onUpdate($event)"
+        />
       }
     </div>
   `,
@@ -79,15 +104,19 @@ export class WeekComponent implements OnInit {
 
   groups = computed<TaskGroup[]>(() => {
     const start = this.weekStart();
-    const today = new Date(); today.setHours(0, 0, 0, 0);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
     const days: TaskGroup[] = [];
     for (let i = 0; i < 7; i++) {
       const d = new Date(start);
       d.setDate(d.getDate() + i);
       const diffFromToday = Math.round((d.getTime() - today.getTime()) / 86400000);
-      const label = diffFromToday === 0 ? "Aujourd'hui"
-                  : diffFromToday === 1 ? 'Demain'
-                  : `${FR_DAYS[d.getDay()]} ${d.getDate()}`;
+      const label =
+        diffFromToday === 0
+          ? "Aujourd'hui"
+          : diffFromToday === 1
+            ? 'Demain'
+            : `${FR_DAYS[d.getDay()]} ${d.getDate()}`;
       days.push({ key: 'd' + i, label, tasks: [] });
     }
     for (const t of this.tasks()) {
@@ -106,20 +135,29 @@ export class WeekComponent implements OnInit {
     return `du ${fmtDateShort(start)} au ${fmtDateShort(end)}`;
   });
 
-  isEmpty = computed(() => this.groups().every(g => g.tasks.length === 0));
+  isEmpty = computed(() => this.groups().every((g) => g.tasks.length === 0));
 
   ngOnInit(): void {
     this.refresh();
     this.ui.taskCreated$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => this.refresh());
-    this.ui.taskDeleted$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(id => {
-      this.tasks.update(list => list.filter(t => t.id !== id));
+    this.ui.taskDeleted$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((id) => {
+      this.tasks.update((list) => list.filter((t) => t.id !== id));
     });
     this.ui.taskUpdated$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => this.refresh());
   }
 
-  prevWeek(): void { this.weekOffset.update(o => o - 1); this.refresh(); }
-  nextWeek(): void { this.weekOffset.update(o => o + 1); this.refresh(); }
-  resetWeek(): void { this.weekOffset.set(0); this.refresh(); }
+  prevWeek(): void {
+    this.weekOffset.update((o) => o - 1);
+    this.refresh();
+  }
+  nextWeek(): void {
+    this.weekOffset.update((o) => o + 1);
+    this.refresh();
+  }
+  resetWeek(): void {
+    this.weekOffset.set(0);
+    this.refresh();
+  }
 
   private refresh(): void {
     const start = this.weekStart();
@@ -127,7 +165,7 @@ export class WeekComponent implements OnInit {
     end.setDate(end.getDate() + 6);
     const from = start.toISOString().slice(0, 10);
     const to = end.toISOString().slice(0, 10);
-    this.taskService.getTasks({ from, to }).subscribe(t => this.tasks.set(t));
+    this.taskService.getTasks({ from, to }).subscribe((t) => this.tasks.set(t));
   }
 
   onToggle(t: Task): void {
@@ -142,7 +180,7 @@ export class WeekComponent implements OnInit {
     this.ui.openTaskDetail(t);
   }
 
-  onUpdate(payload: { id: string; patch: Partial<Task> }): void {
+  onUpdate(payload: { id: string; patch: TaskPatch }): void {
     this.taskService.updateTask(payload.id, payload.patch).subscribe(() => this.refresh());
   }
 }

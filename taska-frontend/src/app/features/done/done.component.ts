@@ -1,10 +1,20 @@
-import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  OnInit,
+  computed,
+  inject,
+  signal,
+} from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { Project, Task } from '../../core/models';
+import { Project, Task, TaskPatch } from '../../core/models';
 import { TaskService } from '../../core/services/task.service';
 import { ProjectService } from '../../core/services/project.service';
 import { UiStateService } from '../../core/services/ui-state.service';
-import { TaskListComponent, TaskGroup } from '../../shared/components/task-list/task-list.component';
+import {
+  TaskListComponent,
+  TaskGroup,
+} from '../../shared/components/task-list/task-list.component';
 import { PageHeaderComponent } from '../../shared/components/page-header/page-header.component';
 import { EmptyStateComponent } from '../../shared/components/atoms/atoms.component';
 import { IconComponent } from '../../shared/components/icon/icon.component';
@@ -18,7 +28,10 @@ import { IconComponent } from '../../shared/components/icon/icon.component';
 
     <div class="scroll" style="flex: 1; overflow-y: auto; padding: 8px 12px 60px;">
       @if (tasks().length === 0) {
-        <app-empty-state title="aucune tâche terminée" hint="Coche-en quelques-unes pour les voir apparaître ici">
+        <app-empty-state
+          title="aucune tâche terminée"
+          hint="Coche-en quelques-unes pour les voir apparaître ici"
+        >
           <app-icon icon name="check" [size]="28" color="var(--mute)" />
         </app-empty-state>
       } @else {
@@ -28,7 +41,8 @@ import { IconComponent } from '../../shared/components/icon/icon.component';
           [selectedId]="selectedId()"
           (toggled)="onToggle($event)"
           (selectTask)="onSelect($event)"
-          (updated)="onUpdate($event)" />
+          (updated)="onUpdate($event)"
+        />
       }
     </div>
   `,
@@ -44,20 +58,19 @@ export class DoneComponent implements OnInit {
   selectedId = computed(() => this.ui.selectedTask()?.id ?? null);
   subtitle = computed(() => `${this.tasks().length} dernières`);
 
-  groups = computed<TaskGroup[]>(() => [
-    { key: 'done', label: 'Récentes', tasks: this.tasks() },
-  ]);
+  groups = computed<TaskGroup[]>(() => [{ key: 'done', label: 'Récentes', tasks: this.tasks() }]);
 
   ngOnInit(): void {
     this.refresh();
   }
 
   private refresh(): void {
-    this.taskService.getTasks({ showCompleted: true }).subscribe(all => {
+    this.taskService.getTasks({ showCompleted: true }).subscribe((all) => {
       this.tasks.set(
-        all.filter(t => t.isCompleted)
-           .sort((a, b) => (b.completedAt ?? '').localeCompare(a.completedAt ?? ''))
-           .slice(0, 60)
+        all
+          .filter((t) => t.isCompleted)
+          .sort((a, b) => (b.completedAt ?? '').localeCompare(a.completedAt ?? ''))
+          .slice(0, 60),
       );
     });
   }
@@ -71,9 +84,9 @@ export class DoneComponent implements OnInit {
     this.ui.openTaskDetail(t);
   }
 
-  onUpdate(payload: { id: string; patch: Partial<Task> }): void {
-    this.taskService.updateTask(payload.id, payload.patch).subscribe(updated => {
-      this.tasks.update(list => list.map(x => x.id === updated.id ? updated : x));
+  onUpdate(payload: { id: string; patch: TaskPatch }): void {
+    this.taskService.updateTask(payload.id, payload.patch).subscribe((updated) => {
+      this.tasks.update((list) => list.map((x) => (x.id === updated.id ? updated : x)));
     });
   }
 }

@@ -1,5 +1,5 @@
-import {ChangeDetectorRef, Component, inject, OnInit} from '@angular/core';
-import {UpdateInfo, UpdateService} from '../../core/services/update.service';
+import { ChangeDetectorRef, Component, inject, OnInit } from '@angular/core';
+import { UpdateInfo, UpdateService } from '../../core/services/update.service';
 
 @Component({
   standalone: true,
@@ -7,8 +7,11 @@ import {UpdateInfo, UpdateService} from '../../core/services/update.service';
   template: `
     @if (visible) {
       <div class="modal-veil" (click)="dismiss()">
-        <div class="modal" (click)="$event.stopPropagation()" style="padding: 28px 28px 22px; width: min(400px, 92vw);">
-
+        <div
+          class="modal"
+          (click)="$event.stopPropagation()"
+          style="padding: 28px 28px 22px; width: min(400px, 92vw);"
+        >
           <div class="script" style="font-size: 22px; margin-bottom: 4px;">
             Mise à jour disponible
           </div>
@@ -17,7 +20,9 @@ import {UpdateInfo, UpdateService} from '../../core/services/update.service';
           </div>
 
           @if (updateInfo?.notes) {
-            <div style="font-size: 13px; color: var(--ink-2); line-height: 1.6; margin-bottom: 20px;">
+            <div
+              style="font-size: 13px; color: var(--ink-2); line-height: 1.6; margin-bottom: 20px;"
+            >
               {{ updateInfo?.notes }}
             </div>
           }
@@ -35,11 +40,10 @@ import {UpdateInfo, UpdateService} from '../../core/services/update.service';
               <button class="btn btn-primary" (click)="install()">Installer</button>
             </div>
           }
-
         </div>
       </div>
     }
-  `
+  `,
 })
 export class UpdateDialogComponent implements OnInit {
   private updateService = inject(UpdateService);
@@ -57,7 +61,10 @@ export class UpdateDialogComponent implements OnInit {
     });
   }
 
-  dismiss() { this.visible = false; this.cdr.markForCheck(); }
+  dismiss() {
+    this.visible = false;
+    this.cdr.markForCheck();
+  }
 
   async install() {
     this.downloading = true;

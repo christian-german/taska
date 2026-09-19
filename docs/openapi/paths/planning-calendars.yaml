@@ -1,10 +1,10 @@
-"/planning-calendars/{id}":
+"/planning-calendars/{planningCalendarId}":
   get:
     tags:
       - "Planning Calendars"
     operationId: "getPlanningCalendar"
     parameters:
-      - name: "id"
+      - name: "planningCalendarId"
         in: "path"
         required: true
         schema:
@@ -35,7 +35,7 @@
       - "Planning Calendars"
     operationId: "updatePlanningCalendar"
     parameters:
-      - name: "id"
+      - name: "planningCalendarId"
         in: "path"
         required: true
         schema:
@@ -46,7 +46,7 @@
       content:
         "application/json":
           schema:
-            "$ref": "../schemas/planning-calendar.yaml#/PlanningCalendarRequest"
+            "$ref": "../schemas/planning-calendar.yaml#/PlanningCalendarUpdateRequest"
       required: true
       description: "Request payload."
     responses:
@@ -102,7 +102,7 @@
       content:
         "application/json":
           schema:
-            "$ref": "../schemas/planning-calendar.yaml#/PlanningCalendarRequest"
+            "$ref": "../schemas/planning-calendar.yaml#/PlanningCalendarCreateRequest"
       required: true
       description: "Request payload."
     responses:

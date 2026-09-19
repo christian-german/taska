@@ -1,10 +1,10 @@
-"/tasks/{id}":
+"/tasks/{taskId}":
   get:
     tags:
       - "Tasks"
     operationId: "getTask"
     parameters:
-      - name: "id"
+      - name: "taskId"
         in: "path"
         required: true
         schema:
@@ -17,7 +17,7 @@
         content:
           "application/json":
             schema:
-              "$ref": "../schemas/task.yaml#/TaskDto"
+              "$ref": "../schemas/task.yaml#/TaskResourceDto"
       "400":
         "$ref": "../responses.yaml#/BadRequest"
       "401":
@@ -35,7 +35,7 @@
       - "Tasks"
     operationId: "updateTask"
     parameters:
-      - name: "id"
+      - name: "taskId"
         in: "path"
         required: true
         schema:
@@ -55,7 +55,7 @@
         content:
           "application/json":
             schema:
-              "$ref": "../schemas/task.yaml#/TaskDto"
+              "$ref": "../schemas/task.yaml#/TaskResourceDto"
       "400":
         "$ref": "../responses.yaml#/BadRequest"
       "401":
@@ -72,13 +72,89 @@
         "$ref": "../responses.yaml#/InternalServerError"
     summary: "Update a task"
     description: "Update a task for the authenticated Taska principal."
-"/tasks/{id}/occurrences/{occurrenceScheduledAt}":
+  delete:
+    tags:
+      - "Tasks"
+    operationId: "deleteTask"
+    parameters:
+      - name: "taskId"
+        in: "path"
+        required: true
+        schema:
+          type: "string"
+          format: "uuid"
+        description: "Task identifier."
+    requestBody:
+      content:
+        "application/json":
+          schema:
+            "$ref": "../schemas/task.yaml#/TaskDeleteRequest"
+      description: "Request payload."
+    responses:
+      "204":
+        description: "Operation completed; no response body."
+      "400":
+        "$ref": "../responses.yaml#/BadRequest"
+      "401":
+        "$ref": "../responses.yaml#/Unauthorized"
+      "403":
+        "$ref": "../responses.yaml#/Forbidden"
+      "404":
+        "$ref": "../responses.yaml#/NotFound"
+      "409":
+        "$ref": "../responses.yaml#/Conflict"
+      "422":
+        "$ref": "../responses.yaml#/ValidationError"
+      "500":
+        "$ref": "../responses.yaml#/InternalServerError"
+    summary: "Delete a task"
+    description: "Delete a task for the authenticated Taska principal."
+"/tasks/{taskId}/occurrences/{occurrenceScheduledAt}":
+  get:
+    tags:
+      - "Tasks"
+    operationId: "getTaskOccurrence"
+    parameters:
+      - name: "taskId"
+        in: "path"
+        required: true
+        schema:
+          type: "string"
+          format: "uuid"
+        description: "Recurring-series identifier."
+      - name: "occurrenceScheduledAt"
+        in: "path"
+        required: true
+        schema:
+          type: "string"
+          format: "date-time"
+          pattern: "(?:Z|[+-](?:(?:0[0-9]|1[0-7]):[0-5][0-9]|18:00))$"
+        description: "Stable original scheduled timestamp of the recurring occurrence."
+    responses:
+      "200":
+        description: "The addressed recurring occurrence."
+        content:
+          "application/json":
+            schema:
+              "$ref": "../schemas/task.yaml#/RecurringTaskOccurrenceDto"
+      "400":
+        "$ref": "../responses.yaml#/BadRequest"
+      "401":
+        "$ref": "../responses.yaml#/Unauthorized"
+      "403":
+        "$ref": "../responses.yaml#/Forbidden"
+      "404":
+        "$ref": "../responses.yaml#/NotFound"
+      "500":
+        "$ref": "../responses.yaml#/InternalServerError"
+    summary: "Retrieve one recurring task occurrence"
+    description: "Retrieve one generated or detached recurring occurrence by stable identity."
   put:
     tags:
       - "Tasks"
     operationId: "replaceTaskOccurrence"
     parameters:
-      - name: "id"
+      - name: "taskId"
         in: "path"
         required: true
         schema:
@@ -91,6 +167,7 @@
         schema:
           type: "string"
           format: "date-time"
+          pattern: "(?:Z|[+-](?:(?:0[0-9]|1[0-7]):[0-5][0-9]|18:00))$"
         description: "Original scheduled timestamp of the recurring occurrence."
     requestBody:
       content:
@@ -105,7 +182,7 @@
         content:
           "application/json":
             schema:
-              "$ref": "../schemas/task.yaml#/TaskDto"
+              "$ref": "../schemas/task.yaml#/RecurringTaskOccurrenceDto"
       "400":
         "$ref": "../responses.yaml#/BadRequest"
       "401":
@@ -122,13 +199,13 @@
         "$ref": "../responses.yaml#/InternalServerError"
     summary: "Replace one recurring task occurrence"
     description: "Replace one recurring task occurrence for the authenticated Taska principal."
-"/tasks/{id}/occurrences/{occurrenceScheduledAt}/following":
+"/tasks/{taskId}/occurrences/{occurrenceScheduledAt}/following":
   put:
     tags:
       - "Tasks"
     operationId: "replaceFollowingTaskOccurrences"
     parameters:
-      - name: "id"
+      - name: "taskId"
         in: "path"
         required: true
         schema:
@@ -141,12 +218,13 @@
         schema:
           type: "string"
           format: "date-time"
+          pattern: "(?:Z|[+-](?:(?:0[0-9]|1[0-7]):[0-5][0-9]|18:00))$"
         description: "Original scheduled timestamp of the recurring occurrence."
     requestBody:
       content:
         "application/json":
           schema:
-            "$ref": "../schemas/task.yaml#/TaskUpdateRequest"
+            "$ref": "../schemas/task.yaml#/FollowingTaskUpdateRequest"
       required: true
       description: "Request payload."
     responses:
@@ -155,7 +233,7 @@
         content:
           "application/json":
             schema:
-              "$ref": "../schemas/task.yaml#/TaskDto"
+              "$ref": "../schemas/task.yaml#/RecurringTaskSeriesDto"
       "400":
         "$ref": "../responses.yaml#/BadRequest"
       "401":
@@ -178,40 +256,27 @@
       - "Tasks"
     operationId: "listTasks"
     parameters:
-      - name: "project_id"
+      - name: "projectId"
         in: "query"
         required: false
         schema:
           type: "string"
           format: "uuid"
         description: "Restrict results to this project identifier."
-      - name: "section_id"
-        in: "query"
-        required: false
-        schema:
-          type: "string"
-          format: "uuid"
-        description: "Restrict results to this section identifier."
       - name: "label"
         in: "query"
         required: false
         schema:
           type: "string"
         description: "Restrict results to tasks carrying this label."
-      - name: "filter"
-        in: "query"
-        required: false
-        schema:
-          type: "string"
-        description: "Apply the named saved filter."
-      - name: "show_completed"
+      - name: "showCompleted"
         in: "query"
         required: false
         schema:
           type: "boolean"
           default: false
         description: "Include completed tasks when true."
-      - name: "singleDate"
+      - name: "date"
         in: "query"
         required: false
         schema:
@@ -234,7 +299,11 @@
         description: "Inclusive end date of the requested range."
     responses:
       "200":
-        description: "Successful response."
+        description: >-
+          Successful response. Without date filters, items are persisted non-recurring tasks or
+          recurring-series definitions. With `date`, or with both `from` and `to`, items are
+          non-recurring tasks or expanded recurring occurrences; recurring-series definitions are
+          not returned.
         content:
           "application/json":
             schema:
@@ -250,7 +319,10 @@
       "500":
         "$ref": "../responses.yaml#/InternalServerError"
     summary: "List tasks"
-    description: "List tasks for the authenticated Taska principal."
+    description: >-
+      List tasks for the authenticated Taska principal. Supplying `date`, or both `from` and `to`,
+      switches the response from task resources to calendar-displayable tasks and expands recurring
+      series into occurrences.
   post:
     tags:
       - "Tasks"
@@ -259,7 +331,7 @@
       content:
         "application/json":
           schema:
-            "$ref": "../schemas/task.yaml#/TaskRequest"
+            "$ref": "../schemas/task.yaml#/TaskCreateRequest"
       required: true
       description: "Request payload."
     responses:
@@ -268,13 +340,15 @@
         content:
           "application/json":
             schema:
-              "$ref": "../schemas/task.yaml#/TaskDto"
+              "$ref": "../schemas/task.yaml#/TaskResourceDto"
       "400":
         "$ref": "../responses.yaml#/BadRequest"
       "401":
         "$ref": "../responses.yaml#/Unauthorized"
       "403":
         "$ref": "../responses.yaml#/Forbidden"
+      "404":
+        "$ref": "../responses.yaml#/NotFound"
       "409":
         "$ref": "../responses.yaml#/Conflict"
       "422":
@@ -308,7 +382,7 @@
         content:
           "application/json":
             schema:
-              "$ref": "../schemas/task.yaml#/TaskDto"
+              "$ref": "../schemas/task.yaml#/CompletableTaskDto"
       "400":
         "$ref": "../responses.yaml#/BadRequest"
       "401":
@@ -350,7 +424,7 @@
         content:
           "application/json":
             schema:
-              "$ref": "../schemas/task.yaml#/TaskDto"
+              "$ref": "../schemas/task.yaml#/CompletableTaskDto"
       "400":
         "$ref": "../responses.yaml#/BadRequest"
       "401":
@@ -388,7 +462,7 @@
             schema:
               type: "array"
               items:
-                "$ref": "../schemas/task.yaml#/TaskDto"
+                "$ref": "../schemas/task.yaml#/TaskResourceDto"
       "400":
         "$ref": "../responses.yaml#/BadRequest"
       "401":
@@ -401,13 +475,13 @@
         "$ref": "../responses.yaml#/InternalServerError"
     summary: "List task subtasks"
     description: "List task subtasks for the authenticated Taska principal."
-"/tasks/{id}/priority-evaluation":
+"/tasks/{taskId}/priority-evaluation":
   get:
     tags:
       - "Tasks"
     operationId: "getTaskPriorityEvaluation"
     parameters:
-      - name: "id"
+      - name: "taskId"
         in: "path"
         required: true
         schema:
@@ -433,41 +507,3 @@
         "$ref": "../responses.yaml#/InternalServerError"
     summary: "Get a task priority evaluation"
     description: "Get a task priority evaluation for the authenticated Taska principal."
-"/tasks/{taskId}":
-  delete:
-    tags:
-      - "Tasks"
-    operationId: "deleteTask"
-    parameters:
-      - name: "taskId"
-        in: "path"
-        required: true
-        schema:
-          type: "string"
-          format: "uuid"
-        description: "Task identifier."
-    requestBody:
-      content:
-        "application/json":
-          schema:
-            "$ref": "../schemas/task.yaml#/TaskDeleteRequest"
-      description: "Request payload."
-    responses:
-      "204":
-        description: "Operation completed; no response body."
-      "400":
-        "$ref": "../responses.yaml#/BadRequest"
-      "401":
-        "$ref": "../responses.yaml#/Unauthorized"
-      "403":
-        "$ref": "../responses.yaml#/Forbidden"
-      "404":
-        "$ref": "../responses.yaml#/NotFound"
-      "409":
-        "$ref": "../responses.yaml#/Conflict"
-      "422":
-        "$ref": "../responses.yaml#/ValidationError"
-      "500":
-        "$ref": "../responses.yaml#/InternalServerError"
-    summary: "Delete a task"
-    description: "Delete a task for the authenticated Taska principal."

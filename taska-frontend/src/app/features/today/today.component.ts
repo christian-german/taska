@@ -1,17 +1,29 @@
-import {Component, DestroyRef, OnInit, computed, inject, signal, ChangeDetectionStrategy} from '@angular/core';
+import {
+  Component,
+  DestroyRef,
+  OnInit,
+  computed,
+  inject,
+  signal,
+  ChangeDetectionStrategy,
+} from '@angular/core';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import {
   Project,
   Task,
+  TaskPatch,
   fmtDateLong,
   fmtEstimate,
   isOverdue,
-  sameDay
+  sameDay,
 } from '../../core/models';
 import { TaskService } from '../../core/services/task.service';
 import { ProjectService } from '../../core/services/project.service';
 import { UiStateService } from '../../core/services/ui-state.service';
-import { TaskListComponent, TaskGroup } from '../../shared/components/task-list/task-list.component';
+import {
+  TaskListComponent,
+  TaskGroup,
+} from '../../shared/components/task-list/task-list.component';
 import { PageHeaderComponent } from '../../shared/components/page-header/page-header.component';
 import { EmptyStateComponent } from '../../shared/components/atoms/atoms.component';
 import { IconComponent } from '../../shared/components/icon/icon.component';
@@ -25,8 +37,7 @@ function todayISO(): string {
   imports: [TaskListComponent, PageHeaderComponent, EmptyStateComponent, IconComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <app-page-header [title]="'Aujourd\\'hui'" [subtitle]="subtitle()">
-    </app-page-header>
+    <app-page-header [title]="'Aujourd\\'hui'" [subtitle]="subtitle()"> </app-page-header>
 
     <div class="scroll" style="flex: 1; overflow-y: auto; padding: 8px 12px 60px;">
       @if (isEmpty()) {
@@ -38,9 +49,11 @@ function todayISO(): string {
           [groups]="groups()"
           [projects]="projects()"
           [selectedId]="selectedId()"
+          [suggestedIds]="suggestedIds()"
           (toggled)="onToggle($event)"
           (selectTask)="onSelect($event)"
-          (updated)="onUpdate($event)" />
+          (updated)="onUpdate($event)"
+        />
       }
     </div>
   `,
@@ -62,12 +75,10 @@ export class TodayComponent implements OnInit {
     tomorrow.setDate(tomorrow.getDate() + 1);
 
     const tasks = this.tasks();
-    const overdue = tasks.filter(t => isOverdue(t));
-    const todayDue = tasks.filter(t => t.scheduledAt && sameDay(new Date(t.scheduledAt), today));
-    const tomorrowDue = tasks.filter(t =>
-      !t.isCompleted &&
-      t.scheduledAt &&
-      sameDay(new Date(t.scheduledAt), tomorrow)
+    const overdue = tasks.filter((t) => isOverdue(t));
+    const todayDue = tasks.filter((t) => t.scheduledAt && sameDay(new Date(t.scheduledAt), today));
+    const tomorrowDue = tasks.filter(
+      (t) => !t.isCompleted && t.scheduledAt && sameDay(new Date(t.scheduledAt), tomorrow),
     );
 
     const groups: TaskGroup[] = [];
@@ -84,7 +95,7 @@ export class TodayComponent implements OnInit {
       key: 'today',
       label: "Aujourd'hui",
       tasks: this.sortTasks(todayDue),
-      empty: 'rien de prévu aujourd\'hui',
+      empty: "rien de prévu aujourd'hui",
     });
     groups.push({
       key: 'tomorrow',
@@ -95,34 +106,51 @@ export class TodayComponent implements OnInit {
     return groups;
   });
 
+  suggestedIds = computed(() => {
+    const today = new Date();
+    const candidates = this.tasks()
+      .filter((t) => !t.isCompleted && t.scheduledAt && sameDay(new Date(t.scheduledAt), today))
+      .sort(
+        (a, b) =>
+          (b.priority ?? 0) - (a.priority ?? 0) ||
+          (b.estimateMinutes || 0) - (a.estimateMinutes || 0),
+      );
+    return new Set(candidates.slice(0, 2).map((t) => t.id));
+  });
+
   subtitle = computed(() => {
     const today = new Date();
-    const todayDue = this.tasks().filter(t => t.scheduledAt && sameDay(new Date(t.scheduledAt), today));
-    const overdue = this.tasks().filter(t => isOverdue(t));
-    const totalEst = todayDue.filter(t => !t.isCompleted).reduce((a, b) => a + (b.estimateMinutes || 0), 0);
-    let s = `${fmtDateLong(today)} · ${todayDue.filter(t => !t.isCompleted).length} tâches`;
+    const todayDue = this.tasks().filter(
+      (t) => t.scheduledAt && sameDay(new Date(t.scheduledAt), today),
+    );
+    const overdue = this.tasks().filter((t) => isOverdue(t));
+    const totalEst = todayDue
+      .filter((t) => !t.isCompleted)
+      .reduce((a, b) => a + (b.estimateMinutes || 0), 0);
+    let s = `${fmtDateLong(today)} · ${todayDue.filter((t) => !t.isCompleted).length} tâches`;
     if (totalEst) s += ` · ~${fmtEstimate(totalEst)} estimées`;
     if (overdue.length) s += ` · ${overdue.length} en retard`;
     return s;
   });
 
-  isEmpty = computed(() => this.groups().every(g => g.tasks.length === 0));
+  isEmpty = computed(() => this.groups().every((g) => g.tasks.length === 0));
 
   ngOnInit(): void {
     this.refresh();
-    this.ui.taskCreated$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(task => {
+    this.ui.taskCreated$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((task) => {
       const today = new Date();
       const tomorrow = new Date(today);
       tomorrow.setDate(tomorrow.getDate() + 1);
-      const qualifies = !task.isCompleted && !!task.scheduledAt && (
-        isOverdue(task) ||
-        sameDay(new Date(task.scheduledAt), today) ||
-        sameDay(new Date(task.scheduledAt), tomorrow)
-      );
-      if (qualifies) this.tasks.update(list => [...list, task]);
+      const qualifies =
+        !task.isCompleted &&
+        !!task.scheduledAt &&
+        (isOverdue(task) ||
+          sameDay(new Date(task.scheduledAt), today) ||
+          sameDay(new Date(task.scheduledAt), tomorrow));
+      if (qualifies) this.tasks.update((list) => [...list, task]);
     });
-    this.ui.taskDeleted$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(id => {
-      this.tasks.update(list => list.filter(t => t.id !== id));
+    this.ui.taskDeleted$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((id) => {
+      this.tasks.update((list) => list.filter((t) => t.id !== id));
     });
     this.ui.taskUpdated$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => this.refresh());
   }
@@ -133,7 +161,7 @@ export class TodayComponent implements OnInit {
     tomorrow.setDate(tomorrow.getDate() + 1);
     const from = todayISO();
     const to = tomorrow.toISOString().slice(0, 10);
-    this.taskService.getTasks({ from, to }).subscribe(tasks => this.tasks.set(tasks));
+    this.taskService.getTasks({ from, to }).subscribe((tasks) => this.tasks.set(tasks));
   }
 
   onToggle(t: Task): void {
@@ -148,7 +176,7 @@ export class TodayComponent implements OnInit {
     this.ui.openTaskDetail(t);
   }
 
-  onUpdate(payload: { id: string; patch: Partial<Task> }): void {
+  onUpdate(payload: { id: string; patch: TaskPatch }): void {
     this.taskService.updateTask(payload.id, payload.patch).subscribe(() => this.refresh());
   }
 

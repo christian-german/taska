@@ -8,12 +8,14 @@ import org.junit.Rule
 import org.junit.Test
 
 class SearchActionTest {
-    @get:Rule val composeRule = createComposeRule()
+  @get:Rule val composeRule = createComposeRule()
 
-    @Test fun searchActionIsAccessibleAndClickable() {
-        composeRule.setContent { SearchAction(onClick = {}) }
-        composeRule.onNodeWithContentDescription("Rechercher des tâches")
-            .assertIsDisplayed()
-            .assertHasClickAction()
-    }
+  @Test
+  fun searchActionIsAccessibleAndClickable() {
+    composeRule.setContent { SearchAction(onClick = {}) }
+    composeRule
+      .onNodeWithContentDescription("Rechercher des tâches")
+      .assertIsDisplayed()
+      .assertHasClickAction()
+  }
 }

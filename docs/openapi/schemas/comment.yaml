@@ -1,14 +1,29 @@
-CommentRequest:
-  description: "Payload used to create or update a comment."
+CommentCreateRequest:
+  description: "Payload used to create a comment."
   type: "object"
+  additionalProperties: false
   properties:
     taskId:
-      type: "string"
+      description: "UUID of the task to attach this comment to; absent for a project-level comment."
+      type: ["string", "null"]
       format: "uuid"
     projectId:
-      type: "string"
+      description: "UUID of the project to attach this comment to; absent for a task-level comment."
+      type: ["string", "null"]
       format: "uuid"
     content:
+      description: "Required text content of the comment; must not be blank."
+      type: "string"
+      minLength: 1
+  required:
+    - "content"
+CommentUpdateRequest:
+  description: "Complete replacement of a comment's mutable properties."
+  type: "object"
+  additionalProperties: false
+  properties:
+    content:
+      description: "Required replacement text; must not be blank."
       type: "string"
       minLength: 1
   required:
@@ -18,16 +33,21 @@ CommentDto:
   type: "object"
   properties:
     id:
+      description: "Unique identifier of the comment."
       type: "string"
       format: "uuid"
     taskId:
-      type: "string"
+      description: "UUID of the task this comment belongs to; absent for project-level comments."
+      type: ["string", "null"]
       format: "uuid"
     projectId:
-      type: "string"
+      description: "UUID of the project this comment belongs to; absent for task-level comments."
+      type: ["string", "null"]
       format: "uuid"
     content:
+      description: "Text content of the comment."
       type: "string"
     createdAt:
+      description: "Timestamp when the comment was created."
       type: "string"
       format: "date-time"

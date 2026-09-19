@@ -1,13 +1,15 @@
-import {ComponentFixture, TestBed} from '@angular/core/testing';
-import {TaskCreationFeedbackService} from '../../../core/services/task-creation-feedback.service';
-import {TaskCreatedToastComponent} from './task-created-toast.component';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { TaskCreationFeedbackService } from '../../../core/services/task-creation-feedback.service';
+import { TaskCreatedToastComponent } from './task-created-toast.component';
 
 describe('TaskCreatedToastComponent', () => {
   let fixture: ComponentFixture<TaskCreatedToastComponent>;
   let feedback: TaskCreationFeedbackService;
 
   beforeEach(async () => {
-    await TestBed.configureTestingModule({imports: [TaskCreatedToastComponent]}).compileComponents();
+    await TestBed.configureTestingModule({
+      imports: [TaskCreatedToastComponent],
+    }).compileComponents();
     fixture = TestBed.createComponent(TaskCreatedToastComponent);
     feedback = TestBed.inject(TaskCreationFeedbackService);
   });

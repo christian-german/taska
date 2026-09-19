@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.absoluteOffset
 import androidx.compose.foundation.layout.defaultMinSize
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -22,12 +21,12 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.CalendarToday
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.CalendarToday
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -44,7 +43,6 @@ import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -76,455 +74,486 @@ private val TIME_GUTTER_W = 34.dp
 private val DAY_FMT = SimpleDateFormat("yyyy-MM-dd", Locale.US)
 private val DAY_NAMES = listOf("lun", "mar", "mer", "jeu", "ven", "sam", "dim")
 
-private enum class DragMode { MOVE, TOP, BOTTOM }
+private enum class DragMode {
+  MOVE,
+  TOP,
+  BOTTOM,
+}
+
 private data class BlockDragState(val blockId: String, val mode: DragMode, val deltaY: Float)
 
 @Composable
 fun WeekScreen(
-    viewModel: WeekViewModel,
-    onTaskClick: (taskId: String, occurrenceScheduledAt: String?) -> Unit,
-    onSearch: () -> Unit = {},
-    modifier: Modifier = Modifier
+  viewModel: WeekViewModel,
+  onTaskClick: (taskId: String, occurrenceScheduledAt: String?) -> Unit,
+  onSearch: () -> Unit = {},
+  modifier: Modifier = Modifier,
 ) {
-    val uiState by viewModel.uiState.collectAsState()
-    val density = LocalDensity.current
-    val scrollState = rememberScrollState()
-    val todayStr = remember { DAY_FMT.format(Calendar.getInstance().time) }
+  val uiState by viewModel.uiState.collectAsState()
+  val density = LocalDensity.current
+  val scrollState = rememberScrollState()
+  val todayStr = remember { DAY_FMT.format(Calendar.getInstance().time) }
 
-    var currentMinutes by remember {
-        val c = Calendar.getInstance()
-        mutableIntStateOf(c.get(Calendar.HOUR_OF_DAY) * 60 + c.get(Calendar.MINUTE))
+  var currentMinutes by remember {
+    val c = Calendar.getInstance()
+    mutableIntStateOf(c.get(Calendar.HOUR_OF_DAY) * 60 + c.get(Calendar.MINUTE))
+  }
+  LaunchedEffect(Unit) {
+    while (true) {
+      kotlinx.coroutines.delay(30_000)
+      val c = Calendar.getInstance()
+      currentMinutes = c.get(Calendar.HOUR_OF_DAY) * 60 + c.get(Calendar.MINUTE)
     }
-    LaunchedEffect(Unit) {
-        while (true) {
-            kotlinx.coroutines.delay(30_000)
-            val c = Calendar.getInstance()
-            currentMinutes = c.get(Calendar.HOUR_OF_DAY) * 60 + c.get(Calendar.MINUTE)
-        }
-    }
+  }
 
-    LaunchedEffect(uiState.isLoading) {
-        if (!uiState.isLoading) {
-            scrollState.scrollTo(with(density) { (HOUR_HEIGHT * 8).roundToPx() })
-        }
+  LaunchedEffect(uiState.isLoading) {
+    if (!uiState.isLoading) {
+      scrollState.scrollTo(with(density) { (HOUR_HEIGHT * 8).roundToPx() })
     }
+  }
 
-    Column(
-        modifier = modifier
-            .background(MaterialTheme.colorScheme.background)
-            .statusBarsPadding()
-            .pointerInput(viewModel) {
-                val edgePx = 60.dp.toPx()
-                val minSwipePx = 80.dp.toPx()
-                awaitEachGesture {
-                    var startX = 0f
-                    var gotDown = false
-                    while (!gotDown) {
-                        val event = awaitPointerEvent(PointerEventPass.Initial)
-                        val down = event.changes.firstOrNull { it.pressed && !it.previousPressed }
-                        if (down != null) { startX = down.position.x; gotDown = true }
-                    }
-                    var totalDx = 0f
-                    var totalDy = 0f
-                    while (true) {
-                        val event = awaitPointerEvent(PointerEventPass.Initial)
-                        val change = event.changes.firstOrNull() ?: break
-                        totalDx += change.position.x - change.previousPosition.x
-                        totalDy += change.position.y - change.previousPosition.y
-                        if (!change.pressed) break
-                    }
-                    if (startX > edgePx && abs(totalDx) > minSwipePx && abs(totalDx) > 1.5f * abs(totalDy)) {
-                        if (totalDx < 0) viewModel.nextWeek() else viewModel.prevWeek()
-                    }
-                }
+  Column(
+    modifier =
+      modifier.background(MaterialTheme.colorScheme.background).statusBarsPadding().pointerInput(
+        viewModel
+      ) {
+        val edgePx = 60.dp.toPx()
+        val minSwipePx = 80.dp.toPx()
+        awaitEachGesture {
+          var startX = 0f
+          var gotDown = false
+          while (!gotDown) {
+            val event = awaitPointerEvent(PointerEventPass.Initial)
+            val down = event.changes.firstOrNull { it.pressed && !it.previousPressed }
+            if (down != null) {
+              startX = down.position.x
+              gotDown = true
             }
-    ) {
-        WeekHeader(
-            weekDays = uiState.weekDays,
-            allDayTasksByDay = uiState.allDayTasksByDay,
-            projects = uiState.projects,
-            todayStr = todayStr,
-            onTaskClick = onTaskClick,
-            onSearch = onSearch
-        )
-        HorizontalDivider(color = DividerColor, thickness = 0.5.dp)
-
-        Row(
-            modifier = Modifier
-                .weight(1f)
-                .fillMaxWidth()
-                .verticalScroll(scrollState)
-        ) {
-            TimeGutter()
-            Box(modifier = Modifier.width(0.5.dp).height(HOUR_HEIGHT * 24).background(DividerColor))
-            uiState.weekDays.forEachIndexed { index, day ->
-                val isToday = DAY_FMT.format(day.time) == todayStr
-                DayColumn(
-                    day = day,
-                    blocks = uiState.tasksByDay.getOrElse(index) { emptyList() },
-                    projects = uiState.projects,
-                    currentMinutes = if (isToday) currentMinutes else -1,
-                    onTaskClick = onTaskClick,
-                    onReschedule = viewModel::requestRescheduleTask,
-                    modifier = Modifier.weight(1f)
-                )
-                if (index < 6) {
-                    Box(modifier = Modifier.width(0.5.dp).height(HOUR_HEIGHT * 24).background(DividerColor))
-                }
-            }
+          }
+          var totalDx = 0f
+          var totalDy = 0f
+          while (true) {
+            val event = awaitPointerEvent(PointerEventPass.Initial)
+            val change = event.changes.firstOrNull() ?: break
+            totalDx += change.position.x - change.previousPosition.x
+            totalDy += change.position.y - change.previousPosition.y
+            if (!change.pressed) break
+          }
+          if (startX > edgePx && abs(totalDx) > minSwipePx && abs(totalDx) > 1.5f * abs(totalDy)) {
+            if (totalDx < 0) viewModel.nextWeek() else viewModel.prevWeek()
+          }
         }
-    }
+      }
+  ) {
+    WeekHeader(
+      weekDays = uiState.weekDays,
+      allDayTasksByDay = uiState.allDayTasksByDay,
+      projects = uiState.projects,
+      todayStr = todayStr,
+      onTaskClick = onTaskClick,
+      onSearch = onSearch,
+    )
+    HorizontalDivider(color = DividerColor, thickness = 0.5.dp)
 
-    uiState.pendingReschedule?.let {
-        RecurrenceScopeDialog(
-            title = "Déplacer la récurrence",
-            onThisOnly = { viewModel.confirmRescheduleTask(RecurrenceScope.THIS_ONLY) },
-            onFromThis = { viewModel.confirmRescheduleTask(RecurrenceScope.FROM_THIS) },
-            onDismiss = { viewModel.dismissRescheduleScope() }
+    Row(modifier = Modifier.weight(1f).fillMaxWidth().verticalScroll(scrollState)) {
+      TimeGutter()
+      Box(modifier = Modifier.width(0.5.dp).height(HOUR_HEIGHT * 24).background(DividerColor))
+      uiState.weekDays.forEachIndexed { index, day ->
+        val isToday = DAY_FMT.format(day.time) == todayStr
+        DayColumn(
+          day = day,
+          blocks = uiState.tasksByDay.getOrElse(index) { emptyList() },
+          projects = uiState.projects,
+          currentMinutes = if (isToday) currentMinutes else -1,
+          onTaskClick = onTaskClick,
+          onReschedule = viewModel::requestRescheduleTask,
+          modifier = Modifier.weight(1f),
         )
+        if (index < 6) {
+          Box(modifier = Modifier.width(0.5.dp).height(HOUR_HEIGHT * 24).background(DividerColor))
+        }
+      }
     }
+  }
+
+  uiState.pendingReschedule?.let {
+    RecurrenceScopeDialog(
+      title = "Déplacer la récurrence",
+      onThisOnly = { viewModel.confirmRescheduleTask(RecurrenceScope.THIS_ONLY) },
+      onFromThis = { viewModel.confirmRescheduleTask(RecurrenceScope.FROM_THIS) },
+      onDismiss = { viewModel.dismissRescheduleScope() },
+    )
+  }
 }
 
 @Composable
 private fun TimeGutter() {
-    Box(modifier = Modifier.width(TIME_GUTTER_W).height(HOUR_HEIGHT * 24)) {
-        for (h in 0 until 24) {
-            Text(
-                text = "%02d".format(h),
-                modifier = Modifier
-                    .absoluteOffset(y = HOUR_HEIGHT * h - 6.dp)
-                    .width(TIME_GUTTER_W - 3.dp),
-                textAlign = TextAlign.End,
-                style = TextStyle(
-                    fontSize = 9.sp,
-                    color = TextSecondary,
-                    fontFamily = com.taska.android.ui.theme.Archivo
-                )
-            )
-        }
+  Box(modifier = Modifier.width(TIME_GUTTER_W).height(HOUR_HEIGHT * 24)) {
+    for (h in 0 until 24) {
+      Text(
+        text = "%02d".format(h),
+        modifier = Modifier.absoluteOffset(y = HOUR_HEIGHT * h - 6.dp).width(TIME_GUTTER_W - 3.dp),
+        textAlign = TextAlign.End,
+        style =
+          TextStyle(
+            fontSize = 9.sp,
+            color = TextSecondary,
+            fontFamily = com.taska.android.ui.theme.Archivo,
+          ),
+      )
     }
+  }
 }
 
 @Composable
 private fun WeekHeader(
-    weekDays: List<Calendar>,
-    allDayTasksByDay: List<List<TaskDto>>,
-    projects: Map<String, ProjectDto>,
-    todayStr: String,
-    onTaskClick: (taskId: String, occurrenceScheduledAt: String?) -> Unit,
-    onSearch: () -> Unit
+  weekDays: List<Calendar>,
+  allDayTasksByDay: List<List<TaskDto>>,
+  projects: Map<String, ProjectDto>,
+  todayStr: String,
+  onTaskClick: (taskId: String, occurrenceScheduledAt: String?) -> Unit,
+  onSearch: () -> Unit,
 ) {
-    if (weekDays.isEmpty()) {
-        Spacer(modifier = Modifier.height(60.dp))
-        return
+  if (weekDays.isEmpty()) {
+    Spacer(modifier = Modifier.height(60.dp))
+    return
+  }
+
+  Column(modifier = Modifier.fillMaxWidth()) {
+    // Week label
+    Row(verticalAlignment = Alignment.CenterVertically) {
+      Text(
+        text = buildWeekLabel(weekDays),
+        modifier =
+          Modifier.weight(1f).padding(start = TIME_GUTTER_W + 4.dp, top = 6.dp, bottom = 2.dp),
+        style =
+          TextStyle(
+            fontFamily = com.taska.android.ui.theme.Archivo,
+            fontStyle = FontStyle.Italic,
+            fontSize = 18.sp,
+            color = TextPrimary,
+          ),
+      )
+      com.taska.android.ui.shared.SearchAction(onSearch)
     }
 
-    Column(modifier = Modifier.fillMaxWidth()) {
-        // Week label
-        Row(verticalAlignment = Alignment.CenterVertically) {
-        Text(
-            text = buildWeekLabel(weekDays),
-            modifier = Modifier.weight(1f).padding(start = TIME_GUTTER_W + 4.dp, top = 6.dp, bottom = 2.dp),
-            style = TextStyle(
-                fontFamily = com.taska.android.ui.theme.Archivo,
-                fontStyle = FontStyle.Italic,
-                fontSize = 18.sp,
-                color = TextPrimary
-            )
-        )
-        com.taska.android.ui.shared.SearchAction(onSearch)
-        }
-
-        // Day name + number row
-        Row(modifier = Modifier.fillMaxWidth()) {
-            Spacer(modifier = Modifier.width(TIME_GUTTER_W))
-            weekDays.forEachIndexed { i, day ->
-                val isToday = DAY_FMT.format(day.time) == todayStr
-                Column(
-                    modifier = Modifier.weight(1f).padding(bottom = 4.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Text(
-                        text = DAY_NAMES[i],
-                        style = TextStyle(
-                            fontSize = 9.sp,
-                            color = if (isToday) TextPrimary else TextSecondary,
-                            fontFamily = com.taska.android.ui.theme.Archivo,
-                            fontWeight = if (isToday) FontWeight.Bold else FontWeight.Normal
-                        )
-                    )
-                    Box(
-                        modifier = if (isToday) {
-                            Modifier.size(26.dp).background(TextPrimary, CircleShape)
-                        } else {
-                            Modifier.size(26.dp)
-                        },
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            text = day.get(Calendar.DAY_OF_MONTH).toString(),
-                            style = TextStyle(
-                                fontSize = 13.sp,
-                                fontWeight = if (isToday) FontWeight.Bold else FontWeight.Normal,
-                                color = if (isToday) Color.White else TextPrimary
-                            )
-                        )
-                    }
-                }
-            }
-        }
-
-        // All-day tasks row
-        HorizontalDivider(color = DividerColor, thickness = 0.5.dp)
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .defaultMinSize(minHeight = 24.dp)
-                .padding(vertical = 2.dp)
+    // Day name + number row
+    Row(modifier = Modifier.fillMaxWidth()) {
+      Spacer(modifier = Modifier.width(TIME_GUTTER_W))
+      weekDays.forEachIndexed { i, day ->
+        val isToday = DAY_FMT.format(day.time) == todayStr
+        Column(
+          modifier = Modifier.weight(1f).padding(bottom = 4.dp),
+          horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            Spacer(modifier = Modifier.width(TIME_GUTTER_W + 1.dp))
-            allDayTasksByDay.forEachIndexed { i, tasks ->
-                Column(
-                    modifier = Modifier
-                        .weight(1f)
-                        .padding(horizontal = 1.dp)
-                ) {
-                    tasks.take(3).forEach { task ->
-                        val color = task.projectId?.let { projects[it]?.color?.let { c -> parseHexColor(c) } }
-                            ?: TaskBlockDefault
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(bottom = 1.dp)
-                                .clip(RoundedCornerShape(2.dp))
-                                .background(color.copy(alpha = 0.85f))
-                                .clickable { onTaskClick(task.id, task.occurrenceScheduledAt) }
-                                .padding(horizontal = 2.dp, vertical = 1.dp)
-                        ) {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                if (isAppointmentTask(task.type)) {
-                                    Icon(Icons.Outlined.CalendarToday, taskTypeAccessibilityLabel(task.type),
-                                        tint = Color.White, modifier = Modifier.size(9.dp))
-                                    Spacer(Modifier.width(1.dp))
-                                }
-                                Text(task.content, style = TextStyle(fontSize = 8.sp, color = Color.White),
-                                    maxLines = 1, overflow = TextOverflow.Ellipsis)
-                            }
-                        }
-                    }
-                    if (tasks.size > 3) {
-                        Text(
-                            text = "+${tasks.size - 3}",
-                            style = TextStyle(fontSize = 8.sp, color = TextSecondary)
-                        )
-                    }
-                }
-                if (i < 6) Spacer(modifier = Modifier.width(0.5.dp))
-            }
+          Text(
+            text = DAY_NAMES[i],
+            style =
+              TextStyle(
+                fontSize = 9.sp,
+                color = if (isToday) TextPrimary else TextSecondary,
+                fontFamily = com.taska.android.ui.theme.Archivo,
+                fontWeight = if (isToday) FontWeight.Bold else FontWeight.Normal,
+              ),
+          )
+          Box(
+            modifier =
+              if (isToday) {
+                Modifier.size(26.dp).background(TextPrimary, CircleShape)
+              } else {
+                Modifier.size(26.dp)
+              },
+            contentAlignment = Alignment.Center,
+          ) {
+            Text(
+              text = day.get(Calendar.DAY_OF_MONTH).toString(),
+              style =
+                TextStyle(
+                  fontSize = 13.sp,
+                  fontWeight = if (isToday) FontWeight.Bold else FontWeight.Normal,
+                  color = if (isToday) Color.White else TextPrimary,
+                ),
+            )
+          }
         }
+      }
     }
+
+    // All-day tasks row
+    HorizontalDivider(color = DividerColor, thickness = 0.5.dp)
+    Row(
+      modifier = Modifier.fillMaxWidth().defaultMinSize(minHeight = 24.dp).padding(vertical = 2.dp)
+    ) {
+      Spacer(modifier = Modifier.width(TIME_GUTTER_W + 1.dp))
+      allDayTasksByDay.forEachIndexed { i, tasks ->
+        Column(modifier = Modifier.weight(1f).padding(horizontal = 1.dp)) {
+          tasks.take(3).forEach { task ->
+            val color =
+              task.projectId?.let { projects[it]?.color?.let { c -> parseHexColor(c) } }
+                ?: TaskBlockDefault
+            Box(
+              modifier =
+                Modifier.fillMaxWidth()
+                  .padding(bottom = 1.dp)
+                  .clip(RoundedCornerShape(2.dp))
+                  .background(color.copy(alpha = 0.85f))
+                  .clickable { onTaskClick(task.id, task.occurrenceScheduledAt) }
+                  .padding(horizontal = 2.dp, vertical = 1.dp)
+            ) {
+              Row(verticalAlignment = Alignment.CenterVertically) {
+                if (isAppointmentTask(task.type)) {
+                  Icon(
+                    Icons.Outlined.CalendarToday,
+                    taskTypeAccessibilityLabel(task.type),
+                    tint = Color.White,
+                    modifier = Modifier.size(9.dp),
+                  )
+                  Spacer(Modifier.width(1.dp))
+                }
+                Text(
+                  if (task.isDetached) "Hors série · ${task.content}" else task.content,
+                  style = TextStyle(fontSize = 8.sp, color = Color.White),
+                  maxLines = 1,
+                  overflow = TextOverflow.Ellipsis,
+                )
+              }
+            }
+          }
+          if (tasks.size > 3) {
+            Text(
+              text = "+${tasks.size - 3}",
+              style = TextStyle(fontSize = 8.sp, color = TextSecondary),
+            )
+          }
+        }
+        if (i < 6) Spacer(modifier = Modifier.width(0.5.dp))
+      }
+    }
+  }
 }
 
 @Composable
 private fun DayColumn(
-    day: Calendar,
-    blocks: List<TaskBlock>,
-    projects: Map<String, ProjectDto>,
-    currentMinutes: Int,
-    onTaskClick: (taskId: String, occurrenceScheduledAt: String?) -> Unit,
-    onReschedule: (task: TaskDto, newScheduledAt: String, newEstimateMinutes: Int) -> Unit,
-    modifier: Modifier = Modifier
+  day: Calendar,
+  blocks: List<TaskBlock>,
+  projects: Map<String, ProjectDto>,
+  currentMinutes: Int,
+  onTaskClick: (taskId: String, occurrenceScheduledAt: String?) -> Unit,
+  onReschedule: (task: TaskDto, newScheduledAt: String, newEstimateMinutes: Int) -> Unit,
+  modifier: Modifier = Modifier,
 ) {
-    var dragState by remember { mutableStateOf<BlockDragState?>(null) }
+  var dragState by remember { mutableStateOf<BlockDragState?>(null) }
 
-    BoxWithConstraints(modifier = modifier.height(HOUR_HEIGHT * 24)) {
-        val dayWidth: Dp = maxWidth
-        val density = LocalDensity.current
-        val hourHeightPx = with(density) { HOUR_HEIGHT.toPx() }
+  BoxWithConstraints(modifier = modifier.height(HOUR_HEIGHT * 24)) {
+    val dayWidth: Dp = maxWidth
+    val density = LocalDensity.current
+    val hourHeightPx = with(density) { HOUR_HEIGHT.toPx() }
 
-        // Hour dividers
-        for (h in 0..23) {
-            HorizontalDivider(
-                modifier = Modifier.absoluteOffset(y = HOUR_HEIGHT * h),
-                color = DividerColor,
-                thickness = 0.5.dp
-            )
-        }
-
-        // Current time indicator
-        if (currentMinutes >= 0) {
-            val lineY = HOUR_HEIGHT * currentMinutes / 60f
-            Box(
-                modifier = Modifier
-                    .absoluteOffset(x = (-4).dp, y = lineY - 3.dp)
-                    .size(6.dp)
-                    .background(CurrentTimeRed, CircleShape)
-            )
-            Box(
-                modifier = Modifier
-                    .absoluteOffset(x = 2.dp, y = lineY - 0.5.dp)
-                    .fillMaxWidth()
-                    .height(1.dp)
-                    .background(CurrentTimeRed)
-            )
-        }
-
-        // Render non-dragged blocks first, dragged block last (on top)
-        val sortedBlocks = blocks.sortedBy { if (dragState?.blockId == it.task.id) 1 else 0 }
-
-        sortedBlocks.forEach { block ->
-            val ds = dragState?.takeIf { it.blockId == block.task.id }
-            val project = block.task.projectId?.let { projects[it] }
-            val blockColor = project?.color?.let { parseHexColor(it) } ?: TaskBlockDefault
-
-            // Effective position + size based on drag state
-            val (effectiveStartMin, effectiveDuration) = when {
-                ds == null -> block.startMin to (block.endMin - block.startMin)
-                ds.mode == DragMode.MOVE -> {
-                    val delta = (ds.deltaY / hourHeightPx * 60f).roundToInt()
-                    val newStart = (block.startMin + delta).coerceIn(0, 23 * 60)
-                    newStart to (block.endMin - block.startMin)
-                }
-                ds.mode == DragMode.TOP -> {
-                    val delta = (ds.deltaY / hourHeightPx * 60f).roundToInt()
-                    val newStart = (block.startMin + delta).coerceIn(0, block.endMin - 15)
-                    newStart to (block.endMin - newStart)
-                }
-                else -> { // BOTTOM
-                    val delta = (ds.deltaY / hourHeightPx * 60f).roundToInt()
-                    val newEnd = (block.endMin + delta).coerceAtLeast(block.startMin + 15).coerceAtMost(24 * 60)
-                    block.startMin to (newEnd - block.startMin)
-                }
-            }
-
-            val blockX = dayWidth * block.col / block.totalCols + 1.dp
-            val blockW = (dayWidth / block.totalCols - 2.dp).coerceAtLeast(4.dp)
-            val blockY = HOUR_HEIGHT * effectiveStartMin / 60f
-            val blockH = (HOUR_HEIGHT * effectiveDuration / 60f).coerceAtLeast(HOUR_HEIGHT * 0.4f)
-            val isDragging = ds != null
-
-            Box(
-                modifier = Modifier
-                    .absoluteOffset(x = blockX, y = blockY)
-                    .width(blockW)
-                    .height(blockH)
-                    .clip(RoundedCornerShape(3.dp))
-                    .background(blockColor.copy(alpha = if (isDragging) 0.95f else 0.85f))
-                    .clickable { onTaskClick(block.task.id, block.task.occurrenceScheduledAt) }
-                    .pointerInput(block.task.id) {
-                        detectDragGesturesAfterLongPress(
-                            onDragStart = { startOffset ->
-                                val zoneH = size.height / 4f
-                                dragState = BlockDragState(
-                                    blockId = block.task.id,
-                                    mode = when {
-                                        startOffset.y < zoneH -> DragMode.TOP
-                                        startOffset.y > size.height - zoneH -> DragMode.BOTTOM
-                                        else -> DragMode.MOVE
-                                    },
-                                    deltaY = 0f
-                                )
-                            },
-                            onDrag = { change, dragAmount ->
-                                change.consume()
-                                dragState = dragState?.copy(deltaY = (dragState?.deltaY ?: 0f) + dragAmount.y)
-                            },
-                            onDragEnd = {
-                                val finalDs = dragState
-                                if (finalDs != null) {
-                                    val deltaMin = (finalDs.deltaY / hourHeightPx * 60f).roundToInt()
-                                    val (newScheduledAt, newDuration) = when (finalDs.mode) {
-                                        DragMode.MOVE -> {
-                                            val newStart = snapToQuarter((block.startMin + deltaMin).coerceIn(0, 23 * 60))
-                                            formatScheduledAt(day, newStart) to (block.endMin - block.startMin)
-                                        }
-                                        DragMode.TOP -> {
-                                            val newStart = snapToQuarter((block.startMin + deltaMin).coerceIn(0, block.endMin - 15))
-                                            formatScheduledAt(day, newStart) to (block.endMin - newStart)
-                                        }
-                                        DragMode.BOTTOM -> {
-                                            val newEnd = snapToQuarter((block.endMin + deltaMin).coerceAtLeast(block.startMin + 15).coerceAtMost(24 * 60))
-                                            formatScheduledAt(day, block.startMin) to (newEnd - block.startMin)
-                                        }
-                                    }
-                                    onReschedule(block.task, newScheduledAt, newDuration.coerceAtLeast(15))
-                                }
-                                dragState = null
-                            },
-                            onDragCancel = { dragState = null }
-                        )
-                    }
-            ) {
-                // Top resize zone indicator
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(3.dp)
-                        .background(Color.White.copy(alpha = 0.35f))
-                )
-
-                // Task content
-                Text(
-                    text = block.task.content,
-                    modifier = Modifier.padding(start = 3.dp, end = 3.dp, top = 4.dp, bottom = 2.dp),
-                    style = TextStyle(
-                        fontSize = 9.sp,
-                        color = Color.White,
-                        fontWeight = FontWeight.Medium,
-                        lineHeight = 12.sp
-                    ),
-                    maxLines = if (blockH >= HOUR_HEIGHT * 0.7f) 3 else 2,
-                    overflow = TextOverflow.Ellipsis
-                )
-                if (isAppointmentTask(block.task.type)) {
-                    Icon(
-                        Icons.Outlined.CalendarToday,
-                        taskTypeAccessibilityLabel(block.task.type),
-                        tint = Color.White,
-                        modifier = Modifier.align(Alignment.TopEnd).padding(2.dp).size(10.dp)
-                    )
-                }
-
-                // Bottom resize zone indicator
-                Box(
-                    modifier = Modifier
-                        .align(Alignment.BottomCenter)
-                        .fillMaxWidth()
-                        .height(3.dp)
-                        .background(Color.White.copy(alpha = 0.35f))
-                )
-            }
-        }
+    // Hour dividers
+    for (h in 0..23) {
+      HorizontalDivider(
+        modifier = Modifier.absoluteOffset(y = HOUR_HEIGHT * h),
+        color = DividerColor,
+        thickness = 0.5.dp,
+      )
     }
+
+    // Current time indicator
+    if (currentMinutes >= 0) {
+      val lineY = HOUR_HEIGHT * currentMinutes / 60f
+      Box(
+        modifier =
+          Modifier.absoluteOffset(x = (-4).dp, y = lineY - 3.dp)
+            .size(6.dp)
+            .background(CurrentTimeRed, CircleShape)
+      )
+      Box(
+        modifier =
+          Modifier.absoluteOffset(x = 2.dp, y = lineY - 0.5.dp)
+            .fillMaxWidth()
+            .height(1.dp)
+            .background(CurrentTimeRed)
+      )
+    }
+
+    // Render non-dragged blocks first, dragged block last (on top)
+    val sortedBlocks = blocks.sortedBy { if (dragState?.blockId == it.task.id) 1 else 0 }
+
+    sortedBlocks.forEach { block ->
+      val ds = dragState?.takeIf { it.blockId == block.task.id }
+      val project = block.task.projectId?.let { projects[it] }
+      val blockColor = project?.color?.let { parseHexColor(it) } ?: TaskBlockDefault
+
+      // Effective position + size based on drag state
+      val (effectiveStartMin, effectiveDuration) =
+        when {
+          ds == null -> block.startMin to (block.endMin - block.startMin)
+          ds.mode == DragMode.MOVE -> {
+            val delta = (ds.deltaY / hourHeightPx * 60f).roundToInt()
+            val newStart = (block.startMin + delta).coerceIn(0, 23 * 60)
+            newStart to (block.endMin - block.startMin)
+          }
+          ds.mode == DragMode.TOP -> {
+            val delta = (ds.deltaY / hourHeightPx * 60f).roundToInt()
+            val newStart = (block.startMin + delta).coerceIn(0, block.endMin - 15)
+            newStart to (block.endMin - newStart)
+          }
+          else -> { // BOTTOM
+            val delta = (ds.deltaY / hourHeightPx * 60f).roundToInt()
+            val newEnd =
+              (block.endMin + delta).coerceAtLeast(block.startMin + 15).coerceAtMost(24 * 60)
+            block.startMin to (newEnd - block.startMin)
+          }
+        }
+
+      val blockX = dayWidth * block.col / block.totalCols + 1.dp
+      val blockW = (dayWidth / block.totalCols - 2.dp).coerceAtLeast(4.dp)
+      val blockY = HOUR_HEIGHT * effectiveStartMin / 60f
+      val blockH = (HOUR_HEIGHT * effectiveDuration / 60f).coerceAtLeast(HOUR_HEIGHT * 0.4f)
+      val isDragging = ds != null
+
+      Box(
+        modifier =
+          Modifier.absoluteOffset(x = blockX, y = blockY)
+            .width(blockW)
+            .height(blockH)
+            .clip(RoundedCornerShape(3.dp))
+            .background(blockColor.copy(alpha = if (isDragging) 0.95f else 0.85f))
+            .clickable { onTaskClick(block.task.id, block.task.occurrenceScheduledAt) }
+            .pointerInput(block.task.id) {
+              detectDragGesturesAfterLongPress(
+                onDragStart = { startOffset ->
+                  val zoneH = size.height / 4f
+                  dragState =
+                    BlockDragState(
+                      blockId = block.task.id,
+                      mode =
+                        when {
+                          startOffset.y < zoneH -> DragMode.TOP
+                          startOffset.y > size.height - zoneH -> DragMode.BOTTOM
+                          else -> DragMode.MOVE
+                        },
+                      deltaY = 0f,
+                    )
+                },
+                onDrag = { change, dragAmount ->
+                  change.consume()
+                  dragState = dragState?.copy(deltaY = (dragState?.deltaY ?: 0f) + dragAmount.y)
+                },
+                onDragEnd = {
+                  val finalDs = dragState
+                  if (finalDs != null) {
+                    val deltaMin = (finalDs.deltaY / hourHeightPx * 60f).roundToInt()
+                    val (newScheduledAt, newDuration) =
+                      when (finalDs.mode) {
+                        DragMode.MOVE -> {
+                          val newStart =
+                            snapToQuarter((block.startMin + deltaMin).coerceIn(0, 23 * 60))
+                          formatScheduledAt(day, newStart) to (block.endMin - block.startMin)
+                        }
+                        DragMode.TOP -> {
+                          val newStart =
+                            snapToQuarter(
+                              (block.startMin + deltaMin).coerceIn(0, block.endMin - 15)
+                            )
+                          formatScheduledAt(day, newStart) to (block.endMin - newStart)
+                        }
+                        DragMode.BOTTOM -> {
+                          val newEnd =
+                            snapToQuarter(
+                              (block.endMin + deltaMin)
+                                .coerceAtLeast(block.startMin + 15)
+                                .coerceAtMost(24 * 60)
+                            )
+                          formatScheduledAt(day, block.startMin) to (newEnd - block.startMin)
+                        }
+                      }
+                    onReschedule(block.task, newScheduledAt, newDuration.coerceAtLeast(15))
+                  }
+                  dragState = null
+                },
+                onDragCancel = { dragState = null },
+              )
+            }
+      ) {
+        // Top resize zone indicator
+        Box(
+          modifier =
+            Modifier.fillMaxWidth().height(3.dp).background(Color.White.copy(alpha = 0.35f))
+        )
+
+        // Task content
+        Text(
+          text =
+            if (block.task.isDetached) "Hors série · ${block.task.content}" else block.task.content,
+          modifier = Modifier.padding(start = 3.dp, end = 3.dp, top = 4.dp, bottom = 2.dp),
+          style =
+            TextStyle(
+              fontSize = 9.sp,
+              color = Color.White,
+              fontWeight = FontWeight.Medium,
+              lineHeight = 12.sp,
+            ),
+          maxLines = if (blockH >= HOUR_HEIGHT * 0.7f) 3 else 2,
+          overflow = TextOverflow.Ellipsis,
+        )
+        if (isAppointmentTask(block.task.type)) {
+          Icon(
+            Icons.Outlined.CalendarToday,
+            taskTypeAccessibilityLabel(block.task.type),
+            tint = Color.White,
+            modifier = Modifier.align(Alignment.TopEnd).padding(2.dp).size(10.dp),
+          )
+        }
+
+        // Bottom resize zone indicator
+        Box(
+          modifier =
+            Modifier.align(Alignment.BottomCenter)
+              .fillMaxWidth()
+              .height(3.dp)
+              .background(Color.White.copy(alpha = 0.35f))
+        )
+      }
+    }
+  }
 }
 
 private fun snapToQuarter(min: Int): Int =
-    ((min.toFloat() / 15f).roundToInt() * 15).coerceIn(0, 23 * 60)
+  ((min.toFloat() / 15f).roundToInt() * 15).coerceIn(0, 23 * 60)
 
 private fun formatScheduledAt(day: Calendar, startMin: Int): String {
-    val cal = Calendar.getInstance().apply {
-        set(day.get(Calendar.YEAR), day.get(Calendar.MONTH), day.get(Calendar.DAY_OF_MONTH),
-            startMin / 60, startMin % 60, 0)
-        set(Calendar.MILLISECOND, 0)
+  val cal =
+    Calendar.getInstance().apply {
+      set(
+        day.get(Calendar.YEAR),
+        day.get(Calendar.MONTH),
+        day.get(Calendar.DAY_OF_MONTH),
+        startMin / 60,
+        startMin % 60,
+        0,
+      )
+      set(Calendar.MILLISECOND, 0)
     }
-    return java.time.Instant.ofEpochMilli(cal.timeInMillis).toString()
+  return java.time.Instant.ofEpochMilli(cal.timeInMillis).toString()
 }
 
 private fun buildWeekLabel(weekDays: List<Calendar>): String {
-    if (weekDays.isEmpty()) return ""
-    val first = weekDays.first()
-    val last = weekDays.last()
-    val firstDay = SimpleDateFormat("d", Locale.FRENCH).format(first.time)
-    val lastDay = SimpleDateFormat("d", Locale.FRENCH).format(last.time)
-    val firstMonth = SimpleDateFormat("MMM", Locale.FRENCH).format(first.time)
-    val lastMonth = SimpleDateFormat("MMM", Locale.FRENCH).format(last.time)
-    val year = SimpleDateFormat("yyyy", Locale.US).format(last.time)
-    return if (firstMonth == lastMonth) "$firstDay–$lastDay $lastMonth $year"
-    else "$firstDay $firstMonth – $lastDay $lastMonth $year"
+  if (weekDays.isEmpty()) return ""
+  val first = weekDays.first()
+  val last = weekDays.last()
+  val firstDay = SimpleDateFormat("d", Locale.FRENCH).format(first.time)
+  val lastDay = SimpleDateFormat("d", Locale.FRENCH).format(last.time)
+  val firstMonth = SimpleDateFormat("MMM", Locale.FRENCH).format(first.time)
+  val lastMonth = SimpleDateFormat("MMM", Locale.FRENCH).format(last.time)
+  val year = SimpleDateFormat("yyyy", Locale.US).format(last.time)
+  return if (firstMonth == lastMonth) "$firstDay–$lastDay $lastMonth $year"
+  else "$firstDay $firstMonth – $lastDay $lastMonth $year"
 }
 
-private fun parseHexColor(hex: String): Color = try {
+private fun parseHexColor(hex: String): Color =
+  try {
     Color(android.graphics.Color.parseColor(if (hex.startsWith("#")) hex else "#$hex"))
-} catch (_: Exception) {
+  } catch (_: Exception) {
     TaskBlockDefault
-}
+  }

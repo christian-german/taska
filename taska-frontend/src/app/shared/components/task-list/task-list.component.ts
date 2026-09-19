@@ -1,5 +1,5 @@
-import {ChangeDetectionStrategy, Component, computed, input, output} from '@angular/core';
-import { Project, Task, getColor } from '../../../core/models';
+import { ChangeDetectionStrategy, Component, computed, input, output } from '@angular/core';
+import { Project, Task, TaskPatch, getColor } from '../../../core/models';
 import { TaskRowComponent } from '../task-row/task-row.component';
 import { IconComponent } from '../icon/icon.component';
 
@@ -26,8 +26,11 @@ export interface TaskGroup {
               @if (group.icon) {
                 <app-icon [name]="group.icon" [size]="14" [color]="group.color || 'var(--mute)'" />
               }
-              <span class="label" [class.overdue]="group.tone === 'overdue'"
-                    [style.color]="group.color && group.tone !== 'overdue' ? group.color : null">
+              <span
+                class="label"
+                [class.overdue]="group.tone === 'overdue'"
+                [style.color]="group.color && group.tone !== 'overdue' ? group.color : null"
+              >
                 {{ group.label }}
               </span>
               <span class="count">({{ group.tasks.length }})</span>
@@ -35,7 +38,9 @@ export interface TaskGroup {
           </div>
 
           @if (group.tasks.length === 0) {
-            <div style="padding: 6px 14px; color: var(--mute); font-size: 12.5px; font-style: italic;">
+            <div
+              style="padding: 6px 14px; color: var(--mute); font-size: 12.5px; font-style: italic;"
+            >
               {{ group.empty || '—' }}
             </div>
           } @else {
@@ -46,7 +51,8 @@ export interface TaskGroup {
                 [selected]="selectedId() === task.id"
                 (toggled)="toggled.emit($event)"
                 (selectTask)="selectTask.emit($event)"
-                (updated)="updated.emit($event)" />
+                (updated)="updated.emit($event)"
+              />
             }
           }
         </div>
@@ -61,7 +67,7 @@ export class TaskListComponent {
 
   toggled = output<Task>();
   selectTask = output<Task>();
-  updated = output<{ id: string; patch: Partial<Task> }>();
+  updated = output<{ id: string; patch: TaskPatch }>();
 
   private projectMap = computed(() => {
     const m: Record<string, Project> = {};

@@ -1,5 +1,5 @@
-import {ChangeDetectionStrategy, Component, inject} from '@angular/core';
-import {TaskCreationFeedbackService} from '../../../core/services/task-creation-feedback.service';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { TaskCreationFeedbackService } from '../../../core/services/task-creation-feedback.service';
 
 @Component({
   selector: 'app-task-created-toast',

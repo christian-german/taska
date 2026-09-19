@@ -6,7 +6,7 @@ import com.taska.android.data.model.RegisterDeviceRequest
 
 class DeviceRepository(private val api: TaskaApi) {
 
-    constructor() : this(RetrofitClient.api)
+  constructor() : this(RetrofitClient.api)
 
-    suspend fun registerDevice(request: RegisterDeviceRequest) = api.registerDevice(request)
+  suspend fun registerDevice(request: RegisterDeviceRequest) = api.registerDevice(request)
 }

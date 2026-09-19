@@ -267,7 +267,7 @@ private fun DayHeader(
                 Spacer(Modifier.width(2.dp))
               }
               Text(
-                task.content,
+                if (task.isDetached) "Hors série · ${task.content}" else task.content,
                 style = TextStyle(fontSize = 9.sp, color = Color.White),
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
@@ -433,7 +433,8 @@ private fun SingleDayColumn(
             Modifier.fillMaxWidth().height(3.dp).background(Color.White.copy(alpha = 0.35f))
         )
         Text(
-          text = block.task.content,
+          text =
+            if (block.task.isDetached) "Hors série · ${block.task.content}" else block.task.content,
           modifier = Modifier.padding(start = 3.dp, end = 3.dp, top = 4.dp, bottom = 2.dp),
           style =
             TextStyle(

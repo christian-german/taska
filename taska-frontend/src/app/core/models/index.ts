@@ -61,6 +61,7 @@ export interface NonRecurringTask extends TaskBase {
   instanceId?: never;
   occurrenceScheduledAt?: never;
   isVirtual?: never;
+  isDetached?: never;
 }
 
 export interface RecurringTaskSeries extends TaskBase {
@@ -72,6 +73,7 @@ export interface RecurringTaskSeries extends TaskBase {
   instanceId?: never;
   occurrenceScheduledAt?: never;
   isVirtual?: never;
+  isDetached?: never;
 }
 
 export interface RecurringTaskOccurrence extends TaskBase {
@@ -85,6 +87,7 @@ export interface RecurringTaskOccurrence extends TaskBase {
   instanceId: string | null;
   occurrenceScheduledAt: string;
   isVirtual: boolean;
+  isDetached: boolean;
 }
 
 export type Task = NonRecurringTask | RecurringTaskSeries | RecurringTaskOccurrence;

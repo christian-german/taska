@@ -19,6 +19,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Rule
@@ -175,8 +176,112 @@ class TaskDetailViewModelTest {
     assertEquals(true, viewModel.uiState.value.task?.isCompleted)
   }
 
+  @Test
+  fun `occurrence detail loads the occurrence representation`() = runTest {
+    val occurrence = "2026-08-24T09:00:00Z"
+    val detached = task(isRecurring = true, occurrenceScheduledAt = occurrence, isDetached = true)
+    prepareLoad(detached)
+
+    val viewModel = viewModel(occurrence)
+    advanceUntilIdle()
+
+    assertEquals(detached, viewModel.uiState.value.task)
+    coVerify(exactly = 1) { taskRepo.getOccurrence("task-1", occurrence) }
+    coVerify(exactly = 0) { taskRepo.getTask(any()) }
+  }
+
+  @Test
+  fun `detached occurrence reschedule updates this occurrence without asking for a scope`() =
+    runTest {
+      val occurrence = "2026-08-24T09:00:00Z"
+      val detached = task(isRecurring = true, occurrenceScheduledAt = occurrence, isDetached = true)
+      prepareLoad(detached)
+      val request = slot<OccurrenceUpdateRequest>()
+      coEvery { taskRepo.updateOccurrence("task-1", occurrence, capture(request)) } returns detached
+      val viewModel = viewModel(occurrence)
+
+      viewModel.requestRescheduleAllDay(1_788_134_400_000)
+      advanceUntilIdle()
+
+      assertNull(viewModel.uiState.value.pendingReschedule)
+      assertNotNull(request.captured.scheduledAt)
+      coVerify(exactly = 0) { taskRepo.updateTask(any(), any()) }
+      coVerify(exactly = 0) { taskRepo.updateFollowingTask(any(), any(), any()) }
+    }
+
+  @Test
+  fun `detached occurrence supports occurrence fields and rejects series fields`() = runTest {
+    val occurrence = "2026-08-24T09:00:00Z"
+    val detached = task(isRecurring = true, occurrenceScheduledAt = occurrence, isDetached = true)
+    prepareLoad(detached)
+    coEvery { taskRepo.updateOccurrence("task-1", occurrence, any()) } returns
+      detached.copy(content = "Updated")
+    val viewModel = viewModel(occurrence)
+
+    viewModel.updateContent("Updated")
+    viewModel.updateProject("another-project")
+    advanceUntilIdle()
+
+    assertEquals("Updated", viewModel.uiState.value.task?.content)
+    coVerify(exactly = 1) { taskRepo.updateOccurrence("task-1", occurrence, any()) }
+    coVerify(exactly = 0) { taskRepo.updateTask(any(), any()) }
+  }
+
+  @Test
+  fun `detached occurrence deletion is always this occurrence only`() = runTest {
+    val occurrence = "2026-08-24T09:00:00Z"
+    val detached = task(isRecurring = true, occurrenceScheduledAt = occurrence, isDetached = true)
+    prepareLoad(detached)
+    coEvery { taskRepo.deleteTask("task-1", RecurrenceScope.THIS_ONLY, occurrence) } returns Unit
+    val viewModel = viewModel(occurrence)
+    var deleted = false
+
+    viewModel.deleteTask { deleted = true }
+    advanceUntilIdle()
+
+    assertFalse(viewModel.uiState.value.isLoading)
+    assertEquals(true, deleted)
+    coVerify(exactly = 1) { taskRepo.deleteTask("task-1", RecurrenceScope.THIS_ONLY, occurrence) }
+    coVerify(exactly = 0) { taskRepo.deleteTask("task-1", null, null) }
+  }
+
+  @Test
+  fun `rejected recurrence edit keeps task visible and exposes the server error`() = runTest {
+    val original = task(isRecurring = true)
+    val serverDetail =
+      "A recurring series with occurrence state must be changed from an explicit occurrence"
+    prepareLoad(original)
+    coEvery { taskRepo.updateTask("task-1", any()) } throws IllegalStateException(serverDetail)
+    val viewModel = viewModel()
+    advanceUntilIdle()
+
+    viewModel.updateRecurrence("FREQ=DAILY")
+    advanceUntilIdle()
+
+    assertEquals(original, viewModel.uiState.value.task)
+    assertEquals(serverDetail, viewModel.uiState.value.mutationError)
+    assertNull(viewModel.uiState.value.error)
+  }
+
+  @Test
+  fun `mutation error can be consumed without changing the loaded task`() = runTest {
+    val original = task()
+    prepareLoad(original)
+    coEvery { taskRepo.updateTask("task-1", any()) } throws IllegalStateException("Rejected")
+    val viewModel = viewModel()
+    advanceUntilIdle()
+    viewModel.updateDescription("Changed")
+    advanceUntilIdle()
+
+    viewModel.consumeMutationError()
+
+    assertNull(viewModel.uiState.value.mutationError)
+    assertEquals(original, viewModel.uiState.value.task)
+  }
+
   private fun prepareLoad(task: TaskDto) {
     coEvery { taskRepo.getTask("task-1") } returns task
+    coEvery { taskRepo.getOccurrence("task-1", any()) } returns task
     coEvery { taskRepo.getSubtasks("task-1") } returns emptyList()
   }
 
@@ -192,6 +297,7 @@ class TaskDetailViewModelTest {
     dueAt: String? = "2026-09-01T00:00:00Z",
     isRecurring: Boolean = false,
     occurrenceScheduledAt: String? = null,
+    isDetached: Boolean = false,
   ) =
     TaskDto(
       id = "task-1",
@@ -214,5 +320,6 @@ class TaskDetailViewModelTest {
       updatedAt = null,
       completedAt = null,
       occurrenceScheduledAt = occurrenceScheduledAt,
+      isDetached = isDetached,
     )
 }

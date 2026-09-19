@@ -110,6 +110,45 @@
     summary: "Delete a task"
     description: "Delete a task for the authenticated Taska principal."
 "/tasks/{taskId}/occurrences/{occurrenceScheduledAt}":
+  get:
+    tags:
+      - "Tasks"
+    operationId: "getTaskOccurrence"
+    parameters:
+      - name: "taskId"
+        in: "path"
+        required: true
+        schema:
+          type: "string"
+          format: "uuid"
+        description: "Recurring-series identifier."
+      - name: "occurrenceScheduledAt"
+        in: "path"
+        required: true
+        schema:
+          type: "string"
+          format: "date-time"
+          pattern: "(?:Z|[+-](?:(?:0[0-9]|1[0-7]):[0-5][0-9]|18:00))$"
+        description: "Stable original scheduled timestamp of the recurring occurrence."
+    responses:
+      "200":
+        description: "The addressed recurring occurrence."
+        content:
+          "application/json":
+            schema:
+              "$ref": "../schemas/task.yaml#/RecurringTaskOccurrenceDto"
+      "400":
+        "$ref": "../responses.yaml#/BadRequest"
+      "401":
+        "$ref": "../responses.yaml#/Unauthorized"
+      "403":
+        "$ref": "../responses.yaml#/Forbidden"
+      "404":
+        "$ref": "../responses.yaml#/NotFound"
+      "500":
+        "$ref": "../responses.yaml#/InternalServerError"
+    summary: "Retrieve one recurring task occurrence"
+    description: "Retrieve one generated or detached recurring occurrence by stable identity."
   put:
     tags:
       - "Tasks"
@@ -128,6 +167,7 @@
         schema:
           type: "string"
           format: "date-time"
+          pattern: "(?:Z|[+-](?:(?:0[0-9]|1[0-7]):[0-5][0-9]|18:00))$"
         description: "Original scheduled timestamp of the recurring occurrence."
     requestBody:
       content:
@@ -178,6 +218,7 @@
         schema:
           type: "string"
           format: "date-time"
+          pattern: "(?:Z|[+-](?:(?:0[0-9]|1[0-7]):[0-5][0-9]|18:00))$"
         description: "Original scheduled timestamp of the recurring occurrence."
     requestBody:
       content:

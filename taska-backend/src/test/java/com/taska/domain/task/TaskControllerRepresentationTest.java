@@ -11,14 +11,14 @@ import com.taska.domain.task.controller.TaskController;
 import com.taska.domain.task.controller.TaskDto;
 import com.taska.domain.task.controller.TaskMapperImpl;
 import com.taska.domain.task.controller.TaskRepresentationKind;
-import com.taska.domain.task.occurrence.TaskOccurrenceState;
-import com.taska.domain.task.repository.Task;
+import com.taska.domain.task.definition.repository.Task;
+import com.taska.domain.task.definition.service.TaskDefinitionService;
+import com.taska.domain.task.occurrence.repository.TaskOccurrenceState;
+import com.taska.domain.task.occurrence.service.TaskOccurrenceService;
+import com.taska.domain.task.occurrence.service.TaskOccurrenceUpdateParameters;
 import com.taska.domain.task.service.RecurringTaskOccurrenceResult;
 import com.taska.domain.task.service.TaskMutationService;
-import com.taska.domain.task.service.TaskOccurrenceService;
-import com.taska.domain.task.service.TaskOccurrenceUpdateParameters;
 import com.taska.domain.task.service.TaskResult;
-import com.taska.domain.task.service.TaskService;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
@@ -36,7 +36,7 @@ class TaskControllerRepresentationTest {
   private static final LocalDate DATE = LocalDate.parse("2026-05-20");
   private static final Instant OCCURRENCE = Instant.parse("2026-05-20T09:00:00Z");
 
-  private final TaskService taskService = mock(TaskService.class);
+  private final TaskDefinitionService taskService = mock(TaskDefinitionService.class);
   private final TaskOccurrenceService taskOccurrenceService = mock(TaskOccurrenceService.class);
   private final TaskMutationService taskMutationService = mock(TaskMutationService.class);
   private final TaskController taskController =
@@ -97,6 +97,22 @@ class TaskControllerRepresentationTest {
 
     assertThat(taskController.getById(task.getId()).kind())
         .isEqualTo(TaskRepresentationKind.RECURRING_SERIES);
+  }
+
+  @Test
+  void singleOccurrenceRetrievalReturnsTheOccurrenceRepresentation() {
+    Task task = recurringTask();
+    TaskOccurrenceState detached = new TaskOccurrenceState();
+    detached.setId(UUID.randomUUID());
+    detached.setDetached(true);
+    when(taskOccurrenceService.findOccurrence(task.getId(), OCCURRENCE))
+        .thenReturn(new RecurringTaskOccurrenceResult(task, detached, OCCURRENCE));
+
+    TaskDto taskDto = taskController.getOccurrence(task.getId(), OCCURRENCE);
+
+    assertThat(taskDto.kind()).isEqualTo(TaskRepresentationKind.RECURRING_OCCURRENCE);
+    assertThat(((com.taska.domain.task.controller.RecurringTaskOccurrenceDto) taskDto).isDetached())
+        .isTrue();
   }
 
   @Test

@@ -1,8 +1,8 @@
 package com.taska.domain.task.mcp;
 
 import com.taska.config.ApiMapperConfig;
-import com.taska.domain.task.TaskType;
-import com.taska.domain.task.repository.Task;
+import com.taska.domain.task.definition.TaskType;
+import com.taska.domain.task.definition.repository.Task;
 import com.taska.domain.task.service.NonRecurringTaskResult;
 import com.taska.domain.task.service.RecurringTaskOccurrenceResult;
 import com.taska.domain.task.service.RecurringTaskSeriesResult;

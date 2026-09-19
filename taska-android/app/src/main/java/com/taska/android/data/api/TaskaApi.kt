@@ -32,6 +32,12 @@ interface TaskaApi {
 
   @GET("/tasks/{taskId}") suspend fun getTask(@Path("taskId") taskId: String): TaskDto
 
+  @GET("/tasks/{taskId}/occurrences/{occurrenceScheduledAt}")
+  suspend fun getOccurrence(
+    @Path("taskId") taskId: String,
+    @Path("occurrenceScheduledAt") occurrenceScheduledAt: String,
+  ): TaskDto
+
   @GET("/tasks/{taskId}/subtasks")
   suspend fun getSubtasks(@Path("taskId") taskId: String): List<TaskDto>
 

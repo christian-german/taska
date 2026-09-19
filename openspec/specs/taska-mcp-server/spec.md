@@ -100,3 +100,16 @@ The MCP task adapter SHALL expose task outputs defined within the MCP adapter an
 - **WHEN** an authenticated MCP client invokes a task tool after discriminated HTTP task representations are introduced
 - **THEN** the MCP server SHALL return its MCP-owned task output with the existing MCP task field semantics
 - **AND** it SHALL not expose an HTTP transport DTO type as its tool schema
+
+### Requirement: MCP recurring occurrences expose detached status
+
+The MCP-owned task output SHALL include a boolean `isDetached` for recurring occurrences. The value SHALL reflect the persisted detached classification without requiring MCP clients to consume HTTP DTO types.
+
+#### Scenario: MCP returns a detached occurrence
+- **WHEN** an MCP task tool returns recurring-occurrence state classified as detached
+- **THEN** its task output SHALL contain `isDetached: true`
+- **AND** it SHALL preserve the occurrence's task and stable schedule identities
+
+#### Scenario: MCP returns an attached or virtual occurrence
+- **WHEN** an MCP task tool returns an occurrence that is not detached
+- **THEN** its task output SHALL contain `isDetached: false`

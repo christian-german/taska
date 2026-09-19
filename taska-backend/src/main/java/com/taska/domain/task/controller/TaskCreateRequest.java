@@ -1,6 +1,6 @@
 package com.taska.domain.task.controller;
 
-import com.taska.domain.task.TaskType;
+import com.taska.domain.task.definition.TaskType;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;

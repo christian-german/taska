@@ -1,6 +1,6 @@
 package com.taska.domain.label.repository;
 
-import com.taska.domain.task.repository.Task;
+import com.taska.domain.task.definition.repository.Task;
 import jakarta.persistence.*;
 import java.util.UUID;
 

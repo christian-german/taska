@@ -42,6 +42,20 @@
           (blur)="saveContent()"
           (keydown.enter)="$event.preventDefault(); saveContent()"
         />
+        @if (isDetached()) {
+          <span
+            class="chip"
+            aria-label="Occurrence hors série"
+            style="
+              background: rgba(224, 123, 57, 0.14);
+              color: #a65322;
+              font-size: 10.5px;
+              white-space: nowrap;
+            "
+          >
+            Hors série
+          </span>
+        }
       </div>
 
       <div
@@ -60,6 +74,7 @@
               class="btn btn-ghost"
               style="padding: 4px 8px"
               [attr.aria-pressed]="task().type === option.value"
+              [disabled]="isDetached()"
               [style.background]="task().type === option.value ? 'var(--bg-3)' : ''"
               (click)="setTaskType(option.value)"
             >
@@ -67,7 +82,12 @@
             </button>
           }
         </div>
-        <button class="btn btn-ghost" (click)="toggleProjectMenu($event)" style="padding: 4px 8px">
+        <button
+          class="btn btn-ghost"
+          (click)="toggleProjectMenu($event)"
+          style="padding: 4px 8px"
+          [disabled]="isDetached()"
+        >
           @if (currentProject(); as p) {
             <span style="display: inline-flex; align-items: center; gap: 5px; font-size: 13px">
               <app-icon name="folder" [size]="13" [color]="getColor(p.color)" />
@@ -306,6 +326,7 @@
               text-align: left;
             "
             (click)="openPicker('tags', $event)"
+            [disabled]="isDetached()"
           >
             <app-icon name="tag" [size]="14" color="var(--mute)" />
             @if (task().labels.length) {
@@ -320,7 +341,7 @@
               >
             }
           </button>
-          @if (activeDetailPicker() === 'tags') {
+          @if (activeDetailPicker() === 'tags' && !isDetached()) {
             <div
               (click)="$event.stopPropagation()"
               style="
@@ -402,6 +423,7 @@
               text-align: left;
             "
             (click)="openPicker('estimate', $event)"
+            [disabled]="isDetached()"
           >
             <app-icon
               name="clock"
@@ -430,7 +452,7 @@
               </span>
             }
           </button>
-          @if (activeDetailPicker() === 'estimate') {
+          @if (activeDetailPicker() === 'estimate' && !isDetached()) {
             <div
               (click)="$event.stopPropagation()"
               style="
@@ -491,6 +513,7 @@
               text-align: left;
             "
             (click)="openPicker('recurrence', $event)"
+            [disabled]="isDetached()"
           >
             <app-icon
               name="repeat"
@@ -505,7 +528,7 @@
               {{ recurrenceRowLabel() }}
             </span>
           </button>
-          @if (activeDetailPicker() === 'recurrence') {
+          @if (activeDetailPicker() === 'recurrence' && !isDetached()) {
             <div
               (click)="$event.stopPropagation()"
               style="
@@ -570,6 +593,7 @@
           placeholder="Ajouter des notes…"
           style="width: 100%; min-height: 60px; resize: vertical; font-size: 13px; line-height: 1.5"
           [ngModel]="editedDescription()"
+          [readOnly]="isDetached()"
           (ngModelChange)="editedDescription.set($event)"
           (blur)="saveDescription()"
         ></textarea>

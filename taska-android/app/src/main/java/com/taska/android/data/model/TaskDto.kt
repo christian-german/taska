@@ -50,6 +50,9 @@ sealed interface TaskDto {
   val isVirtual: Boolean?
     get() = null
 
+  val isDetached: Boolean
+    get() = false
+
   val rruleEndsAt: String?
     get() = null
 }
@@ -122,6 +125,7 @@ data class RecurringTaskOccurrenceDto(
   override val instanceId: String?,
   override val occurrenceScheduledAt: String,
   override val isVirtual: Boolean,
+  override val isDetached: Boolean = false,
 ) : TaskDto
 
 @Suppress("FunctionName")
@@ -150,6 +154,7 @@ fun TaskDto(
   occurrenceScheduledAt: String? = null,
   isVirtual: Boolean? = null,
   rruleEndsAt: String? = null,
+  isDetached: Boolean = false,
 ): TaskDto {
   if (isRecurring != true) {
     return NonRecurringTaskDto(
@@ -218,6 +223,7 @@ fun TaskDto(
     instanceId = instanceId,
     occurrenceScheduledAt = occurrenceScheduledAt,
     isVirtual = isVirtual ?: (instanceId == null),
+    isDetached = isDetached,
   )
 }
 
@@ -246,6 +252,7 @@ fun TaskDto.copy(
   occurrenceScheduledAt: String? = this.occurrenceScheduledAt,
   isVirtual: Boolean? = this.isVirtual,
   rruleEndsAt: String? = this.rruleEndsAt,
+  isDetached: Boolean = this.isDetached,
 ) =
   TaskDto(
     id,
@@ -272,4 +279,5 @@ fun TaskDto.copy(
     occurrenceScheduledAt,
     isVirtual,
     rruleEndsAt,
+    isDetached,
   )

@@ -73,6 +73,12 @@ export class TaskService {
     return this.http.get<Task>(`${this.base}/${taskId}`);
   }
 
+  getOccurrence(taskId: string, occurrenceScheduledAt: string): Observable<Task> {
+    return this.http.get<Task>(
+      `${this.base}/${taskId}/occurrences/${encodeURIComponent(occurrenceScheduledAt)}`,
+    );
+  }
+
   createTask(data: TaskCreateRequest): Observable<Task> {
     return this.http.post<Task>(this.base, data).pipe(tap(() => this.taskCreationFeedback.show()));
   }
@@ -85,7 +91,11 @@ export class TaskService {
     },
   ): Observable<Task> {
     const { scope, occurrenceScheduledAt, ...changes } = patch;
-    return this.getTask(taskId).pipe(
+    const currentTask$ =
+      scope === 'THIS_ONLY' && occurrenceScheduledAt
+        ? this.getOccurrence(taskId, occurrenceScheduledAt)
+        : this.getTask(taskId);
+    return currentTask$.pipe(
       switchMap((task) => {
         if (scope && !occurrenceScheduledAt) {
           return throwError(() => new Error('A recurring update requires an occurrence identity'));
@@ -105,7 +115,12 @@ export class TaskService {
               title: 'content' in changes ? changes.content : task.content,
               priority: 'priority' in changes ? changes.priority : task.priority,
               scheduledAt: 'scheduledAt' in changes ? changes.scheduledAt : task.scheduledAt,
-              dueAt: 'dueAt' in changes ? changes.dueAt : null,
+              dueAt:
+                'dueAt' in changes
+                  ? changes.dueAt
+                  : task.kind === 'RECURRING_OCCURRENCE'
+                    ? task.dueAt
+                    : null,
             },
           );
         }

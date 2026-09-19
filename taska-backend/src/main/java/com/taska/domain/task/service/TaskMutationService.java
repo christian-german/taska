@@ -1,7 +1,11 @@
 package com.taska.domain.task.service;
 
 import com.taska.domain.notification.service.TaskChangePublisher;
-import com.taska.domain.task.repository.Task;
+import com.taska.domain.task.definition.repository.Task;
+import com.taska.domain.task.definition.service.TaskDefinitionService;
+import com.taska.domain.task.occurrence.service.TaskOccurrenceService;
+import com.taska.domain.task.occurrence.service.TaskOccurrenceUpdateParameters;
+import com.taska.domain.task.series.service.RecurringTaskSeriesService;
 import java.time.Instant;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -20,7 +24,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional(readOnly = true)
 public class TaskMutationService {
 
-  private final TaskService taskService;
+  private final TaskDefinitionService taskService;
   private final TaskOccurrenceService taskOccurrenceService;
   private final RecurringTaskSeriesService recurringTaskSeriesService;
   private final TaskChangePublisher taskChangePublisher;
@@ -64,6 +68,15 @@ public class TaskMutationService {
     Task task = taskService.findById(taskId);
     TaskResult taskResult;
     if (parameters.scope() == null || !Boolean.TRUE.equals(task.getIsRecurring())) {
+      if (parameters.scope() == null && Boolean.TRUE.equals(task.getIsRecurring())) {
+        recurringTaskSeriesService.assertInPlaceGeneratorChangeAllowed(
+            task,
+            parameters.recurring() != null ? parameters.recurring() : true,
+            parameters.scheduledAt() != null ? parameters.scheduledAt() : task.getScheduledAt(),
+            parameters.recurrenceRule() != null
+                ? parameters.recurrenceRule()
+                : task.getRecurrenceRule());
+      }
       taskResult = taskService.updateTask(taskId, parameters, priorityProvided);
     } else {
       taskResult =
@@ -90,6 +103,9 @@ public class TaskMutationService {
    */
   @Transactional
   public TaskResult replace(UUID taskId, TaskUpdateParameters parameters, String accountSubject) {
+    Task task = taskService.findById(taskId);
+    recurringTaskSeriesService.assertInPlaceGeneratorChangeAllowed(
+        task, parameters.recurring(), parameters.scheduledAt(), parameters.recurrenceRule());
     TaskResult taskResult = taskService.replace(taskId, parameters);
     publishChange(accountSubject);
     return taskResult;

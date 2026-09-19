@@ -143,8 +143,22 @@ describe('TaskService task creation feedback', () => {
       .subscribe();
 
     http
-      .expectOne((request) => request.method === 'GET' && request.url.endsWith(`/tasks/${task.id}`))
-      .flush(task);
+      .expectOne(
+        (request) =>
+          request.method === 'GET' &&
+          request.url.endsWith(`/tasks/${task.id}/occurrences/${encodeURIComponent(occurrence)}`),
+      )
+      .flush({
+        ...task,
+        kind: 'RECURRING_OCCURRENCE',
+        dueAt: '2026-08-25T09:00:00Z',
+        isCompleted: false,
+        completedAt: null,
+        instanceId: null,
+        occurrenceScheduledAt: occurrence,
+        isVirtual: true,
+        isDetached: false,
+      });
     const request = http.expectOne(
       (request) =>
         request.method === 'PUT' &&
@@ -155,9 +169,22 @@ describe('TaskService task creation feedback', () => {
       title: task.content,
       priority: task.priority,
       scheduledAt: null,
-      dueAt: null,
+      dueAt: '2026-08-25T09:00:00Z',
     });
     request.flush(task);
+  });
+
+  it('retrieves one occurrence by its stable identity', () => {
+    const occurrence = '2026-08-24T09:00:00Z';
+
+    service.getOccurrence('task-1', occurrence).subscribe();
+
+    const request = http.expectOne(
+      (candidate) =>
+        candidate.method === 'GET' &&
+        candidate.url.endsWith(`/tasks/task-1/occurrences/${encodeURIComponent(occurrence)}`),
+    );
+    request.flush({});
   });
 });
 

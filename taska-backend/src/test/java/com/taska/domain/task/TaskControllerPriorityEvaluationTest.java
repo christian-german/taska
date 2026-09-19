@@ -11,9 +11,9 @@ import com.taska.domain.priority.service.TaskPriorityEvaluationService;
 import com.taska.domain.task.controller.TaskController;
 import com.taska.domain.task.controller.TaskMapper;
 import com.taska.domain.task.controller.TaskUpdateRequest;
+import com.taska.domain.task.definition.service.TaskDefinitionService;
+import com.taska.domain.task.occurrence.service.TaskOccurrenceService;
 import com.taska.domain.task.service.TaskMutationService;
-import com.taska.domain.task.service.TaskOccurrenceService;
-import com.taska.domain.task.service.TaskService;
 import java.time.Instant;
 import java.util.Optional;
 import java.util.UUID;
@@ -23,7 +23,7 @@ import tools.jackson.databind.exc.MismatchedInputException;
 import tools.jackson.databind.json.JsonMapper;
 
 class TaskControllerPriorityEvaluationTest {
-  private final TaskService taskService = mock(TaskService.class);
+  private final TaskDefinitionService taskService = mock(TaskDefinitionService.class);
   private final TaskOccurrenceService taskOccurrenceService = mock(TaskOccurrenceService.class);
   private final TaskMapper taskMapper = mock(TaskMapper.class);
   private final TaskPriorityEvaluationService taskPriorityEvaluationService =

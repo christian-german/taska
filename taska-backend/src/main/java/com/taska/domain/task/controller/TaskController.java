@@ -3,13 +3,13 @@ package com.taska.domain.task.controller;
 import com.taska.domain.priority.controller.TaskPriorityEvaluationDto;
 import com.taska.domain.priority.controller.TaskPriorityEvaluationMapper;
 import com.taska.domain.priority.service.TaskPriorityEvaluationService;
+import com.taska.domain.task.definition.service.TaskDefinitionService;
+import com.taska.domain.task.occurrence.service.TaskOccurrenceService;
+import com.taska.domain.task.occurrence.service.TaskOccurrenceUpdateParameters;
 import com.taska.domain.task.service.TaskCloseReopenParameters;
 import com.taska.domain.task.service.TaskCreateParameters;
 import com.taska.domain.task.service.TaskDeleteParameters;
 import com.taska.domain.task.service.TaskMutationService;
-import com.taska.domain.task.service.TaskOccurrenceService;
-import com.taska.domain.task.service.TaskOccurrenceUpdateParameters;
-import com.taska.domain.task.service.TaskService;
 import com.taska.domain.task.service.TaskUpdateParameters;
 import jakarta.validation.Valid;
 import java.time.LocalDate;
@@ -37,7 +37,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class TaskController {
 
-  private final TaskService taskService;
+  private final TaskDefinitionService taskService;
   private final TaskOccurrenceService taskOccurrenceService;
   private final TaskMutationService taskMutationService;
   private final TaskMapper taskMapper;
@@ -154,6 +154,13 @@ public class TaskController {
     return taskMapper.toDto(
         taskMutationService.replaceOccurrence(
             taskId, occurrenceScheduledAt, taskOccurrenceUpdateParameters, jwt.getSubject()));
+  }
+
+  /** Returns one recurring occurrence by its stable generated schedule identity. */
+  @GetMapping("/{taskId}/occurrences/{occurrenceScheduledAt}")
+  public TaskDto getOccurrence(
+      @PathVariable UUID taskId, @PathVariable java.time.Instant occurrenceScheduledAt) {
+    return taskMapper.toDto(taskOccurrenceService.findOccurrence(taskId, occurrenceScheduledAt));
   }
 
   /**

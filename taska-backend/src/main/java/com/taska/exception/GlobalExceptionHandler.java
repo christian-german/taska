@@ -5,6 +5,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.TypeMismatchException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -68,6 +69,15 @@ public class GlobalExceptionHandler {
   public ProblemDetail handleUnreadableMessage(HttpMessageNotReadableException exception) {
     ProblemDetail problemDetail =
         ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, "Invalid request body");
+    problemDetail.setType(URI.create("about:blank"));
+    return problemDetail;
+  }
+
+  /** Returns a client error when a path or query parameter cannot be converted. */
+  @ExceptionHandler(TypeMismatchException.class)
+  public ProblemDetail handleTypeMismatch(TypeMismatchException exception) {
+    ProblemDetail problemDetail =
+        ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, "Invalid request parameter");
     problemDetail.setType(URI.create("about:blank"));
     return problemDetail;
   }

@@ -3,8 +3,8 @@ package com.taska.domain.task;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-import com.taska.domain.task.repository.Task;
-import com.taska.domain.task.repository.TaskRepository;
+import com.taska.domain.task.definition.repository.Task;
+import com.taska.domain.task.definition.repository.TaskRepository;
 import java.time.Instant;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -53,6 +53,23 @@ class TaskPersistenceInvariantTest {
 
     assertThatThrownBy(() -> taskRepository.saveAndFlush(series))
         .isInstanceOf(DataIntegrityViolationException.class);
+  }
+
+  @Test
+  void aSeriesCannotPersistWithoutASchedule() {
+    Task series = task(true);
+    series.setScheduledAt(null);
+
+    assertThatThrownBy(() -> taskRepository.saveAndFlush(series))
+        .isInstanceOf(DataIntegrityViolationException.class);
+  }
+
+  @Test
+  void aNonRecurringTaskCanPersistWithoutASchedule() {
+    Task task = task(false);
+    task.setScheduledAt(null);
+
+    assertThatCode(() -> taskRepository.saveAndFlush(task)).doesNotThrowAnyException();
   }
 
   private Task task(boolean recurring) {

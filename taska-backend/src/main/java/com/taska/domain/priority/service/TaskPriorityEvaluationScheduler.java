@@ -1,6 +1,6 @@
 package com.taska.domain.priority.service;
 
-import com.taska.domain.task.repository.TaskRepository;
+import com.taska.domain.task.definition.repository.TaskRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;

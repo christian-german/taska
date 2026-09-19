@@ -3,11 +3,11 @@ package com.taska.domain.notification;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.taska.domain.notification.repository.TaskOccurrenceNotificationRepository;
-import com.taska.domain.task.occurrence.TaskOccurrenceState;
+import com.taska.domain.task.definition.repository.Task;
+import com.taska.domain.task.definition.repository.TaskRepository;
 import com.taska.domain.task.occurrence.TaskOccurrenceStatus;
+import com.taska.domain.task.occurrence.repository.TaskOccurrenceState;
 import com.taska.domain.task.occurrence.repository.TaskOccurrenceStateRepository;
-import com.taska.domain.task.repository.Task;
-import com.taska.domain.task.repository.TaskRepository;
 import java.time.Instant;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;

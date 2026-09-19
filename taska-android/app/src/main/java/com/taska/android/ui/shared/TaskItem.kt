@@ -1,6 +1,7 @@
 package com.taska.android.ui.shared
 
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -13,6 +14,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Flag
@@ -154,6 +156,10 @@ fun TaskItem(
           )
           Spacer(modifier = Modifier.width(4.dp))
         }
+        if (task.isDetached) {
+          DetachedOccurrenceBadge()
+          Spacer(modifier = Modifier.width(6.dp))
+        }
         Text(
           text = task.content,
           style =
@@ -231,6 +237,23 @@ fun TaskItem(
       }
     }
   }
+}
+
+@Composable
+fun DetachedOccurrenceBadge(modifier: Modifier = Modifier) {
+  Text(
+    text = "Hors série",
+    modifier =
+      modifier
+        .background(Color(0xFFE8EDF5), RoundedCornerShape(4.dp))
+        .padding(horizontal = 5.dp, vertical = 2.dp),
+    style =
+      TextStyle(
+        fontSize = 10.sp,
+        fontWeight = FontWeight.Medium,
+        color = TextSecondary,
+      ),
+  )
 }
 
 internal fun taskTypeAccessibilityLabel(type: String?): String =

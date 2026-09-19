@@ -1,11 +1,11 @@
 package com.taska.domain.notification.service;
 
-import com.taska.domain.task.occurrence.TaskOccurrenceState;
+import com.taska.domain.task.definition.repository.Task;
+import com.taska.domain.task.definition.repository.TaskRepository;
 import com.taska.domain.task.occurrence.TaskOccurrenceStatus;
+import com.taska.domain.task.occurrence.repository.TaskOccurrenceState;
 import com.taska.domain.task.occurrence.repository.TaskOccurrenceStateRepository;
 import com.taska.domain.task.occurrence.service.TaskRecurrenceService;
-import com.taska.domain.task.repository.Task;
-import com.taska.domain.task.repository.TaskRepository;
 import com.taska.domain.task.service.RecurringTaskOccurrenceResult;
 import java.time.Instant;
 import java.util.ArrayList;

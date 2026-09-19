@@ -5,18 +5,18 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 import com.taska.config.TaskaProperties;
-import com.taska.domain.task.occurrence.TaskOccurrenceState;
+import com.taska.domain.task.definition.repository.Task;
+import com.taska.domain.task.definition.repository.TaskRepository;
+import com.taska.domain.task.definition.service.TaskDefinitionService;
 import com.taska.domain.task.occurrence.TaskOccurrenceStatus;
+import com.taska.domain.task.occurrence.repository.TaskOccurrenceState;
 import com.taska.domain.task.occurrence.repository.TaskOccurrenceStateRepository;
+import com.taska.domain.task.occurrence.service.TaskOccurrenceService;
 import com.taska.domain.task.occurrence.service.TaskRecurrenceService;
-import com.taska.domain.task.repository.Task;
-import com.taska.domain.task.repository.TaskRepository;
 import com.taska.domain.task.service.NonRecurringTaskResult;
 import com.taska.domain.task.service.RecurringTaskOccurrenceResult;
 import com.taska.domain.task.service.RecurringTaskSeriesResult;
-import com.taska.domain.task.service.TaskOccurrenceService;
 import com.taska.domain.task.service.TaskResult;
-import com.taska.domain.task.service.TaskService;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
@@ -40,7 +40,7 @@ class TaskOccurrenceServiceQueryTest {
   @Mock private TaskRepository taskRepository;
   @Mock private TaskOccurrenceStateRepository taskOccurrenceStateRepository;
   @Mock private TaskRecurrenceService taskRecurrenceService;
-  @Mock private TaskService taskService;
+  @Mock private TaskDefinitionService taskService;
   @Mock private TaskaProperties taskaProperties;
   @Mock private TaskaProperties.Calendar calendarProperties;
 

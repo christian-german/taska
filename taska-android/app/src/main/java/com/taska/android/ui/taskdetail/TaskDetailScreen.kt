@@ -57,6 +57,8 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TimePicker
@@ -68,7 +70,9 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -98,12 +102,14 @@ import com.taska.android.data.model.ProjectDto
 import com.taska.android.data.model.RecurrenceScope
 import com.taska.android.data.model.TaskDto
 import com.taska.android.data.model.TaskRepresentationKind
+import com.taska.android.ui.shared.DetachedOccurrenceBadge
 import com.taska.android.ui.shared.RecurrenceScopeDialog
 import com.taska.android.ui.shared.TaskCreationFeedback
 import com.taska.android.ui.theme.frostedChrome
 import com.taska.android.ui.theme.opaqueWorkSurface
 import java.util.Calendar
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.filterNotNull
 
 private val AppBackground = Color(0xFFF6F8FA)
 private val TextPrimary = Color(0xFF17233D)
@@ -142,66 +148,77 @@ fun TaskDetailScreen(
   var showDeleteConfirm by remember { mutableStateOf(false) }
   var pendingDateMillis by remember { mutableStateOf<Long?>(null) }
 
-  Column(
-    modifier =
-      Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background).statusBarsPadding()
-  ) {
-    TopBar(onClose = onClose, onDeleteClick = { showDeleteConfirm = true })
+  Box(modifier = Modifier.fillMaxSize()) {
+    Column(
+      modifier =
+        Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background).statusBarsPadding()
+    ) {
+      TopBar(onClose = onClose, onDeleteClick = { showDeleteConfirm = true })
 
-    Box(modifier = Modifier.weight(1f)) {
-      when {
-        state.isLoading ->
-          CircularProgressIndicator(
-            modifier = Modifier.align(Alignment.Center),
-            color = TextPrimary,
-          )
-        state.error != null ->
-          Text(
-            text = "Erreur : ${state.error}",
-            modifier = Modifier.align(Alignment.Center).padding(16.dp),
-            color = TextSecondary,
-          )
-        task != null ->
-          TaskContent(
-            task = task,
-            project = state.project,
-            subtasks = state.subtasks,
-            titleEdit = titleEdit,
-            onTitleChange = { titleEdit = it },
-            onTitleSave = {
-              if (titleEdit.isNotBlank() && titleEdit != task.content)
-                viewModel.updateContent(titleEdit)
-            },
-            descEdit = descEdit,
-            onDescChange = { descEdit = it },
-            onDescSave = {
-              if (descEdit != (task.description ?: "")) viewModel.updateDescription(descEdit)
-            },
-            onTaskTypeToggle = {
-              viewModel.updateTaskType(if (task.type == "APPOINTMENT") "TODO" else "APPOINTMENT")
-            },
-            isCompletionPending = state.isCompletionPending,
-            onToggleCompletion = viewModel::toggleCompletion,
-            onPropertyClick = { picker ->
-              focusManager.clearFocus()
-              activePicker = picker
-            },
-            onToggleSubtask = viewModel::toggleSubtask,
-            onAddSubtask = { content ->
-              viewModel.addSubtask(content) { TaskCreationFeedback.show(context) }
-            },
-          )
+      Box(modifier = Modifier.weight(1f)) {
+        when {
+          state.isLoading ->
+            CircularProgressIndicator(
+              modifier = Modifier.align(Alignment.Center),
+              color = TextPrimary,
+            )
+          state.error != null ->
+            Text(
+              text = "Erreur : ${state.error}",
+              modifier = Modifier.align(Alignment.Center).padding(16.dp),
+              color = TextSecondary,
+            )
+          task != null ->
+            TaskContent(
+              task = task,
+              project = state.project,
+              subtasks = state.subtasks,
+              titleEdit = titleEdit,
+              onTitleChange = { titleEdit = it },
+              onTitleSave = {
+                if (titleEdit.isNotBlank() && titleEdit != task.content)
+                  viewModel.updateContent(titleEdit)
+              },
+              descEdit = descEdit,
+              onDescChange = { descEdit = it },
+              onDescSave = {
+                if (descEdit != (task.description ?: "")) viewModel.updateDescription(descEdit)
+              },
+              onTaskTypeToggle = {
+                viewModel.updateTaskType(if (task.type == "APPOINTMENT") "TODO" else "APPOINTMENT")
+              },
+              isCompletionPending = state.isCompletionPending,
+              onToggleCompletion = viewModel::toggleCompletion,
+              onPropertyClick = { picker ->
+                focusManager.clearFocus()
+                activePicker = picker
+              },
+              onToggleSubtask = viewModel::toggleSubtask,
+              onAddSubtask = { content ->
+                viewModel.addSubtask(content) { TaskCreationFeedback.show(context) }
+              },
+            )
+        }
+      }
+
+      if (task != null) {
+        BottomBar(
+          onReporter = {
+            focusManager.clearFocus()
+            activePicker = ActivePicker.DATE
+          }
+        )
       }
     }
 
-    if (task != null) {
-      BottomBar(
-        onReporter = {
-          focusManager.clearFocus()
-          activePicker = ActivePicker.DATE
-        }
-      )
-    }
+    TaskMutationErrorFeedback(
+      error = state.mutationError,
+      onConsumed = viewModel::consumeMutationError,
+      modifier =
+        Modifier.align(Alignment.BottomCenter)
+          .navigationBarsPadding()
+          .padding(horizontal = 16.dp, vertical = 12.dp),
+    )
   }
 
   when (activePicker) {
@@ -360,14 +377,38 @@ fun TaskDetailScreen(
     )
   }
 
-  state.pendingReschedule?.let {
-    RecurrenceScopeDialog(
-      title = "Modifier la planification",
-      onThisOnly = { viewModel.confirmReschedule(RecurrenceScope.THIS_ONLY) },
-      onFromThis = { viewModel.confirmReschedule(RecurrenceScope.FROM_THIS) },
-      onDismiss = { viewModel.dismissRescheduleScope() },
-    )
+  state.pendingReschedule
+    ?.takeUnless { task?.isDetached == true }
+    ?.let {
+      RecurrenceScopeDialog(
+        title = "Modifier la planification",
+        onThisOnly = { viewModel.confirmReschedule(RecurrenceScope.THIS_ONLY) },
+        onFromThis = { viewModel.confirmReschedule(RecurrenceScope.FROM_THIS) },
+        onDismiss = { viewModel.dismissRescheduleScope() },
+      )
+    }
+}
+
+@Composable
+internal fun TaskMutationErrorFeedback(
+  error: String?,
+  onConsumed: () -> Unit,
+  modifier: Modifier = Modifier,
+) {
+  val snackbarHostState = remember { SnackbarHostState() }
+  val currentError by rememberUpdatedState(error)
+  LaunchedEffect(Unit) {
+    snapshotFlow { currentError }
+      .filterNotNull()
+      .collect { message ->
+        onConsumed()
+        snackbarHostState.showSnackbar(message)
+      }
   }
+  SnackbarHost(
+    hostState = snackbarHostState,
+    modifier = modifier.testTag("task-mutation-error"),
+  )
 }
 
 @Composable
@@ -434,7 +475,7 @@ private fun TaskContent(
           value = titleEdit,
           onValueChange = onTitleChange,
           modifier =
-            Modifier.fillMaxWidth().testTag("task-detail-title").onFocusChanged {
+            Modifier.weight(1f).testTag("task-detail-title").onFocusChanged {
               if (!it.hasFocus) onTitleSave()
             },
           textStyle =
@@ -450,6 +491,10 @@ private fun TaskContent(
             ),
           cursorBrush = SolidColor(TextPrimary),
         )
+        if (task.isDetached) {
+          Spacer(Modifier.width(8.dp))
+          DetachedOccurrenceBadge(modifier = Modifier.padding(top = 6.dp))
+        }
       }
     }
 
@@ -458,6 +503,7 @@ private fun TaskContent(
       BasicTextField(
         value = descEdit,
         onValueChange = onDescChange,
+        enabled = !task.isDetached,
         modifier =
           Modifier.fillMaxWidth()
             .padding(start = 62.dp, end = 20.dp, bottom = 12.dp)
@@ -473,7 +519,7 @@ private fun TaskContent(
           Box {
             if (descEdit.isEmpty()) {
               Text(
-                "Ajouter une description…",
+                if (task.isDetached) "—" else "Ajouter une description…",
                 style = TextStyle(fontSize = 14.sp, color = Color(0xFFBBBBBB)),
               )
             }
@@ -491,6 +537,7 @@ private fun TaskContent(
         label = "TYPE",
         value = if (task.type == "APPOINTMENT") "Rendez-vous" else "À faire",
         valueColor = TextPrimary,
+        enabled = !task.isDetached,
         onClick = onTaskTypeToggle,
       )
       HorizontalDivider(color = DividerColor)
@@ -529,6 +576,7 @@ private fun TaskContent(
         icon = Icons.Outlined.Repeat,
         label = "RÉPÉTITION",
         value = recurrenceLabel(task.recurrenceRule),
+        enabled = !task.isDetached,
         onClick = { onPropertyClick(ActivePicker.RECURRENCE) },
       )
       HorizontalDivider(color = DividerColor)
@@ -539,6 +587,7 @@ private fun TaskContent(
       PropertyRow(
         icon = Icons.Outlined.FolderOpen,
         label = "PROJET",
+        enabled = !task.isDetached,
         onClick = { onPropertyClick(ActivePicker.PROJECT) },
         customValue = {
           if (project != null) {
@@ -562,6 +611,7 @@ private fun TaskContent(
         icon = Icons.Outlined.Timer,
         label = "DURÉE",
         value = task.estimateMinutes?.let { "${formatDuration(it)} estimées" },
+        enabled = !task.isDetached,
         onClick = { onPropertyClick(ActivePicker.DURATION) },
       )
       HorizontalDivider(color = DividerColor)
@@ -585,6 +635,7 @@ private fun TaskContent(
         icon = Icons.AutoMirrored.Outlined.Label,
         label = "TAGS",
         value = if (taskLabels.isNotEmpty()) taskLabels.joinToString(" · ") else null,
+        enabled = !task.isDetached,
         onClick = { onPropertyClick(ActivePicker.LABELS) },
       )
       HorizontalDivider(color = DividerColor)

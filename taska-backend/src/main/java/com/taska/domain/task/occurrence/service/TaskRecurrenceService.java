@@ -1,6 +1,6 @@
 package com.taska.domain.task.occurrence.service;
 
-import com.taska.domain.task.repository.Task;
+import com.taska.domain.task.definition.repository.Task;
 import java.text.ParseException;
 import java.time.Instant;
 import java.util.ArrayList;

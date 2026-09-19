@@ -1,8 +1,8 @@
 package com.taska.domain.task.service;
 
-import com.taska.domain.task.occurrence.TaskOccurrenceState;
+import com.taska.domain.task.definition.repository.Task;
 import com.taska.domain.task.occurrence.TaskOccurrenceStatus;
-import com.taska.domain.task.repository.Task;
+import com.taska.domain.task.occurrence.repository.TaskOccurrenceState;
 import java.time.Instant;
 import java.util.Objects;
 import java.util.UUID;

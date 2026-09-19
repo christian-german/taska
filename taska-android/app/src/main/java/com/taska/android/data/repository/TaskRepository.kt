@@ -25,6 +25,9 @@ class TaskRepository(private val api: TaskaApi) {
 
   suspend fun getTask(id: String): TaskDto = api.getTask(id)
 
+  suspend fun getOccurrence(id: String, occurrenceScheduledAt: String): TaskDto =
+    api.getOccurrence(id, occurrenceScheduledAt)
+
   suspend fun getSubtasks(taskId: String): List<TaskDto> = api.getSubtasks(taskId)
 
   suspend fun createTask(request: TaskCreateRequest): TaskDto =

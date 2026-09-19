@@ -1,7 +1,10 @@
 package com.taska.domain.task;
 
-import com.taska.domain.task.occurrence.*;
-import com.taska.domain.task.repository.Task;
+import com.taska.domain.task.definition.TaskType;
+import com.taska.domain.task.definition.repository.Task;
+import com.taska.domain.task.occurrence.RecurrenceScope;
+import com.taska.domain.task.occurrence.TaskOccurrenceStatus;
+import com.taska.domain.task.occurrence.repository.TaskOccurrenceState;
 import com.taska.domain.task.service.TaskCreateParameters;
 import com.taska.domain.task.service.TaskPatchParameters;
 import com.taska.domain.task.service.TaskUpdateParameters;

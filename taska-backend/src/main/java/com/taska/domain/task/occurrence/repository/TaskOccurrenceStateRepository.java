@@ -1,6 +1,5 @@
 package com.taska.domain.task.occurrence.repository;
 
-import com.taska.domain.task.occurrence.TaskOccurrenceState;
 import com.taska.domain.task.occurrence.TaskOccurrenceStatus;
 import java.time.Instant;
 import java.util.Collection;
@@ -13,6 +12,9 @@ import org.springframework.data.repository.query.Param;
 
 /** Repository for sparse {@link TaskOccurrenceState} attached to recurring task occurrences. */
 public interface TaskOccurrenceStateRepository extends JpaRepository<TaskOccurrenceState, UUID> {
+
+  /** Returns whether the recurring series has any persisted occurrence state. */
+  boolean existsBySeriesId(UUID seriesId);
 
   /**
    * Returns all persisted states for the given recurring series whose {@code occurrenceScheduledAt}

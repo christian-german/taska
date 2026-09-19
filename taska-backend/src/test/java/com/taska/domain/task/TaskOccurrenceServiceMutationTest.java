@@ -11,16 +11,18 @@ import com.taska.domain.notification.service.TaskOccurrenceNotificationService;
 import com.taska.domain.planningcalendar.service.PlanningCalendarService;
 import com.taska.domain.priority.repository.TaskPriorityEvaluationRepository;
 import com.taska.domain.project.repository.ProjectRepository;
+import com.taska.domain.task.definition.repository.Task;
+import com.taska.domain.task.definition.repository.TaskRepository;
+import com.taska.domain.task.definition.service.TaskDefinitionService;
 import com.taska.domain.task.occurrence.*;
+import com.taska.domain.task.occurrence.repository.TaskOccurrenceState;
 import com.taska.domain.task.occurrence.repository.TaskOccurrenceStateRepository;
+import com.taska.domain.task.occurrence.service.TaskOccurrenceService;
+import com.taska.domain.task.occurrence.service.TaskOccurrenceUpdateParameters;
 import com.taska.domain.task.occurrence.service.TaskRecurrenceService;
-import com.taska.domain.task.repository.Task;
-import com.taska.domain.task.repository.TaskRepository;
 import com.taska.domain.task.service.RecurringTaskOccurrenceResult;
-import com.taska.domain.task.service.TaskOccurrenceService;
-import com.taska.domain.task.service.TaskOccurrenceUpdateParameters;
 import com.taska.domain.task.service.TaskPatchParameters;
-import com.taska.domain.task.service.TaskService;
+import com.taska.domain.task.service.TaskResult;
 import com.taska.exception.ResourceNotFoundException;
 import java.time.Instant;
 import java.util.List;
@@ -53,13 +55,13 @@ class TaskOccurrenceServiceMutationTest {
   @Mock private TaskOccurrenceNotificationService taskOccurrenceNotificationService;
   @Mock private TaskaProperties taskaProperties;
 
-  private TaskService taskService;
+  private TaskDefinitionService taskService;
   private TaskOccurrenceService taskOccurrenceService;
 
   @BeforeEach
   void createServicesUnderTest() {
     taskService =
-        new TaskService(
+        new TaskDefinitionService(
             taskRepository,
             projectRepository,
             priorityEvaluationRepository,
@@ -406,6 +408,59 @@ class TaskOccurrenceServiceMutationTest {
   }
 
   @Test
+  void update_detachedOccurrence_usesPersistedIdentityWithoutExpandingTheRule() {
+    UUID seriesId = randomId();
+    Instant occurrenceScheduledAt = Instant.parse("2026-05-20T10:00:00Z");
+    Task series = buildRecurringTask(seriesId);
+    TaskOccurrenceState detached =
+        buildOccurrenceState(seriesId, occurrenceScheduledAt, TaskOccurrenceStatus.MODIFIED);
+    detached.setDetached(true);
+    TaskPatchParameters parameters =
+        taskRequest("Detached update", RecurrenceScope.THIS_ONLY, occurrenceScheduledAt);
+    when(taskRepository.findById(seriesId)).thenReturn(Optional.of(series));
+    when(taskOccurrenceStateRepository.findBySeriesIdAndOccurrenceScheduledAt(
+            seriesId, occurrenceScheduledAt))
+        .thenReturn(Optional.of(detached));
+    when(taskOccurrenceStateRepository.save(detached)).thenReturn(detached);
+
+    TaskResult result =
+        taskOccurrenceService.updateOccurrence(seriesId, occurrenceScheduledAt, parameters, false);
+
+    assertThat(detached.getTitle()).isEqualTo("Detached update");
+    assertThat(detached.isDetached()).isTrue();
+    assertThat(result)
+        .isInstanceOfSatisfying(
+            RecurringTaskOccurrenceResult.class,
+            occurrence -> assertThat(occurrence.detached()).isTrue());
+    verifyNoInteractions(taskRecurrenceService);
+  }
+
+  @Test
+  void replace_detachedOccurrence_preservesDetachedStateWithoutExpandingTheRule() {
+    UUID seriesId = randomId();
+    Instant occurrenceScheduledAt = Instant.parse("2026-05-20T10:00:00Z");
+    Task series = buildRecurringTask(seriesId);
+    TaskOccurrenceState detached =
+        buildOccurrenceState(seriesId, occurrenceScheduledAt, TaskOccurrenceStatus.MODIFIED);
+    detached.setDetached(true);
+    when(taskRepository.findById(seriesId)).thenReturn(Optional.of(series));
+    when(taskOccurrenceStateRepository.findBySeriesIdAndOccurrenceScheduledAt(
+            seriesId, occurrenceScheduledAt))
+        .thenReturn(Optional.of(detached));
+    when(taskOccurrenceStateRepository.save(detached)).thenReturn(detached);
+
+    taskOccurrenceService.replaceOccurrence(
+        seriesId,
+        occurrenceScheduledAt,
+        new TaskOccurrenceUpdateParameters("Replacement", 2, null, null));
+
+    assertThat(detached.getTitle()).isEqualTo("Replacement");
+    assertThat(detached.getPriority()).isEqualTo(2);
+    assertThat(detached.isDetached()).isTrue();
+    verifyNoInteractions(taskRecurrenceService);
+  }
+
+  @Test
   void update_thisOnlyWithNullOccurrenceScheduledAt_throwsIllegalArgumentException() {
     UUID taskId = randomId();
     TaskPatchParameters request = taskRequest("Modified", RecurrenceScope.THIS_ONLY, null);
@@ -477,6 +532,84 @@ class TaskOccurrenceServiceMutationTest {
     assertThatThrownBy(() -> taskOccurrenceService.skipOccurrence(taskId, occurrenceScheduledAt))
         .isInstanceOf(IllegalStateException.class);
     verify(taskRepository, never()).delete(any());
+  }
+
+  @Test
+  void delete_thisOnly_openDetachedOccurrence_removesItsStandaloneState() {
+    UUID seriesId = randomId();
+    Instant occurrenceScheduledAt = Instant.parse("2026-05-20T10:00:00Z");
+    Task series = buildRecurringTask(seriesId);
+    TaskOccurrenceState detached =
+        buildOccurrenceState(seriesId, occurrenceScheduledAt, TaskOccurrenceStatus.MODIFIED);
+    detached.setDetached(true);
+    when(taskRepository.findById(seriesId)).thenReturn(Optional.of(series));
+    when(taskOccurrenceStateRepository.findBySeriesIdAndOccurrenceScheduledAt(
+            seriesId, occurrenceScheduledAt))
+        .thenReturn(Optional.of(detached));
+
+    taskOccurrenceService.skipOccurrence(seriesId, occurrenceScheduledAt);
+
+    verify(taskOccurrenceStateRepository).delete(detached);
+    verify(taskOccurrenceStateRepository, never()).save(any());
+    verifyNoInteractions(taskRecurrenceService);
+  }
+
+  @Test
+  void close_detachedOccurrence_preservesItsStandaloneIdentity() {
+    UUID seriesId = randomId();
+    Instant occurrenceScheduledAt = Instant.parse("2026-05-20T10:00:00Z");
+    Task series = buildRecurringTask(seriesId);
+    TaskOccurrenceState detached =
+        buildOccurrenceState(seriesId, occurrenceScheduledAt, TaskOccurrenceStatus.MODIFIED);
+    detached.setDetached(true);
+    when(taskRepository.findById(seriesId)).thenReturn(Optional.of(series));
+    when(taskOccurrenceStateRepository.findBySeriesIdAndOccurrenceScheduledAt(
+            seriesId, occurrenceScheduledAt))
+        .thenReturn(Optional.of(detached));
+    when(taskOccurrenceStateRepository.save(detached)).thenReturn(detached);
+
+    TaskResult result = taskOccurrenceService.closeOccurrence(seriesId, occurrenceScheduledAt);
+
+    assertThat(detached.getStatus()).isEqualTo(TaskOccurrenceStatus.DONE);
+    assertThat(detached.getCompletedAt()).isNotNull();
+    assertThat(detached.isDetached()).isTrue();
+    assertThat(result)
+        .isInstanceOfSatisfying(
+            RecurringTaskOccurrenceResult.class,
+            occurrence -> assertThat(occurrence.detached()).isTrue());
+    verifyNoInteractions(taskRecurrenceService);
+  }
+
+  @Test
+  void reopen_detachedCompletionWithoutOverrides_keepsMaterializedDetachedState() {
+    UUID seriesId = randomId();
+    Instant occurrenceScheduledAt = Instant.parse("2026-05-20T10:00:00Z");
+    Task series = buildRecurringTask(seriesId);
+    TaskOccurrenceState detached =
+        buildOccurrenceState(seriesId, occurrenceScheduledAt, TaskOccurrenceStatus.DONE);
+    detached.setDetached(true);
+    detached.setCompletedAt(Instant.parse("2026-05-20T11:00:00Z"));
+    when(taskRepository.findById(seriesId)).thenReturn(Optional.of(series));
+    when(taskOccurrenceStateRepository.findBySeriesIdAndOccurrenceScheduledAt(
+            seriesId, occurrenceScheduledAt))
+        .thenReturn(Optional.of(detached));
+    when(taskOccurrenceStateRepository.save(detached)).thenReturn(detached);
+
+    TaskResult result = taskOccurrenceService.reopenOccurrence(seriesId, occurrenceScheduledAt);
+
+    assertThat(detached.getStatus()).isEqualTo(TaskOccurrenceStatus.MODIFIED);
+    assertThat(detached.getCompletedAt()).isNull();
+    assertThat(detached.isDetached()).isTrue();
+    assertThat(result)
+        .isInstanceOfSatisfying(
+            RecurringTaskOccurrenceResult.class,
+            occurrence -> {
+              assertThat(occurrence.virtual()).isFalse();
+              assertThat(occurrence.detached()).isTrue();
+              assertThat(occurrence.completed()).isFalse();
+            });
+    verify(taskOccurrenceStateRepository, never()).delete(any());
+    verifyNoInteractions(taskRecurrenceService);
   }
 
   @Test

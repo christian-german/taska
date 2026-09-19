@@ -54,6 +54,17 @@ class TaskDtoTest {
   }
 
   @Test
+  fun `givenDetachedOccurrenceJson_whenDeserialized_thenDetachedStateIsRetained`() {
+    val task =
+      TaskJson.gson.fromJson(
+        """{"kind":"RECURRING_OCCURRENCE","id":"task-1","content":"Task","occurrenceScheduledAt":"2026-05-20T09:00:00Z","isVirtual":false,"isDetached":true}""",
+        TaskDto::class.java,
+      )
+
+    assertTrue(task.isDetached)
+  }
+
+  @Test
   fun `givenRecurringSeries_whenSerialized_thenDueAtIsNotOnTheWire`() {
     val task =
       TaskJson.gson.fromJson(
@@ -85,6 +96,7 @@ class TaskDtoTest {
     priority: Int? = 3,
     recurrenceRule: String? = null,
     type: String? = "TODO",
+    isDetached: Boolean = false,
   ) =
     TaskDto(
       id = id,
@@ -109,6 +121,7 @@ class TaskDtoTest {
       instanceId = instanceId,
       occurrenceScheduledAt = occurrenceScheduledAt,
       isVirtual = isVirtual,
+      isDetached = isDetached,
     )
 
   @Test
@@ -248,6 +261,19 @@ class TaskDtoTest {
       )
 
     assertTrue(task.isCompleted == true)
+  }
+
+  @Test
+  fun `givenDetachedOccurrence_whenCreatedAndCopied_thenDetachedStateIsPreserved`() {
+    val task =
+      buildTaskDto(
+        isRecurring = true,
+        occurrenceScheduledAt = "2026-05-20T09:00:00Z",
+        isDetached = true,
+      )
+
+    assertTrue(task.isDetached)
+    assertTrue(task.copy(content = "Updated").isDetached)
   }
 
   // -------------------------------------------------------------------------

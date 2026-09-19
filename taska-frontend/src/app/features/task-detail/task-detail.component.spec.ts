@@ -17,6 +17,7 @@ describe('TaskDetailComponent schedule removal', () => {
   let component: TaskDetailComponent;
   let updateResult: Subject<Task>;
   let updateTask: ReturnType<typeof vi.fn>;
+  let deleteTask: ReturnType<typeof vi.fn>;
 
   const task = (changes: Partial<NonRecurringTask> = {}): NonRecurringTask => ({
     kind: 'NON_RECURRING',
@@ -36,7 +37,9 @@ describe('TaskDetailComponent schedule removal', () => {
     ...changes,
   });
 
-  const occurrenceTask = (): RecurringTaskOccurrence => ({
+  const occurrenceTask = (
+    changes: Partial<RecurringTaskOccurrence> = {},
+  ): RecurringTaskOccurrence => ({
     ...task(),
     kind: 'RECURRING_OCCURRENCE',
     recurrenceRule: 'FREQ=DAILY',
@@ -44,6 +47,8 @@ describe('TaskDetailComponent schedule removal', () => {
     instanceId: null,
     occurrenceScheduledAt: '2026-08-24T09:00:00Z',
     isVirtual: true,
+    isDetached: false,
+    ...changes,
   });
 
   const recurringSeries = (): RecurringTaskSeries => {
@@ -59,10 +64,14 @@ describe('TaskDetailComponent schedule removal', () => {
   beforeEach(async () => {
     updateResult = new Subject<Task>();
     updateTask = vi.fn(() => updateResult.asObservable());
+    deleteTask = vi.fn(() => of(undefined));
     await TestBed.configureTestingModule({
       imports: [TaskDetailComponent],
       providers: [
-        { provide: TaskService, useValue: { getSubtasks: () => of([]), updateTask } },
+        {
+          provide: TaskService,
+          useValue: { getSubtasks: () => of([]), updateTask, deleteTask },
+        },
         { provide: CommentService, useValue: { getComments: () => of([]) } },
         { provide: ProjectService, useValue: { projects$: of([]) } },
         { provide: LabelService, useValue: { labels$: of([]) } },
@@ -129,5 +138,44 @@ describe('TaskDetailComponent schedule removal', () => {
       scope: 'FROM_THIS',
       occurrenceScheduledAt: '2026-08-24T09:00:00Z',
     });
+  });
+
+  it('labels a detached occurrence and updates it directly without asking for scope', () => {
+    fixture.componentRef.setInput('task', occurrenceTask({ isDetached: true, isVirtual: false }));
+    fixture.detectChanges();
+
+    component.clearDate(new Event('click'));
+
+    expect(fixture.nativeElement.textContent).toContain('Hors série');
+    expect(component.showModifyScopeDialog()).toBe(false);
+    expect(updateTask).toHaveBeenCalledWith('task-1', {
+      scheduledAt: null,
+      allDay: false,
+      scope: 'THIS_ONLY',
+      occurrenceScheduledAt: '2026-08-24T09:00:00Z',
+    });
+  });
+
+  it('deletes a detached occurrence directly after confirmation', () => {
+    fixture.componentRef.setInput('task', occurrenceTask({ isDetached: true, isVirtual: false }));
+    fixture.detectChanges();
+
+    component.deleteTask();
+    expect(component.showDeleteConfirm()).toBe(true);
+    expect(component.showDeleteScopeDialog()).toBe(false);
+
+    component.confirmDelete();
+
+    expect(deleteTask).toHaveBeenCalledWith('task-1', 'THIS_ONLY', '2026-08-24T09:00:00Z');
+  });
+
+  it('disables series-only fields for a detached occurrence', () => {
+    fixture.componentRef.setInput('task', occurrenceTask({ isDetached: true, isVirtual: false }));
+    fixture.detectChanges();
+
+    expect(
+      fixture.nativeElement.querySelector('textarea[placeholder="Ajouter des notes…"]').readOnly,
+    ).toBe(true);
+    expect(fixture.nativeElement.querySelectorAll('button:disabled').length).toBeGreaterThan(0);
   });
 });

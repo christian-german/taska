@@ -2,7 +2,7 @@ package com.taska.domain.notification.service;
 
 import com.taska.domain.notification.repository.DeviceToken;
 import com.taska.domain.notification.repository.DeviceTokenRepository;
-import com.taska.domain.task.repository.TaskRepository;
+import com.taska.domain.task.definition.repository.TaskRepository;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;

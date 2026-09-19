@@ -1,6 +1,6 @@
 package com.taska.domain.task.mcp;
 
-import com.taska.domain.task.TaskType;
+import com.taska.domain.task.definition.TaskType;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;

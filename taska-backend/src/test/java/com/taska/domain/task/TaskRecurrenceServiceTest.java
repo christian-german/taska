@@ -3,8 +3,8 @@ package com.taska.domain.task;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import com.taska.domain.task.definition.repository.Task;
 import com.taska.domain.task.occurrence.service.TaskRecurrenceService;
-import com.taska.domain.task.repository.Task;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneOffset;

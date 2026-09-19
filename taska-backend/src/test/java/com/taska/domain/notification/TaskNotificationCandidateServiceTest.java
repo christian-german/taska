@@ -6,12 +6,12 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.taska.domain.notification.service.TaskNotificationCandidateService;
-import com.taska.domain.task.occurrence.TaskOccurrenceState;
+import com.taska.domain.task.definition.repository.Task;
+import com.taska.domain.task.definition.repository.TaskRepository;
 import com.taska.domain.task.occurrence.TaskOccurrenceStatus;
+import com.taska.domain.task.occurrence.repository.TaskOccurrenceState;
 import com.taska.domain.task.occurrence.repository.TaskOccurrenceStateRepository;
 import com.taska.domain.task.occurrence.service.TaskRecurrenceService;
-import com.taska.domain.task.repository.Task;
-import com.taska.domain.task.repository.TaskRepository;
 import java.time.Instant;
 import java.util.List;
 import java.util.Set;

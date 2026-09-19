@@ -1,23 +1,29 @@
 package com.taska.domain.task;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.taska.domain.notification.service.TaskChangePublisher;
+import com.taska.domain.task.definition.TaskType;
+import com.taska.domain.task.definition.repository.Task;
+import com.taska.domain.task.definition.service.TaskDefinitionService;
 import com.taska.domain.task.occurrence.RecurrenceScope;
-import com.taska.domain.task.repository.Task;
-import com.taska.domain.task.service.RecurringTaskSeriesService;
+import com.taska.domain.task.occurrence.service.TaskOccurrenceService;
+import com.taska.domain.task.occurrence.service.TaskOccurrenceUpdateParameters;
+import com.taska.domain.task.series.service.RecurringTaskSeriesService;
 import com.taska.domain.task.service.TaskCloseReopenParameters;
 import com.taska.domain.task.service.TaskCreateParameters;
 import com.taska.domain.task.service.TaskDeleteParameters;
 import com.taska.domain.task.service.TaskMutationService;
-import com.taska.domain.task.service.TaskOccurrenceService;
-import com.taska.domain.task.service.TaskOccurrenceUpdateParameters;
 import com.taska.domain.task.service.TaskPatchParameters;
 import com.taska.domain.task.service.TaskResult;
-import com.taska.domain.task.service.TaskService;
 import com.taska.domain.task.service.TaskUpdateParameters;
 import java.time.Instant;
 import java.util.List;
@@ -27,7 +33,7 @@ import org.junit.jupiter.api.Test;
 /** Verifies transport-contract routing and shared publication at the mutation boundary. */
 class TaskMutationServiceTest {
 
-  private final TaskService taskService = mock(TaskService.class);
+  private final TaskDefinitionService taskService = mock(TaskDefinitionService.class);
   private final TaskOccurrenceService taskOccurrenceService = mock(TaskOccurrenceService.class);
   private final RecurringTaskSeriesService recurringTaskSeriesService =
       mock(RecurringTaskSeriesService.class);
@@ -146,7 +152,9 @@ class TaskMutationServiceTest {
     TaskUpdateParameters taskParameters = mock(TaskUpdateParameters.class);
     TaskOccurrenceUpdateParameters occurrenceParameters =
         mock(TaskOccurrenceUpdateParameters.class);
-    TaskResult result = TaskResult.base(task(true));
+    Task series = task(true);
+    TaskResult result = TaskResult.base(series);
+    when(taskService.findById(seriesId)).thenReturn(series);
     when(taskService.replace(seriesId, taskParameters)).thenReturn(result);
     when(recurringTaskSeriesService.replaceFollowing(
             seriesId, occurrenceScheduledAt, taskParameters))
@@ -168,12 +176,95 @@ class TaskMutationServiceTest {
 
     verify(taskService).replace(seriesId, taskParameters);
     verify(recurringTaskSeriesService)
+        .assertInPlaceGeneratorChangeAllowed(
+            series,
+            taskParameters.recurring(),
+            taskParameters.scheduledAt(),
+            taskParameters.recurrenceRule());
+    verify(recurringTaskSeriesService)
         .replaceFollowing(seriesId, occurrenceScheduledAt, taskParameters);
     verify(taskOccurrenceService)
         .replaceOccurrence(seriesId, occurrenceScheduledAt, occurrenceParameters);
     verify(taskChangePublisher).publishFor("task-account");
     verify(taskChangePublisher).publishFor("series-account");
     verify(taskChangePublisher).publishFor("occurrence-account");
+  }
+
+  @Test
+  void unscopedNonGeneratorUpdateChecksTheSeriesAndThenMutatesIt() {
+    UUID seriesId = UUID.randomUUID();
+    Task series = task(true);
+    series.setScheduledAt(Instant.parse("2026-05-20T10:00:00Z"));
+    series.setRecurrenceRule("FREQ=DAILY");
+    TaskPatchParameters parameters = patch(null, null);
+    TaskResult result = TaskResult.base(series);
+    when(taskService.findById(seriesId)).thenReturn(series);
+    when(taskService.updateTask(seriesId, parameters, false)).thenReturn(result);
+
+    assertThat(taskMutationService.update(seriesId, parameters, false, "account-a"))
+        .isSameAs(result);
+
+    verify(recurringTaskSeriesService)
+        .assertInPlaceGeneratorChangeAllowed(
+            series, true, series.getScheduledAt(), series.getRecurrenceRule());
+    verify(taskService).updateTask(seriesId, parameters, false);
+    verify(taskChangePublisher).publishFor("account-a");
+  }
+
+  @Test
+  void unsafeUnscopedGeneratorUpdateStopsBeforeTaskMutationAndPublication() {
+    UUID seriesId = UUID.randomUUID();
+    Task series = task(true);
+    series.setScheduledAt(Instant.parse("2026-05-20T10:00:00Z"));
+    series.setRecurrenceRule("FREQ=DAILY");
+    TaskPatchParameters parameters =
+        new TaskPatchParameters(
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            "FREQ=WEEKLY",
+            null,
+            null,
+            null);
+    when(taskService.findById(seriesId)).thenReturn(series);
+    doThrow(new IllegalArgumentException("explicit occurrence"))
+        .when(recurringTaskSeriesService)
+        .assertInPlaceGeneratorChangeAllowed(series, true, series.getScheduledAt(), "FREQ=WEEKLY");
+
+    assertThatThrownBy(() -> taskMutationService.update(seriesId, parameters, false, "account-a"))
+        .isInstanceOf(IllegalArgumentException.class)
+        .hasMessageContaining("explicit occurrence");
+
+    verify(taskService, never()).updateTask(any(), any(), anyBoolean());
+    verify(taskChangePublisher, never()).publishFor(any());
+  }
+
+  @Test
+  void unsafeBaseReplacementStopsBeforeTaskMutationAndPublication() {
+    UUID seriesId = UUID.randomUUID();
+    Task series = task(true);
+    TaskUpdateParameters parameters = mock(TaskUpdateParameters.class);
+    when(taskService.findById(seriesId)).thenReturn(series);
+    doThrow(new IllegalArgumentException("explicit occurrence"))
+        .when(recurringTaskSeriesService)
+        .assertInPlaceGeneratorChangeAllowed(any(), anyBoolean(), any(), any());
+
+    assertThatThrownBy(() -> taskMutationService.replace(seriesId, parameters, "account-a"))
+        .isInstanceOf(IllegalArgumentException.class)
+        .hasMessageContaining("explicit occurrence");
+
+    verify(taskService, never()).replace(any(), any());
+    verify(taskChangePublisher, never()).publishFor(any());
   }
 
   @Test

@@ -1,0 +1,165 @@
+package com.taska.domain.task.series.service;
+
+import com.taska.domain.priority.repository.TaskPriorityEvaluationRepository;
+import com.taska.domain.task.definition.TaskDefinitionRules;
+import com.taska.domain.task.definition.repository.Task;
+import com.taska.domain.task.definition.repository.TaskRepository;
+import com.taska.domain.task.definition.service.TaskDefinitionService;
+import com.taska.domain.task.occurrence.service.TaskOccurrenceService;
+import com.taska.domain.task.service.TaskPatchParameters;
+import com.taska.domain.task.service.TaskResult;
+import com.taska.domain.task.service.TaskUpdateParameters;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import java.util.Objects;
+import java.util.UUID;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+/** Owns changes that split or truncate a recurring task series. */
+@Service
+@Transactional(readOnly = true)
+@RequiredArgsConstructor
+public class RecurringTaskSeriesService {
+
+  private final TaskDefinitionService taskService;
+  private final TaskOccurrenceService taskOccurrenceService;
+  private final TaskRepository taskRepository;
+  private final TaskPriorityEvaluationRepository priorityEvaluationRepository;
+
+  /**
+   * Rejects an in-place change to the fields that generate occurrence identities after a series has
+   * persisted occurrence state.
+   *
+   * <p>A stateless series can be corrected in place. Once an occurrence has been acted on, changing
+   * recurrence status, schedule, or normalized rule requires an operation with an explicit cut
+   * identity so historical meaning cannot be rewritten.
+   *
+   * @param series existing stored task or recurring-series definition
+   * @param recurring resulting recurring status
+   * @param scheduledAt resulting series schedule
+   * @param recurrenceRule resulting recurrence rule
+   */
+  public void assertInPlaceGeneratorChangeAllowed(
+      Task series, boolean recurring, Instant scheduledAt, String recurrenceRule) {
+    if (!Boolean.TRUE.equals(series.getIsRecurring())) {
+      return;
+    }
+
+    String normalizedRecurrenceRule = TaskDefinitionRules.normalizeRecurrenceRule(recurrenceRule);
+    String storedRecurrenceRule =
+        TaskDefinitionRules.normalizeRecurrenceRule(series.getRecurrenceRule());
+    boolean generatorChanged =
+        !recurring
+            || !Objects.equals(series.getScheduledAt(), scheduledAt)
+            || !Objects.equals(storedRecurrenceRule, normalizedRecurrenceRule);
+    if (generatorChanged && taskOccurrenceService.hasPersistedStates(series.getId())) {
+      throw new IllegalArgumentException(
+          "A recurring series with occurrence state must be changed from an explicit occurrence");
+    }
+  }
+
+  /**
+   * Truncates a recurring series and creates a successor series with a partial update.
+   *
+   * @param seriesId recurring-series identifier
+   * @param occurrenceScheduledAt first occurrence represented by the successor series
+   * @param parameters fields to apply to the successor series
+   * @param priorityProvided whether the caller explicitly supplied the priority field
+   * @return the newly created successor series
+   */
+  @Transactional
+  public TaskResult updateSeriesFrom(
+      UUID seriesId,
+      Instant occurrenceScheduledAt,
+      TaskPatchParameters parameters,
+      boolean priorityProvided) {
+    if (occurrenceScheduledAt == null) {
+      throw new IllegalArgumentException(
+          "occurrenceScheduledAt is required when scope is provided");
+    }
+    TaskDefinitionRules.assertDueAtAllowed(true, parameters.dueAt());
+    Task series = taskService.findById(seriesId);
+    series.setRruleEndsAt(occurrenceScheduledAt.minus(1, ChronoUnit.SECONDS));
+    taskRepository.save(series);
+    taskOccurrenceService.detachStatesFrom(seriesId, occurrenceScheduledAt);
+
+    Task successor = new Task();
+    successor.setContent(parameters.content() != null ? parameters.content() : series.getContent());
+    successor.setType(parameters.type() != null ? parameters.type() : series.getType());
+    successor.setDescription(
+        parameters.description() != null ? parameters.description() : series.getDescription());
+    successor.setProjectId(series.getProjectId());
+    successor.setParentId(series.getParentId());
+    successor.setPosition(series.getPosition());
+    successor.setPriority(priorityProvided ? parameters.priority() : series.getPriority());
+    successor.setLabels(parameters.labels() != null ? parameters.labels() : series.getLabels());
+    // The successor starts where the caller says the new rhythm starts, which is how a series
+    // moves to another day or hour; the cut instant is only the default. Complete replacement
+    // already works this way, and both paths must agree.
+    successor.setScheduledAt(
+        parameters.scheduledAt() != null ? parameters.scheduledAt() : occurrenceScheduledAt);
+    successor.setDueAt(null);
+    successor.setAllDay(series.isAllDay());
+    successor.setIsRecurring(true);
+    successor.setEstimateMinutes(
+        parameters.estimateMinutes() != null
+            ? parameters.estimateMinutes()
+            : series.getEstimateMinutes());
+    String successorRecurrenceRule =
+        parameters.recurrenceRule() != null
+            ? parameters.recurrenceRule()
+            : series.getRecurrenceRule();
+    TaskDefinitionRules.assertRecurrenceRuleRequired(true, successorRecurrenceRule);
+    successor.setRecurrenceRule(successorRecurrenceRule);
+    return TaskResult.base(taskRepository.save(successor));
+  }
+
+  /**
+   * Splits a recurring series and creates its following replacement from a complete request.
+   *
+   * @param seriesId recurring-series identifier
+   * @param occurrenceScheduledAt first occurrence represented by the replacement series
+   * @param parameters complete replacement values
+   * @return the replacement series
+   */
+  @Transactional
+  public TaskResult replaceFollowing(
+      UUID seriesId, Instant occurrenceScheduledAt, TaskUpdateParameters parameters) {
+    if (!parameters.recurring()) {
+      throw new IllegalArgumentException("Following-series replacement must remain recurring");
+    }
+    TaskDefinitionRules.assertDueAtAllowed(true, parameters.dueAt());
+    TaskDefinitionRules.assertScheduledAtRequired(true, parameters.scheduledAt());
+    Task original = taskService.findById(seriesId);
+    if (!Boolean.TRUE.equals(original.getIsRecurring())) {
+      throw new IllegalArgumentException("Following-series replacement requires a recurring task");
+    }
+    taskOccurrenceService.validateOccurrence(original, occurrenceScheduledAt);
+    original.setRruleEndsAt(occurrenceScheduledAt.minus(1, ChronoUnit.SECONDS));
+    taskRepository.save(original);
+    taskOccurrenceService.detachStatesFrom(seriesId, occurrenceScheduledAt);
+
+    Task replacement = new Task();
+    // Reuse the same complete-replacement mapping and planning-calendar validation as base tasks.
+    taskService.replaceMutableFields(replacement, parameters);
+    Task saved = taskRepository.save(replacement);
+    priorityEvaluationRepository.deleteByTaskId(seriesId);
+    return TaskResult.base(saved);
+  }
+
+  /**
+   * Truncates a recurring series immediately before the identified occurrence.
+   *
+   * @param seriesId recurring-series identifier
+   * @param occurrenceScheduledAt first occurrence excluded from the series
+   */
+  @Transactional
+  public void truncateSeriesFrom(UUID seriesId, Instant occurrenceScheduledAt) {
+    Task series = taskService.findById(seriesId);
+    series.setRruleEndsAt(occurrenceScheduledAt.minus(1, ChronoUnit.SECONDS));
+    taskRepository.save(series);
+    taskOccurrenceService.detachStatesFrom(seriesId, occurrenceScheduledAt);
+  }
+}

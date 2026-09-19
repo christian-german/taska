@@ -2,6 +2,7 @@ package com.taska.domain.task;
 
 import static com.taska.domain.task.TaskMutationFixtures.*;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
@@ -12,16 +13,17 @@ import com.taska.domain.planningcalendar.service.PlanningCalendarService;
 import com.taska.domain.priority.repository.TaskPriorityEvaluationRepository;
 import com.taska.domain.project.repository.Project;
 import com.taska.domain.project.repository.ProjectRepository;
+import com.taska.domain.task.definition.TaskType;
+import com.taska.domain.task.definition.repository.Task;
+import com.taska.domain.task.definition.repository.TaskRepository;
+import com.taska.domain.task.definition.service.TaskDefinitionService;
 import com.taska.domain.task.occurrence.*;
 import com.taska.domain.task.occurrence.repository.TaskOccurrenceStateRepository;
+import com.taska.domain.task.occurrence.service.TaskOccurrenceService;
 import com.taska.domain.task.occurrence.service.TaskRecurrenceService;
-import com.taska.domain.task.repository.Task;
-import com.taska.domain.task.repository.TaskRepository;
-import com.taska.domain.task.service.RecurringTaskSeriesService;
-import com.taska.domain.task.service.TaskOccurrenceService;
+import com.taska.domain.task.series.service.RecurringTaskSeriesService;
 import com.taska.domain.task.service.TaskPatchParameters;
 import com.taska.domain.task.service.TaskResult;
-import com.taska.domain.task.service.TaskService;
 import com.taska.domain.task.service.TaskUpdateParameters;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -53,14 +55,14 @@ class RecurringTaskSeriesServiceTest {
   @Mock private TaskOccurrenceNotificationService taskOccurrenceNotificationService;
   @Mock private TaskaProperties taskaProperties;
 
-  private TaskService taskService;
+  private TaskDefinitionService taskService;
   private TaskOccurrenceService taskOccurrenceService;
   private RecurringTaskSeriesService recurringTaskSeriesService;
 
   @BeforeEach
   void createServicesUnderTest() {
     taskService =
-        new TaskService(
+        new TaskDefinitionService(
             taskRepository,
             projectRepository,
             priorityEvaluationRepository,
@@ -78,6 +80,51 @@ class RecurringTaskSeriesServiceTest {
     recurringTaskSeriesService =
         new RecurringTaskSeriesService(
             taskService, taskOccurrenceService, taskRepository, priorityEvaluationRepository);
+  }
+
+  @Test
+  void inPlaceGeneratorChange_withOccurrenceState_isRejected() {
+    Task series = buildRecurringTask(randomId());
+    when(taskOccurrenceStateRepository.existsBySeriesId(series.getId())).thenReturn(true);
+
+    assertThatThrownBy(
+            () ->
+                recurringTaskSeriesService.assertInPlaceGeneratorChangeAllowed(
+                    series, true, series.getScheduledAt(), "FREQ=WEEKLY"))
+        .isInstanceOf(IllegalArgumentException.class)
+        .hasMessageContaining("explicit occurrence");
+  }
+
+  @Test
+  void inPlaceGeneratorChange_withoutOccurrenceState_isAllowed() {
+    Task series = buildRecurringTask(randomId());
+    when(taskOccurrenceStateRepository.existsBySeriesId(series.getId())).thenReturn(false);
+
+    assertThatCode(
+            () ->
+                recurringTaskSeriesService.assertInPlaceGeneratorChangeAllowed(
+                    series, true, series.getScheduledAt().plusSeconds(3600), "FREQ=WEEKLY"))
+        .doesNotThrowAnyException();
+  }
+
+  @Test
+  void inPlaceGeneratorChange_equivalentNormalizedRule_doesNotConsultOccurrenceState() {
+    Task series = buildRecurringTask(randomId());
+
+    recurringTaskSeriesService.assertInPlaceGeneratorChangeAllowed(
+        series, true, series.getScheduledAt(), "daily");
+
+    verify(taskOccurrenceStateRepository, never()).existsBySeriesId(any());
+  }
+
+  @Test
+  void inPlaceGeneratorChange_nonRecurringTask_isNotRestricted() {
+    Task task = buildNonRecurringTask(randomId());
+
+    recurringTaskSeriesService.assertInPlaceGeneratorChangeAllowed(
+        task, false, task.getScheduledAt(), null);
+
+    verify(taskOccurrenceStateRepository, never()).existsBySeriesId(any());
   }
 
   @Test
@@ -164,6 +211,36 @@ class RecurringTaskSeriesServiceTest {
         .hasMessageContaining("Recurring series");
 
     verifyNoInteractions(taskRepository);
+  }
+
+  @Test
+  void replaceFollowing_withoutSchedule_rejectsBeforeSplittingOriginalSeries() {
+    TaskUpdateParameters request =
+        new TaskUpdateParameters(
+            "Following",
+            TaskType.TODO,
+            null,
+            null,
+            null,
+            0,
+            null,
+            List.of(),
+            null,
+            null,
+            false,
+            true,
+            null,
+            null,
+            "FREQ=DAILY");
+
+    assertThatThrownBy(
+            () ->
+                recurringTaskSeriesService.replaceFollowing(
+                    randomId(), Instant.parse("2026-05-20T10:00:00Z"), request))
+        .isInstanceOf(IllegalArgumentException.class)
+        .hasMessageContaining("requires a scheduledAt");
+
+    verifyNoInteractions(taskRepository, taskOccurrenceStateRepository);
   }
 
   @Test

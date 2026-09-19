@@ -1,15 +1,15 @@
 package com.taska.domain.task.controller;
 
 import com.taska.config.ApiMapperConfig;
-import com.taska.domain.task.TaskType;
-import com.taska.domain.task.repository.Task;
+import com.taska.domain.task.definition.TaskType;
+import com.taska.domain.task.definition.repository.Task;
+import com.taska.domain.task.occurrence.service.TaskOccurrenceUpdateParameters;
 import com.taska.domain.task.service.NonRecurringTaskResult;
 import com.taska.domain.task.service.RecurringTaskOccurrenceResult;
 import com.taska.domain.task.service.RecurringTaskSeriesResult;
 import com.taska.domain.task.service.TaskCloseReopenParameters;
 import com.taska.domain.task.service.TaskCreateParameters;
 import com.taska.domain.task.service.TaskDeleteParameters;
-import com.taska.domain.task.service.TaskOccurrenceUpdateParameters;
 import com.taska.domain.task.service.TaskResult;
 import com.taska.domain.task.service.TaskUpdateParameters;
 import org.mapstruct.Mapper;

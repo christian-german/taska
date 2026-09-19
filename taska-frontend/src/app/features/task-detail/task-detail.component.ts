@@ -134,6 +134,9 @@ export class TaskDetailComponent implements OnChanges {
   currentProject = computed(
     () => this.projects().find((p) => p.id === this.task().projectId) ?? null,
   );
+  isDetached = computed(
+    () => this.task().kind === 'RECURRING_OCCURRENCE' && this.task().isDetached === true,
+  );
   scheduledDate = computed(() => {
     const scheduledAt = this.task().scheduledAt;
     return scheduledAt ? new Date(scheduledAt) : null;
@@ -221,6 +224,7 @@ export class TaskDetailComponent implements OnChanges {
   }
 
   saveDescription(): void {
+    if (this.isDetached()) return;
     if (this.editedDescription() !== (this.task().description ?? '')) {
       this.save({ description: this.editedDescription() });
     }
@@ -257,6 +261,7 @@ export class TaskDetailComponent implements OnChanges {
   }
 
   setTaskType(type: TaskType): void {
+    if (this.isDetached()) return;
     if (this.task().type !== type) this.save({ type });
   }
 
@@ -267,6 +272,7 @@ export class TaskDetailComponent implements OnChanges {
   }
 
   setProject(projectId: string): void {
+    if (this.isDetached()) return;
     this.showProjectMenu.set(false);
     this.save({ projectId });
   }
@@ -301,6 +307,7 @@ export class TaskDetailComponent implements OnChanges {
 
   toggleTag(name: string, e: Event): void {
     e.stopPropagation();
+    if (this.isDetached()) return;
     const labels = this.task().labels.includes(name)
       ? this.task().labels.filter((l) => l !== name)
       : [...this.task().labels, name];
@@ -309,17 +316,20 @@ export class TaskDetailComponent implements OnChanges {
 
   selectEstimate(minutes: number, e: Event): void {
     e.stopPropagation();
+    if (this.isDetached()) return;
     this.activeDetailPicker.set(null);
     this.save({ estimateMinutes: minutes });
   }
 
   clearEstimate(e: Event): void {
     e.stopPropagation();
+    if (this.isDetached()) return;
     this.save({ estimateMinutes: undefined });
   }
 
   selectRecurrence(value: string, e: Event): void {
     e.stopPropagation();
+    if (this.isDetached()) return;
     this.activeDetailPicker.set(null);
     this.save({ recurrenceRule: value || (null as any) });
   }
@@ -358,7 +368,7 @@ export class TaskDetailComponent implements OnChanges {
   }
 
   deleteTask(): void {
-    if (this.task().kind === 'RECURRING_OCCURRENCE') {
+    if (this.task().kind === 'RECURRING_OCCURRENCE' && !this.task().isDetached) {
       this.showDeleteScopeDialog.set(true);
     } else {
       this.showDeleteConfirm.set(true);
@@ -367,7 +377,12 @@ export class TaskDetailComponent implements OnChanges {
 
   confirmDelete(): void {
     this.showDeleteConfirm.set(false);
-    this.taskService.deleteTask(this.task().id).subscribe(() => {
+    const task = this.task();
+    const deletion =
+      task.kind === 'RECURRING_OCCURRENCE' && task.isDetached
+        ? this.taskService.deleteTask(task.id, 'THIS_ONLY', task.occurrenceScheduledAt)
+        : this.taskService.deleteTask(task.id);
+    deletion.subscribe(() => {
       this.taskDeleted.emit(this.task().id);
     });
   }
@@ -408,11 +423,23 @@ export class TaskDetailComponent implements OnChanges {
   }
 
   private save(patch: TaskPatch): void {
-    if (this.task().kind === 'RECURRING_OCCURRENCE') {
+    const task = this.task();
+    if (task.kind === 'RECURRING_OCCURRENCE' && task.isDetached) {
+      this.taskService
+        .updateTask(task.id, {
+          ...patch,
+          scope: 'THIS_ONLY',
+          occurrenceScheduledAt: task.occurrenceScheduledAt,
+        })
+        .subscribe({
+          next: (updated) => this.taskUpdated.emit(updated),
+          error: () => undefined,
+        });
+    } else if (task.kind === 'RECURRING_OCCURRENCE') {
       this.pendingPatch.set(patch);
       this.showModifyScopeDialog.set(true);
     } else {
-      this.taskService.updateTask(this.task().id, patch).subscribe({
+      this.taskService.updateTask(task.id, patch).subscribe({
         next: (updated) => this.taskUpdated.emit(updated),
         error: () => undefined,
       });

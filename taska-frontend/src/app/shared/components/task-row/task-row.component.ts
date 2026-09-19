@@ -104,6 +104,15 @@ import {
               <app-icon name="calendar" [size]="10" /> rendez-vous
             </span>
           }
+          @if (task().kind === 'RECURRING_OCCURRENCE' && task().isDetached) {
+            <span
+              class="chip"
+              aria-label="Occurrence hors série"
+              style="background: rgba(224, 123, 57, .14); color: #A65322; font-size: 10.5px;"
+            >
+              Hors série
+            </span>
+          }
           @if (suggested()) {
             <span
               class="chip"
@@ -179,7 +188,10 @@ export class TaskRowComponent {
 
   toggled = output<Task>();
   selectTask = output<Task>();
-  updated = output<{ id: string; patch: TaskPatch }>();
+  updated = output<{
+    id: string;
+    patch: TaskPatch & { scope?: 'THIS_ONLY'; occurrenceScheduledAt?: string };
+  }>();
 
   private labelService = inject(LabelService);
   private allLabels = toSignal(this.labelService.labels$, { initialValue: [] as Label[] });
@@ -261,7 +273,12 @@ export class TaskRowComponent {
   commitEdit(): void {
     const next = this.draft().trim();
     if (next && next !== this.task().content) {
-      this.updated.emit({ id: this.task().id, patch: { content: next } });
+      const task = this.task();
+      const occurrenceTarget =
+        task.kind === 'RECURRING_OCCURRENCE' && task.isDetached
+          ? { scope: 'THIS_ONLY' as const, occurrenceScheduledAt: task.occurrenceScheduledAt }
+          : {};
+      this.updated.emit({ id: task.id, patch: { content: next, ...occurrenceTarget } });
     }
     this.editing.set(false);
   }

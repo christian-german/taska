@@ -9,7 +9,11 @@ TaskUpdateRequest:
             const: true
         required: ["isRecurring"]
       then:
+        required: ["scheduledAt"]
         properties:
+          scheduledAt:
+            type: "string"
+            format: "date-time"
           dueAt:
             type: "null"
   properties:
@@ -50,7 +54,7 @@ TaskUpdateRequest:
       items:
         type: "string"
     scheduledAt:
-      description: "Planned schedule time in UTC; use no value for an unscheduled task."
+      description: "Planned schedule time in UTC; required and non-null for a recurring series, otherwise nullable for an unscheduled task."
       type: ["string", "null"]
       format: "date-time"
     dueAt:
@@ -314,7 +318,11 @@ TaskCreateRequest:
             const: true
         required: ["isRecurring"]
       then:
+        required: ["scheduledAt"]
         properties:
+          scheduledAt:
+            type: "string"
+            format: "date-time"
           dueAt:
             type: "null"
   properties:
@@ -349,7 +357,7 @@ TaskCreateRequest:
       items:
         type: "string"
     scheduledAt:
-      description: "Planned schedule time in UTC; use no value for an unscheduled task."
+      description: "Planned schedule time in UTC; required and non-null when isRecurring is true, otherwise optional for an unscheduled task."
       type: ["string", "null"]
       format: "date-time"
     dueAt:

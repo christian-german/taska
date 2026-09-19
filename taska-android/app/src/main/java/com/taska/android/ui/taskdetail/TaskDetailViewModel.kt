@@ -3,6 +3,7 @@ package com.taska.android.ui.taskdetail
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.taska.android.data.api.toApiErrorMessage
 import com.taska.android.data.model.LabelDto
 import com.taska.android.data.model.OccurrenceUpdateRequest
 import com.taska.android.data.model.ProjectDto
@@ -11,7 +12,6 @@ import com.taska.android.data.model.TaskCreateRequest
 import com.taska.android.data.model.TaskDto
 import com.taska.android.data.model.TaskRepresentationKind
 import com.taska.android.data.model.TaskUpdateRequest
-import com.taska.android.data.model.copy
 import com.taska.android.data.model.toTaskUpdateRequest
 import com.taska.android.data.repository.LabelRepository
 import com.taska.android.data.repository.ProjectRepository
@@ -37,6 +37,7 @@ data class TaskDetailUiState(
   val subtasks: List<TaskDto> = emptyList(),
   val isLoading: Boolean = false,
   val error: String? = null,
+  val mutationError: String? = null,
   val isCompletionPending: Boolean = false,
   val pendingReschedule: PendingReschedule? = null,
 )
@@ -71,16 +72,15 @@ class TaskDetailViewModel(
     viewModelScope.launch {
       _uiState.update { it.copy(isLoading = true, error = null) }
       try {
-        val taskDef = async { taskRepo.getTask(taskId) }
+        val taskDef = async {
+          instanceOccurrenceScheduledAt?.let { taskRepo.getOccurrence(taskId, it) }
+            ?: taskRepo.getTask(taskId)
+        }
         val subtasksDef = async { taskRepo.getSubtasks(taskId) }
         val projectsDef = async { projectRepo.getProjects() }
         val labelsDef = async { labelRepo.getLabels() }
 
-        val rawTask = taskDef.await()
-        val task =
-          if (instanceOccurrenceScheduledAt != null)
-            rawTask.copy(scheduledAt = instanceOccurrenceScheduledAt)
-          else rawTask
+        val task = taskDef.await()
         val subtasks = subtasksDef.await()
         val projects = projectsDef.await()
         val labels = labelsDef.await()
@@ -102,12 +102,31 @@ class TaskDetailViewModel(
     }
   }
 
-  private fun applyUpdate(transform: TaskUpdateRequest.() -> TaskUpdateRequest) {
+  private fun applyUpdate(
+    supportsDetachedOccurrence: Boolean = false,
+    transform: TaskUpdateRequest.() -> TaskUpdateRequest,
+  ) {
     val task = _uiState.value.task ?: return
+    if (task.isDetached && !supportsDetachedOccurrence) return
     val base = task.toTaskUpdateRequest()
     viewModelScope.launch {
       try {
-        val updated = taskRepo.updateTask(taskId, base.transform())
+        val request = base.transform()
+        val updated =
+          if (task.isDetached) {
+            taskRepo.updateOccurrence(
+              taskId,
+              checkNotNull(instanceOccurrenceScheduledAt),
+              OccurrenceUpdateRequest(
+                request.content,
+                request.priority,
+                request.scheduledAt,
+                request.dueAt,
+              ),
+            )
+          } else {
+            taskRepo.updateTask(taskId, request)
+          }
         val newProject = _uiState.value.projects.firstOrNull { it.id == updated.projectId }
         _uiState.update {
           it.copy(
@@ -115,13 +134,15 @@ class TaskDetailViewModel(
             project = newProject ?: if (updated.projectId == null) null else it.project,
           )
         }
-      } catch (_: Exception) {}
+      } catch (exception: Exception) {
+        reportMutationError(exception)
+      }
     }
   }
 
   fun updateContent(content: String) {
     if (content.isBlank()) return
-    applyUpdate { copy(content = content) }
+    applyUpdate(supportsDetachedOccurrence = true) { copy(content = content) }
   }
 
   fun updateDescription(desc: String) = applyUpdate { copy(description = desc.ifEmpty { null }) }
@@ -130,7 +151,9 @@ class TaskDetailViewModel(
 
   fun requestRescheduleAllDay(millis: Long) {
     val task = _uiState.value.task ?: return
-    if (
+    if (task.isDetached) {
+      doReschedule(millis, null, scope = RecurrenceScope.THIS_ONLY)
+    } else if (
       task.kind != TaskRepresentationKind.NON_RECURRING && instanceOccurrenceScheduledAt != null
     ) {
       _uiState.update { it.copy(pendingReschedule = PendingReschedule(millis, null)) }
@@ -141,7 +164,9 @@ class TaskDetailViewModel(
 
   fun requestRescheduleWithTime(millis: Long, hour: Int, minute: Int) {
     val task = _uiState.value.task ?: return
-    if (
+    if (task.isDetached) {
+      doReschedule(millis, hour * 60 + minute, scope = RecurrenceScope.THIS_ONLY)
+    } else if (
       task.kind != TaskRepresentationKind.NON_RECURRING && instanceOccurrenceScheduledAt != null
     ) {
       _uiState.update { it.copy(pendingReschedule = PendingReschedule(millis, hour * 60 + minute)) }
@@ -203,13 +228,17 @@ class TaskDetailViewModel(
             project = newProject ?: if (updated.projectId == null) null else it.project,
           )
         }
-      } catch (_: Exception) {}
+      } catch (exception: Exception) {
+        reportMutationError(exception)
+      }
     }
   }
 
   fun clearDue() {
     val task = _uiState.value.task ?: return
-    if (
+    if (task.isDetached) {
+      doClearSchedule(scope = RecurrenceScope.THIS_ONLY)
+    } else if (
       task.kind != TaskRepresentationKind.NON_RECURRING && instanceOccurrenceScheduledAt != null
     ) {
       _uiState.update { it.copy(pendingReschedule = PendingReschedule(null, null)) }
@@ -240,11 +269,16 @@ class TaskDetailViewModel(
             null -> taskRepo.updateTask(taskId, request)
           }
         _uiState.update { it.copy(task = updated) }
-      } catch (_: Exception) {}
+      } catch (exception: Exception) {
+        reportMutationError(exception)
+      }
     }
   }
 
-  fun updateDueAt(millis: Long) = applyUpdate { copy(dueAt = millisToApiDateTime(millis, null)) }
+  fun updateDueAt(millis: Long) =
+    applyUpdate(supportsDetachedOccurrence = true) {
+      copy(dueAt = millisToApiDateTime(millis, null))
+    }
 
   fun updateProject(projectId: String?) = applyUpdate { copy(projectId = projectId) }
 
@@ -252,18 +286,30 @@ class TaskDetailViewModel(
 
   fun updateLabels(labels: List<String>) = applyUpdate { copy(labels = labels) }
 
-  fun updatePriority(priority: Int) = applyUpdate { copy(priority = priority) }
+  fun updatePriority(priority: Int) =
+    applyUpdate(supportsDetachedOccurrence = true) { copy(priority = priority) }
 
   fun updateRecurrence(rule: String?) = applyUpdate {
     copy(isRecurring = if (rule != null) true else false, recurrenceRule = rule)
   }
 
   fun deleteTask(onDeleted: () -> Unit) {
+    val task = _uiState.value.task ?: return
     viewModelScope.launch {
       try {
-        taskRepo.deleteTask(taskId)
+        if (task.isDetached) {
+          taskRepo.deleteTask(
+            taskId,
+            RecurrenceScope.THIS_ONLY,
+            checkNotNull(instanceOccurrenceScheduledAt),
+          )
+        } else {
+          taskRepo.deleteTask(taskId)
+        }
         onDeleted()
-      } catch (_: Exception) {}
+      } catch (exception: Exception) {
+        reportMutationError(exception)
+      }
     }
   }
 
@@ -282,8 +328,9 @@ class TaskDetailViewModel(
             taskRepo.closeTask(taskId, instanceOccurrenceScheduledAt)
           }
         _uiState.update { it.copy(task = updated) }
-      } catch (_: Exception) {
+      } catch (exception: Exception) {
         // Keep the last server-confirmed task when the mutation fails.
+        reportMutationError(exception)
       } finally {
         _uiState.update { it.copy(isCompletionPending = false) }
       }
@@ -300,7 +347,9 @@ class TaskDetailViewModel(
         }
         val updated = taskRepo.getSubtasks(taskId)
         _uiState.update { it.copy(subtasks = updated) }
-      } catch (_: Exception) {}
+      } catch (exception: Exception) {
+        reportMutationError(exception)
+      }
     }
   }
 
@@ -318,8 +367,18 @@ class TaskDetailViewModel(
         val updated = taskRepo.getSubtasks(taskId)
         _uiState.update { it.copy(subtasks = updated) }
         onSuccess()
-      } catch (_: Exception) {}
+      } catch (exception: Exception) {
+        reportMutationError(exception)
+      }
     }
+  }
+
+  fun consumeMutationError() {
+    _uiState.update { it.copy(mutationError = null) }
+  }
+
+  private fun reportMutationError(exception: Exception) {
+    _uiState.update { it.copy(mutationError = exception.toApiErrorMessage()) }
   }
 
   fun millisToApiDateTime(millis: Long, timeMinutes: Int?): String {

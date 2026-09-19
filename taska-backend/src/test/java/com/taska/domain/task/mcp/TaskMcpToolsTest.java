@@ -5,13 +5,13 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.taska.domain.task.repository.Task;
+import com.taska.domain.task.definition.repository.Task;
+import com.taska.domain.task.definition.service.TaskDefinitionService;
 import com.taska.domain.task.service.TaskCloseReopenParameters;
 import com.taska.domain.task.service.TaskCreateParameters;
 import com.taska.domain.task.service.TaskMutationService;
 import com.taska.domain.task.service.TaskPatchParameters;
 import com.taska.domain.task.service.TaskResult;
-import com.taska.domain.task.service.TaskService;
 import io.modelcontextprotocol.spec.McpSchema;
 import java.time.Instant;
 import java.util.List;
@@ -29,7 +29,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 @ExtendWith(MockitoExtension.class)
 class TaskMcpToolsTest {
 
-  @Mock private TaskService taskService;
+  @Mock private TaskDefinitionService taskService;
   @Mock private TaskMutationService taskMutationService;
   private TaskMcpTools taskMcpTools;
 

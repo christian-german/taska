@@ -76,10 +76,55 @@ class BackendArchitectureTest {
   }
 
   @Test
-  void taskServiceDoesNotOwnOccurrencePersistenceOrExpansion() {
-    String taskService = readSource(DOMAIN_SOURCE.resolve("task/service/TaskService.java"));
+  void jpaEntitiesLiveInRepositoryPackages() throws IOException {
+    List<Path> misplacedEntities;
+    try (var paths = Files.walk(DOMAIN_SOURCE)) {
+      misplacedEntities =
+          paths
+              .filter(path -> path.toString().endsWith(".java"))
+              .filter(path -> fileContains(path, "@Entity"))
+              .filter(path -> !path.toString().contains("/repository/"))
+              .toList();
+    }
 
-    assertThat(taskService)
+    assertThat(misplacedEntities).isEmpty();
+  }
+
+  @Test
+  void taskTypesLiveInTheirOwningSubfeatures() {
+    assertThat(DOMAIN_SOURCE.resolve("task/definition/TaskType.java")).exists();
+    assertThat(DOMAIN_SOURCE.resolve("task/definition/TaskDefinitionRules.java")).exists();
+    assertThat(DOMAIN_SOURCE.resolve("task/definition/repository/Task.java")).exists();
+    assertThat(DOMAIN_SOURCE.resolve("task/definition/repository/TaskRepository.java")).exists();
+    assertThat(DOMAIN_SOURCE.resolve("task/definition/service/TaskDefinitionService.java"))
+        .exists();
+    assertThat(DOMAIN_SOURCE.resolve("task/occurrence/repository/TaskOccurrenceState.java"))
+        .exists();
+    assertThat(DOMAIN_SOURCE.resolve("task/occurrence/service/TaskOccurrenceService.java"))
+        .exists();
+    assertThat(DOMAIN_SOURCE.resolve("task/occurrence/service/TaskRecurrenceService.java"))
+        .exists();
+    assertThat(DOMAIN_SOURCE.resolve("task/series/service/RecurringTaskSeriesService.java"))
+        .exists();
+    assertThat(DOMAIN_SOURCE.resolve("task/service/TaskMutationService.java")).exists();
+  }
+
+  @Test
+  void taskSubfeatureDependenciesFollowOwnershipDirection() throws IOException {
+    assertThat(filesImporting(DOMAIN_SOURCE.resolve("task/definition"), ".domain.task.occurrence."))
+        .isEmpty();
+    assertThat(filesImporting(DOMAIN_SOURCE.resolve("task/definition"), ".domain.task.series."))
+        .isEmpty();
+    assertThat(filesImporting(DOMAIN_SOURCE.resolve("task/occurrence"), ".domain.task.series."))
+        .isEmpty();
+  }
+
+  @Test
+  void taskDefinitionServiceDoesNotOwnOccurrencePersistenceOrExpansion() {
+    String taskDefinitionService =
+        readSource(DOMAIN_SOURCE.resolve("task/definition/service/TaskDefinitionService.java"));
+
+    assertThat(taskDefinitionService)
         .doesNotContain("TaskOccurrenceStateRepository")
         .doesNotContain("TaskRecurrenceService");
   }
@@ -130,6 +175,15 @@ class BackendArchitectureTest {
 
   private boolean importsServicePackage(Path path) {
     return fileContains(path, ".service.");
+  }
+
+  private List<Path> filesImporting(Path sourceRoot, String packageFragment) throws IOException {
+    try (var paths = Files.walk(sourceRoot)) {
+      return paths
+          .filter(path -> path.toString().endsWith(".java"))
+          .filter(path -> fileContains(path, packageFragment))
+          .toList();
+    }
   }
 
   private boolean isSpringComponent(Path path) {

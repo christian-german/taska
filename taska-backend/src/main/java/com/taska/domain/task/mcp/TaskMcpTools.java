@@ -1,9 +1,9 @@
 package com.taska.domain.task.mcp;
 
+import com.taska.domain.task.definition.service.TaskDefinitionService;
 import com.taska.domain.task.occurrence.RecurrenceScope;
 import com.taska.domain.task.service.TaskCloseReopenParameters;
 import com.taska.domain.task.service.TaskMutationService;
-import com.taska.domain.task.service.TaskService;
 import com.taska.mcp.McpToolResponses;
 import io.modelcontextprotocol.spec.McpSchema;
 import java.time.Instant;
@@ -20,7 +20,7 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class TaskMcpTools {
 
-  private final TaskService taskService;
+  private final TaskDefinitionService taskService;
   private final TaskMutationService taskMutationService;
   private final TaskMcpMapper taskMcpMapper;
 

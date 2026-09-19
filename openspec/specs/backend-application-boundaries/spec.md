@@ -4,11 +4,12 @@
 TBD - created by archiving change align-backend-java-spring-guidelines. Update Purpose after archive.
 ## Requirements
 ### Requirement: Backend features own their technical layers
-Each maintained Spring feature that contains HTTP, application-service, or persistence responsibilities SHALL own corresponding `controller`, `service`, and `repository` subpackages. HTTP controllers, API DTOs, request records, controller advice, and HTTP boundary mappers SHALL reside in `controller`; application services and application input/result records SHALL reside in `service`; repository interfaces and persistence adapters SHALL reside in `repository`; entities, value objects, and domain exceptions SHALL remain in the feature root.
+Each maintained Spring feature that contains HTTP, application-service, or persistence responsibilities SHALL own corresponding `controller`, `service`, and `repository` subpackages. A feature MAY define cohesive nested subfeatures, and each nested subfeature SHALL own its corresponding technical subpackages. HTTP controllers, API DTOs, request records, controller advice, and HTTP boundary mappers SHALL reside in `controller`; application services and application input/result records SHALL reside in `service`; repository interfaces, persistence adapters, and JPA entities SHALL reside in `repository`; non-persistence value objects and domain exceptions SHALL remain in the owning feature or subfeature root.
 
 #### Scenario: Architecture verification inspects feature packages
-- **WHEN** automated architecture checks inspect backend production classes
+- **WHEN** automated architecture checks inspect backend production classes, including classes in nested subfeatures
 - **THEN** each class SHALL reside in the package matching its responsibility
+- **AND** each JPA entity SHALL reside in its owning `repository` package
 
 ### Requirement: Application services are transport-independent
 Application services SHALL NOT depend on classes in controller packages or on MCP input/output types. REST and MCP adapters SHALL map their inputs to operation-specific application parameters before invoking a service, and services SHALL return entities or application result types rather than HTTP DTOs.
@@ -31,4 +32,3 @@ Every business invariant, transition rule, and business side effect SHALL have o
 #### Scenario: Overlapping mutation paths change scheduling
 - **WHEN** two supported transports change a resource property governed by scheduling validation or related side effects
 - **THEN** both paths SHALL execute the same validation and side-effect implementation
-

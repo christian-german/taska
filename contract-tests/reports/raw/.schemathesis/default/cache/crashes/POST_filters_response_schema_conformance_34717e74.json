@@ -1,0 +1,98 @@
+{
+  "operation": "POST /filters",
+  "method": "POST",
+  "path_template": "/filters",
+  "fingerprint": "34717e74",
+  "case_id": "HMcMya",
+  "code_sample": "curl -X POST -H 'Authorization: [Filtered]' -H 'Content-Type: application/json' -d '{\"\\u0084\": null, \"isFavorite\": true, \"hasDate\": true, \"order\": -108, \"clearProject\": false, \"name\": \"\\u00e7^\\u00e9\\u9b46\\u00c2\\u0095\\u00e5\\u00d5\\u009dQ\\u009c\\u00b3\\u00d2\\u00ba\", \"projectId\": \"00ca289a-efe9-396d-9d3c-7aca12c25001\", \"color\": \"rk\\u00b3\\u00f8\\u00fcx\\u00c8\\ud9f7\\udc5dd\\u00ef\\u00e6)\"}' http://taska-backend:8080/filters",
+  "sequence": [
+    {
+      "method": "POST",
+      "url": "http://taska-backend:8080/filters",
+      "url_template": "http://taska-backend:8080/filters",
+      "headers": {
+        "User-Agent": "schemathesis/4.25.2",
+        "Accept-Encoding": "gzip, deflate",
+        "Accept": "*/*",
+        "Connection": "keep-alive",
+        "Authorization": "[Filtered]",
+        "X-Schemathesis-TestCaseId": "HMcMya",
+        "Content-Type": "application/json",
+        "Content-Length": "296"
+      },
+      "response": {
+        "status_code": 500,
+        "headers": {
+          "vary": "Origin",
+          "x-content-type-options": "nosniff",
+          "x-xss-protection": "0",
+          "cache-control": "no-cache, no-store, max-age=0, must-revalidate",
+          "pragma": "no-cache",
+          "expires": "0",
+          "x-frame-options": "DENY",
+          "content-type": "application/problem+json",
+          "transfer-encoding": "chunked",
+          "date": "Fri, 04 Sep 2026 22:32:01 GMT",
+          "connection": "close"
+        },
+        "body": "{\"detail\":\"Internal error\",\"instance\":\"/filters\",\"status\":500,\"title\":\"Internal Server Error\"}"
+      },
+      "link": null,
+      "checks": [
+        {
+          "name": "response_schema_conformance",
+          "status": "failure",
+          "message": "Response violates schema\n\n\"type\" is a required property\n\nValidated against the response schema for status code 500.\n\nSchema at /ProblemDetails:\n\n    {\n        \"required\": [\n            \"type\",\n            \"title\",\n            \"status\"\n        ],\n        \"type\": \"object\",\n        \"description\": \"RFC 9457 problem details returned for API errors.\",\n        \"properties\": {\n            \"type\": {\n                \"type\": \"string\",\n                \"format\": \"uri-reference\",\n                \"description\": \"Problem type identifier.\"\n            },\n            \"title\": {\n                \"type\": \"string\",\n                \"description\": \"Short, human-readable problem summary.\"\n            },\n            \"status\": {\n                \"type\": \"integer\",\n                \"minimum\": 100,\n                \"maximum\": 599,\n                \"description\": \"HTTP status code.\"\n            },\n            \"detail\": {\n                \"type\": \"string\",\n                \"description\": \"Problem details specific to this occurrence.\"\n            },\n            \"instance\": {\n                \"type\": \"string\",\n                \"format\": \"uri-reference\",\n                \"description\": \"Identifier for this occurrence.\"\n            },\n            \"code\": {\n                \"type\": \"string\",\n                \"description\": \"Stable, machine-readable Taska error code.\"\n            },\n            \"violations\": {\n                \"type\": \"array\",\n                \"items\": {\n                    \"$ref\": \"#/Violation\"\n                }\n            }\n        }\n    }\n\nValue:\n\n    {\n        \"detail\": \"Internal error\",\n        \"instance\": \"/filters\",\n        \"status\": 500,\n        \"title\": \"Internal Server Error\"\n    }"
+        }
+      ],
+      "meta": {
+        "generation": {
+          "time": 0.0035298310685902834,
+          "mode": "positive"
+        },
+        "components": {
+          "BODY": "positive"
+        },
+        "phase": {
+          "name": "fuzzing",
+          "data": {
+            "type": "FuzzingPhaseData",
+            "description": "Positive test case",
+            "location": null,
+            "parameter": null,
+            "parameter_location": null,
+            "mutations": []
+          }
+        },
+        "pool_draws": [],
+        "pool_misses": [],
+        "semantic_draws": [],
+        "dictionary_draws": [],
+        "constants_draws": [],
+        "raw_containers": {}
+      },
+      "path": "/filters",
+      "path_parameters": {},
+      "query": {},
+      "case_headers": {
+        "Authorization": "[Filtered]"
+      },
+      "cookies": {},
+      "case_body": {
+        "encoding": "json",
+        "value": {
+          "\u0084": null,
+          "isFavorite": true,
+          "hasDate": true,
+          "order": -108,
+          "clearProject": false,
+          "name": "\u00e7^\u00e9\u9b46\u00c2\u0095\u00e5\u00d5\u009dQ\u009c\u00b3\u00d2\u00ba",
+          "projectId": "00ca289a-efe9-396d-9d3c-7aca12c25001",
+          "color": "rk\u00b3\u00f8\u00fcx\u00c8\ud9f7\udc5dd\u00ef\u00e6)"
+        }
+      },
+      "media_type": "application/json",
+      "parent_index": null
+    }
+  ]
+}

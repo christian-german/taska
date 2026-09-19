@@ -1,0 +1,344 @@
+{
+  "operation": "PUT /tasks/{id}",
+  "method": "PUT",
+  "path_template": "/tasks/{id}",
+  "fingerprint": "50639fff",
+  "case_id": "Nbq5sH",
+  "code_sample": "curl -X POST -H 'Authorization: [Filtered]' -H 'Content-Type: application/json' -d '{\"occurrenceScheduledAt\": \"3616-11-18T12:43:23.15234Z\"}' http://taska-backend:8080/tasks/87643c2e-bc39-4184-9fb5-9ff511a4b3d2/reopen\ncurl -X PUT -H 'Authorization: [Filtered]' -H 'Content-Type: application/json' -d '{\"\": {\"\\u000b\\u0015\\ud9d7\\udc1dZM1\": {}, \"\\u009d\\udbeb\\udfe7X\": {}}, \"T*O\\n\\u00ff\": {}, \"\\u00026\\u00fc\\uda05\\ude09\\udba4\\udde7\\ud96e\\udff5wo\\u008b\": {\"\": \"\"}, \"estimateMinutes\": null, \"priority\": null, \"content\": \"?\\u00d6\\u0098[\\u0097\\u00f1M\", \"type\": \"TODO\", \"allDay\": false, \"isRecurring\": false, \"parentId\": null, \"description\": \"\\u0010\", \"recurrenceRule\": null, \"labels\": [], \"scheduledAt\": null, \"mentionContext\": null, \"dueAt\": null, \"order\": 0, \"sectionId\": \"3414ff83-cb96-41ec-979c-acc04478d950\", \"projectId\": \"3cb94586-0238-47c6-b6a7-d0020ec66767\"}' http://taska-backend:8080/tasks/87643c2e-bc39-4184-9fb5-9ff511a4b3d2",
+  "sequence": [
+    {
+      "method": "POST",
+      "url": "http://taska-backend:8080/tasks/87643c2e-bc39-4184-9fb5-9ff511a4b3d2/reopen",
+      "url_template": "http://taska-backend:8080/tasks/{taskId}/reopen",
+      "headers": {
+        "User-Agent": "schemathesis/4.25.2",
+        "Accept-Encoding": "gzip, deflate",
+        "Accept": "*/*",
+        "Connection": "keep-alive",
+        "Authorization": "[Filtered]",
+        "X-Schemathesis-TestCaseId": "I9eGTG",
+        "Content-Type": "application/json",
+        "Content-Length": "55"
+      },
+      "response": {
+        "status_code": 200,
+        "headers": {
+          "vary": "Origin",
+          "x-content-type-options": "nosniff",
+          "x-xss-protection": "0",
+          "cache-control": "no-cache, no-store, max-age=0, must-revalidate",
+          "pragma": "no-cache",
+          "expires": "0",
+          "x-frame-options": "DENY",
+          "content-type": "application/json",
+          "content-length": "554",
+          "date": "Sat, 05 Sep 2026 09:56:00 GMT",
+          "keep-alive": "timeout=60",
+          "connection": "keep-alive"
+        },
+        "body": "{\"id\":\"87643c2e-bc39-4184-9fb5-9ff511a4b3d2\",\"content\":\"0\",\"description\":null,\"projectId\":\"3cb94586-0238-47c6-b6a7-d0020ec66767\",\"sectionId\":null,\"parentId\":null,\"order\":0,\"priority\":null,\"labels\":[],\"isCompleted\":false,\"scheduledAt\":null,\"dueAt\":null,\"allDay\":false,\"isRecurring\":false,\"estimateMinutes\":null,\"mentionContext\":null,\"recurrenceRule\":null,\"createdAt\":\"2026-09-05T09:55:18.631624Z\",\"updatedAt\":\"2026-09-05T09:55:18.631624Z\",\"completedAt\":null,\"instanceId\":null,\"occurrenceScheduledAt\":null,\"isVirtual\":null,\"rruleEndsAt\":null,\"type\":\"TODO\"}"
+      },
+      "link": null,
+      "checks": [],
+      "meta": {
+        "generation": {
+          "time": 0.005350452964194119,
+          "mode": "positive"
+        },
+        "components": {
+          "PATH": "positive",
+          "BODY": "positive"
+        },
+        "phase": {
+          "name": "stateful",
+          "data": {
+            "type": "StatefulPhaseData",
+            "description": "Positive test case",
+            "location": null,
+            "parameter": null,
+            "parameter_location": null,
+            "mutations": []
+          }
+        },
+        "pool_draws": [
+          {
+            "location": "path",
+            "parameter_name": "taskId",
+            "resource_name": "Task",
+            "resource_field": "id",
+            "source_operation": "GET /tasks",
+            "source_status": 200
+          }
+        ],
+        "pool_misses": [],
+        "semantic_draws": [],
+        "dictionary_draws": [],
+        "constants_draws": [],
+        "raw_containers": {}
+      },
+      "path": "/tasks/{taskId}/reopen",
+      "path_parameters": {
+        "taskId": "87643c2e-bc39-4184-9fb5-9ff511a4b3d2"
+      },
+      "query": {},
+      "case_headers": {
+        "Authorization": "[Filtered]"
+      },
+      "cookies": {},
+      "case_body": {
+        "encoding": "json",
+        "value": {
+          "occurrenceScheduledAt": "3616-11-18T12:43:23.15234Z"
+        }
+      },
+      "media_type": "application/json",
+      "parent_index": null
+    },
+    {
+      "method": "PUT",
+      "url": "http://taska-backend:8080/tasks/87643c2e-bc39-4184-9fb5-9ff511a4b3d2",
+      "url_template": "http://taska-backend:8080/tasks/{id}",
+      "headers": {
+        "User-Agent": "schemathesis/4.25.2",
+        "Accept-Encoding": "gzip, deflate",
+        "Accept": "*/*",
+        "Connection": "keep-alive",
+        "Authorization": "[Filtered]",
+        "X-Schemathesis-TestCaseId": "Nbq5sH",
+        "Content-Type": "application/json",
+        "Content-Length": "557"
+      },
+      "response": {
+        "status_code": 200,
+        "headers": {
+          "vary": "Origin",
+          "x-content-type-options": "nosniff",
+          "x-xss-protection": "0",
+          "cache-control": "no-cache, no-store, max-age=0, must-revalidate",
+          "pragma": "no-cache",
+          "expires": "0",
+          "x-frame-options": "DENY",
+          "content-type": "application/json",
+          "content-length": "605",
+          "date": "Sat, 05 Sep 2026 09:56:00 GMT",
+          "keep-alive": "timeout=60",
+          "connection": "keep-alive"
+        },
+        "body": "{\"id\":\"87643c2e-bc39-4184-9fb5-9ff511a4b3d2\",\"content\":\"?\u00d6\u0098[\u0097\u00f1M\",\"description\":\"\\u0010\",\"projectId\":\"3cb94586-0238-47c6-b6a7-d0020ec66767\",\"sectionId\":\"3414ff83-cb96-41ec-979c-acc04478d950\",\"parentId\":null,\"order\":0,\"priority\":null,\"labels\":[],\"isCompleted\":false,\"scheduledAt\":null,\"dueAt\":null,\"allDay\":false,\"isRecurring\":false,\"estimateMinutes\":null,\"mentionContext\":null,\"recurrenceRule\":null,\"createdAt\":\"2026-09-05T09:55:18.631624Z\",\"updatedAt\":\"2026-09-05T09:56:00.398720057Z\",\"completedAt\":null,\"instanceId\":null,\"occurrenceScheduledAt\":null,\"isVirtual\":null,\"rruleEndsAt\":null,\"type\":\"TODO\"}"
+      },
+      "link": {
+        "operationId": "POST /tasks/{taskId}/reopen -> [200] PutTask -> PUT /tasks/{id}",
+        "parameters": {
+          "path.id": "$response.body#/id"
+        },
+        "requestBody": {
+          "type": "$response.body#/type",
+          "parentId": "$response.body#/parentId",
+          "order": "$response.body#/order",
+          "priority": "$response.body#/priority",
+          "labels": "$response.body#/labels",
+          "scheduledAt": "$response.body#/scheduledAt",
+          "dueAt": "$response.body#/dueAt",
+          "allDay": "$response.body#/allDay",
+          "isRecurring": "$response.body#/isRecurring",
+          "estimateMinutes": "$response.body#/estimateMinutes",
+          "mentionContext": "$response.body#/mentionContext",
+          "recurrenceRule": "$response.body#/recurrenceRule"
+        }
+      },
+      "checks": [
+        {
+          "name": "response_schema_conformance",
+          "status": "failure",
+          "message": "Response violates schema\n\nnull is not of type \"string\"\n\nValidated against the response schema for status code 200.\n\nSchema at /properties/dueAt:\n\n    {\n        \"type\": \"string\",\n        \"format\": \"date-time\"\n    }\n\nValue:\n\n    null"
+        }
+      ],
+      "meta": {
+        "generation": {
+          "time": 0.013381929020397365,
+          "mode": "negative"
+        },
+        "components": {
+          "BODY": "negative"
+        },
+        "phase": {
+          "name": "stateful",
+          "data": {
+            "type": "StatefulPhaseData",
+            "description": "Positive test case",
+            "location": null,
+            "parameter": null,
+            "parameter_location": null,
+            "mutations": []
+          }
+        },
+        "pool_draws": [
+          {
+            "location": "body",
+            "parameter_name": "type",
+            "resource_name": "Task",
+            "resource_field": "type",
+            "source_operation": "GET /tasks/{id}",
+            "source_status": 200
+          },
+          {
+            "location": "body",
+            "parameter_name": "projectId",
+            "resource_name": "Project",
+            "resource_field": "id",
+            "source_operation": "GET /projects",
+            "source_status": 200
+          },
+          {
+            "location": "body",
+            "parameter_name": "sectionId",
+            "resource_name": "Section",
+            "resource_field": "id",
+            "source_operation": "GET /sections/{id}",
+            "source_status": 200
+          },
+          {
+            "location": "body",
+            "parameter_name": "order",
+            "resource_name": "Task",
+            "resource_field": "order",
+            "source_operation": "GET /tasks/{id}",
+            "source_status": 200
+          },
+          {
+            "location": "body",
+            "parameter_name": "priority",
+            "resource_name": "Task",
+            "resource_field": "priority",
+            "source_operation": "GET /tasks",
+            "source_status": 200
+          },
+          {
+            "location": "body",
+            "parameter_name": "labels",
+            "resource_name": "Task",
+            "resource_field": "labels",
+            "source_operation": "GET /tasks/{id}",
+            "source_status": 200
+          },
+          {
+            "location": "body",
+            "parameter_name": "scheduledAt",
+            "resource_name": "Task",
+            "resource_field": "scheduledAt",
+            "source_operation": "GET /tasks",
+            "source_status": 200
+          },
+          {
+            "location": "body",
+            "parameter_name": "dueAt",
+            "resource_name": "Task",
+            "resource_field": "dueAt",
+            "source_operation": "GET /tasks",
+            "source_status": 200
+          },
+          {
+            "location": "body",
+            "parameter_name": "allDay",
+            "resource_name": "Task",
+            "resource_field": "allDay",
+            "source_operation": "GET /tasks/{id}",
+            "source_status": 200
+          },
+          {
+            "location": "body",
+            "parameter_name": "isRecurring",
+            "resource_name": "Task",
+            "resource_field": "isRecurring",
+            "source_operation": "GET /tasks/{id}",
+            "source_status": 200
+          },
+          {
+            "location": "body",
+            "parameter_name": "mentionContext",
+            "resource_name": "Task",
+            "resource_field": "mentionContext",
+            "source_operation": "POST /tasks/{taskId}/reopen",
+            "source_status": 200
+          },
+          {
+            "location": "body",
+            "parameter_name": "recurrenceRule",
+            "resource_name": "Task",
+            "resource_field": "recurrenceRule",
+            "source_operation": "GET /tasks",
+            "source_status": 200
+          }
+        ],
+        "pool_misses": [],
+        "semantic_draws": [
+          {
+            "path": [
+              "scheduledAt"
+            ],
+            "type_token": "string",
+            "format_token": "date-time",
+            "pattern_hash": null,
+            "normalized_name": "scheduledat",
+            "value": "2026-09-05T09:55:58.072573896Z",
+            "source_operation": "POST /tasks"
+          },
+          {
+            "path": [
+              "dueAt"
+            ],
+            "type_token": "string",
+            "format_token": "date-time",
+            "pattern_hash": null,
+            "normalized_name": "dueat",
+            "value": "2026-09-05T09:55:56.168814772Z",
+            "source_operation": "POST /tasks"
+          }
+        ],
+        "dictionary_draws": [],
+        "constants_draws": [],
+        "raw_containers": {}
+      },
+      "path": "/tasks/{id}",
+      "path_parameters": {
+        "id": "87643c2e-bc39-4184-9fb5-9ff511a4b3d2"
+      },
+      "query": {},
+      "case_headers": {
+        "Authorization": "[Filtered]"
+      },
+      "cookies": {},
+      "case_body": {
+        "encoding": "json",
+        "value": {
+          "": {
+            "\u000b\u0015\ud9d7\udc1dZM1": {},
+            "\u009d\udbeb\udfe7X": {}
+          },
+          "T*O\n\u00ff": {},
+          "\u00026\u00fc\uda05\ude09\udba4\udde7\ud96e\udff5wo\u008b": {
+            "": ""
+          },
+          "estimateMinutes": null,
+          "priority": null,
+          "content": "?\u00d6\u0098[\u0097\u00f1M",
+          "type": "TODO",
+          "allDay": false,
+          "isRecurring": false,
+          "parentId": null,
+          "description": "\u0010",
+          "recurrenceRule": null,
+          "labels": [],
+          "scheduledAt": null,
+          "mentionContext": null,
+          "dueAt": null,
+          "order": 0,
+          "sectionId": "3414ff83-cb96-41ec-979c-acc04478d950",
+          "projectId": "3cb94586-0238-47c6-b6a7-d0020ec66767"
+        }
+      },
+      "media_type": "application/json",
+      "parent_index": 0
+    }
+  ]
+}

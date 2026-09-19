@@ -1,0 +1,126 @@
+{
+  "operation": "POST /sections",
+  "method": "POST",
+  "path_template": "/sections",
+  "fingerprint": "a27dc687",
+  "case_id": "UyegvM",
+  "code_sample": "curl -X POST -H 'Authorization: [Filtered]' -H 'Content-Type: application/json' -d '{\"__main__\": {}, \"\\ud83d\\udc4d\\ud83c\\udffb\": {\"\\udac4\\ude7a\\u00c8@+\\u0006\\u00feQ\\u00ef\\ud828\\ude71\\u00bc\\ud847\\uded6\\ud907\\udefa\\ud825\\udd18>\\t\\uda6a\\udf0c\\uc85a\\u00d5&\\u009b\\u478bI\\uda96\\udcc3(\\u00c0\\u001d\\udb8a\\udef7\": \"\\u0006\\udaff\\udc09\", \"\": 8957}, \"!\": [[-19649250, -141], [false, true], true], \"\\u009e\\u0006\\r\\u00bdE\\u00aeL:\\udbf5\\udf78\\u00bf\\u001a\\udb80\\ude05\": {\"q*\\u0091\\u0003;\": -2095, \"\\u00ab\": null, \"\\u0083w\\u00f1\\u008c\\udb22\\udca0\\u00d6\\u0086\\u0001g\": false}, \"\": true, \"name\": \"\\u00f8\\ud92f\\udff8\", \"projectId\": \"f10cc4f3-ae39-289a-81cf-e9d7627bffe1\"}' http://taska-backend:8080/sections",
+  "sequence": [
+    {
+      "method": "POST",
+      "url": "http://taska-backend:8080/sections",
+      "url_template": "http://taska-backend:8080/sections",
+      "headers": {
+        "User-Agent": "schemathesis/4.25.2",
+        "Accept-Encoding": "gzip, deflate",
+        "Accept": "*/*",
+        "Connection": "keep-alive",
+        "Authorization": "[Filtered]",
+        "X-Schemathesis-TestCaseId": "UyegvM",
+        "Content-Type": "application/json",
+        "Content-Length": "567"
+      },
+      "response": {
+        "status_code": 500,
+        "headers": {
+          "vary": "Origin",
+          "x-content-type-options": "nosniff",
+          "x-xss-protection": "0",
+          "cache-control": "no-cache, no-store, max-age=0, must-revalidate",
+          "pragma": "no-cache",
+          "expires": "0",
+          "x-frame-options": "DENY",
+          "content-type": "application/problem+json",
+          "transfer-encoding": "chunked",
+          "date": "Fri, 04 Sep 2026 22:32:04 GMT",
+          "connection": "close"
+        },
+        "body": "{\"detail\":\"Internal error\",\"instance\":\"/sections\",\"status\":500,\"title\":\"Internal Server Error\"}"
+      },
+      "link": null,
+      "checks": [
+        {
+          "name": "response_schema_conformance",
+          "status": "failure",
+          "message": "Response violates schema\n\n\"type\" is a required property\n\nValidated against the response schema for status code 500.\n\nSchema at /ProblemDetails:\n\n    {\n        \"required\": [\n            \"type\",\n            \"title\",\n            \"status\"\n        ],\n        \"type\": \"object\",\n        \"description\": \"RFC 9457 problem details returned for API errors.\",\n        \"properties\": {\n            \"type\": {\n                \"type\": \"string\",\n                \"format\": \"uri-reference\",\n                \"description\": \"Problem type identifier.\"\n            },\n            \"title\": {\n                \"type\": \"string\",\n                \"description\": \"Short, human-readable problem summary.\"\n            },\n            \"status\": {\n                \"type\": \"integer\",\n                \"minimum\": 100,\n                \"maximum\": 599,\n                \"description\": \"HTTP status code.\"\n            },\n            \"detail\": {\n                \"type\": \"string\",\n                \"description\": \"Problem details specific to this occurrence.\"\n            },\n            \"instance\": {\n                \"type\": \"string\",\n                \"format\": \"uri-reference\",\n                \"description\": \"Identifier for this occurrence.\"\n            },\n            \"code\": {\n                \"type\": \"string\",\n                \"description\": \"Stable, machine-readable Taska error code.\"\n            },\n            \"violations\": {\n                \"type\": \"array\",\n                \"items\": {\n                    \"$ref\": \"#/Violation\"\n                }\n            }\n        }\n    }\n\nValue:\n\n    {\n        \"detail\": \"Internal error\",\n        \"instance\": \"/sections\",\n        \"status\": 500,\n        \"title\": \"Internal Server Error\"\n    }"
+        }
+      ],
+      "meta": {
+        "generation": {
+          "time": 0.010327746043913066,
+          "mode": "positive"
+        },
+        "components": {
+          "BODY": "positive"
+        },
+        "phase": {
+          "name": "fuzzing",
+          "data": {
+            "type": "FuzzingPhaseData",
+            "description": "Positive test case",
+            "location": null,
+            "parameter": null,
+            "parameter_location": null,
+            "mutations": []
+          }
+        },
+        "pool_draws": [],
+        "pool_misses": [],
+        "semantic_draws": [
+          {
+            "path": [
+              "name"
+            ],
+            "type_token": "string",
+            "format_token": null,
+            "pattern_hash": null,
+            "normalized_name": "name",
+            "value": "\u00f8\ud92f\udff8",
+            "source_operation": "POST /labels"
+          }
+        ],
+        "dictionary_draws": [],
+        "constants_draws": [],
+        "raw_containers": {}
+      },
+      "path": "/sections",
+      "path_parameters": {},
+      "query": {},
+      "case_headers": {
+        "Authorization": "[Filtered]"
+      },
+      "cookies": {},
+      "case_body": {
+        "encoding": "json",
+        "value": {
+          "__main__": {},
+          "\ud83d\udc4d\ud83c\udffb": {
+            "\udac4\ude7a\u00c8@+\u0006\u00feQ\u00ef\ud828\ude71\u00bc\ud847\uded6\ud907\udefa\ud825\udd18>\t\uda6a\udf0c\uc85a\u00d5&\u009b\u478bI\uda96\udcc3(\u00c0\u001d\udb8a\udef7": "\u0006\udaff\udc09",
+            "": 8957
+          },
+          "!": [
+            [
+              -19649250,
+              -141
+            ],
+            [
+              false,
+              true
+            ],
+            true
+          ],
+          "\u009e\u0006\r\u00bdE\u00aeL:\udbf5\udf78\u00bf\u001a\udb80\ude05": {
+            "q*\u0091\u0003;": -2095,
+            "\u00ab": null,
+            "\u0083w\u00f1\u008c\udb22\udca0\u00d6\u0086\u0001g": false
+          },
+          "": true,
+          "name": "\u00f8\ud92f\udff8",
+          "projectId": "f10cc4f3-ae39-289a-81cf-e9d7627bffe1"
+        }
+      },
+      "media_type": "application/json",
+      "parent_index": null
+    }
+  ]
+}

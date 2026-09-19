@@ -1,0 +1,249 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Taska OpenAPI contract report</title>
+  <style>
+    :root { color-scheme: light dark; font-family: system-ui, sans-serif; }
+    body { max-width: 1100px; margin: 2rem auto; padding: 0 1rem; line-height: 1.5; }
+    .status { display: inline-block; padding: .25rem .65rem; border-radius: 999px; font-weight: 700; }
+    .passed { background: #176b3a; color: white; } .failed { background: #a32323; color: white; }
+    table { border-collapse: collapse; width: 100%; margin: 1rem 0 2rem; }
+    th, td { border: 1px solid #8888; padding: .5rem; text-align: right; } th:first-child, td:first-child { text-align: left; }
+    details { border: 1px solid #8888; border-radius: .5rem; padding: .75rem; margin: 1rem 0; }
+    summary { cursor: pointer; font-weight: 700; } pre { overflow: auto; padding: 1rem; background: #8882; }
+    code { overflow-wrap: anywhere; }
+  </style>
+</head>
+<body>
+  <h1>Taska OpenAPI contract report</h1>
+  <p><span class="status failed">FAILED</span></p>
+  <p>Generated at <code>2026-09-19T14:03:19.127011+00:00</code></p>
+  <table>
+    <thead><tr><th>Status</th><th>Tests</th><th>Passed</th><th>Failures</th><th>Errors</th><th>Skipped</th><th>Duration</th></tr></thead>
+    <tbody><tr><td>failed</td><td>35</td><td>22</td><td>13</td><td>0</td><td>0</td><td>48.727s</td></tr></tbody>
+  </table>
+  <h2>Failures</h2>
+  <details open><summary>failure-1: POST /register-device</summary><h3>Message</h3><p>failure</p><h3>Details</h3><pre>1. Test Case ID: yUjKpv
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{&quot;detail&quot;:&quot;Internal error&quot;,&quot;instance&quot;:&quot;/register-device&quot;,&quot;status&quot;:500,&quot;title&quot;:&quot;Internal Server Error&quot;,&quot;type&quot;:&quot;about:blank&quot;}`
+
+Reproduce with:
+
+    curl -X POST -H &#x27;Authorization: [Filtered]&#x27; -H &#x27;Content-Type: application/json&#x27; -d &#x27;{&quot;token&quot;: &quot;\t\u00cc\u0000ax\u0014\ud8e7\udf23&quot;}&#x27; http://taska-backend:8080/register-device</pre><h3>Reproduction</h3><pre>curl -X POST -H &#x27;Authorization: [Filtered]&#x27; -H &#x27;Content-Type: application/json&#x27; -d &#x27;{&quot;token&quot;: &quot;\t\u00cc\u0000ax\u0014\ud8e7\udf23&quot;}&#x27; http://taska-backend:8080/register-device</pre></details><details open><summary>failure-2: PUT /tasks/{taskId}</summary><h3>Message</h3><p>failure</p><h3>Details</h3><pre>1. Test Case ID: R6gM60
+
+- API rejected schema-compliant request
+
+    Valid data should have been accepted
+    Expected: 2xx, 401, 403, 404, 409, 5xx
+
+[400] Bad Request:
+
+    `{&quot;detail&quot;:&quot;Invalid request body&quot;,&quot;instance&quot;:&quot;/tasks/ef1bbe9c-5f5e-3c56-b2b5-c545ff3ff8b7&quot;,&quot;status&quot;:400,&quot;title&quot;:&quot;Bad Request&quot;,&quot;type&quot;:&quot;about:blank&quot;}`
+
+Reproduce with:
+
+    curl -X PUT -H &#x27;Authorization: [Filtered]&#x27; -H &#x27;Content-Type: application/json&#x27; -d &#x27;{&quot;dueAt&quot;: &quot;2026-09-19T14:02:19.715740930Z&quot;, &quot;mentionContext&quot;: &quot;__main__&quot;, &quot;description&quot;: null, &quot;content&quot;: &quot;0&quot;, &quot;labels&quot;: [&quot;&quot;, &quot;\u0016k\udb69\udc76&quot;, &quot;\u0014\ud826\udf52\ubd68\u00c2vA&quot;, &quot;\u00c0w\u0012\u00f5\udb8e\udd82\u00ddo9\udb8f\udc3a\ud9e6\udd85\u000f3&quot;, &quot;l\u00e8\u00edO\ud9cf\udf54&quot;, &quot;\u0006\u00d9W\u00dd\udabd\udd5b\u00193\u0013\u00eb\u00c2\u00a8\u00cd\u00ae\u001a\u009c&amp;\udade\udf15\ud9fe\udee8\ud96c\udd70&quot;, &quot;\u00e9\u00ff\u0087\ud906\udcc2\u00cd&quot;, &quot;&quot;, &quot;\udb01\udec5\u00fd\u00a0\u00cc&quot;, &quot;\ud81d\udd58\u00b7C\t\u00b7\udb25\udd81&quot;, &quot;\u00fa\u0000&quot;, &quot;\udade\udd3aQ\u00d0\&quot;b\ud8c0\udeaf\ud963\udeb9\ud992\udcc5\u00da\u00e9\u000e&quot;, &quot;&quot;, &quot;.exe&quot;, &quot;\u001bK\u0015\udb5a\udce8\u0016&quot;, &quot;\uda8d\udc36&quot;, &quot;\ud922\ude99\udbc3\udc5f\udaa8\udc99\u00e9&quot;, &quot;\u00b3\u001b\u00f9Z`\u90db\u00ad&quot;], &quot;allDay&quot;: true, &quot;recurrenceRule&quot;: &quot;d\\Zb\uda09\ude2c\uda9f\ude59\u00e7\u001a\u00f2\u00ac\u0080g\u001e\u00f2\u00da\u00c4&quot;, &quot;parentId&quot;: null, &quot;isRecurring&quot;: false, &quot;projectId&quot;: &quot;769523d0-6409-2893-aaec-24551e705bab&quot;, &quot;estimateMinutes&quot;: 1, &quot;scheduledAt&quot;: &quot;3787-12-17T01:35:43.90125+19:56&quot;, &quot;type&quot;: &quot;APPOINTMENT&quot;, &quot;order&quot;: -5446, &quot;priority&quot;: 1}&#x27; http://taska-backend:8080/tasks/ef1bbe9c-5f5e-3c56-b2b5-c545ff3ff8b7</pre><h3>Reproduction</h3><pre>curl -X PUT -H &#x27;Authorization: [Filtered]&#x27; -H &#x27;Content-Type: application/json&#x27; -d &#x27;{&quot;dueAt&quot;: &quot;2026-09-19T14:02:19.715740930Z&quot;, &quot;mentionContext&quot;: &quot;__main__&quot;, &quot;description&quot;: null, &quot;content&quot;: &quot;0&quot;, &quot;labels&quot;: [&quot;&quot;, &quot;\u0016k\udb69\udc76&quot;, &quot;\u0014\ud826\udf52\ubd68\u00c2vA&quot;, &quot;\u00c0w\u0012\u00f5\udb8e\udd82\u00ddo9\udb8f\udc3a\ud9e6\udd85\u000f3&quot;, &quot;l\u00e8\u00edO\ud9cf\udf54&quot;, &quot;\u0006\u00d9W\u00dd\udabd\udd5b\u00193\u0013\u00eb\u00c2\u00a8\u00cd\u00ae\u001a\u009c&amp;\udade\udf15\ud9fe\udee8\ud96c\udd70&quot;, &quot;\u00e9\u00ff\u0087\ud906\udcc2\u00cd&quot;, &quot;&quot;, &quot;\udb01\udec5\u00fd\u00a0\u00cc&quot;, &quot;\ud81d\udd58\u00b7C\t\u00b7\udb25\udd81&quot;, &quot;\u00fa\u0000&quot;, &quot;\udade\udd3aQ\u00d0\&quot;b\ud8c0\udeaf\ud963\udeb9\ud992\udcc5\u00da\u00e9\u000e&quot;, &quot;&quot;, &quot;.exe&quot;, &quot;\u001bK\u0015\udb5a\udce8\u0016&quot;, &quot;\uda8d\udc36&quot;, &quot;\ud922\ude99\udbc3\udc5f\udaa8\udc99\u00e9&quot;, &quot;\u00b3\u001b\u00f9Z`\u90db\u00ad&quot;], &quot;allDay&quot;: true, &quot;recurrenceRule&quot;: &quot;d\\Zb\uda09\ude2c\uda9f\ude59\u00e7\u001a\u00f2\u00ac\u0080g\u001e\u00f2\u00da\u00c4&quot;, &quot;parentId&quot;: null, &quot;isRecurring&quot;: false, &quot;projectId&quot;: &quot;769523d0-6409-2893-aaec-24551e705bab&quot;, &quot;estimateMinutes&quot;: 1, &quot;scheduledAt&quot;: &quot;3787-12-17T01:35:43.90125+19:56&quot;, &quot;type&quot;: &quot;APPOINTMENT&quot;, &quot;order&quot;: -5446, &quot;priority&quot;: 1}&#x27; http://taska-backend:8080/tasks/ef1bbe9c-5f5e-3c56-b2b5-c545ff3ff8b7</pre></details><details open><summary>failure-3: PUT /tasks/{taskId}/occurrences/{occurrenceScheduledAt}</summary><h3>Message</h3><p>failure</p><h3>Details</h3><pre>1. Test Case ID: uC7ALd
+
+- API rejected schema-compliant request
+
+    Valid data should have been accepted
+    Expected: 2xx, 401, 403, 404, 409, 5xx
+
+[400] Bad Request:
+
+    `{&quot;detail&quot;:&quot;Invalid request parameter&quot;,&quot;instance&quot;:&quot;/tasks/e3e70682-c209-1cac-a29f-6fbed82c07cd/occurrences/value&quot;,&quot;status&quot;:400,&quot;title&quot;:&quot;Bad Request&quot;,&quot;type&quot;:&quot;about:blank&quot;}`
+
+Reproduce with:
+
+    curl -X PUT -H &#x27;Authorization: [Filtered]&#x27; -H &#x27;Content-Type: application/json&#x27; -d &#x27;{&quot;dueAt&quot;: null, &quot;priority&quot;: 1, &quot;scheduledAt&quot;: &quot;2000-01-01T00:00:00Z&quot;, &quot;title&quot;: &quot;0&quot;}&#x27; http://taska-backend:8080/tasks/e3e70682-c209-1cac-a29f-6fbed82c07cd/occurrences/value</pre><h3>Reproduction</h3><pre>curl -X PUT -H &#x27;Authorization: [Filtered]&#x27; -H &#x27;Content-Type: application/json&#x27; -d &#x27;{&quot;dueAt&quot;: null, &quot;priority&quot;: 1, &quot;scheduledAt&quot;: &quot;2000-01-01T00:00:00Z&quot;, &quot;title&quot;: &quot;0&quot;}&#x27; http://taska-backend:8080/tasks/e3e70682-c209-1cac-a29f-6fbed82c07cd/occurrences/value</pre></details><details open><summary>failure-4: PUT /tasks/{taskId}/occurrences/{occurrenceScheduledAt}/following</summary><h3>Message</h3><p>failure</p><h3>Details</h3><pre>1. Test Case ID: VgeWmd
+
+- API rejected schema-compliant request
+
+    Valid data should have been accepted
+    Expected: 2xx, 401, 403, 404, 409, 5xx
+
+[400] Bad Request:
+
+    `{&quot;detail&quot;:&quot;Invalid request parameter&quot;,&quot;instance&quot;:&quot;/tasks/e3e70682-c209-1cac-a29f-6fbed82c07cd/occurrences/value/following&quot;,&quot;status&quot;:400,&quot;title&quot;:&quot;Bad Request&quot;,&quot;type&quot;:&quot;about:blank&quot;}`
+
+Reproduce with:
+
+    curl -X PUT -H &#x27;Authorization: [Filtered]&#x27; -H &#x27;Content-Type: application/json&#x27; -d &#x27;{&quot;allDay&quot;: false, &quot;content&quot;: &quot;0&quot;, &quot;description&quot;: null, &quot;dueAt&quot;: null, &quot;estimateMinutes&quot;: 0, &quot;isRecurring&quot;: true, &quot;labels&quot;: [], &quot;mentionContext&quot;: null, &quot;order&quot;: 0, &quot;parentId&quot;: &quot;e3e70682-c209-1cac-a29f-6fbed82c07cd&quot;, &quot;priority&quot;: 1, &quot;projectId&quot;: &quot;f728b4fa-4248-1e3a-8a5d-2f346baa9455&quot;, &quot;recurrenceRule&quot;: &quot;&quot;, &quot;scheduledAt&quot;: &quot;2000-01-01T00:00:00Z&quot;, &quot;type&quot;: &quot;TODO&quot;}&#x27; http://taska-backend:8080/tasks/e3e70682-c209-1cac-a29f-6fbed82c07cd/occurrences/value/following</pre><h3>Reproduction</h3><pre>curl -X PUT -H &#x27;Authorization: [Filtered]&#x27; -H &#x27;Content-Type: application/json&#x27; -d &#x27;{&quot;allDay&quot;: false, &quot;content&quot;: &quot;0&quot;, &quot;description&quot;: null, &quot;dueAt&quot;: null, &quot;estimateMinutes&quot;: 0, &quot;isRecurring&quot;: true, &quot;labels&quot;: [], &quot;mentionContext&quot;: null, &quot;order&quot;: 0, &quot;parentId&quot;: &quot;e3e70682-c209-1cac-a29f-6fbed82c07cd&quot;, &quot;priority&quot;: 1, &quot;projectId&quot;: &quot;f728b4fa-4248-1e3a-8a5d-2f346baa9455&quot;, &quot;recurrenceRule&quot;: &quot;&quot;, &quot;scheduledAt&quot;: &quot;2000-01-01T00:00:00Z&quot;, &quot;type&quot;: &quot;TODO&quot;}&#x27; http://taska-backend:8080/tasks/e3e70682-c209-1cac-a29f-6fbed82c07cd/occurrences/value/following</pre></details><details open><summary>failure-5: PUT /planning-calendars/{planningCalendarId}</summary><h3>Message</h3><p>failure</p><h3>Details</h3><pre>1. Test Case ID: XYP6We
+
+- API rejected schema-compliant request
+
+    Valid data should have been accepted
+    Expected: 2xx, 401, 403, 404, 409, 5xx
+
+[400] Bad Request:
+
+    `{&quot;detail&quot;:&quot;Validation failed&quot;,&quot;instance&quot;:&quot;/planning-calendars/5c39e3e6-9906-5bdf-b6fc-68a4477c7aaf&quot;,&quot;status&quot;:400,&quot;title&quot;:&quot;Bad Request&quot;,&quot;type&quot;:&quot;about:blank&quot;,&quot;errors&quot;:{&quot;rules&quot;:&quot;availability rules must not overlap&quot;}}`
+
+Reproduce with:
+
+    curl -X PUT -H &#x27;Authorization: [Filtered]&#x27; -H &#x27;Content-Type: application/json&#x27; -d &#x27;{&quot;rules&quot;: [{&quot;endMinute&quot;: 780, &quot;startMinute&quot;: 551, &quot;dayOfWeek&quot;: 4}, {&quot;endMinute&quot;: 780, &quot;startMinute&quot;: 551, &quot;dayOfWeek&quot;: 4}], &quot;name&quot;: &quot;\u00eet9.\uda11\ude43\u00e9\u00e7\u0091\u001a\ud8cc\udd7c\udb45\uded7\ud824\uddcd\u0095j\u00e2!ca&quot;}&#x27; http://taska-backend:8080/planning-calendars/5c39e3e6-9906-5bdf-b6fc-68a4477c7aaf</pre><h3>Reproduction</h3><pre>curl -X PUT -H &#x27;Authorization: [Filtered]&#x27; -H &#x27;Content-Type: application/json&#x27; -d &#x27;{&quot;rules&quot;: [{&quot;endMinute&quot;: 780, &quot;startMinute&quot;: 551, &quot;dayOfWeek&quot;: 4}, {&quot;endMinute&quot;: 780, &quot;startMinute&quot;: 551, &quot;dayOfWeek&quot;: 4}], &quot;name&quot;: &quot;\u00eet9.\uda11\ude43\u00e9\u00e7\u0091\u001a\ud8cc\udd7c\udb45\uded7\ud824\uddcd\u0095j\u00e2!ca&quot;}&#x27; http://taska-backend:8080/planning-calendars/5c39e3e6-9906-5bdf-b6fc-68a4477c7aaf</pre></details><details open><summary>failure-6: POST /tasks</summary><h3>Message</h3><p>failure</p><h3>Details</h3><pre>1. Test Case ID: 5j7k1o
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{&quot;detail&quot;:&quot;Internal error&quot;,&quot;instance&quot;:&quot;/tasks&quot;,&quot;status&quot;:500,&quot;title&quot;:&quot;Internal Server Error&quot;,&quot;type&quot;:&quot;about:blank&quot;}`
+
+Reproduce with:
+
+    curl -X POST -H &#x27;Authorization: [Filtered]&#x27; -H &#x27;Content-Type: application/json&#x27; -d &#x27;{&quot;allDay&quot;: null, &quot;content&quot;: &quot;0&quot;, &quot;description&quot;: null, &quot;dueAt&quot;: &quot;2000-01-01T00:00:00Z&quot;, &quot;estimateMinutes&quot;: 1, &quot;isRecurring&quot;: null, &quot;labels&quot;: [], &quot;mentionContext&quot;: null, &quot;order&quot;: 0, &quot;parentId&quot;: &quot;e3e70682-c209-1cac-a29f-6fbed82c07cd&quot;, &quot;priority&quot;: 1, &quot;projectId&quot;: &quot;f728b4fa-4248-1e3a-8a5d-2f346baa9455&quot;, &quot;recurrenceRule&quot;: null, &quot;scheduledAt&quot;: null, &quot;type&quot;: null}&#x27; http://taska-backend:8080/tasks
+
+2. Test Case ID: bRAlOu
+
+- API rejected schema-compliant request
+
+    Valid data should have been accepted
+    Expected: 2xx, 401, 403, 404, 409, 5xx
+
+[400] Bad Request:
+
+    `{&quot;detail&quot;:&quot;Recurring series requires a recurrence rule&quot;,&quot;instance&quot;:&quot;/tasks&quot;,&quot;status&quot;:400,&quot;title&quot;:&quot;Bad Request&quot;,&quot;type&quot;:&quot;about:blank&quot;}`
+
+Reproduce with:
+
+    curl -X POST -H &#x27;Authorization: [Filtered]&#x27; -H &#x27;Content-Type: application/json&#x27; -d &#x27;{&quot;allDay&quot;: null, &quot;content&quot;: &quot;0&quot;, &quot;description&quot;: null, &quot;dueAt&quot;: null, &quot;estimateMinutes&quot;: 1, &quot;isRecurring&quot;: true, &quot;labels&quot;: [], &quot;mentionContext&quot;: null, &quot;order&quot;: 0, &quot;parentId&quot;: &quot;e3e70682-c209-1cac-a29f-6fbed82c07cd&quot;, &quot;priority&quot;: 1, &quot;projectId&quot;: &quot;f728b4fa-4248-1e3a-8a5d-2f346baa9455&quot;, &quot;recurrenceRule&quot;: null, &quot;scheduledAt&quot;: &quot;2000-01-01T00:00:00Z&quot;, &quot;type&quot;: &quot;APPOINTMENT&quot;}&#x27; http://taska-backend:8080/tasks</pre><h3>Reproduction</h3><pre>curl -X POST -H &#x27;Authorization: [Filtered]&#x27; -H &#x27;Content-Type: application/json&#x27; -d &#x27;{&quot;allDay&quot;: null, &quot;content&quot;: &quot;0&quot;, &quot;description&quot;: null, &quot;dueAt&quot;: &quot;2000-01-01T00:00:00Z&quot;, &quot;estimateMinutes&quot;: 1, &quot;isRecurring&quot;: null, &quot;labels&quot;: [], &quot;mentionContext&quot;: null, &quot;order&quot;: 0, &quot;parentId&quot;: &quot;e3e70682-c209-1cac-a29f-6fbed82c07cd&quot;, &quot;priority&quot;: 1, &quot;projectId&quot;: &quot;f728b4fa-4248-1e3a-8a5d-2f346baa9455&quot;, &quot;recurrenceRule&quot;: null, &quot;scheduledAt&quot;: null, &quot;type&quot;: null}&#x27; http://taska-backend:8080/tasks
+
+curl -X POST -H &#x27;Authorization: [Filtered]&#x27; -H &#x27;Content-Type: application/json&#x27; -d &#x27;{&quot;allDay&quot;: null, &quot;content&quot;: &quot;0&quot;, &quot;description&quot;: null, &quot;dueAt&quot;: null, &quot;estimateMinutes&quot;: 1, &quot;isRecurring&quot;: true, &quot;labels&quot;: [], &quot;mentionContext&quot;: null, &quot;order&quot;: 0, &quot;parentId&quot;: &quot;e3e70682-c209-1cac-a29f-6fbed82c07cd&quot;, &quot;priority&quot;: 1, &quot;projectId&quot;: &quot;f728b4fa-4248-1e3a-8a5d-2f346baa9455&quot;, &quot;recurrenceRule&quot;: null, &quot;scheduledAt&quot;: &quot;2000-01-01T00:00:00Z&quot;, &quot;type&quot;: &quot;APPOINTMENT&quot;}&#x27; http://taska-backend:8080/tasks</pre></details><details open><summary>failure-7: POST /tasks/{taskId}/reopen</summary><h3>Message</h3><p>failure</p><h3>Details</h3><pre>1. Test Case ID: ydHtHf
+
+- API rejected schema-compliant request
+
+    Valid data should have been accepted
+    Expected: 2xx, 401, 403, 404, 409, 5xx
+
+[400] Bad Request:
+
+    `{&quot;detail&quot;:&quot;Invalid request body&quot;,&quot;instance&quot;:&quot;/tasks/e3e70682-c209-1cac-a29f-6fbed82c07cd/reopen&quot;,&quot;status&quot;:400,&quot;title&quot;:&quot;Bad Request&quot;,&quot;type&quot;:&quot;about:blank&quot;}`
+
+Reproduce with:
+
+    curl -X POST -H &#x27;Authorization: [Filtered]&#x27; -H &#x27;Content-Type: application/json&#x27; -d &#x27;{&quot;occurrenceScheduledAt&quot;: &quot;2067-08-17T06:47:31+21:20&quot;}&#x27; http://taska-backend:8080/tasks/e3e70682-c209-1cac-a29f-6fbed82c07cd/reopen</pre><h3>Reproduction</h3><pre>curl -X POST -H &#x27;Authorization: [Filtered]&#x27; -H &#x27;Content-Type: application/json&#x27; -d &#x27;{&quot;occurrenceScheduledAt&quot;: &quot;2067-08-17T06:47:31+21:20&quot;}&#x27; http://taska-backend:8080/tasks/e3e70682-c209-1cac-a29f-6fbed82c07cd/reopen</pre></details><details open><summary>failure-8: POST /tasks/{taskId}/close</summary><h3>Message</h3><p>failure</p><h3>Details</h3><pre>1. Test Case ID: FLyIQc
+
+- API rejected schema-compliant request
+
+    Valid data should have been accepted
+    Expected: 2xx, 401, 403, 404, 409, 5xx
+
+[400] Bad Request:
+
+    `{&quot;detail&quot;:&quot;Invalid request body&quot;,&quot;instance&quot;:&quot;/tasks/e3e70682-c209-1cac-a29f-6fbed82c07cd/close&quot;,&quot;status&quot;:400,&quot;title&quot;:&quot;Bad Request&quot;,&quot;type&quot;:&quot;about:blank&quot;}`
+
+Reproduce with:
+
+    curl -X POST -H &#x27;Authorization: [Filtered]&#x27; -H &#x27;Content-Type: application/json&#x27; -d &#x27;{&quot;occurrenceScheduledAt&quot;: &quot;2067-08-17T06:47:31+21:20&quot;}&#x27; http://taska-backend:8080/tasks/e3e70682-c209-1cac-a29f-6fbed82c07cd/close</pre><h3>Reproduction</h3><pre>curl -X POST -H &#x27;Authorization: [Filtered]&#x27; -H &#x27;Content-Type: application/json&#x27; -d &#x27;{&quot;occurrenceScheduledAt&quot;: &quot;2067-08-17T06:47:31+21:20&quot;}&#x27; http://taska-backend:8080/tasks/e3e70682-c209-1cac-a29f-6fbed82c07cd/close</pre></details><details open><summary>failure-9: POST /planning-calendars</summary><h3>Message</h3><p>failure</p><h3>Details</h3><pre>1. Test Case ID: RwbipP
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{&quot;detail&quot;:&quot;Internal error&quot;,&quot;instance&quot;:&quot;/planning-calendars&quot;,&quot;status&quot;:500,&quot;title&quot;:&quot;Internal Server Error&quot;,&quot;type&quot;:&quot;about:blank&quot;}`
+
+Reproduce with:
+
+    curl -X POST -H &#x27;Authorization: [Filtered]&#x27; -H &#x27;Content-Type: application/json&#x27; -d &#x27;{&quot;name&quot;: &quot;+\ud8a4\udd42\u007f\u00aexS\t\u00cc\u0000ax\u0014\ud8e7\udf23&quot;}&#x27; http://taska-backend:8080/planning-calendars</pre><h3>Reproduction</h3><pre>curl -X POST -H &#x27;Authorization: [Filtered]&#x27; -H &#x27;Content-Type: application/json&#x27; -d &#x27;{&quot;name&quot;: &quot;+\ud8a4\udd42\u007f\u00aexS\t\u00cc\u0000ax\u0014\ud8e7\udf23&quot;}&#x27; http://taska-backend:8080/planning-calendars</pre></details><details open><summary>failure-10: POST /comments</summary><h3>Message</h3><p>failure</p><h3>Details</h3><pre>1. Test Case ID: hxDZb9
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{&quot;detail&quot;:&quot;Internal error&quot;,&quot;instance&quot;:&quot;/comments&quot;,&quot;status&quot;:500,&quot;title&quot;:&quot;Internal Server Error&quot;,&quot;type&quot;:&quot;about:blank&quot;}`
+
+Reproduce with:
+
+    curl -X POST -H &#x27;Authorization: [Filtered]&#x27; -H &#x27;Content-Type: application/json&#x27; -d &#x27;{&quot;content&quot;: &quot;00&quot;, &quot;projectId&quot;: &quot;e3e70682-c209-1cac-a29f-6fbed82c07cd&quot;, &quot;taskId&quot;: &quot;f728b4fa-4248-1e3a-8a5d-2f346baa9455&quot;}&#x27; http://taska-backend:8080/comments</pre><h3>Reproduction</h3><pre>curl -X POST -H &#x27;Authorization: [Filtered]&#x27; -H &#x27;Content-Type: application/json&#x27; -d &#x27;{&quot;content&quot;: &quot;00&quot;, &quot;projectId&quot;: &quot;e3e70682-c209-1cac-a29f-6fbed82c07cd&quot;, &quot;taskId&quot;: &quot;f728b4fa-4248-1e3a-8a5d-2f346baa9455&quot;}&#x27; http://taska-backend:8080/comments</pre></details><details open><summary>failure-11: POST /projects</summary><h3>Message</h3><p>failure</p><h3>Details</h3><pre>1. Test Case ID: WHgkzj
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{&quot;detail&quot;:&quot;Internal error&quot;,&quot;instance&quot;:&quot;/projects&quot;,&quot;status&quot;:500,&quot;title&quot;:&quot;Internal Server Error&quot;,&quot;type&quot;:&quot;about:blank&quot;}`
+
+Reproduce with:
+
+    curl -X POST -H &#x27;Authorization: [Filtered]&#x27; -H &#x27;Content-Type: application/json&#x27; -d &#x27;{&quot;color&quot;: null, &quot;isFavorite&quot;: null, &quot;name&quot;: &quot;0&quot;, &quot;order&quot;: 0, &quot;parentId&quot;: &quot;e3e70682-c209-1cac-a29f-6fbed82c07cd&quot;, &quot;planningCalendarId&quot;: null, &quot;viewStyle&quot;: null}&#x27; http://taska-backend:8080/projects</pre><h3>Reproduction</h3><pre>curl -X POST -H &#x27;Authorization: [Filtered]&#x27; -H &#x27;Content-Type: application/json&#x27; -d &#x27;{&quot;color&quot;: null, &quot;isFavorite&quot;: null, &quot;name&quot;: &quot;0&quot;, &quot;order&quot;: 0, &quot;parentId&quot;: &quot;e3e70682-c209-1cac-a29f-6fbed82c07cd&quot;, &quot;planningCalendarId&quot;: null, &quot;viewStyle&quot;: null}&#x27; http://taska-backend:8080/projects</pre></details><details open><summary>failure-12: PUT /projects/{projectId}</summary><h3>Message</h3><p>failure</p><h3>Details</h3><pre>1. Test Case ID: JGTJUT
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{&quot;detail&quot;:&quot;Internal error&quot;,&quot;instance&quot;:&quot;/projects/3a2c0646-15fa-4730-8b65-c1bb646edf12&quot;,&quot;status&quot;:500,&quot;title&quot;:&quot;Internal Server Error&quot;,&quot;type&quot;:&quot;about:blank&quot;}`
+
+Reproduce with:
+
+    curl -X PUT -H &#x27;Authorization: [Filtered]&#x27; -H &#x27;Content-Type: application/json&#x27; -d &#x27;{&quot;color&quot;: &quot;#808080&quot;, &quot;isFavorite&quot;: false, &quot;name&quot;: &quot;0&quot;, &quot;order&quot;: 0, &quot;parentId&quot;: &quot;e3e70682-c209-1cac-a29f-6fbed82c07cd&quot;, &quot;planningCalendarId&quot;: &quot;00000000-0000-0000-0000-000000000001&quot;, &quot;viewStyle&quot;: &quot;CALENDAR&quot;}&#x27; http://taska-backend:8080/projects/3a2c0646-15fa-4730-8b65-c1bb646edf12</pre><h3>Reproduction</h3><pre>curl -X PUT -H &#x27;Authorization: [Filtered]&#x27; -H &#x27;Content-Type: application/json&#x27; -d &#x27;{&quot;color&quot;: &quot;#808080&quot;, &quot;isFavorite&quot;: false, &quot;name&quot;: &quot;0&quot;, &quot;order&quot;: 0, &quot;parentId&quot;: &quot;e3e70682-c209-1cac-a29f-6fbed82c07cd&quot;, &quot;planningCalendarId&quot;: &quot;00000000-0000-0000-0000-000000000001&quot;, &quot;viewStyle&quot;: &quot;CALENDAR&quot;}&#x27; http://taska-backend:8080/projects/3a2c0646-15fa-4730-8b65-c1bb646edf12</pre></details><details open><summary>failure-13: Stateful tests</summary><h3>Message</h3><p>failure</p><h3>Details</h3><pre>1. Test Case ID: UXuMDE
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{&quot;detail&quot;:&quot;Internal error&quot;,&quot;instance&quot;:&quot;/projects/56c919d4-21ca-45c4-9d5a-6413d25e25a2&quot;,&quot;status&quot;:500,&quot;title&quot;:&quot;Internal Server Error&quot;,&quot;type&quot;:&quot;about:blank&quot;}`
+
+Reproduce with:
+
+    curl -X GET -H &#x27;Authorization: [Filtered]&#x27; &#x27;http://taska-backend:8080/comments?taskId=7ab3efac-ade6-1067-a1ec-b0338da3f215&amp;projectId=56c919d4-21ca-45c4-9d5a-6413d25e25a2&#x27;
+    curl -X DELETE -H &#x27;Authorization: [Filtered]&#x27; http://taska-backend:8080/projects/56c919d4-21ca-45c4-9d5a-6413d25e25a2</pre><h3>Reproduction</h3><pre>curl -X GET -H &#x27;Authorization: [Filtered]&#x27; &#x27;http://taska-backend:8080/comments?taskId=7ab3efac-ade6-1067-a1ec-b0338da3f215&amp;projectId=56c919d4-21ca-45c4-9d5a-6413d25e25a2&#x27;
+
+curl -X DELETE -H &#x27;Authorization: [Filtered]&#x27; http://taska-backend:8080/projects/56c919d4-21ca-45c4-9d5a-6413d25e25a2</pre></details><details open><summary>failure-14: Stateful tests</summary><h3>Message</h3><p>failure</p><h3>Details</h3><pre>1. Test Case ID: ksgeJx
+
+- API rejected schema-compliant request
+
+    Valid data should have been accepted
+    Expected: 2xx, 401, 403, 404, 409, 5xx
+
+[400] Bad Request:
+
+    `{&quot;detail&quot;:&quot;Invalid request parameter&quot;,&quot;instance&quot;:&quot;/projects/None&quot;,&quot;status&quot;:400,&quot;title&quot;:&quot;Bad Request&quot;,&quot;type&quot;:&quot;about:blank&quot;}`
+
+Reproduce with:
+
+    curl -X GET -H &#x27;Authorization: [Filtered]&#x27; -H &#x27;Content-Type: application/json&#x27; http://taska-backend:8080/comments
+    curl -X PUT -H &#x27;Authorization: [Filtered]&#x27; -H &#x27;Content-Type: application/json&#x27; -d &#x27;{&quot;planningCalendarId&quot;: &quot;025af31c-3649-5140-af16-4b78383a5a96&quot;, &quot;parentId&quot;: null, &quot;viewStyle&quot;: &quot;CALENDAR&quot;, &quot;order&quot;: -401, &quot;isFavorite&quot;: true, &quot;color&quot;: &quot;\ud849\udf39M\u00f6`\u00ae^\u00e6Ls\uda02\udca5\u0000\u00df\u00f8Z\ud85d\udde4&quot;, &quot;name&quot;: &quot;else&quot;}&#x27; http://taska-backend:8080/projects/None</pre><h3>Reproduction</h3><pre>curl -X GET -H &#x27;Authorization: [Filtered]&#x27; -H &#x27;Content-Type: application/json&#x27; http://taska-backend:8080/comments
+
+curl -X PUT -H &#x27;Authorization: [Filtered]&#x27; -H &#x27;Content-Type: application/json&#x27; -d &#x27;{&quot;planningCalendarId&quot;: &quot;025af31c-3649-5140-af16-4b78383a5a96&quot;, &quot;parentId&quot;: null, &quot;viewStyle&quot;: &quot;CALENDAR&quot;, &quot;order&quot;: -401, &quot;isFavorite&quot;: true, &quot;color&quot;: &quot;\ud849\udf39M\u00f6`\u00ae^\u00e6Ls\uda02\udca5\u0000\u00df\u00f8Z\ud85d\udde4&quot;, &quot;name&quot;: &quot;else&quot;}&#x27; http://taska-backend:8080/projects/None</pre></details><details open><summary>failure-15: Stateful tests</summary><h3>Message</h3><p>failure</p><h3>Details</h3><pre>1. Test Case ID: dc5ahn
+
+- API rejected schema-compliant request
+
+    Valid data should have been accepted
+    Expected: 2xx, 401, 403, 404, 409, 5xx
+
+[400] Bad Request:
+
+    `{&quot;detail&quot;:&quot;Invalid request parameter&quot;,&quot;instance&quot;:&quot;/projects/None&quot;,&quot;status&quot;:400,&quot;title&quot;:&quot;Bad Request&quot;,&quot;type&quot;:&quot;about:blank&quot;}`
+
+Reproduce with:
+
+    curl -X GET -H &#x27;Authorization: [Filtered]&#x27; http://taska-backend:8080/comments
+    curl -X GET -H &#x27;Authorization: [Filtered]&#x27; http://taska-backend:8080/projects/None</pre><h3>Reproduction</h3><pre>curl -X GET -H &#x27;Authorization: [Filtered]&#x27; http://taska-backend:8080/comments
+
+curl -X GET -H &#x27;Authorization: [Filtered]&#x27; http://taska-backend:8080/projects/None</pre></details><details open><summary>failure-16: Stateful tests</summary><h3>Message</h3><p>failure</p><h3>Details</h3><pre>1. Test Case ID: xRLdzB
+
+- API rejected schema-compliant request
+
+    Valid data should have been accepted
+    Expected: 2xx, 401, 403, 404, 409, 5xx
+
+[400] Bad Request:
+
+    `{&quot;detail&quot;:&quot;Invalid request parameter&quot;,&quot;instance&quot;:&quot;/projects/None&quot;,&quot;status&quot;:400,&quot;title&quot;:&quot;Bad Request&quot;,&quot;type&quot;:&quot;about:blank&quot;}`
+
+Reproduce with:
+
+    curl -X GET -H &#x27;Authorization: [Filtered]&#x27; &#x27;http://taska-backend:8080/tasks?showCompleted=false&amp;label=%C3%A0%C2%8CJ%C2%B7&amp;projectId=a2d6d225-c184-46ad-b24d-5b7589972a8a&#x27;
+    curl -X GET -H &#x27;Authorization: [Filtered]&#x27; http://taska-backend:8080/comments
+    curl -X DELETE -H &#x27;Authorization: [Filtered]&#x27; http://taska-backend:8080/projects/None</pre><h3>Reproduction</h3><pre>curl -X GET -H &#x27;Authorization: [Filtered]&#x27; &#x27;http://taska-backend:8080/tasks?showCompleted=false&amp;label=%C3%A0%C2%8CJ%C2%B7&amp;projectId=a2d6d225-c184-46ad-b24d-5b7589972a8a&#x27;
+
+curl -X GET -H &#x27;Authorization: [Filtered]&#x27; http://taska-backend:8080/comments
+
+curl -X DELETE -H &#x27;Authorization: [Filtered]&#x27; http://taska-backend:8080/projects/None</pre></details>
+</body>
+</html>

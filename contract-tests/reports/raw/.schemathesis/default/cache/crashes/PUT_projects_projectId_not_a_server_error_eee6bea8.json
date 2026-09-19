@@ -1,0 +1,158 @@
+{
+  "operation": "PUT /projects/{projectId}",
+  "method": "PUT",
+  "path_template": "/projects/{projectId}",
+  "fingerprint": "eee6bea8",
+  "case_id": "JGTJUT",
+  "code_sample": "curl -X PUT -H 'Authorization: [Filtered]' -H 'Content-Type: application/json' -d '{\"color\": \"#808080\", \"isFavorite\": false, \"name\": \"0\", \"order\": 0, \"parentId\": \"e3e70682-c209-1cac-a29f-6fbed82c07cd\", \"planningCalendarId\": \"00000000-0000-0000-0000-000000000001\", \"viewStyle\": \"CALENDAR\"}' http://taska-backend:8080/projects/3a2c0646-15fa-4730-8b65-c1bb646edf12",
+  "sequence": [
+    {
+      "method": "PUT",
+      "url": "http://taska-backend:8080/projects/3a2c0646-15fa-4730-8b65-c1bb646edf12",
+      "url_template": "http://taska-backend:8080/projects/{projectId}",
+      "headers": {
+        "User-Agent": "schemathesis/4.25.2",
+        "Accept-Encoding": "gzip, deflate",
+        "Accept": "*/*",
+        "Connection": "keep-alive",
+        "Authorization": "[Filtered]",
+        "X-Schemathesis-TestCaseId": "JGTJUT",
+        "Content-Type": "application/json",
+        "Content-Length": "205"
+      },
+      "response": {
+        "status_code": 500,
+        "headers": {
+          "vary": "Origin",
+          "x-content-type-options": "nosniff",
+          "x-xss-protection": "0",
+          "cache-control": "no-cache, no-store, max-age=0, must-revalidate",
+          "pragma": "no-cache",
+          "expires": "0",
+          "x-frame-options": "DENY",
+          "content-type": "application/problem+json",
+          "transfer-encoding": "chunked",
+          "date": "Sat, 19 Sep 2026 14:02:20 GMT",
+          "connection": "close"
+        },
+        "body": "{\"detail\":\"Internal error\",\"instance\":\"/projects/3a2c0646-15fa-4730-8b65-c1bb646edf12\",\"status\":500,\"title\":\"Internal Server Error\",\"type\":\"about:blank\"}"
+      },
+      "link": null,
+      "checks": [
+        {
+          "name": "not_a_server_error",
+          "status": "failure",
+          "message": "Server error"
+        }
+      ],
+      "meta": {
+        "generation": {
+          "time": 2.387000131420791e-05,
+          "mode": "positive"
+        },
+        "components": {
+          "PATH": "positive",
+          "BODY": "positive"
+        },
+        "phase": {
+          "name": "coverage",
+          "data": {
+            "type": "CoveragePhaseData",
+            "description": "Object with valid 'viewStyle' value: Enum value",
+            "location": null,
+            "parameter": "application/json",
+            "parameter_location": "BODY",
+            "scenario": "valid_object"
+          }
+        },
+        "pool_draws": [
+          {
+            "location": "path",
+            "parameter_name": "projectId",
+            "resource_name": "Project",
+            "resource_field": "id",
+            "source_operation": "POST /projects",
+            "source_status": 201
+          },
+          {
+            "location": "body",
+            "parameter_name": "name",
+            "resource_name": "Project",
+            "resource_field": "name",
+            "source_operation": "POST /projects",
+            "source_status": 201
+          },
+          {
+            "location": "body",
+            "parameter_name": "color",
+            "resource_name": "Project",
+            "resource_field": "color",
+            "source_operation": "POST /projects",
+            "source_status": 201
+          },
+          {
+            "location": "body",
+            "parameter_name": "order",
+            "resource_name": "Project",
+            "resource_field": "order",
+            "source_operation": "POST /projects",
+            "source_status": 201
+          },
+          {
+            "location": "body",
+            "parameter_name": "isFavorite",
+            "resource_name": "Project",
+            "resource_field": "isFavorite",
+            "source_operation": "POST /projects",
+            "source_status": 201
+          },
+          {
+            "location": "body",
+            "parameter_name": "planningCalendarId",
+            "resource_name": "Project",
+            "resource_field": "planningCalendarId",
+            "source_operation": "POST /projects",
+            "source_status": 201
+          }
+        ],
+        "pool_misses": [
+          [
+            "body",
+            "parentId"
+          ]
+        ],
+        "semantic_draws": [],
+        "dictionary_draws": [],
+        "constants_draws": [],
+        "raw_containers": {
+          "PATH": {
+            "projectId": "3a2c0646-15fa-4730-8b65-c1bb646edf12"
+          }
+        }
+      },
+      "path": "/projects/{projectId}",
+      "path_parameters": {
+        "projectId": "3a2c0646-15fa-4730-8b65-c1bb646edf12"
+      },
+      "query": {},
+      "case_headers": {
+        "Authorization": "[Filtered]"
+      },
+      "cookies": {},
+      "case_body": {
+        "encoding": "json",
+        "value": {
+          "color": "#808080",
+          "isFavorite": false,
+          "name": "0",
+          "order": 0,
+          "parentId": "e3e70682-c209-1cac-a29f-6fbed82c07cd",
+          "planningCalendarId": "00000000-0000-0000-0000-000000000001",
+          "viewStyle": "CALENDAR"
+        }
+      },
+      "media_type": "application/json",
+      "parent_index": null
+    }
+  ]
+}

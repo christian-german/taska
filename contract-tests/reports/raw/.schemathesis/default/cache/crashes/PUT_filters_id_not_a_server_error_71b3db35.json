@@ -1,0 +1,134 @@
+{
+  "operation": "PUT /filters/{id}",
+  "method": "PUT",
+  "path_template": "/filters/{id}",
+  "fingerprint": "71b3db35",
+  "case_id": "mHK44S",
+  "code_sample": "curl -X PUT -H 'Authorization: [Filtered]' -H 'Content-Type: application/json' -d '{\"0/0\": 3.718359252858967e-53, \"\\u00fbo\\ud8e4\\udd13\\u00cb\\u008f\": \"x\\ud99b\\uddf0\", \"projectId\": \"2bec23ea-089c-30d1-b8ca-bd8219ae9344\", \"hasDate\": false, \"order\": 86628, \"name\": \"\\uda3a\\udf84\\u00f4\\ud956\\udf02\\u00a8\\u0094\\ud852\\udf37)\\u00f9.M\\u0082\\u009e6\\u0088V\", \"clearProject\": false, \"color\": \"\\u0099\\u00f7\\u00a0\\u001b9kl\\u001d#\\u00d7}\\u0014\\u00d0\\u00f9\\u008b\", \"isFavorite\": true}' http://taska-backend:8080/filters/64cc0f82-9f5d-4f5b-965f-faf974619955",
+  "sequence": [
+    {
+      "method": "PUT",
+      "url": "http://taska-backend:8080/filters/64cc0f82-9f5d-4f5b-965f-faf974619955",
+      "url_template": "http://taska-backend:8080/filters/{id}",
+      "headers": {
+        "User-Agent": "schemathesis/4.25.2",
+        "Accept-Encoding": "gzip, deflate",
+        "Accept": "*/*",
+        "Connection": "keep-alive",
+        "Authorization": "[Filtered]",
+        "X-Schemathesis-TestCaseId": "mHK44S",
+        "Content-Type": "application/json",
+        "Content-Length": "385"
+      },
+      "response": {
+        "status_code": 500,
+        "headers": {
+          "vary": "Origin",
+          "x-content-type-options": "nosniff",
+          "x-xss-protection": "0",
+          "cache-control": "no-cache, no-store, max-age=0, must-revalidate",
+          "pragma": "no-cache",
+          "expires": "0",
+          "x-frame-options": "DENY",
+          "content-type": "application/problem+json",
+          "transfer-encoding": "chunked",
+          "date": "Sun, 06 Sep 2026 15:51:12 GMT",
+          "connection": "close"
+        },
+        "body": "{\"detail\":\"Internal error\",\"instance\":\"/filters/64cc0f82-9f5d-4f5b-965f-faf974619955\",\"status\":500,\"title\":\"Internal Server Error\",\"type\":\"about:blank\"}"
+      },
+      "link": null,
+      "checks": [
+        {
+          "name": "not_a_server_error",
+          "status": "failure",
+          "message": "Server error"
+        }
+      ],
+      "meta": {
+        "generation": {
+          "time": 0.010080773965455592,
+          "mode": "positive"
+        },
+        "components": {
+          "PATH": "positive",
+          "BODY": "positive"
+        },
+        "phase": {
+          "name": "fuzzing",
+          "data": {
+            "type": "FuzzingPhaseData",
+            "description": "Positive test case",
+            "location": null,
+            "parameter": null,
+            "parameter_location": null,
+            "mutations": []
+          }
+        },
+        "pool_draws": [
+          {
+            "location": "path",
+            "parameter_name": "id",
+            "resource_name": "Filter",
+            "resource_field": "id",
+            "source_operation": "POST /filters",
+            "source_status": 201
+          }
+        ],
+        "pool_misses": [],
+        "semantic_draws": [
+          {
+            "path": [
+              "name"
+            ],
+            "type_token": "string",
+            "format_token": null,
+            "pattern_hash": null,
+            "normalized_name": "name",
+            "value": "\uda3a\udf84\u00f4\ud956\udf02\u00a8\u0094\ud852\udf37)\u00f9.M\u0082\u009e6\u0088V",
+            "source_operation": "POST /planning-calendars"
+          },
+          {
+            "path": [
+              "color"
+            ],
+            "type_token": "string",
+            "format_token": null,
+            "pattern_hash": null,
+            "normalized_name": "color",
+            "value": "\u0099\u00f7\u00a0\u001b9kl\u001d#\u00d7}\u0014\u00d0\u00f9\u008b",
+            "source_operation": "POST /labels"
+          }
+        ],
+        "dictionary_draws": [],
+        "constants_draws": [],
+        "raw_containers": {}
+      },
+      "path": "/filters/{id}",
+      "path_parameters": {
+        "id": "64cc0f82-9f5d-4f5b-965f-faf974619955"
+      },
+      "query": {},
+      "case_headers": {
+        "Authorization": "[Filtered]"
+      },
+      "cookies": {},
+      "case_body": {
+        "encoding": "json",
+        "value": {
+          "0/0": 3.718359252858967e-53,
+          "\u00fbo\ud8e4\udd13\u00cb\u008f": "x\ud99b\uddf0",
+          "projectId": "2bec23ea-089c-30d1-b8ca-bd8219ae9344",
+          "hasDate": false,
+          "order": 86628,
+          "name": "\uda3a\udf84\u00f4\ud956\udf02\u00a8\u0094\ud852\udf37)\u00f9.M\u0082\u009e6\u0088V",
+          "clearProject": false,
+          "color": "\u0099\u00f7\u00a0\u001b9kl\u001d#\u00d7}\u0014\u00d0\u00f9\u008b",
+          "isFavorite": true
+        }
+      },
+      "media_type": "application/json",
+      "parent_index": null
+    }
+  ]
+}

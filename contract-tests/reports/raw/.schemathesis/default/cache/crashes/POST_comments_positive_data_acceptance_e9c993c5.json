@@ -1,0 +1,102 @@
+{
+  "operation": "POST /comments",
+  "method": "POST",
+  "path_template": "/comments",
+  "fingerprint": "e9c993c5",
+  "case_id": "R50saZ",
+  "code_sample": "curl -X POST -H 'Authorization: [Filtered]' -H 'Content-Type: application/json' -d '{\"taskId\": null, \"content\": \"\\f\", \"projectId\": \"93c83fb7-d2d1-435f-bdd2-d7e45ab0c46b\"}' http://taska-backend:8080/comments",
+  "sequence": [
+    {
+      "method": "POST",
+      "url": "http://taska-backend:8080/comments",
+      "url_template": "http://taska-backend:8080/comments",
+      "headers": {
+        "User-Agent": "schemathesis/4.25.2",
+        "Accept-Encoding": "gzip, deflate",
+        "Accept": "*/*",
+        "Connection": "keep-alive",
+        "Authorization": "[Filtered]",
+        "X-Schemathesis-TestCaseId": "R50saZ",
+        "Content-Type": "application/json",
+        "Content-Length": "86"
+      },
+      "response": {
+        "status_code": 400,
+        "headers": {
+          "vary": "Origin",
+          "x-content-type-options": "nosniff",
+          "x-xss-protection": "0",
+          "cache-control": "no-cache, no-store, max-age=0, must-revalidate",
+          "pragma": "no-cache",
+          "expires": "0",
+          "x-frame-options": "DENY",
+          "content-type": "application/problem+json",
+          "transfer-encoding": "chunked",
+          "date": "Wed, 16 Sep 2026 23:43:56 GMT",
+          "connection": "close"
+        },
+        "body": "{\"detail\":\"Validation failed\",\"instance\":\"/comments\",\"status\":400,\"title\":\"Bad Request\",\"type\":\"about:blank\",\"errors\":{\"content\":\"must not be blank\"}}"
+      },
+      "link": null,
+      "checks": [
+        {
+          "name": "positive_data_acceptance",
+          "status": "failure",
+          "message": "API rejected schema-compliant request\n\nValid data should have been accepted\nExpected: 2xx, 401, 403, 404, 409, 5xx"
+        }
+      ],
+      "meta": {
+        "generation": {
+          "time": 0.0036217450397089124,
+          "mode": "positive"
+        },
+        "components": {
+          "BODY": "positive"
+        },
+        "phase": {
+          "name": "stateful",
+          "data": {
+            "type": "StatefulPhaseData",
+            "description": "Positive test case",
+            "location": null,
+            "parameter": null,
+            "parameter_location": null,
+            "mutations": []
+          }
+        },
+        "pool_draws": [
+          {
+            "location": "body",
+            "parameter_name": "projectId",
+            "resource_name": "Project",
+            "resource_field": "id",
+            "source_operation": "GET /projects",
+            "source_status": 200
+          }
+        ],
+        "pool_misses": [],
+        "semantic_draws": [],
+        "dictionary_draws": [],
+        "constants_draws": [],
+        "raw_containers": {}
+      },
+      "path": "/comments",
+      "path_parameters": {},
+      "query": {},
+      "case_headers": {
+        "Authorization": "[Filtered]"
+      },
+      "cookies": {},
+      "case_body": {
+        "encoding": "json",
+        "value": {
+          "taskId": null,
+          "content": "\f",
+          "projectId": "93c83fb7-d2d1-435f-bdd2-d7e45ab0c46b"
+        }
+      },
+      "media_type": "application/json",
+      "parent_index": null
+    }
+  ]
+}

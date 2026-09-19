@@ -1,0 +1,92 @@
+{
+  "operation": "POST /projects",
+  "method": "POST",
+  "path_template": "/projects",
+  "fingerprint": "49538aaa",
+  "case_id": "gLsdL0",
+  "code_sample": "curl -X POST -H 'Authorization: [Filtered]' -H 'Content-Type: application/json' -d '{\"name\": \"0\"}' http://taska-backend:8080/projects",
+  "sequence": [
+    {
+      "method": "POST",
+      "url": "http://taska-backend:8080/projects",
+      "url_template": "http://taska-backend:8080/projects",
+      "headers": {
+        "User-Agent": "schemathesis/4.25.2",
+        "Accept-Encoding": "gzip, deflate",
+        "Accept": "*/*",
+        "Connection": "keep-alive",
+        "Authorization": "[Filtered]",
+        "X-Schemathesis-TestCaseId": "gLsdL0",
+        "Content-Type": "application/json",
+        "Content-Length": "13"
+      },
+      "response": {
+        "status_code": 201,
+        "headers": {
+          "vary": "Origin",
+          "x-content-type-options": "nosniff",
+          "x-xss-protection": "0",
+          "cache-control": "no-cache, no-store, max-age=0, must-revalidate",
+          "pragma": "no-cache",
+          "expires": "0",
+          "x-frame-options": "DENY",
+          "content-type": "application/json",
+          "content-length": "311",
+          "date": "Sat, 05 Sep 2026 10:02:00 GMT",
+          "keep-alive": "timeout=60",
+          "connection": "keep-alive"
+        },
+        "body": "{\"id\":\"ced258de-925f-4a25-91cb-51b2b9322703\",\"name\":\"0\",\"color\":\"#808080\",\"parentId\":null,\"order\":0,\"isFavorite\":false,\"viewStyle\":\"LIST\",\"isInboxProject\":false,\"planningCalendarId\":\"00000000-0000-0000-0000-000000000001\",\"createdAt\":\"2026-09-05T10:02:00.795546307Z\",\"updatedAt\":\"2026-09-05T10:02:00.795547317Z\"}"
+      },
+      "link": null,
+      "checks": [
+        {
+          "name": "response_schema_conformance",
+          "status": "failure",
+          "message": "Response violates schema\n\nnull is not of type \"string\"\n\nValidated against the response schema for status code 201.\n\nSchema at /properties/parentId:\n\n    {\n        \"type\": \"string\",\n        \"format\": \"uuid\"\n    }\n\nValue:\n\n    null"
+        }
+      ],
+      "meta": {
+        "generation": {
+          "time": 1.2529897503554821e-05,
+          "mode": "positive"
+        },
+        "components": {
+          "BODY": "positive"
+        },
+        "phase": {
+          "name": "coverage",
+          "data": {
+            "type": "CoveragePhaseData",
+            "description": "Object with only required properties",
+            "location": null,
+            "parameter": "application/json",
+            "parameter_location": "BODY",
+            "scenario": "object_only_required"
+          }
+        },
+        "pool_draws": [],
+        "pool_misses": [],
+        "semantic_draws": [],
+        "dictionary_draws": [],
+        "constants_draws": [],
+        "raw_containers": {}
+      },
+      "path": "/projects",
+      "path_parameters": {},
+      "query": {},
+      "case_headers": {
+        "Authorization": "[Filtered]"
+      },
+      "cookies": {},
+      "case_body": {
+        "encoding": "json",
+        "value": {
+          "name": "0"
+        }
+      },
+      "media_type": "application/json",
+      "parent_index": null
+    }
+  ]
+}

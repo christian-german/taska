@@ -1,0 +1,357 @@
+{
+  "operation": "PUT /projects/{id}",
+  "method": "PUT",
+  "path_template": "/projects/{id}",
+  "fingerprint": "33caf0fd",
+  "case_id": "2oJ7f6",
+  "code_sample": "curl -X POST -H 'Authorization: [Filtered]' -H 'Content-Type: application/json' -d '{\"occurrenceScheduledAt\": \"2026-09-05T10:02:58.048143748Z\"}' http://taska-backend:8080/tasks/f94866db-2e37-4b7c-93d6-8bee784d9228/close\ncurl -X GET -H 'Authorization: [Filtered]' -H 'Content-Type: application/json' http://taska-backend:8080/projects/71731181-d317-403c-8f9d-6b6cf51834d5\ncurl -X PUT -H 'Authorization: [Filtered]' -H 'Content-Type: application/json' -d '{\"\\u00d4\\u00fd\": {\"\\u00a0\": {\"\": null, \"\\u0094\\ud812\\uddf6\\u00ee\": null, \"\\u008c\": 631}}, \"\": [{\"\\ud84e\\udc55M\\u0002\\u00ceG\\u00d6\\u00cd\\u000e\\u00f3\": 8.93782144729283e+241}], \"\\u00a9\\ud85f\\udc8f\\ud927\\udc74\\u00a2\\u009b\": [true, true, 1.844913872244228e+16], \"`\\u0090o\\u00f1\": {\"5^\\u00d0\\u009d\": \"\\u00d8\\u00d5\\u00d6{\\u00b0\\ud921\\ude2d\\u009d\\u00bc\", \"\\u00e3\\ud9e7\\udc7by\\u00e9\\b\\ud8d8\\udfb9\\ud8a4\\udf2d\\u00f8\\uda76\\ude6fTiF\\u00c23\\u001c\\ud90e\\udcf40s\\u00e9\\ud2d0\\ud84b\\udf1a\\u0001\": [{}]}, \"\\u00cf\\u00b9\\u009c\\ud918\\udd70\\u00c5eO\\u00b7T\\u00f8\\ud9af\\ude9d\": {\"\": {\"\\u00c3M\\u00cb\\udb88\\udf20\\udb11\\ude58\\u0005\\u00fd\\udadb\\udc13\\u0085y^\\udb28\\udff0\\udaeb\\udc6c\\u00a6\": -370}, \"Q\\u00e6\": {}, \"\\uda3b\\udeaf\\u007f%&\\u00d0\\ud806\\udfd6x\": [false, null, 9.198780021000108e-125]}, \"viewStyle\": \"BOARD\", \"order\": -3033, \"planningCalendarId\": \"00000000-0000-0000-0000-000000000001\", \"isFavorite\": false, \"clearParent\": false, \"parentId\": null, \"name\": \"Inbox\"}' http://taska-backend:8080/projects/71731181-d317-403c-8f9d-6b6cf51834d5",
+  "sequence": [
+    {
+      "method": "POST",
+      "url": "http://taska-backend:8080/tasks/f94866db-2e37-4b7c-93d6-8bee784d9228/close",
+      "url_template": "http://taska-backend:8080/tasks/{taskId}/close",
+      "headers": {
+        "User-Agent": "schemathesis/4.25.2",
+        "Accept-Encoding": "gzip, deflate",
+        "Accept": "*/*",
+        "Connection": "keep-alive",
+        "Authorization": "[Filtered]",
+        "X-Schemathesis-TestCaseId": "BrRpyB",
+        "Content-Type": "application/json",
+        "Content-Length": "59"
+      },
+      "response": {
+        "status_code": 200,
+        "headers": {
+          "vary": "Origin",
+          "x-content-type-options": "nosniff",
+          "x-xss-protection": "0",
+          "cache-control": "no-cache, no-store, max-age=0, must-revalidate",
+          "pragma": "no-cache",
+          "expires": "0",
+          "x-frame-options": "DENY",
+          "content-type": "application/json",
+          "content-length": "624",
+          "date": "Sat, 05 Sep 2026 10:03:09 GMT",
+          "keep-alive": "timeout=60",
+          "connection": "keep-alive"
+        },
+        "body": "{\"id\":\"f94866db-2e37-4b7c-93d6-8bee784d9228\",\"content\":\"\u00b2\u009d\u00c5G\u4d34\u0094\uda85\udf12\",\"description\":null,\"projectId\":\"71731181-d317-403c-8f9d-6b6cf51834d5\",\"sectionId\":null,\"parentId\":null,\"order\":0,\"priority\":null,\"labels\":[],\"isCompleted\":true,\"scheduledAt\":null,\"dueAt\":\"2026-09-05T10:02:16.778964Z\",\"allDay\":false,\"isRecurring\":false,\"estimateMinutes\":null,\"mentionContext\":null,\"recurrenceRule\":null,\"createdAt\":\"2026-09-05T10:02:18.056173Z\",\"updatedAt\":\"2026-09-05T10:03:09.409824885Z\",\"completedAt\":\"2026-09-05T10:03:09.409533566Z\",\"instanceId\":null,\"occurrenceScheduledAt\":null,\"isVirtual\":null,\"rruleEndsAt\":null,\"type\":\"TODO\"}"
+      },
+      "link": null,
+      "checks": [],
+      "meta": {
+        "generation": {
+          "time": 0.01395535992924124,
+          "mode": "positive"
+        },
+        "components": {
+          "PATH": "positive",
+          "BODY": "positive"
+        },
+        "phase": {
+          "name": "stateful",
+          "data": {
+            "type": "StatefulPhaseData",
+            "description": "Positive test case",
+            "location": null,
+            "parameter": null,
+            "parameter_location": null,
+            "mutations": []
+          }
+        },
+        "pool_draws": [
+          {
+            "location": "path",
+            "parameter_name": "taskId",
+            "resource_name": "Task",
+            "resource_field": "id",
+            "source_operation": "GET /tasks",
+            "source_status": 200
+          }
+        ],
+        "pool_misses": [],
+        "semantic_draws": [
+          {
+            "path": [
+              "occurrenceScheduledAt"
+            ],
+            "type_token": "string",
+            "format_token": "date-time",
+            "pattern_hash": null,
+            "normalized_name": "occurrencescheduledat",
+            "value": "2026-09-05T10:02:58.048143748Z",
+            "source_operation": "POST /sections"
+          }
+        ],
+        "dictionary_draws": [],
+        "constants_draws": [],
+        "raw_containers": {}
+      },
+      "path": "/tasks/{taskId}/close",
+      "path_parameters": {
+        "taskId": "f94866db-2e37-4b7c-93d6-8bee784d9228"
+      },
+      "query": {},
+      "case_headers": {
+        "Authorization": "[Filtered]"
+      },
+      "cookies": {},
+      "case_body": {
+        "encoding": "json",
+        "value": {
+          "occurrenceScheduledAt": "2026-09-05T10:02:58.048143748Z"
+        }
+      },
+      "media_type": "application/json",
+      "parent_index": null
+    },
+    {
+      "method": "GET",
+      "url": "http://taska-backend:8080/projects/71731181-d317-403c-8f9d-6b6cf51834d5",
+      "url_template": "http://taska-backend:8080/projects/{id}",
+      "headers": {
+        "User-Agent": "schemathesis/4.25.2",
+        "Accept-Encoding": "gzip, deflate",
+        "Accept": "*/*",
+        "Connection": "keep-alive",
+        "Authorization": "[Filtered]",
+        "X-Schemathesis-TestCaseId": "Cf1dDH"
+      },
+      "response": {
+        "status_code": 200,
+        "headers": {
+          "vary": "Origin",
+          "x-content-type-options": "nosniff",
+          "x-xss-protection": "0",
+          "cache-control": "no-cache, no-store, max-age=0, must-revalidate",
+          "pragma": "no-cache",
+          "expires": "0",
+          "x-frame-options": "DENY",
+          "content-type": "application/json",
+          "content-length": "308",
+          "date": "Sat, 05 Sep 2026 10:03:09 GMT",
+          "keep-alive": "timeout=60",
+          "connection": "keep-alive"
+        },
+        "body": "{\"id\":\"71731181-d317-403c-8f9d-6b6cf51834d5\",\"name\":\"Inbox\",\"color\":\"\",\"parentId\":null,\"order\":-290,\"isFavorite\":false,\"viewStyle\":\"CALENDAR\",\"isInboxProject\":true,\"planningCalendarId\":\"00000000-0000-0000-0000-000000000001\",\"createdAt\":\"2026-09-05T10:01:45.787077Z\",\"updatedAt\":\"2026-09-05T10:03:08.774260Z\"}"
+      },
+      "link": {
+        "operationId": "POST /tasks/{taskId}/close -> [200] GetProject -> GET /projects/{id}",
+        "parameters": {
+          "path.id": "$response.body#/projectId"
+        }
+      },
+      "checks": [],
+      "meta": {
+        "generation": {
+          "time": 0.0005348409758880734,
+          "mode": "positive"
+        },
+        "components": {},
+        "phase": {
+          "name": "stateful",
+          "data": {
+            "type": "StatefulPhaseData",
+            "description": "Positive test case",
+            "location": null,
+            "parameter": null,
+            "parameter_location": null,
+            "mutations": []
+          }
+        },
+        "pool_draws": [],
+        "pool_misses": [],
+        "semantic_draws": [],
+        "dictionary_draws": [],
+        "constants_draws": [],
+        "raw_containers": {}
+      },
+      "path": "/projects/{id}",
+      "path_parameters": {
+        "id": "71731181-d317-403c-8f9d-6b6cf51834d5"
+      },
+      "query": {},
+      "case_headers": {
+        "Authorization": "[Filtered]"
+      },
+      "cookies": {},
+      "case_body": {
+        "encoding": "none"
+      },
+      "media_type": null,
+      "parent_index": 0
+    },
+    {
+      "method": "PUT",
+      "url": "http://taska-backend:8080/projects/71731181-d317-403c-8f9d-6b6cf51834d5",
+      "url_template": "http://taska-backend:8080/projects/{id}",
+      "headers": {
+        "User-Agent": "schemathesis/4.25.2",
+        "Accept-Encoding": "gzip, deflate",
+        "Accept": "*/*",
+        "Connection": "keep-alive",
+        "Authorization": "[Filtered]",
+        "X-Schemathesis-TestCaseId": "2oJ7f6",
+        "Content-Type": "application/json",
+        "Content-Length": "946"
+      },
+      "response": {
+        "status_code": 200,
+        "headers": {
+          "vary": "Origin",
+          "x-content-type-options": "nosniff",
+          "x-xss-protection": "0",
+          "cache-control": "no-cache, no-store, max-age=0, must-revalidate",
+          "pragma": "no-cache",
+          "expires": "0",
+          "x-frame-options": "DENY",
+          "content-type": "application/json",
+          "content-length": "309",
+          "date": "Sat, 05 Sep 2026 10:03:09 GMT",
+          "keep-alive": "timeout=60",
+          "connection": "keep-alive"
+        },
+        "body": "{\"id\":\"71731181-d317-403c-8f9d-6b6cf51834d5\",\"name\":\"Inbox\",\"color\":\"\",\"parentId\":null,\"order\":-3033,\"isFavorite\":false,\"viewStyle\":\"BOARD\",\"isInboxProject\":true,\"planningCalendarId\":\"00000000-0000-0000-0000-000000000001\",\"createdAt\":\"2026-09-05T10:01:45.787077Z\",\"updatedAt\":\"2026-09-05T10:03:09.515140009Z\"}"
+      },
+      "link": {
+        "operationId": "GET /projects/{id} -> [200] PutProject_3 -> PUT /projects/{id}",
+        "parameters": {
+          "path.id": "$response.body#/id"
+        },
+        "requestBody": {
+          "name": "$response.body#/name",
+          "parentId": "$response.body#/parentId",
+          "planningCalendarId": "$response.body#/planningCalendarId"
+        }
+      },
+      "checks": [
+        {
+          "name": "negative_data_rejection",
+          "status": "failure",
+          "message": "API accepted schema-violating request\n\nInvalid data should have been rejected\nExpected: 400, 401, 403, 404, 405, 406, 409, 422, 428, 5xx\nInvalid component: positive test case"
+        }
+      ],
+      "meta": {
+        "generation": {
+          "time": 0.025004568975418806,
+          "mode": "negative"
+        },
+        "components": {
+          "BODY": "negative"
+        },
+        "phase": {
+          "name": "stateful",
+          "data": {
+            "type": "StatefulPhaseData",
+            "description": "Positive test case",
+            "location": null,
+            "parameter": null,
+            "parameter_location": null,
+            "mutations": []
+          }
+        },
+        "pool_draws": [
+          {
+            "location": "body",
+            "parameter_name": "name",
+            "resource_name": "Project",
+            "resource_field": "name",
+            "source_operation": "GET /projects",
+            "source_status": 200
+          },
+          {
+            "location": "body",
+            "parameter_name": "parentId",
+            "resource_name": "Project",
+            "resource_field": "parentId",
+            "source_operation": "PUT /projects/{id}",
+            "source_status": 200
+          },
+          {
+            "location": "body",
+            "parameter_name": "planningCalendarId",
+            "resource_name": "Project",
+            "resource_field": "planningCalendarId",
+            "source_operation": "GET /projects",
+            "source_status": 200
+          }
+        ],
+        "pool_misses": [],
+        "semantic_draws": [
+          {
+            "path": [
+              "name"
+            ],
+            "type_token": "string",
+            "format_token": null,
+            "pattern_hash": null,
+            "normalized_name": "name",
+            "value": "\u009e\u00d8w\u00ec%w\u00ffr\\>h<\"\u00be\u00fa\ud80f\udfc1\udbd5\udc5e\u008f\udadd\uddd0\u00e9\u0001",
+            "source_operation": "POST /sections"
+          }
+        ],
+        "dictionary_draws": [],
+        "constants_draws": [],
+        "raw_containers": {}
+      },
+      "path": "/projects/{id}",
+      "path_parameters": {
+        "id": "71731181-d317-403c-8f9d-6b6cf51834d5"
+      },
+      "query": {},
+      "case_headers": {
+        "Authorization": "[Filtered]"
+      },
+      "cookies": {},
+      "case_body": {
+        "encoding": "json",
+        "value": {
+          "\u00d4\u00fd": {
+            "\u00a0": {
+              "": null,
+              "\u0094\ud812\uddf6\u00ee": null,
+              "\u008c": 631
+            }
+          },
+          "": [
+            {
+              "\ud84e\udc55M\u0002\u00ceG\u00d6\u00cd\u000e\u00f3": 8.93782144729283e+241
+            }
+          ],
+          "\u00a9\ud85f\udc8f\ud927\udc74\u00a2\u009b": [
+            true,
+            true,
+            1.844913872244228e+16
+          ],
+          "`\u0090o\u00f1": {
+            "5^\u00d0\u009d": "\u00d8\u00d5\u00d6{\u00b0\ud921\ude2d\u009d\u00bc",
+            "\u00e3\ud9e7\udc7by\u00e9\b\ud8d8\udfb9\ud8a4\udf2d\u00f8\uda76\ude6fTiF\u00c23\u001c\ud90e\udcf40s\u00e9\ud2d0\ud84b\udf1a\u0001": [
+              {}
+            ]
+          },
+          "\u00cf\u00b9\u009c\ud918\udd70\u00c5eO\u00b7T\u00f8\ud9af\ude9d": {
+            "": {
+              "\u00c3M\u00cb\udb88\udf20\udb11\ude58\u0005\u00fd\udadb\udc13\u0085y^\udb28\udff0\udaeb\udc6c\u00a6": -370
+            },
+            "Q\u00e6": {},
+            "\uda3b\udeaf\u007f%&\u00d0\ud806\udfd6x": [
+              false,
+              null,
+              9.198780021000108e-125
+            ]
+          },
+          "viewStyle": "BOARD",
+          "order": -3033,
+          "planningCalendarId": "00000000-0000-0000-0000-000000000001",
+          "isFavorite": false,
+          "clearParent": false,
+          "parentId": null,
+          "name": "Inbox"
+        }
+      },
+      "media_type": "application/json",
+      "parent_index": 1
+    }
+  ]
+}

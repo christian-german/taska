@@ -1,0 +1,109 @@
+{
+  "operation": "POST /projects",
+  "method": "POST",
+  "path_template": "/projects",
+  "fingerprint": "2927513f",
+  "case_id": "SiLjNg",
+  "code_sample": "curl -X POST -H 'Authorization: [Filtered]' -H 'Content-Type: application/json' -d '{\"\": [], \"\\u00ec\\ud931\\ude78\": null, \"isFavorite\": null, \"clearParent\": true, \"planningCalendarId\": \"3e2051eb-14ad-5e25-b76c-be804f010f70\", \"name\": \"\\u008f\\udb7f\\udea3VK\\u0017,o\\udb5d\\uddb2\\u0080\"}' http://taska-backend:8080/projects",
+  "sequence": [
+    {
+      "method": "POST",
+      "url": "http://taska-backend:8080/projects",
+      "url_template": "http://taska-backend:8080/projects",
+      "headers": {
+        "User-Agent": "schemathesis/4.25.2",
+        "Accept-Encoding": "gzip, deflate",
+        "Accept": "*/*",
+        "Connection": "keep-alive",
+        "Authorization": "[Filtered]",
+        "X-Schemathesis-TestCaseId": "SiLjNg",
+        "Content-Type": "application/json",
+        "Content-Length": "197"
+      },
+      "response": {
+        "status_code": 404,
+        "headers": {
+          "vary": "Origin",
+          "x-content-type-options": "nosniff",
+          "x-xss-protection": "0",
+          "cache-control": "no-cache, no-store, max-age=0, must-revalidate",
+          "pragma": "no-cache",
+          "expires": "0",
+          "x-frame-options": "DENY",
+          "content-type": "application/problem+json",
+          "transfer-encoding": "chunked",
+          "date": "Mon, 07 Sep 2026 22:15:31 GMT",
+          "keep-alive": "timeout=60",
+          "connection": "keep-alive"
+        },
+        "body": "{\"detail\":\"Planning calendar not found: 3e2051eb-14ad-5e25-b76c-be804f010f70\",\"instance\":\"/projects\",\"status\":404,\"title\":\"Not Found\",\"type\":\"about:blank\"}"
+      },
+      "link": null,
+      "checks": [
+        {
+          "name": "status_code_conformance",
+          "status": "failure",
+          "message": "Undocumented HTTP status code\n\nReceived: 404\nDocumented: 201, 400, 401, 403, 409, 422, 500"
+        }
+      ],
+      "meta": {
+        "generation": {
+          "time": 0.006287263939157128,
+          "mode": "positive"
+        },
+        "components": {
+          "BODY": "positive"
+        },
+        "phase": {
+          "name": "fuzzing",
+          "data": {
+            "type": "FuzzingPhaseData",
+            "description": "Positive test case",
+            "location": null,
+            "parameter": null,
+            "parameter_location": null,
+            "mutations": []
+          }
+        },
+        "pool_draws": [],
+        "pool_misses": [],
+        "semantic_draws": [
+          {
+            "path": [
+              "name"
+            ],
+            "type_token": "string",
+            "format_token": null,
+            "pattern_hash": null,
+            "normalized_name": "name",
+            "value": "\u008f\udb7f\udea3VK\u0017,o\udb5d\uddb2\u0080",
+            "source_operation": "POST /planning-calendars"
+          }
+        ],
+        "dictionary_draws": [],
+        "constants_draws": [],
+        "raw_containers": {}
+      },
+      "path": "/projects",
+      "path_parameters": {},
+      "query": {},
+      "case_headers": {
+        "Authorization": "[Filtered]"
+      },
+      "cookies": {},
+      "case_body": {
+        "encoding": "json",
+        "value": {
+          "": [],
+          "\u00ec\ud931\ude78": null,
+          "isFavorite": null,
+          "clearParent": true,
+          "planningCalendarId": "3e2051eb-14ad-5e25-b76c-be804f010f70",
+          "name": "\u008f\udb7f\udea3VK\u0017,o\udb5d\uddb2\u0080"
+        }
+      },
+      "media_type": "application/json",
+      "parent_index": null
+    }
+  ]
+}

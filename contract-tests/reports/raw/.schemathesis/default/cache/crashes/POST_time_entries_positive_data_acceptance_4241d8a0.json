@@ -1,0 +1,126 @@
+{
+  "operation": "POST /time-entries",
+  "method": "POST",
+  "path_template": "/time-entries",
+  "fingerprint": "4241d8a0",
+  "case_id": "Wx5niL",
+  "code_sample": "curl -X POST -H 'Authorization: [Filtered]' -H 'Content-Type: application/json' -d '{\"projectId\": \"46ca6cb0-1bcf-4a0b-9224-aa816b6d915a\", \"notes\": \"\", \"startAt\": \"2464-11-21T23:14:31+18:10\", \"endAt\": \"2026-09-06T13:22:56.207447544Z\"}' http://taska-backend:8080/time-entries",
+  "sequence": [
+    {
+      "method": "POST",
+      "url": "http://taska-backend:8080/time-entries",
+      "url_template": "http://taska-backend:8080/time-entries",
+      "headers": {
+        "User-Agent": "schemathesis/4.25.2",
+        "Accept-Encoding": "gzip, deflate",
+        "Accept": "*/*",
+        "Connection": "keep-alive",
+        "Authorization": "[Filtered]",
+        "X-Schemathesis-TestCaseId": "Wx5niL",
+        "Content-Type": "application/json",
+        "Content-Length": "149"
+      },
+      "response": {
+        "status_code": 400,
+        "headers": {
+          "vary": "Origin",
+          "x-content-type-options": "nosniff",
+          "x-xss-protection": "0",
+          "cache-control": "no-cache, no-store, max-age=0, must-revalidate",
+          "pragma": "no-cache",
+          "expires": "0",
+          "x-frame-options": "DENY",
+          "content-type": "application/problem+json",
+          "transfer-encoding": "chunked",
+          "date": "Sun, 06 Sep 2026 13:22:58 GMT",
+          "connection": "close"
+        },
+        "body": "{\"detail\":\"Invalid request body\",\"instance\":\"/time-entries\",\"status\":400,\"title\":\"Bad Request\",\"type\":\"about:blank\"}"
+      },
+      "link": null,
+      "checks": [
+        {
+          "name": "positive_data_acceptance",
+          "status": "failure",
+          "message": "API rejected schema-compliant request\n\nValid data should have been accepted\nExpected: 2xx, 401, 403, 404, 409, 5xx"
+        }
+      ],
+      "meta": {
+        "generation": {
+          "time": 0.00573656999040395,
+          "mode": "positive"
+        },
+        "components": {
+          "BODY": "positive"
+        },
+        "phase": {
+          "name": "stateful",
+          "data": {
+            "type": "StatefulPhaseData",
+            "description": "Positive test case",
+            "location": null,
+            "parameter": null,
+            "parameter_location": null,
+            "mutations": []
+          }
+        },
+        "pool_draws": [
+          {
+            "location": "body",
+            "parameter_name": "projectId",
+            "resource_name": "Project",
+            "resource_field": "id",
+            "source_operation": "POST /filters",
+            "source_status": 201
+          }
+        ],
+        "pool_misses": [],
+        "semantic_draws": [
+          {
+            "path": [
+              "endAt"
+            ],
+            "type_token": "string",
+            "format_token": "date-time",
+            "pattern_hash": null,
+            "normalized_name": "endat",
+            "value": "2026-09-06T13:22:56.207447544Z",
+            "source_operation": "POST /sections"
+          },
+          {
+            "path": [
+              "notes"
+            ],
+            "type_token": "string",
+            "format_token": null,
+            "pattern_hash": null,
+            "normalized_name": "notes",
+            "value": "",
+            "source_operation": "POST /time-entries"
+          }
+        ],
+        "dictionary_draws": [],
+        "constants_draws": [],
+        "raw_containers": {}
+      },
+      "path": "/time-entries",
+      "path_parameters": {},
+      "query": {},
+      "case_headers": {
+        "Authorization": "[Filtered]"
+      },
+      "cookies": {},
+      "case_body": {
+        "encoding": "json",
+        "value": {
+          "projectId": "46ca6cb0-1bcf-4a0b-9224-aa816b6d915a",
+          "notes": "",
+          "startAt": "2464-11-21T23:14:31+18:10",
+          "endAt": "2026-09-06T13:22:56.207447544Z"
+        }
+      },
+      "media_type": "application/json",
+      "parent_index": null
+    }
+  ]
+}

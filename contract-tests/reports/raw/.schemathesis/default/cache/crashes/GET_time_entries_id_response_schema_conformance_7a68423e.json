@@ -1,0 +1,98 @@
+{
+  "operation": "GET /time-entries/{id}",
+  "method": "GET",
+  "path_template": "/time-entries/{id}",
+  "fingerprint": "7a68423e",
+  "case_id": "k3GzhY",
+  "code_sample": "curl -X GET -H 'Authorization: [Filtered]' http://taska-backend:8080/time-entries/3435682a-ecfe-4b52-9a32-b7289c0451a8",
+  "sequence": [
+    {
+      "method": "GET",
+      "url": "http://taska-backend:8080/time-entries/3435682a-ecfe-4b52-9a32-b7289c0451a8",
+      "url_template": "http://taska-backend:8080/time-entries/{id}",
+      "headers": {
+        "User-Agent": "schemathesis/4.25.2",
+        "Accept-Encoding": "gzip, deflate",
+        "Accept": "*/*",
+        "Connection": "keep-alive",
+        "Authorization": "[Filtered]",
+        "X-Schemathesis-TestCaseId": "k3GzhY"
+      },
+      "response": {
+        "status_code": 200,
+        "headers": {
+          "vary": "Origin",
+          "x-content-type-options": "nosniff",
+          "x-xss-protection": "0",
+          "cache-control": "no-cache, no-store, max-age=0, must-revalidate",
+          "pragma": "no-cache",
+          "expires": "0",
+          "x-frame-options": "DENY",
+          "content-type": "application/json",
+          "content-length": "295",
+          "date": "Sun, 06 Sep 2026 13:22:50 GMT",
+          "keep-alive": "timeout=60",
+          "connection": "keep-alive"
+        },
+        "body": "{\"id\":\"3435682a-ecfe-4b52-9a32-b7289c0451a8\",\"startAt\":\"3342-12-10T13:57:58Z\",\"endAt\":\"2026-09-06T13:22:14.526976Z\",\"projectId\":\"5a3ca6b7-5ce5-467a-b825-bcd79c35296d\",\"description\":\"\\u0006\u00c4\u00af\ud928\udc24\",\"notes\":null,\"createdAt\":\"2026-09-06T13:22:17.053625Z\",\"updatedAt\":\"2026-09-06T13:22:32.816247Z\"}"
+      },
+      "link": null,
+      "checks": [
+        {
+          "name": "response_schema_conformance",
+          "status": "failure",
+          "message": "Response violates schema\n\nnull is not of type \"string\"\n\nValidated against the response schema for status code 200.\n\nSchema at /properties/notes:\n\n    {\n        \"type\": \"string\"\n    }\n\nValue:\n\n    null"
+        }
+      ],
+      "meta": {
+        "generation": {
+          "time": 0.003632917068898678,
+          "mode": "positive"
+        },
+        "components": {
+          "PATH": "positive"
+        },
+        "phase": {
+          "name": "fuzzing",
+          "data": {
+            "type": "FuzzingPhaseData",
+            "description": "Positive test case",
+            "location": null,
+            "parameter": null,
+            "parameter_location": null,
+            "mutations": []
+          }
+        },
+        "pool_draws": [
+          {
+            "location": "path",
+            "parameter_name": "id",
+            "resource_name": "TimeEntry",
+            "resource_field": "id",
+            "source_operation": "GET /time-entries",
+            "source_status": 200
+          }
+        ],
+        "pool_misses": [],
+        "semantic_draws": [],
+        "dictionary_draws": [],
+        "constants_draws": [],
+        "raw_containers": {}
+      },
+      "path": "/time-entries/{id}",
+      "path_parameters": {
+        "id": "3435682a-ecfe-4b52-9a32-b7289c0451a8"
+      },
+      "query": {},
+      "case_headers": {
+        "Authorization": "[Filtered]"
+      },
+      "cookies": {},
+      "case_body": {
+        "encoding": "none"
+      },
+      "media_type": null,
+      "parent_index": null
+    }
+  ]
+}

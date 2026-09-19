@@ -1,0 +1,104 @@
+{
+  "operation": "PUT /filters/{id}",
+  "method": "PUT",
+  "path_template": "/filters/{id}",
+  "fingerprint": "87f58c10",
+  "case_id": "B4Msy7",
+  "code_sample": "curl -X PUT -H 'Authorization: [Filtered]' -H 'Content-Type: application/json' -d '{\"name\": \"\\ud89e\\uddb4\"}' http://taska-backend:8080/filters/cd88a628-9d36-4252-ad31-ca8425aca198",
+  "sequence": [
+    {
+      "method": "PUT",
+      "url": "http://taska-backend:8080/filters/cd88a628-9d36-4252-ad31-ca8425aca198",
+      "url_template": "http://taska-backend:8080/filters/{id}",
+      "headers": {
+        "User-Agent": "schemathesis/4.25.2",
+        "Accept-Encoding": "gzip, deflate",
+        "Accept": "*/*",
+        "Connection": "keep-alive",
+        "Authorization": "[Filtered]",
+        "X-Schemathesis-TestCaseId": "B4Msy7",
+        "Content-Type": "application/json",
+        "Content-Length": "24"
+      },
+      "response": {
+        "status_code": 200,
+        "headers": {
+          "vary": "Origin",
+          "x-content-type-options": "nosniff",
+          "x-xss-protection": "0",
+          "cache-control": "no-cache, no-store, max-age=0, must-revalidate",
+          "pragma": "no-cache",
+          "expires": "0",
+          "x-frame-options": "DENY",
+          "content-type": "application/json",
+          "content-length": "139",
+          "date": "Sun, 06 Sep 2026 13:22:20 GMT",
+          "keep-alive": "timeout=60",
+          "connection": "keep-alive"
+        },
+        "body": "{\"id\":\"cd88a628-9d36-4252-ad31-ca8425aca198\",\"name\":\"\ud89e\uddb4\",\"color\":\"charcoal\",\"order\":0,\"isFavorite\":false,\"projectId\":null,\"hasDate\":null}"
+      },
+      "link": null,
+      "checks": [
+        {
+          "name": "response_schema_conformance",
+          "status": "failure",
+          "message": "Response violates schema\n\nnull is not of type \"boolean\"\n\nValidated against the response schema for status code 200.\n\nSchema at /properties/hasDate:\n\n    {\n        \"type\": \"boolean\"\n    }\n\nValue:\n\n    null"
+        }
+      ],
+      "meta": {
+        "generation": {
+          "time": 0.008728047017939389,
+          "mode": "positive"
+        },
+        "components": {
+          "PATH": "positive",
+          "BODY": "positive"
+        },
+        "phase": {
+          "name": "fuzzing",
+          "data": {
+            "type": "FuzzingPhaseData",
+            "description": "Positive test case",
+            "location": null,
+            "parameter": null,
+            "parameter_location": null,
+            "mutations": []
+          }
+        },
+        "pool_draws": [
+          {
+            "location": "path",
+            "parameter_name": "id",
+            "resource_name": "Filter",
+            "resource_field": "id",
+            "source_operation": "POST /filters",
+            "source_status": 201
+          }
+        ],
+        "pool_misses": [],
+        "semantic_draws": [],
+        "dictionary_draws": [],
+        "constants_draws": [],
+        "raw_containers": {}
+      },
+      "path": "/filters/{id}",
+      "path_parameters": {
+        "id": "cd88a628-9d36-4252-ad31-ca8425aca198"
+      },
+      "query": {},
+      "case_headers": {
+        "Authorization": "[Filtered]"
+      },
+      "cookies": {},
+      "case_body": {
+        "encoding": "json",
+        "value": {
+          "name": "\ud89e\uddb4"
+        }
+      },
+      "media_type": "application/json",
+      "parent_index": null
+    }
+  ]
+}

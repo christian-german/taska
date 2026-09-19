@@ -1,0 +1,98 @@
+{
+  "operation": "GET /filters/{id}",
+  "method": "GET",
+  "path_template": "/filters/{id}",
+  "fingerprint": "96385d04",
+  "case_id": "IYseZ6",
+  "code_sample": "curl -X GET -H 'Authorization: [Filtered]' http://taska-backend:8080/filters/64cc0f82-9f5d-4f5b-965f-faf974619955",
+  "sequence": [
+    {
+      "method": "GET",
+      "url": "http://taska-backend:8080/filters/64cc0f82-9f5d-4f5b-965f-faf974619955",
+      "url_template": "http://taska-backend:8080/filters/{id}",
+      "headers": {
+        "User-Agent": "schemathesis/4.25.2",
+        "Accept-Encoding": "gzip, deflate",
+        "Accept": "*/*",
+        "Connection": "keep-alive",
+        "Authorization": "[Filtered]",
+        "X-Schemathesis-TestCaseId": "IYseZ6"
+      },
+      "response": {
+        "status_code": 200,
+        "headers": {
+          "vary": "Origin",
+          "x-content-type-options": "nosniff",
+          "x-xss-protection": "0",
+          "cache-control": "no-cache, no-store, max-age=0, must-revalidate",
+          "pragma": "no-cache",
+          "expires": "0",
+          "x-frame-options": "DENY",
+          "content-type": "application/json",
+          "content-length": "187",
+          "date": "Sun, 06 Sep 2026 15:51:21 GMT",
+          "keep-alive": "timeout=60",
+          "connection": "keep-alive"
+        },
+        "body": "{\"id\":\"64cc0f82-9f5d-4f5b-965f-faf974619955\",\"name\":\"\udb87\udfae\uda80\udf20\u0092\u00b3\uda1b\udcf9\\t`\",\"color\":\"\u0099\u00f7\u00a0\\u001B9kl\\u001D#\u00d7}\\u0014\u00d0\u00f9\u008b\",\"order\":1268,\"isFavorite\":false,\"projectId\":null,\"hasDate\":false}"
+      },
+      "link": null,
+      "checks": [
+        {
+          "name": "response_schema_conformance",
+          "status": "failure",
+          "message": "Response violates schema\n\nnull is not of type \"string\"\n\nValidated against the response schema for status code 200.\n\nSchema at /properties/projectId:\n\n    {\n        \"type\": \"string\",\n        \"description\": \"Optional project constraint; when present, only tasks in this project are matched.\",\n        \"format\": \"uuid\"\n    }\n\nValue:\n\n    null"
+        }
+      ],
+      "meta": {
+        "generation": {
+          "time": 0.0017845389666035771,
+          "mode": "positive"
+        },
+        "components": {
+          "PATH": "positive"
+        },
+        "phase": {
+          "name": "fuzzing",
+          "data": {
+            "type": "FuzzingPhaseData",
+            "description": "Positive test case",
+            "location": null,
+            "parameter": null,
+            "parameter_location": null,
+            "mutations": []
+          }
+        },
+        "pool_draws": [
+          {
+            "location": "path",
+            "parameter_name": "id",
+            "resource_name": "Filter",
+            "resource_field": "id",
+            "source_operation": "PUT /filters/{id}",
+            "source_status": 200
+          }
+        ],
+        "pool_misses": [],
+        "semantic_draws": [],
+        "dictionary_draws": [],
+        "constants_draws": [],
+        "raw_containers": {}
+      },
+      "path": "/filters/{id}",
+      "path_parameters": {
+        "id": "64cc0f82-9f5d-4f5b-965f-faf974619955"
+      },
+      "query": {},
+      "case_headers": {
+        "Authorization": "[Filtered]"
+      },
+      "cookies": {},
+      "case_body": {
+        "encoding": "none"
+      },
+      "media_type": null,
+      "parent_index": null
+    }
+  ]
+}

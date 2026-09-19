@@ -1,0 +1,102 @@
+{
+  "operation": "GET /filters/{id}/tasks",
+  "method": "GET",
+  "path_template": "/filters/{id}/tasks",
+  "fingerprint": "ff1785a0",
+  "case_id": "C56HkB",
+  "code_sample": "curl -X GET -H 'Authorization: [Filtered]' http://taska-backend:8080/filters/a44ebee0-df5c-4d46-8a19-0c2879175b72/tasks",
+  "sequence": [
+    {
+      "method": "GET",
+      "url": "http://taska-backend:8080/filters/a44ebee0-df5c-4d46-8a19-0c2879175b72/tasks",
+      "url_template": "http://taska-backend:8080/filters/{id}/tasks",
+      "headers": {
+        "User-Agent": "schemathesis/4.25.2",
+        "Accept-Encoding": "gzip, deflate",
+        "Accept": "*/*",
+        "Connection": "keep-alive",
+        "Authorization": "[Filtered]",
+        "X-Schemathesis-TestCaseId": "C56HkB"
+      },
+      "response": {
+        "status_code": 200,
+        "headers": {
+          "vary": "Origin",
+          "x-content-type-options": "nosniff",
+          "x-xss-protection": "0",
+          "cache-control": "no-cache, no-store, max-age=0, must-revalidate",
+          "pragma": "no-cache",
+          "expires": "0",
+          "x-frame-options": "DENY",
+          "content-type": "application/json",
+          "transfer-encoding": "chunked",
+          "date": "Sat, 05 Sep 2026 10:02:02 GMT",
+          "keep-alive": "timeout=60",
+          "connection": "keep-alive"
+        },
+        "body": "[{\"id\":\"3dde09eb-94e2-47b5-a9f3-43cfd4866317\",\"content\":\"0\",\"description\":\"\",\"projectId\":\"71731181-d317-403c-8f9d-6b6cf51834d5\",\"sectionId\":null,\"parentId\":null,\"order\":0,\"priority\":null,\"labels\":[],\"isCompleted\":false,\"scheduledAt\":null,\"dueAt\":\"2000-01-01T00:00:00Z\",\"allDay\":false,\"isRecurring\":false,\"estimateMinutes\":null,\"mentionContext\":null,\"recurrenceRule\":null,\"createdAt\":\"2026-09-05T10:02:01.373762Z\",\"updatedAt\":\"2026-09-05T10:02:01.373763Z\",\"completedAt\":null,\"instanceId\":null,\"occurrenceScheduledAt\":null,\"isVirtual\":null,\"rruleEndsAt\":null,\"type\":\"TODO\"},{\"id\":\"bd2a83ab-2843-4003-8842-5066114ae2e5\",\"content\":\"0\",\"description\":\"\",\"projectId\":\"71731181-d317-403c-8f9d-6b6cf51834d5\",\"sectionId\":null,\"parentId\":null,\"order\":0,\"priority\":null,\"labels\":[],\"isCompleted\":false,\"scheduledAt\":null,\"dueAt\":null,\"allDay\":false,\"isRecurring\":false,\"estimateMinutes\":null,\"mentionContext\":null,\"recurrenceRule\":null,\"createdAt\":\"2026-09-05T10:02:01.395092Z\",\"updatedAt\":\"2026-09-05T10:02:01.395092Z\",\"completedAt\":null,\"instanceId\":null,\"occurrenceScheduledAt\":null,\"isVirtual\":null,\"rruleEndsAt\":null,\"type\":\"TODO\"},{\"id\":\"019adc12-6007-4b57-bd55-b472535e88bf\",\"content\":\"0\",\"description\":null,\"projectId\":\"71731181-d317-403c-8f9d-6b6cf51834d5\",\"sectionId\":null,\"parentId\":null,\"order\":0,\"priority\":null,\"labels\":[],\"isCompleted\":false,\"scheduledAt\":null,\"dueAt\":null,\"allDay\":false,\"isRecurring\":false,\"estimateMinutes\":null,\"mentionContext\":null,\"recurrenceRule\":null,\"createdAt\":\"2026-09-05T10:02:01.409429Z\",\"updatedAt\":\"2026-09-05T10:02:01.409429Z\",\"completedAt\":null,\"instanceId\":null,\"occurrenceScheduledAt\":null,\"isVirtual\":null,\"rruleEndsAt\":null,\"type\":\"TODO\"},{\"id\":\"ecd28666-b476-4862-a752-805eea0b0e6d\",\"content\":\"0\",\"description\":null,\"projectId\":\"71731181-d317-403c-8f9d-6b6cf51834d5\",\"sectionId\":\"96ac5fd0-7f22-48c5-8b9f-b7d6c38f39c0\",\"parentId\":null,\"order\":0,\"priority\":null,\"labels\":[],\"isCompleted\":false,\"scheduledAt\":null,\"dueAt\":null,\"allDay\":false,\"isRecurring\":false,\"estimateMinutes\":null,\"mentionContext\":null,\"recurrenceRule\":null,\"createdAt\":\"2026-09-05T10:02:01.422975Z\",\"updatedAt\":\"2026-09-05T10:02:01.422975Z\",\"completedAt\":null,\"instanceId\":null,\"occurrenceScheduledAt\":null,\"isVirtual\":null,\"rruleEndsAt\":null,\"type\":\"TODO\"},{\"id\":\"45c53176-17ac-49a9-aa5c-d7986e1a39e6\",\"content\":\"0\",\"description\":null,\"projectId\":\"71731181-d317-403c-8f9d-6b6cf51834d5\",\"sectionId\":null,\"parentId\":null,\"order\":0,\"priority\":null,\"labels\":[],\"isCompleted\":false,\"scheduledAt\":null,\"dueAt\":null,\"allDay\":false,\"isRecurring\":false,\"estimateMinutes\":null,\"mentionContext\":null,\"recurrenceRule\":null,\"createdAt\":\"2026-09-05T10:02:01.436698Z\",\"updatedAt\":\"2026-09-05T10:02:01.436698Z\",\"completedAt\":null,\"instanceId\":null,\"occurrenceScheduledAt\":null,\"isVirtual\":null,\"rruleEndsAt\":null,\"type\":\"TODO\"},{\"id\":\"af19d5ca-0a65-4e0f-9c24-ccd6c5b247fa\",\"content\":\"0\",\"description\":null,\"projectId\":\"71731181-d317-403c-8f9d-6b6cf51834d5\",\"sectionId\":null,\"parentId\":null,\"order\":0,\"priority\":null,\"labels\":[],\"isCompleted\":false,\"scheduledAt\":null,\"dueAt\":null,\"allDay\":false,\"isRecurring\":false,\"estimateMinutes\":null,\"mentionContext\":null,\"recurrenceRule\":\"\",\"createdAt\":\"2026-09-05T10:02:01.466222Z\",\"updatedAt\":\"2026-09-05T10:02:01.466222Z\",\"completedAt\":null,\"instanceId\":null,\"occurrenceScheduledAt\":null,\"isVirtual\":null,\"rruleEndsAt\":null,\"type\":\"TODO\"},{\"id\":\"a45829f1-8436-480b-b492-b2c0b7679ba0\",\"content\":\"0\",\"description\":null,\"projectId\":\"71731181-d317-403c-8f9d-6b6cf51834d5\",\"sectionId\":null,\"parentId\":null,\"order\":0,\"priority\":1,\"labels\":[],\"isCompleted\":false,\"scheduledAt\":null,\"dueAt\":null,\"allDay\":false,\"isRecurring\":false,\"estimateMinutes\":null,\"mentionContext\":null,\"recurrenceRule\":null,\"createdAt\":\"2026-09-05T10:02:01.494206Z\",\"updatedAt\":\"2026-09-05T10:02:01.494207Z\",\"completedAt\":null,\"instanceId\":null,\"occurrenceScheduledAt\":null,\"isVirtual\":null,\"rruleEndsAt\":null,\"type\":\"TODO\"},{\"id\":\"ac188b56-348b-477c-83ab-d335495b5283\",\"content\":\"0\",\"description\":null,\"projectId\":\"71731181-d317-403c-8f9d-6b6cf51834d5\",\"sectionId\":null,\"parentId\":null,\"order\":0,\"priority\":null,\"labels\":[],\"isCompleted\":false,\"scheduledAt\":null,\"dueAt\":null,\"allDay\":false,\"isRecurring\":false,\"estimateMinutes\":null,\"mentionContext\":null,\"recurrenceRule\":null,\"createdAt\":\"2026-09-05T10:02:01.516349Z\",\"updatedAt\":\"2026-09-05T10:02:01.516350Z\",\"completedAt\":null,\"instanceId\":null,\"occurrenceScheduledAt\":null,\"isVirtual\":null,\"rruleEndsAt\":null,\"type\":\"TODO\"},{\"id\":\"b1a1fcb8-4ded-4fb4-a4e5-c56320809f68\",\"content\":\"0\",\"description\":null,\"projectId\":\"71731181-d317-403c-8f9d-6b6cf51834d5\",\"sectionId\":null,\"parentId\":null,\"order\":0,\"priority\":null,\"labels\":[],\"isCompleted\":false,\"scheduledAt\":null,\"dueAt\":null,\"allDay\":false,\"isRecurring\":false,\"estimateMinutes\":null,\"mentionContext\":null,\"recurrenceRule\":null,\"createdAt\":\"2026-09-05T10:02:01.557172Z\",\"updatedAt\":\"2026-09-05T10:02:01.557173Z\",\"completedAt\":null,\"instanceId\":null,\"occurrenceScheduledAt\":null,\"isVirtual\":null,\"rruleEndsAt\":null,\"type\":\"TODO\"},{\"id\":\"a1a4a8d6-afcf-48f7-be5e-38eb59d89dea\",\"content\":\"0\",\"description\":null,\"projectId\":\"71731181-d317-403c-8f9d-6b6cf51834d5\",\"sectionId\":null,\"parentId\":null,\"order\":0,\"priority\":null,\"labels\":[],\"isCompleted\":false,\"scheduledAt\":null,\"dueAt\":null,\"allDay\":false,\"isRecurring\":false,\"estimateMinutes\":null,\"mentionContext\":\"\",\"recurrenceRule\":null,\"createdAt\":\"2026-09-05T10:02:01.571555Z\",\"updatedAt\":\"2026-09-05T10:02:01.571556Z\",\"completedAt\":null,\"instanceId\":null,\"occurrenceScheduledAt\":null,\"isVirtual\":null,\"rruleEndsAt\":null,\"type\":\"TODO\"},{\"id\":\"9d14591d-5c53-4caf-8508-25d6304fbca0\",\"content\":\"0\",\"description\":null,\"projectId\":\"71731181-d317-403c-8f9d-6b6cf51834d5\",\"sectionId\":null,\"parentId\":null,\"order\":0,\"priority\":null,\"labels\":[],\"isCompleted\":false,\"scheduledAt\":null,\"dueAt\":null,\"allDay\":false,\"isRecurring\":false,\"estimateMinutes\":null,\"mentionContext\":null,\"recurrenceRule\":null,\"createdAt\":\"2026-09-05T10:02:01.585986Z\",\"updatedAt\":\"2026-09-05T10:02:01.585987Z\",\"completedAt\":null,\"instanceId\":null,\"occurrenceScheduledAt\":null,\"isVirtual\":null,\"rruleEndsAt\":null,\"type\":\"TODO\"},{\"id\":\"42640072-7974-4f44-a382-5827602b2195\",\"content\":\"0\",\"description\":null,\"projectId\":\"71731181-d317-403c-8f9d-6b6cf51834d5\",\"sectionId\":null,\"parentId\":null,\"order\":0,\"priority\":null,\"labels\":[],\"isCompleted\":false,\"scheduledAt\":null,\"dueAt\":null,\"allDay\":false,\"isRecurring\":false,\"estimateMinutes\":null,\"mentionContext\":null,\"recurrenceRule\":null,\"createdAt\":\"2026-09-05T10:02:01.599385Z\",\"updatedAt\":\"2026-09-05T10:02:01.599386Z\",\"completedAt\":null,\"instanceId\":null,\"occurrenceScheduledAt\":null,\"isVirtual\":null,\"rruleEndsAt\":null,\"type\":\"TODO\"},{\"id\":\"cc5f5537-fb3c-42c9-aae3-c8f952893567\",\"content\":\"0\",\"description\":null,\"projectId\":\"71731181-d317-403c-8f9d-6b6cf51834d5\",\"sectionId\":null,\"parentId\":null,\"order\":0,\"priority\":null,\"labels\":[],\"isCompleted\":false,\"scheduledAt\":null,\"dueAt\":\"2000-01-01T00:00:00Z\",\"allDay\":false,\"isRecurring\":false,\"estimateMinutes\":null,\"mentionContext\":null,\"recurrenceRule\":null,\"createdAt\":\"2026-09-05T10:02:01.618223Z\",\"updatedAt\":\"2026-09-05T10:02:01.618223Z\",\"completedAt\":null,\"instanceId\":null,\"occurrenceScheduledAt\":null,\"isVirtual\":null,\"rruleEndsAt\":null,\"type\":\"TODO\"},{\"id\":\"a40b6658-a55b-407a-bfdd-ae5708635637\",\"content\":\"0\",\"description\":\"\",\"projectId\":\"71731181-d317-403c-8f9d-6b6cf51834d5\",\"sectionId\":null,\"parentId\":null,\"order\":0,\"priority\":null,\"labels\":[],\"isCompleted\":false,\"scheduledAt\":null,\"dueAt\":null,\"allDay\":false,\"isRecurring\":false,\"estimateMinutes\":null,\"mentionContext\":null,\"recurrenceRule\":null,\"createdAt\":\"2026-09-05T10:02:01.630312Z\",\"updatedAt\":\"2026-09-05T10:02:01.630312Z\",\"completedAt\":null,\"instanceId\":null,\"occurrenceScheduledAt\":null,\"isVirtual\":null,\"rruleEndsAt\":null,\"type\":\"TODO\"},{\"id\":\"30319fb6-4f75-434e-a5e3-20a664e68cec\",\"content\":\"0\",\"description\":null,\"projectId\":\"71731181-d317-403c-8f9d-6b6cf51834d5\",\"sectionId\":null,\"parentId\":null,\"order\":0,\"priority\":null,\"labels\":[],\"isCompleted\":false,\"scheduledAt\":null,\"dueAt\":null,\"allDay\":false,\"isRecurring\":false,\"estimateMinutes\":null,\"mentionContext\":null,\"recurrenceRule\":null,\"createdAt\":\"2026-09-05T10:02:01.641646Z\",\"updatedAt\":\"2026-09-05T10:02:01.641647Z\",\"completedAt\":null,\"instanceId\":null,\"occurrenceScheduledAt\":null,\"isVirtual\":null,\"rruleEndsAt\":null,\"type\":\"TODO\"}]"
+      },
+      "link": null,
+      "checks": [
+        {
+          "name": "response_schema_conformance",
+          "status": "failure",
+          "message": "Response violates schema\n\nnull is not of type \"string\"\n\nValidated against the response schema for status code 200.\n\nSchema at /TaskDto/properties/dueAt:\n\n    {\n        \"type\": \"string\",\n        \"format\": \"date-time\"\n    }\n\nValue:\n\n    null"
+        }
+      ],
+      "meta": {
+        "generation": {
+          "time": 0.000385490944609046,
+          "mode": "positive"
+        },
+        "components": {
+          "PATH": "positive"
+        },
+        "phase": {
+          "name": "coverage",
+          "data": {
+            "type": "CoveragePhaseData",
+            "description": "Default positive test case",
+            "location": null,
+            "parameter": null,
+            "parameter_location": null,
+            "scenario": "default_positive_test"
+          }
+        },
+        "pool_draws": [
+          {
+            "location": "path",
+            "parameter_name": "id",
+            "resource_name": "Filter",
+            "resource_field": "id",
+            "source_operation": "POST /filters",
+            "source_status": 201
+          }
+        ],
+        "pool_misses": [],
+        "semantic_draws": [],
+        "dictionary_draws": [],
+        "constants_draws": [],
+        "raw_containers": {
+          "PATH": {
+            "id": "a44ebee0-df5c-4d46-8a19-0c2879175b72"
+          }
+        }
+      },
+      "path": "/filters/{id}/tasks",
+      "path_parameters": {
+        "id": "a44ebee0-df5c-4d46-8a19-0c2879175b72"
+      },
+      "query": {},
+      "case_headers": {
+        "Authorization": "[Filtered]"
+      },
+      "cookies": {},
+      "case_body": {
+        "encoding": "none"
+      },
+      "media_type": null,
+      "parent_index": null
+    }
+  ]
+}

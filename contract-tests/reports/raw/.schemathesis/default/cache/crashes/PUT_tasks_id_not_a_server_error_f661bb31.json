@@ -1,0 +1,217 @@
+{
+  "operation": "PUT /tasks/{id}",
+  "method": "PUT",
+  "path_template": "/tasks/{id}",
+  "fingerprint": "f661bb31",
+  "case_id": "0y3sPl",
+  "code_sample": "curl -X PUT -H 'Authorization: [Filtered]' -H 'Content-Type: application/json' -d '{\"content\": \"0\", \"type\": \"TODO\", \"description\": \"\", \"projectId\": \"f1e9b02c-c977-4779-899e-6ae932c32f59\", \"parentId\": \"e3e70682-c209-1cac-a29f-6fbed82c07cd\", \"order\": 0, \"priority\": 1, \"labels\": [], \"scheduledAt\": \"2000-01-01T00:00:00Z\", \"dueAt\": \"2000-01-01T00:00:00Z\", \"allDay\": false, \"isRecurring\": false, \"estimateMinutes\": 2147483646, \"mentionContext\": \"\", \"recurrenceRule\": \"\"}' http://taska-backend:8080/tasks/64ac2f00-a224-4324-a896-2282061278e7",
+  "sequence": [
+    {
+      "method": "PUT",
+      "url": "http://taska-backend:8080/tasks/64ac2f00-a224-4324-a896-2282061278e7",
+      "url_template": "http://taska-backend:8080/tasks/{id}",
+      "headers": {
+        "User-Agent": "schemathesis/4.25.2",
+        "Accept-Encoding": "gzip, deflate",
+        "Accept": "*/*",
+        "Connection": "keep-alive",
+        "Authorization": "[Filtered]",
+        "X-Schemathesis-TestCaseId": "0y3sPl",
+        "Content-Type": "application/json",
+        "Content-Length": "383"
+      },
+      "response": {
+        "status_code": 500,
+        "headers": {
+          "vary": "Origin",
+          "x-content-type-options": "nosniff",
+          "x-xss-protection": "0",
+          "cache-control": "no-cache, no-store, max-age=0, must-revalidate",
+          "pragma": "no-cache",
+          "expires": "0",
+          "x-frame-options": "DENY",
+          "content-type": "application/problem+json",
+          "transfer-encoding": "chunked",
+          "date": "Mon, 07 Sep 2026 22:26:06 GMT",
+          "connection": "close"
+        },
+        "body": "{\"detail\":\"Internal error\",\"instance\":\"/tasks/64ac2f00-a224-4324-a896-2282061278e7\",\"status\":500,\"title\":\"Internal Server Error\",\"type\":\"about:blank\"}"
+      },
+      "link": null,
+      "checks": [
+        {
+          "name": "not_a_server_error",
+          "status": "failure",
+          "message": "Server error"
+        }
+      ],
+      "meta": {
+        "generation": {
+          "time": 5.6459917686879635e-05,
+          "mode": "positive"
+        },
+        "components": {
+          "PATH": "positive",
+          "BODY": "positive"
+        },
+        "phase": {
+          "name": "coverage",
+          "data": {
+            "type": "CoveragePhaseData",
+            "description": "Object with valid 'parentId' value: Valid string",
+            "location": null,
+            "parameter": "application/json",
+            "parameter_location": "BODY",
+            "scenario": "valid_object"
+          }
+        },
+        "pool_draws": [
+          {
+            "location": "path",
+            "parameter_name": "id",
+            "resource_name": "Task",
+            "resource_field": "id",
+            "source_operation": "POST /tasks",
+            "source_status": 201
+          },
+          {
+            "location": "body",
+            "parameter_name": "type",
+            "resource_name": "Task",
+            "resource_field": "type",
+            "source_operation": "POST /tasks",
+            "source_status": 201
+          },
+          {
+            "location": "body",
+            "parameter_name": "projectId",
+            "resource_name": "Project",
+            "resource_field": "id",
+            "source_operation": "POST /projects",
+            "source_status": 201
+          },
+          {
+            "location": "body",
+            "parameter_name": "order",
+            "resource_name": "Task",
+            "resource_field": "order",
+            "source_operation": "POST /tasks",
+            "source_status": 201
+          },
+          {
+            "location": "body",
+            "parameter_name": "priority",
+            "resource_name": "Task",
+            "resource_field": "priority",
+            "source_operation": "POST /tasks",
+            "source_status": 201
+          },
+          {
+            "location": "body",
+            "parameter_name": "labels",
+            "resource_name": "Task",
+            "resource_field": "labels",
+            "source_operation": "POST /tasks",
+            "source_status": 201
+          },
+          {
+            "location": "body",
+            "parameter_name": "scheduledAt",
+            "resource_name": "Task",
+            "resource_field": "scheduledAt",
+            "source_operation": "POST /tasks",
+            "source_status": 201
+          },
+          {
+            "location": "body",
+            "parameter_name": "dueAt",
+            "resource_name": "Task",
+            "resource_field": "dueAt",
+            "source_operation": "POST /tasks",
+            "source_status": 201
+          },
+          {
+            "location": "body",
+            "parameter_name": "allDay",
+            "resource_name": "Task",
+            "resource_field": "allDay",
+            "source_operation": "POST /tasks",
+            "source_status": 201
+          },
+          {
+            "location": "body",
+            "parameter_name": "isRecurring",
+            "resource_name": "Task",
+            "resource_field": "isRecurring",
+            "source_operation": "POST /tasks",
+            "source_status": 201
+          },
+          {
+            "location": "body",
+            "parameter_name": "estimateMinutes",
+            "resource_name": "Task",
+            "resource_field": "estimateMinutes",
+            "source_operation": "POST /tasks",
+            "source_status": 201
+          },
+          {
+            "location": "body",
+            "parameter_name": "mentionContext",
+            "resource_name": "Task",
+            "resource_field": "mentionContext",
+            "source_operation": "POST /tasks",
+            "source_status": 201
+          },
+          {
+            "location": "body",
+            "parameter_name": "recurrenceRule",
+            "resource_name": "Task",
+            "resource_field": "recurrenceRule",
+            "source_operation": "POST /tasks",
+            "source_status": 201
+          }
+        ],
+        "pool_misses": [],
+        "semantic_draws": [],
+        "dictionary_draws": [],
+        "constants_draws": [],
+        "raw_containers": {
+          "PATH": {
+            "id": "64ac2f00-a224-4324-a896-2282061278e7"
+          }
+        }
+      },
+      "path": "/tasks/{id}",
+      "path_parameters": {
+        "id": "64ac2f00-a224-4324-a896-2282061278e7"
+      },
+      "query": {},
+      "case_headers": {
+        "Authorization": "[Filtered]"
+      },
+      "cookies": {},
+      "case_body": {
+        "encoding": "json",
+        "value": {
+          "content": "0",
+          "type": "TODO",
+          "description": "",
+          "projectId": "f1e9b02c-c977-4779-899e-6ae932c32f59",
+          "parentId": "e3e70682-c209-1cac-a29f-6fbed82c07cd",
+          "order": 0,
+          "priority": 1,
+          "labels": [],
+          "scheduledAt": "2000-01-01T00:00:00Z",
+          "dueAt": "2000-01-01T00:00:00Z",
+          "allDay": false,
+          "isRecurring": false,
+          "estimateMinutes": 2147483646,
+          "mentionContext": "",
+          "recurrenceRule": ""
+        }
+      },
+      "media_type": "application/json",
+      "parent_index": null
+    }
+  ]
+}

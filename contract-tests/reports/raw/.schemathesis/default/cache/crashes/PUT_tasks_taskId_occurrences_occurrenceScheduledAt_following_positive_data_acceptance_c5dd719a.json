@@ -1,0 +1,114 @@
+{
+  "operation": "PUT /tasks/{taskId}/occurrences/{occurrenceScheduledAt}/following",
+  "method": "PUT",
+  "path_template": "/tasks/{taskId}/occurrences/{occurrenceScheduledAt}/following",
+  "fingerprint": "c5dd719a",
+  "case_id": "VgeWmd",
+  "code_sample": "curl -X PUT -H 'Authorization: [Filtered]' -H 'Content-Type: application/json' -d '{\"allDay\": false, \"content\": \"0\", \"description\": null, \"dueAt\": null, \"estimateMinutes\": 0, \"isRecurring\": true, \"labels\": [], \"mentionContext\": null, \"order\": 0, \"parentId\": \"e3e70682-c209-1cac-a29f-6fbed82c07cd\", \"priority\": 1, \"projectId\": \"f728b4fa-4248-1e3a-8a5d-2f346baa9455\", \"recurrenceRule\": \"\", \"scheduledAt\": \"2000-01-01T00:00:00Z\", \"type\": \"TODO\"}' http://taska-backend:8080/tasks/e3e70682-c209-1cac-a29f-6fbed82c07cd/occurrences/value/following",
+  "sequence": [
+    {
+      "method": "PUT",
+      "url": "http://taska-backend:8080/tasks/e3e70682-c209-1cac-a29f-6fbed82c07cd/occurrences/value/following",
+      "url_template": "http://taska-backend:8080/tasks/{taskId}/occurrences/{occurrenceScheduledAt}/following",
+      "headers": {
+        "User-Agent": "schemathesis/4.25.2",
+        "Accept-Encoding": "gzip, deflate",
+        "Accept": "*/*",
+        "Connection": "keep-alive",
+        "Authorization": "[Filtered]",
+        "X-Schemathesis-TestCaseId": "VgeWmd",
+        "Content-Type": "application/json",
+        "Content-Length": "359"
+      },
+      "response": {
+        "status_code": 400,
+        "headers": {
+          "vary": "Origin",
+          "x-content-type-options": "nosniff",
+          "x-xss-protection": "0",
+          "cache-control": "no-cache, no-store, max-age=0, must-revalidate",
+          "pragma": "no-cache",
+          "expires": "0",
+          "x-frame-options": "DENY",
+          "content-type": "application/problem+json",
+          "transfer-encoding": "chunked",
+          "date": "Sat, 19 Sep 2026 14:02:19 GMT",
+          "connection": "close"
+        },
+        "body": "{\"detail\":\"Invalid request parameter\",\"instance\":\"/tasks/e3e70682-c209-1cac-a29f-6fbed82c07cd/occurrences/value/following\",\"status\":400,\"title\":\"Bad Request\",\"type\":\"about:blank\"}"
+      },
+      "link": null,
+      "checks": [
+        {
+          "name": "positive_data_acceptance",
+          "status": "failure",
+          "message": "API rejected schema-compliant request\n\nValid data should have been accepted\nExpected: 2xx, 401, 403, 404, 409, 5xx"
+        }
+      ],
+      "meta": {
+        "generation": {
+          "time": 3.436001134105027e-05,
+          "mode": "positive"
+        },
+        "components": {
+          "PATH": "negative",
+          "BODY": "positive"
+        },
+        "phase": {
+          "name": "coverage",
+          "data": {
+            "type": "CoveragePhaseData",
+            "description": "Object with valid 'recurrenceRule' value: Valid string",
+            "location": null,
+            "parameter": "application/json",
+            "parameter_location": "BODY",
+            "scenario": "valid_object"
+          }
+        },
+        "pool_draws": [],
+        "pool_misses": [],
+        "semantic_draws": [],
+        "dictionary_draws": [],
+        "constants_draws": [],
+        "raw_containers": {
+          "PATH": {
+            "taskId": "e3e70682-c209-1cac-a29f-6fbed82c07cd",
+            "occurrenceScheduledAt": "value"
+          }
+        }
+      },
+      "path": "/tasks/{taskId}/occurrences/{occurrenceScheduledAt}/following",
+      "path_parameters": {
+        "taskId": "e3e70682-c209-1cac-a29f-6fbed82c07cd",
+        "occurrenceScheduledAt": "value"
+      },
+      "query": {},
+      "case_headers": {
+        "Authorization": "[Filtered]"
+      },
+      "cookies": {},
+      "case_body": {
+        "encoding": "json",
+        "value": {
+          "allDay": false,
+          "content": "0",
+          "description": null,
+          "dueAt": null,
+          "estimateMinutes": 0,
+          "isRecurring": true,
+          "labels": [],
+          "mentionContext": null,
+          "order": 0,
+          "parentId": "e3e70682-c209-1cac-a29f-6fbed82c07cd",
+          "priority": 1,
+          "projectId": "f728b4fa-4248-1e3a-8a5d-2f346baa9455",
+          "recurrenceRule": "",
+          "scheduledAt": "2000-01-01T00:00:00Z",
+          "type": "TODO"
+        }
+      },
+      "media_type": "application/json",
+      "parent_index": null
+    }
+  ]
+}

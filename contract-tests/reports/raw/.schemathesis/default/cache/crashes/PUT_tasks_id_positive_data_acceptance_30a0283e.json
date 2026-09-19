@@ -1,0 +1,297 @@
+{
+  "operation": "PUT /tasks/{id}",
+  "method": "PUT",
+  "path_template": "/tasks/{id}",
+  "fingerprint": "30a0283e",
+  "case_id": "xXtrax",
+  "code_sample": "curl -X GET -H 'Authorization: [Filtered]' -H 'Content-Type: application/json' 'http://taska-backend:8080/comments?taskId=5d605b1e-5772-2c36-8ed5-d10ca7322dc6'\ncurl -X PUT -H 'Authorization: [Filtered]' -H 'Content-Type: application/json' -d '{\"\\u0001\\u00c6\\u00f8\": [{}], \"\\u008a\\ud912\\udd2f\\u00e9\\u00f1\\u00eal\\udb50\\ude27$\\u00c7\\u00e3D\\u00c5\": [], \"\\u001e\\u00ba\\udb83\\udea95[\\u0006\\u009b\\\\\\u0015D\\u0087\\udb9d\\udec1\\u0087y\\udb39\\udc11\": 316478.18294475, \"h\\u009d\": null, \"\\ud91b\\udc08\\u00ad\": null, \"parentId\": \"2388f699-f2ba-1535-8b8a-717095af7981\", \"recurrenceRule\": \"g\\u00a9\\u00ce\\u0006%\\u00a4\", \"priority\": 1, \"projectId\": \"5efb5668-d0d9-420e-88ac-f01ce78813e1\", \"content\": \"\\t\", \"labels\": [], \"isRecurring\": false, \"mentionContext\": \"\", \"estimateMinutes\": 1, \"dueAt\": \"3491-02-26T07:59:51Z\", \"scheduledAt\": \"0147-08-21T09:40:23Z\", \"order\": 0, \"allDay\": false, \"description\": \"\\u00ad\\u00b2eu\\u0089\\u00ba\\u0082\\u00a58\\u008e\\udb78\\udfdc\\u00877^\\ud9b6\\udce2\\u00a7\", \"type\": \"TODO\"}' http://taska-backend:8080/tasks/0b563dd4-9922-4d36-9211-ce29a30920e7",
+  "sequence": [
+    {
+      "method": "GET",
+      "url": "http://taska-backend:8080/comments?taskId=5d605b1e-5772-2c36-8ed5-d10ca7322dc6",
+      "url_template": "http://taska-backend:8080/comments",
+      "headers": {
+        "User-Agent": "schemathesis/4.25.2",
+        "Accept-Encoding": "gzip, deflate",
+        "Accept": "*/*",
+        "Connection": "keep-alive",
+        "Authorization": "[Filtered]",
+        "X-Schemathesis-TestCaseId": "NzwElU"
+      },
+      "response": {
+        "status_code": 200,
+        "headers": {
+          "vary": "Origin",
+          "x-content-type-options": "nosniff",
+          "x-xss-protection": "0",
+          "cache-control": "no-cache, no-store, max-age=0, must-revalidate",
+          "pragma": "no-cache",
+          "expires": "0",
+          "x-frame-options": "DENY",
+          "content-type": "application/json",
+          "content-length": "2",
+          "date": "Mon, 07 Sep 2026 22:27:06 GMT",
+          "keep-alive": "timeout=60",
+          "connection": "keep-alive"
+        },
+        "body": "[]"
+      },
+      "link": null,
+      "checks": [],
+      "meta": {
+        "generation": {
+          "time": 0.004693384049460292,
+          "mode": "positive"
+        },
+        "components": {
+          "QUERY": "positive"
+        },
+        "phase": {
+          "name": "stateful",
+          "data": {
+            "type": "StatefulPhaseData",
+            "description": "Positive test case",
+            "location": null,
+            "parameter": null,
+            "parameter_location": null,
+            "mutations": []
+          }
+        },
+        "pool_draws": [],
+        "pool_misses": [],
+        "semantic_draws": [],
+        "dictionary_draws": [],
+        "constants_draws": [],
+        "raw_containers": {}
+      },
+      "path": "/comments",
+      "path_parameters": {},
+      "query": {
+        "taskId": "5d605b1e-5772-2c36-8ed5-d10ca7322dc6"
+      },
+      "case_headers": {
+        "Authorization": "[Filtered]"
+      },
+      "cookies": {},
+      "case_body": {
+        "encoding": "none"
+      },
+      "media_type": null,
+      "parent_index": null
+    },
+    {
+      "method": "PUT",
+      "url": "http://taska-backend:8080/tasks/0b563dd4-9922-4d36-9211-ce29a30920e7",
+      "url_template": "http://taska-backend:8080/tasks/{id}",
+      "headers": {
+        "User-Agent": "schemathesis/4.25.2",
+        "Accept-Encoding": "gzip, deflate",
+        "Accept": "*/*",
+        "Connection": "keep-alive",
+        "Authorization": "[Filtered]",
+        "X-Schemathesis-TestCaseId": "xXtrax",
+        "Content-Type": "application/json",
+        "Content-Length": "739"
+      },
+      "response": {
+        "status_code": 400,
+        "headers": {
+          "vary": "Origin",
+          "x-content-type-options": "nosniff",
+          "x-xss-protection": "0",
+          "cache-control": "no-cache, no-store, max-age=0, must-revalidate",
+          "pragma": "no-cache",
+          "expires": "0",
+          "x-frame-options": "DENY",
+          "content-type": "application/problem+json",
+          "transfer-encoding": "chunked",
+          "date": "Mon, 07 Sep 2026 22:27:07 GMT",
+          "connection": "close"
+        },
+        "body": "{\"detail\":\"Validation failed\",\"instance\":\"/tasks/0b563dd4-9922-4d36-9211-ce29a30920e7\",\"status\":400,\"title\":\"Bad Request\",\"type\":\"about:blank\",\"errors\":{\"content\":\"must not be blank\"}}"
+      },
+      "link": {
+        "operationId": "GET /comments -> [200] PutTask -> PUT /tasks/{id}",
+        "parameters": {
+          "path.id": "$response.body#/*/taskId"
+        }
+      },
+      "checks": [
+        {
+          "name": "positive_data_acceptance",
+          "status": "failure",
+          "message": "API rejected schema-compliant request\n\nValid data should have been accepted\nExpected: 2xx, 401, 403, 404, 409, 5xx\nHint: The request body contains 5 additional properties not defined in the schema (`\u0001\u00c6\u00f8`, `\u001e\u00ba\udb83\udea95[\u0006\u009b\\\u0015D\u0087\udb9d\udec1\u0087y\udb39\udc11`, `h\u009d` and 2 more). The server likely rejects unexpected fields. Add `additionalProperties: false` to your schema to prevent this."
+        }
+      ],
+      "meta": {
+        "generation": {
+          "time": 0.013141215080395341,
+          "mode": "positive"
+        },
+        "components": {
+          "PATH": "positive",
+          "BODY": "positive"
+        },
+        "phase": {
+          "name": "stateful",
+          "data": {
+            "type": "StatefulPhaseData",
+            "description": "Positive test case",
+            "location": null,
+            "parameter": null,
+            "parameter_location": null,
+            "mutations": []
+          }
+        },
+        "pool_draws": [
+          {
+            "location": "path",
+            "parameter_name": "id",
+            "resource_name": "Task",
+            "resource_field": "id",
+            "source_operation": "POST /tasks/{taskId}/reopen",
+            "source_status": 200
+          },
+          {
+            "location": "body",
+            "parameter_name": "type",
+            "resource_name": "Task",
+            "resource_field": "type",
+            "source_operation": "POST /tasks/{taskId}/reopen",
+            "source_status": 200
+          },
+          {
+            "location": "body",
+            "parameter_name": "projectId",
+            "resource_name": "Project",
+            "resource_field": "id",
+            "source_operation": "GET /projects/{id}",
+            "source_status": 200
+          },
+          {
+            "location": "body",
+            "parameter_name": "order",
+            "resource_name": "Task",
+            "resource_field": "order",
+            "source_operation": "POST /tasks/{taskId}/reopen",
+            "source_status": 200
+          },
+          {
+            "location": "body",
+            "parameter_name": "priority",
+            "resource_name": "Task",
+            "resource_field": "priority",
+            "source_operation": "POST /tasks/{taskId}/reopen",
+            "source_status": 200
+          },
+          {
+            "location": "body",
+            "parameter_name": "labels",
+            "resource_name": "Task",
+            "resource_field": "labels",
+            "source_operation": "POST /tasks/{taskId}/reopen",
+            "source_status": 200
+          },
+          {
+            "location": "body",
+            "parameter_name": "allDay",
+            "resource_name": "Task",
+            "resource_field": "allDay",
+            "source_operation": "POST /tasks/{taskId}/reopen",
+            "source_status": 200
+          },
+          {
+            "location": "body",
+            "parameter_name": "isRecurring",
+            "resource_name": "Task",
+            "resource_field": "isRecurring",
+            "source_operation": "POST /tasks/{taskId}/reopen",
+            "source_status": 200
+          },
+          {
+            "location": "body",
+            "parameter_name": "estimateMinutes",
+            "resource_name": "Task",
+            "resource_field": "estimateMinutes",
+            "source_operation": "POST /tasks/{taskId}/reopen",
+            "source_status": 200
+          },
+          {
+            "location": "body",
+            "parameter_name": "mentionContext",
+            "resource_name": "Task",
+            "resource_field": "mentionContext",
+            "source_operation": "POST /tasks/{taskId}/reopen",
+            "source_status": 200
+          }
+        ],
+        "pool_misses": [],
+        "semantic_draws": [
+          {
+            "path": [
+              "description"
+            ],
+            "type_token": "string",
+            "format_token": null,
+            "pattern_hash": null,
+            "normalized_name": "description",
+            "value": "\u00ad\u00b2eu\u0089\u00ba\u0082\u00a58\u008e\udb78\udfdc\u00877^\ud9b6\udce2\u00a7",
+            "source_operation": "PUT /tasks/{id}"
+          },
+          {
+            "path": [
+              "recurrenceRule"
+            ],
+            "type_token": "string",
+            "format_token": null,
+            "pattern_hash": null,
+            "normalized_name": "recurrencerule",
+            "value": "g\u00a9\u00ce\u0006%\u00a4",
+            "source_operation": "POST /tasks"
+          }
+        ],
+        "dictionary_draws": [],
+        "constants_draws": [],
+        "raw_containers": {}
+      },
+      "path": "/tasks/{id}",
+      "path_parameters": {
+        "id": "0b563dd4-9922-4d36-9211-ce29a30920e7"
+      },
+      "query": {},
+      "case_headers": {
+        "Authorization": "[Filtered]"
+      },
+      "cookies": {},
+      "case_body": {
+        "encoding": "json",
+        "value": {
+          "\u0001\u00c6\u00f8": [
+            {}
+          ],
+          "\u008a\ud912\udd2f\u00e9\u00f1\u00eal\udb50\ude27$\u00c7\u00e3D\u00c5": [],
+          "\u001e\u00ba\udb83\udea95[\u0006\u009b\\\u0015D\u0087\udb9d\udec1\u0087y\udb39\udc11": 316478.18294475,
+          "h\u009d": null,
+          "\ud91b\udc08\u00ad": null,
+          "parentId": "2388f699-f2ba-1535-8b8a-717095af7981",
+          "recurrenceRule": "g\u00a9\u00ce\u0006%\u00a4",
+          "priority": 1,
+          "projectId": "5efb5668-d0d9-420e-88ac-f01ce78813e1",
+          "content": "\t",
+          "labels": [],
+          "isRecurring": false,
+          "mentionContext": "",
+          "estimateMinutes": 1,
+          "dueAt": "3491-02-26T07:59:51Z",
+          "scheduledAt": "0147-08-21T09:40:23Z",
+          "order": 0,
+          "allDay": false,
+          "description": "\u00ad\u00b2eu\u0089\u00ba\u0082\u00a58\u008e\udb78\udfdc\u00877^\ud9b6\udce2\u00a7",
+          "type": "TODO"
+        }
+      },
+      "media_type": "application/json",
+      "parent_index": 0
+    }
+  ]
+}

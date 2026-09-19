@@ -1,0 +1,92 @@
+{
+  "operation": "POST /comments",
+  "method": "POST",
+  "path_template": "/comments",
+  "fingerprint": "ff5f1280",
+  "case_id": "PVnjnY",
+  "code_sample": "curl -X POST -H 'Authorization: [Filtered]' -H 'Content-Type: application/json' -d '{\"content\": \"0\"}' http://taska-backend:8080/comments",
+  "sequence": [
+    {
+      "method": "POST",
+      "url": "http://taska-backend:8080/comments",
+      "url_template": "http://taska-backend:8080/comments",
+      "headers": {
+        "User-Agent": "schemathesis/4.25.2",
+        "Accept-Encoding": "gzip, deflate",
+        "Accept": "*/*",
+        "Connection": "keep-alive",
+        "Authorization": "[Filtered]",
+        "X-Schemathesis-TestCaseId": "PVnjnY",
+        "Content-Type": "application/json",
+        "Content-Length": "16"
+      },
+      "response": {
+        "status_code": 201,
+        "headers": {
+          "vary": "Origin",
+          "x-content-type-options": "nosniff",
+          "x-xss-protection": "0",
+          "cache-control": "no-cache, no-store, max-age=0, must-revalidate",
+          "pragma": "no-cache",
+          "expires": "0",
+          "x-frame-options": "DENY",
+          "content-type": "application/json",
+          "content-length": "135",
+          "date": "Mon, 07 Sep 2026 20:04:16 GMT",
+          "keep-alive": "timeout=60",
+          "connection": "keep-alive"
+        },
+        "body": "{\"id\":\"fed51ff1-65e4-47e7-bc5c-de5013b9d972\",\"taskId\":null,\"projectId\":null,\"content\":\"0\",\"createdAt\":\"2026-09-07T20:04:16.517968159Z\"}"
+      },
+      "link": null,
+      "checks": [
+        {
+          "name": "response_schema_conformance",
+          "status": "failure",
+          "message": "Response violates schema\n\nnull is not of type \"string\"\n\nValidated against the response schema for status code 201.\n\nSchema at /properties/taskId:\n\n    {\n        \"type\": \"string\",\n        \"description\": \"UUID of the task this comment belongs to; absent for project-level comments.\",\n        \"format\": \"uuid\"\n    }\n\nValue:\n\n    null"
+        }
+      ],
+      "meta": {
+        "generation": {
+          "time": 1.0029994882643223e-05,
+          "mode": "positive"
+        },
+        "components": {
+          "BODY": "positive"
+        },
+        "phase": {
+          "name": "coverage",
+          "data": {
+            "type": "CoveragePhaseData",
+            "description": "Object with only required properties",
+            "location": null,
+            "parameter": "application/json",
+            "parameter_location": "BODY",
+            "scenario": "object_only_required"
+          }
+        },
+        "pool_draws": [],
+        "pool_misses": [],
+        "semantic_draws": [],
+        "dictionary_draws": [],
+        "constants_draws": [],
+        "raw_containers": {}
+      },
+      "path": "/comments",
+      "path_parameters": {},
+      "query": {},
+      "case_headers": {
+        "Authorization": "[Filtered]"
+      },
+      "cookies": {},
+      "case_body": {
+        "encoding": "json",
+        "value": {
+          "content": "0"
+        }
+      },
+      "media_type": "application/json",
+      "parent_index": null
+    }
+  ]
+}

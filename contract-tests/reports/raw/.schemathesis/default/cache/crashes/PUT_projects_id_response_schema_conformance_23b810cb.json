@@ -1,0 +1,136 @@
+{
+  "operation": "PUT /projects/{id}",
+  "method": "PUT",
+  "path_template": "/projects/{id}",
+  "fingerprint": "23b810cb",
+  "case_id": "UxXsAr",
+  "code_sample": "curl -X PUT -H 'Authorization: [Filtered]' -H 'Content-Type: application/json' -d '{\"name\": \"0\", \"color\": \"\", \"parentId\": \"e3e70682-c209-1cac-a29f-6fbed82c07cd\", \"clearParent\": true, \"order\": 0, \"isFavorite\": false, \"viewStyle\": \"LIST\", \"planningCalendarId\": \"00000000-0000-0000-0000-000000000001\"}' http://taska-backend:8080/projects/49b7583b-d4e7-4747-859c-0565321db56e",
+  "sequence": [
+    {
+      "method": "PUT",
+      "url": "http://taska-backend:8080/projects/49b7583b-d4e7-4747-859c-0565321db56e",
+      "url_template": "http://taska-backend:8080/projects/{id}",
+      "headers": {
+        "User-Agent": "schemathesis/4.25.2",
+        "Accept-Encoding": "gzip, deflate",
+        "Accept": "*/*",
+        "Connection": "keep-alive",
+        "Authorization": "[Filtered]",
+        "X-Schemathesis-TestCaseId": "UxXsAr",
+        "Content-Type": "application/json",
+        "Content-Length": "215"
+      },
+      "response": {
+        "status_code": 200,
+        "headers": {
+          "vary": "Origin",
+          "x-content-type-options": "nosniff",
+          "x-xss-protection": "0",
+          "cache-control": "no-cache, no-store, max-age=0, must-revalidate",
+          "pragma": "no-cache",
+          "expires": "0",
+          "x-frame-options": "DENY",
+          "content-type": "application/json",
+          "content-length": "301",
+          "date": "Sat, 05 Sep 2026 10:02:02 GMT",
+          "keep-alive": "timeout=60",
+          "connection": "keep-alive"
+        },
+        "body": "{\"id\":\"49b7583b-d4e7-4747-859c-0565321db56e\",\"name\":\"0\",\"color\":\"\",\"parentId\":null,\"order\":0,\"isFavorite\":false,\"viewStyle\":\"LIST\",\"isInboxProject\":false,\"planningCalendarId\":\"00000000-0000-0000-0000-000000000001\",\"createdAt\":\"2026-09-05T10:02:00.902383Z\",\"updatedAt\":\"2026-09-05T10:02:02.222519724Z\"}"
+      },
+      "link": null,
+      "checks": [
+        {
+          "name": "response_schema_conformance",
+          "status": "failure",
+          "message": "Response violates schema\n\nnull is not of type \"string\"\n\nValidated against the response schema for status code 200.\n\nSchema at /properties/parentId:\n\n    {\n        \"type\": \"string\",\n        \"format\": \"uuid\"\n    }\n\nValue:\n\n    null"
+        }
+      ],
+      "meta": {
+        "generation": {
+          "time": 6.008008494973183e-05,
+          "mode": "positive"
+        },
+        "components": {
+          "PATH": "positive",
+          "BODY": "positive"
+        },
+        "phase": {
+          "name": "coverage",
+          "data": {
+            "type": "CoveragePhaseData",
+            "description": "Object with valid 'clearParent' value: Valid boolean value",
+            "location": null,
+            "parameter": "application/json",
+            "parameter_location": "BODY",
+            "scenario": "valid_object"
+          }
+        },
+        "pool_draws": [
+          {
+            "location": "path",
+            "parameter_name": "id",
+            "resource_name": "Project",
+            "resource_field": "id",
+            "source_operation": "POST /projects",
+            "source_status": 201
+          },
+          {
+            "location": "body",
+            "parameter_name": "name",
+            "resource_name": "Project",
+            "resource_field": "name",
+            "source_operation": "POST /projects",
+            "source_status": 201
+          },
+          {
+            "location": "body",
+            "parameter_name": "planningCalendarId",
+            "resource_name": "Project",
+            "resource_field": "planningCalendarId",
+            "source_operation": "POST /projects",
+            "source_status": 201
+          }
+        ],
+        "pool_misses": [
+          [
+            "body",
+            "parentId"
+          ]
+        ],
+        "semantic_draws": [],
+        "dictionary_draws": [],
+        "constants_draws": [],
+        "raw_containers": {
+          "PATH": {
+            "id": "49b7583b-d4e7-4747-859c-0565321db56e"
+          }
+        }
+      },
+      "path": "/projects/{id}",
+      "path_parameters": {
+        "id": "49b7583b-d4e7-4747-859c-0565321db56e"
+      },
+      "query": {},
+      "case_headers": {
+        "Authorization": "[Filtered]"
+      },
+      "cookies": {},
+      "case_body": {
+        "encoding": "json",
+        "value": {
+          "name": "0",
+          "color": "",
+          "parentId": "e3e70682-c209-1cac-a29f-6fbed82c07cd",
+          "clearParent": true,
+          "order": 0,
+          "isFavorite": false,
+          "viewStyle": "LIST",
+          "planningCalendarId": "00000000-0000-0000-0000-000000000001"
+        }
+      },
+      "media_type": "application/json",
+      "parent_index": null
+    }
+  ]
+}

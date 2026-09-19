@@ -1,0 +1,102 @@
+{
+  "operation": "POST /projects",
+  "method": "POST",
+  "path_template": "/projects",
+  "fingerprint": "92b6afa9",
+  "case_id": "WHgkzj",
+  "code_sample": "curl -X POST -H 'Authorization: [Filtered]' -H 'Content-Type: application/json' -d '{\"color\": null, \"isFavorite\": null, \"name\": \"0\", \"order\": 0, \"parentId\": \"e3e70682-c209-1cac-a29f-6fbed82c07cd\", \"planningCalendarId\": null, \"viewStyle\": null}' http://taska-backend:8080/projects",
+  "sequence": [
+    {
+      "method": "POST",
+      "url": "http://taska-backend:8080/projects",
+      "url_template": "http://taska-backend:8080/projects",
+      "headers": {
+        "User-Agent": "schemathesis/4.25.2",
+        "Accept-Encoding": "gzip, deflate",
+        "Accept": "*/*",
+        "Connection": "keep-alive",
+        "Authorization": "[Filtered]",
+        "X-Schemathesis-TestCaseId": "WHgkzj",
+        "Content-Type": "application/json",
+        "Content-Length": "159"
+      },
+      "response": {
+        "status_code": 500,
+        "headers": {
+          "vary": "Origin",
+          "x-content-type-options": "nosniff",
+          "x-xss-protection": "0",
+          "cache-control": "no-cache, no-store, max-age=0, must-revalidate",
+          "pragma": "no-cache",
+          "expires": "0",
+          "x-frame-options": "DENY",
+          "content-type": "application/problem+json",
+          "transfer-encoding": "chunked",
+          "date": "Sat, 19 Sep 2026 14:02:20 GMT",
+          "connection": "close"
+        },
+        "body": "{\"detail\":\"Internal error\",\"instance\":\"/projects\",\"status\":500,\"title\":\"Internal Server Error\",\"type\":\"about:blank\"}"
+      },
+      "link": null,
+      "checks": [
+        {
+          "name": "not_a_server_error",
+          "status": "failure",
+          "message": "Server error"
+        }
+      ],
+      "meta": {
+        "generation": {
+          "time": 8.856001659296453e-05,
+          "mode": "positive"
+        },
+        "components": {
+          "BODY": "positive"
+        },
+        "phase": {
+          "name": "coverage",
+          "data": {
+            "type": "CoveragePhaseData",
+            "description": "Object with valid 'planningCalendarId' value: Value null value",
+            "location": null,
+            "parameter": "application/json",
+            "parameter_location": "BODY",
+            "scenario": "valid_object"
+          }
+        },
+        "pool_draws": [],
+        "pool_misses": [
+          [
+            "body",
+            "parentId"
+          ]
+        ],
+        "semantic_draws": [],
+        "dictionary_draws": [],
+        "constants_draws": [],
+        "raw_containers": {}
+      },
+      "path": "/projects",
+      "path_parameters": {},
+      "query": {},
+      "case_headers": {
+        "Authorization": "[Filtered]"
+      },
+      "cookies": {},
+      "case_body": {
+        "encoding": "json",
+        "value": {
+          "color": null,
+          "isFavorite": null,
+          "name": "0",
+          "order": 0,
+          "parentId": "e3e70682-c209-1cac-a29f-6fbed82c07cd",
+          "planningCalendarId": null,
+          "viewStyle": null
+        }
+      },
+      "media_type": "application/json",
+      "parent_index": null
+    }
+  ]
+}

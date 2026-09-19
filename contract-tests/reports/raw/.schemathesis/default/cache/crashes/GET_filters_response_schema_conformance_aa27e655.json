@@ -1,0 +1,85 @@
+{
+  "operation": "GET /filters",
+  "method": "GET",
+  "path_template": "/filters",
+  "fingerprint": "aa27e655",
+  "case_id": "SMxMLn",
+  "code_sample": "curl -X GET -H 'Authorization: [Filtered]' http://taska-backend:8080/filters",
+  "sequence": [
+    {
+      "method": "GET",
+      "url": "http://taska-backend:8080/filters",
+      "url_template": "http://taska-backend:8080/filters",
+      "headers": {
+        "User-Agent": "schemathesis/4.25.2",
+        "Accept-Encoding": "gzip, deflate",
+        "Accept": "*/*",
+        "Connection": "keep-alive",
+        "Authorization": "[Filtered]",
+        "X-Schemathesis-TestCaseId": "SMxMLn"
+      },
+      "response": {
+        "status_code": 200,
+        "headers": {
+          "vary": "Origin",
+          "x-content-type-options": "nosniff",
+          "x-xss-protection": "0",
+          "cache-control": "no-cache, no-store, max-age=0, must-revalidate",
+          "pragma": "no-cache",
+          "expires": "0",
+          "x-frame-options": "DENY",
+          "content-type": "application/json",
+          "content-length": "2998",
+          "date": "Sun, 06 Sep 2026 15:50:57 GMT",
+          "keep-alive": "timeout=60",
+          "connection": "keep-alive"
+        },
+        "body": "[{\"id\":\"25956451-a03f-404c-9d80-6fb2e2bfb680\",\"name\":\"0\",\"color\":\"\",\"order\":-2147483648,\"isFavorite\":false,\"projectId\":\"a2cdacd6-2fc3-4557-8ee6-a81b3eaeb26f\",\"hasDate\":null},{\"id\":\"400493ea-a38f-46af-94c3-c1bedc1625e0\",\"name\":\"0\",\"color\":\"\",\"order\":-2147483647,\"isFavorite\":false,\"projectId\":\"a2cdacd6-2fc3-4557-8ee6-a81b3eaeb26f\",\"hasDate\":null},{\"id\":\"406e9822-e994-4183-9b2a-d92435778474\",\"name\":\"0\",\"color\":\"\",\"order\":0,\"isFavorite\":true,\"projectId\":\"a2cdacd6-2fc3-4557-8ee6-a81b3eaeb26f\",\"hasDate\":null},{\"id\":\"feecc1fc-4efd-4e20-bd7e-2e2692764f3d\",\"name\":\"0\",\"color\":\"\",\"order\":0,\"isFavorite\":false,\"projectId\":\"4a149ea7-277a-4889-aea2-68489a455b1f\",\"hasDate\":true},{\"id\":\"157b2d20-cc50-45a0-ac1f-8c8159dbd728\",\"name\":\"0\",\"color\":\"\",\"order\":0,\"isFavorite\":false,\"projectId\":\"a2cdacd6-2fc3-4557-8ee6-a81b3eaeb26f\",\"hasDate\":null},{\"id\":\"7756ffd9-eb73-464b-959d-e9c94e988ac3\",\"name\":\"0\",\"color\":\"\",\"order\":0,\"isFavorite\":false,\"projectId\":\"a2cdacd6-2fc3-4557-8ee6-a81b3eaeb26f\",\"hasDate\":true},{\"id\":\"4b77e58a-f255-43c9-9971-f16b73c5bb9e\",\"name\":\"00\",\"color\":\"\",\"order\":0,\"isFavorite\":false,\"projectId\":\"a2cdacd6-2fc3-4557-8ee6-a81b3eaeb26f\",\"hasDate\":null},{\"id\":\"21cd6510-e714-42b0-9f0b-8092d776f6b9\",\"name\":\"0\",\"color\":\"charcoal\",\"order\":0,\"isFavorite\":false,\"projectId\":null,\"hasDate\":null},{\"id\":\"9c499dae-7c71-4aad-a733-16e6e89ad704\",\"name\":\"0\",\"color\":\"\",\"order\":0,\"isFavorite\":false,\"projectId\":null,\"hasDate\":null},{\"id\":\"d4c4b522-a0c6-46f6-bf8e-f17fa005e2db\",\"name\":\"0\",\"color\":\"\",\"order\":0,\"isFavorite\":false,\"projectId\":null,\"hasDate\":null},{\"id\":\"a193c4cb-3440-4e18-915a-0c3ab198660e\",\"name\":\"0\",\"color\":\"\",\"order\":0,\"isFavorite\":false,\"projectId\":null,\"hasDate\":null},{\"id\":\"b72905af-5745-48e6-a6aa-6dee5c44aebe\",\"name\":\"0\",\"color\":\"\",\"order\":0,\"isFavorite\":false,\"projectId\":null,\"hasDate\":null},{\"id\":\"cc68179f-2cec-4dd3-9457-76de3883ff20\",\"name\":\"0\",\"color\":\"charcoal\",\"order\":0,\"isFavorite\":false,\"projectId\":\"a2cdacd6-2fc3-4557-8ee6-a81b3eaeb26f\",\"hasDate\":null},{\"id\":\"951eadfc-f6c3-458b-a6e8-39bce02e6e0e\",\"name\":\"0\",\"color\":\"charcoal\",\"order\":0,\"isFavorite\":false,\"projectId\":null,\"hasDate\":null},{\"id\":\"3de760ae-b3c5-4f63-a9a5-d00fa9150a22\",\"name\":\"0\",\"color\":\"charcoal\",\"order\":0,\"isFavorite\":false,\"projectId\":null,\"hasDate\":null},{\"id\":\"5c78e3bc-2774-42c0-b4b4-74a9b5613802\",\"name\":\"0\",\"color\":\"charcoal\",\"order\":0,\"isFavorite\":false,\"projectId\":null,\"hasDate\":null},{\"id\":\"c0670622-c9b5-446a-9f63-b802e331e969\",\"name\":\"0\",\"color\":\"\",\"order\":0,\"isFavorite\":false,\"projectId\":null,\"hasDate\":null},{\"id\":\"9ab90b26-7bed-4997-9a76-16a3d13fdad1\",\"name\":\"0\",\"color\":\"charcoal\",\"order\":0,\"isFavorite\":false,\"projectId\":null,\"hasDate\":null},{\"id\":\"d109503b-498d-4226-b862-a35f2042b3d2\",\"name\":\"0\",\"color\":\"\",\"order\":0,\"isFavorite\":false,\"projectId\":\"a2cdacd6-2fc3-4557-8ee6-a81b3eaeb26f\",\"hasDate\":null},{\"id\":\"baf7bf8b-7dc4-4761-a497-fc6b8864bfa2\",\"name\":\"0\",\"color\":\"\",\"order\":2147483647,\"isFavorite\":false,\"projectId\":\"a2cdacd6-2fc3-4557-8ee6-a81b3eaeb26f\",\"hasDate\":null}]"
+      },
+      "link": null,
+      "checks": [
+        {
+          "name": "response_schema_conformance",
+          "status": "failure",
+          "message": "Response violates schema\n\nnull is not of type \"string\"\n\nValidated against the response schema for status code 200.\n\nSchema at /FilterDto/properties/projectId:\n\n    {\n        \"type\": \"string\",\n        \"description\": \"Optional project constraint; when present, only tasks in this project are matched.\",\n        \"format\": \"uuid\"\n    }\n\nValue:\n\n    null"
+        }
+      ],
+      "meta": {
+        "generation": {
+          "time": 0.00015854008961468935,
+          "mode": "positive"
+        },
+        "components": {},
+        "phase": {
+          "name": "fuzzing",
+          "data": {
+            "type": "FuzzingPhaseData",
+            "description": "Positive test case",
+            "location": null,
+            "parameter": null,
+            "parameter_location": null,
+            "mutations": []
+          }
+        },
+        "pool_draws": [],
+        "pool_misses": [],
+        "semantic_draws": [],
+        "dictionary_draws": [],
+        "constants_draws": [],
+        "raw_containers": {}
+      },
+      "path": "/filters",
+      "path_parameters": {},
+      "query": {},
+      "case_headers": {
+        "Authorization": "[Filtered]"
+      },
+      "cookies": {},
+      "case_body": {
+        "encoding": "none"
+      },
+      "media_type": null,
+      "parent_index": null
+    }
+  ]
+}

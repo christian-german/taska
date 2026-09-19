@@ -1,0 +1,112 @@
+{
+  "operation": "PUT /tasks/{id}/occurrences/{occurrenceScheduledAt}",
+  "method": "PUT",
+  "path_template": "/tasks/{id}/occurrences/{occurrenceScheduledAt}",
+  "fingerprint": "9b09b3e3",
+  "case_id": "zYZiT5",
+  "code_sample": "curl -X PUT -H 'Authorization: [Filtered]' -H 'Content-Type: application/json' -d '{\"title\": \"0\", \"priority\": 1, \"scheduledAt\": \"\", \"dueAt\": null}' http://taska-backend:8080/tasks/56f28b11-34d0-4017-9877-1deb765f6208/occurrences/2000-01-01T00%3A00%3A00Z",
+  "sequence": [
+    {
+      "method": "PUT",
+      "url": "http://taska-backend:8080/tasks/56f28b11-34d0-4017-9877-1deb765f6208/occurrences/2000-01-01T00%3A00%3A00Z",
+      "url_template": "http://taska-backend:8080/tasks/{id}/occurrences/{occurrenceScheduledAt}",
+      "headers": {
+        "User-Agent": "schemathesis/4.25.2",
+        "Accept-Encoding": "gzip, deflate",
+        "Accept": "*/*",
+        "Connection": "keep-alive",
+        "Authorization": "[Filtered]",
+        "X-Schemathesis-TestCaseId": "zYZiT5",
+        "Content-Type": "application/json",
+        "Content-Length": "63"
+      },
+      "response": {
+        "status_code": 400,
+        "headers": {
+          "vary": "Origin",
+          "x-content-type-options": "nosniff",
+          "x-xss-protection": "0",
+          "cache-control": "no-cache, no-store, max-age=0, must-revalidate",
+          "pragma": "no-cache",
+          "expires": "0",
+          "x-frame-options": "DENY",
+          "content-type": "application/problem+json",
+          "transfer-encoding": "chunked",
+          "date": "Mon, 07 Sep 2026 22:26:06 GMT",
+          "connection": "close"
+        },
+        "body": "{\"detail\":\"Occurrence replacement requires a recurring task\",\"instance\":\"/tasks/56f28b11-34d0-4017-9877-1deb765f6208/occurrences/2000-01-01T00%3A00%3A00Z\",\"status\":400,\"title\":\"Bad Request\",\"type\":\"about:blank\"}"
+      },
+      "link": null,
+      "checks": [
+        {
+          "name": "positive_data_acceptance",
+          "status": "failure",
+          "message": "API rejected schema-compliant request\n\nValid data should have been accepted\nExpected: 2xx, 401, 403, 404, 409, 5xx"
+        }
+      ],
+      "meta": {
+        "generation": {
+          "time": 3.187998663634062e-05,
+          "mode": "positive"
+        },
+        "components": {
+          "PATH": "positive",
+          "BODY": "positive"
+        },
+        "phase": {
+          "name": "coverage",
+          "data": {
+            "type": "CoveragePhaseData",
+            "description": "Object with valid 'dueAt' value: Value null value",
+            "location": null,
+            "parameter": "application/json",
+            "parameter_location": "BODY",
+            "scenario": "valid_object"
+          }
+        },
+        "pool_draws": [
+          {
+            "location": "path",
+            "parameter_name": "id",
+            "resource_name": "Task",
+            "resource_field": "id",
+            "source_operation": "POST /tasks",
+            "source_status": 201
+          }
+        ],
+        "pool_misses": [],
+        "semantic_draws": [],
+        "dictionary_draws": [],
+        "constants_draws": [],
+        "raw_containers": {
+          "PATH": {
+            "id": "56f28b11-34d0-4017-9877-1deb765f6208",
+            "occurrenceScheduledAt": "2000-01-01T00:00:00Z"
+          }
+        }
+      },
+      "path": "/tasks/{id}/occurrences/{occurrenceScheduledAt}",
+      "path_parameters": {
+        "id": "56f28b11-34d0-4017-9877-1deb765f6208",
+        "occurrenceScheduledAt": "2000-01-01T00%3A00%3A00Z"
+      },
+      "query": {},
+      "case_headers": {
+        "Authorization": "[Filtered]"
+      },
+      "cookies": {},
+      "case_body": {
+        "encoding": "json",
+        "value": {
+          "title": "0",
+          "priority": 1,
+          "scheduledAt": "",
+          "dueAt": null
+        }
+      },
+      "media_type": "application/json",
+      "parent_index": null
+    }
+  ]
+}

@@ -1,0 +1,89 @@
+{
+  "operation": "GET /time-entries/{id}",
+  "method": "GET",
+  "path_template": "/time-entries/{id}",
+  "fingerprint": "040d973a",
+  "case_id": "0WNN8m",
+  "code_sample": "curl -X GET -H 'Authorization: [Filtered]' http://taska-backend:8080/time-entries/aa867caf-8c0e-14fe-90e0-4cef89aa5c2f",
+  "sequence": [
+    {
+      "method": "GET",
+      "url": "http://taska-backend:8080/time-entries/aa867caf-8c0e-14fe-90e0-4cef89aa5c2f",
+      "url_template": "http://taska-backend:8080/time-entries/{id}",
+      "headers": {
+        "User-Agent": "schemathesis/4.25.2",
+        "Accept-Encoding": "gzip, deflate",
+        "Accept": "*/*",
+        "Connection": "keep-alive",
+        "Authorization": "[Filtered]",
+        "X-Schemathesis-TestCaseId": "0WNN8m"
+      },
+      "response": {
+        "status_code": 404,
+        "headers": {
+          "vary": "Origin",
+          "x-content-type-options": "nosniff",
+          "x-xss-protection": "0",
+          "cache-control": "no-cache, no-store, max-age=0, must-revalidate",
+          "pragma": "no-cache",
+          "expires": "0",
+          "x-frame-options": "DENY",
+          "content-type": "application/problem+json",
+          "transfer-encoding": "chunked",
+          "date": "Sat, 05 Sep 2026 09:55:52 GMT",
+          "keep-alive": "timeout=60",
+          "connection": "keep-alive"
+        },
+        "body": "{\"detail\":\"TimeEntry not found: aa867caf-8c0e-14fe-90e0-4cef89aa5c2f\",\"instance\":\"/time-entries/aa867caf-8c0e-14fe-90e0-4cef89aa5c2f\",\"status\":404,\"title\":\"Not Found\"}"
+      },
+      "link": null,
+      "checks": [
+        {
+          "name": "response_schema_conformance",
+          "status": "failure",
+          "message": "Response violates schema\n\n\"type\" is a required property\n\nValidated against the response schema for status code 404.\n\nSchema at /ProblemDetails:\n\n    {\n        \"required\": [\n            \"type\",\n            \"title\",\n            \"status\"\n        ],\n        \"type\": \"object\",\n        \"description\": \"RFC 9457 problem details returned for API errors.\",\n        \"properties\": {\n            \"type\": {\n                \"type\": \"string\",\n                \"format\": \"uri-reference\",\n                \"description\": \"Problem type identifier.\"\n            },\n            \"title\": {\n                \"type\": \"string\",\n                \"description\": \"Short, human-readable problem summary.\"\n            },\n            \"status\": {\n                \"type\": \"integer\",\n                \"minimum\": 100,\n                \"maximum\": 599,\n                \"description\": \"HTTP status code.\"\n            },\n            \"detail\": {\n                \"type\": \"string\",\n                \"description\": \"Problem details specific to this occurrence.\"\n            },\n            \"instance\": {\n                \"type\": \"string\",\n                \"format\": \"uri-reference\",\n                \"description\": \"Identifier for this occurrence.\"\n            },\n            \"code\": {\n                \"type\": \"string\",\n                \"description\": \"Stable, machine-readable Taska error code.\"\n            },\n            \"violations\": {\n                \"type\": \"array\",\n                \"items\": {\n                    \"$ref\": \"#/Violation\"\n                }\n            }\n        }\n    }\n\nValue:\n\n    {\n        \"detail\": \"TimeEntry not found: aa867caf-8c0e-14fe-90e0-4cef89aa5c2f\",\n        \"instance\": \"/time-entries/aa867caf-8c0e-14fe-90e0-4cef89aa5c2f\",\n        \"status\": 404,\n        \"title\": \"Not Found\"\n    }"
+        }
+      ],
+      "meta": {
+        "generation": {
+          "time": 0.0025181149831041694,
+          "mode": "positive"
+        },
+        "components": {
+          "PATH": "positive"
+        },
+        "phase": {
+          "name": "fuzzing",
+          "data": {
+            "type": "FuzzingPhaseData",
+            "description": "Positive test case",
+            "location": null,
+            "parameter": null,
+            "parameter_location": null,
+            "mutations": []
+          }
+        },
+        "pool_draws": [],
+        "pool_misses": [],
+        "semantic_draws": [],
+        "dictionary_draws": [],
+        "constants_draws": [],
+        "raw_containers": {}
+      },
+      "path": "/time-entries/{id}",
+      "path_parameters": {
+        "id": "aa867caf-8c0e-14fe-90e0-4cef89aa5c2f"
+      },
+      "query": {},
+      "case_headers": {
+        "Authorization": "[Filtered]"
+      },
+      "cookies": {},
+      "case_body": {
+        "encoding": "none"
+      },
+      "media_type": null,
+      "parent_index": null
+    }
+  ]
+}

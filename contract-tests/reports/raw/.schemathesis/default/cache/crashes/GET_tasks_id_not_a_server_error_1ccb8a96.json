@@ -1,0 +1,162 @@
+{
+  "operation": "GET /tasks/{id}",
+  "method": "GET",
+  "path_template": "/tasks/{id}",
+  "fingerprint": "1ccb8a96",
+  "case_id": "999u1s",
+  "code_sample": "curl -X GET -H 'Authorization: [Filtered]' http://taska-backend:8080/comments\ncurl -X GET -H 'Authorization: [Filtered]' http://taska-backend:8080/tasks/None",
+  "sequence": [
+    {
+      "method": "GET",
+      "url": "http://taska-backend:8080/comments",
+      "url_template": "http://taska-backend:8080/comments",
+      "headers": {
+        "User-Agent": "schemathesis/4.25.2",
+        "Accept-Encoding": "gzip, deflate",
+        "Accept": "*/*",
+        "Connection": "keep-alive",
+        "Authorization": "[Filtered]",
+        "X-Schemathesis-TestCaseId": "nOM6WD"
+      },
+      "response": {
+        "status_code": 200,
+        "headers": {
+          "vary": "Origin",
+          "x-content-type-options": "nosniff",
+          "x-xss-protection": "0",
+          "cache-control": "no-cache, no-store, max-age=0, must-revalidate",
+          "pragma": "no-cache",
+          "expires": "0",
+          "x-frame-options": "DENY",
+          "content-type": "application/json",
+          "content-length": "2543",
+          "date": "Mon, 07 Sep 2026 22:27:35 GMT",
+          "keep-alive": "timeout=60",
+          "connection": "keep-alive"
+        },
+        "body": "[{\"id\":\"6f1fb48d-c0a9-4a3d-bdb6-fd89b7c8d028\",\"taskId\":null,\"projectId\":null,\"content\":\"0\",\"createdAt\":\"2026-09-07T22:26:19.162126Z\"},{\"id\":\"b9cacefe-b2bd-4289-8054-b04f02e73f0e\",\"taskId\":null,\"projectId\":null,\"content\":\"0\",\"createdAt\":\"2026-09-07T22:26:19.415664Z\"},{\"id\":\"9b498686-840f-44e4-a9db-7d1fa047c720\",\"taskId\":null,\"projectId\":null,\"content\":\"\ud925\udcf3\",\"createdAt\":\"2026-09-07T22:26:19.586248Z\"},{\"id\":\"55a0dea1-22db-4543-a90a-bf3d9ab9d6bb\",\"taskId\":null,\"projectId\":null,\"content\":\"00\",\"createdAt\":\"2026-09-07T22:26:19.632456Z\"},{\"id\":\"679b4663-56c6-489c-b609-32ef198dd5be\",\"taskId\":null,\"projectId\":null,\"content\":\"\u00d0\u00e3\\u0018/\u00c5\",\"createdAt\":\"2026-09-07T22:26:19.706377Z\"},{\"id\":\"1ec7f2da-6877-4b19-b06e-c5d6944cf929\",\"taskId\":null,\"projectId\":null,\"content\":\"\u00d0\u00e3\\u0018/\u00c5\",\"createdAt\":\"2026-09-07T22:26:19.731219Z\"},{\"id\":\"ec4f3b0a-41af-4776-8a06-e90ad972f9d8\",\"taskId\":null,\"projectId\":null,\"content\":\"00\",\"createdAt\":\"2026-09-07T22:26:19.758249Z\"},{\"id\":\"fbc0643b-c72c-4179-93df-9a973ba826a8\",\"taskId\":null,\"projectId\":null,\"content\":\"0\",\"createdAt\":\"2026-09-07T22:26:19.778497Z\"},{\"id\":\"8800ec3a-02a6-4566-8e3b-584a12ef4368\",\"taskId\":null,\"projectId\":null,\"content\":\"0\",\"createdAt\":\"2026-09-07T22:26:19.874855Z\"},{\"id\":\"ea5e9d9e-d7ae-4e09-8c99-ea32ae1de026\",\"taskId\":null,\"projectId\":null,\"content\":\"\u00d0\u00e3\\u0018/\u00c5\",\"createdAt\":\"2026-09-07T22:26:19.938355Z\"},{\"id\":\"a802ac81-afa2-46df-9b96-dc6c4d346431\",\"taskId\":null,\"projectId\":null,\"content\":\"0\",\"createdAt\":\"2026-09-07T22:26:19.961442Z\"},{\"id\":\"aa77c582-a9c7-48cf-89d0-fc99eab26202\",\"taskId\":null,\"projectId\":null,\"content\":\"\u00d0\u00e3\\u0018/\u00c5\",\"createdAt\":\"2026-09-07T22:26:19.979735Z\"},{\"id\":\"696eab0c-87d3-41d2-b5e4-a71501120f3c\",\"taskId\":null,\"projectId\":null,\"content\":\"\u00d0\u00e3\\u0018/\u00c5\",\"createdAt\":\"2026-09-07T22:26:20.337364Z\"},{\"id\":\"f4302b4f-bf75-4eab-93d7-e3de6acee31f\",\"taskId\":\"3f4f7862-9f83-4964-9ed5-b7d4870e96c6\",\"projectId\":null,\"content\":\".exe\",\"createdAt\":\"2026-09-07T22:27:32.481232Z\"},{\"id\":\"3194f525-f86f-4f2b-b193-e35ffe2c91bf\",\"taskId\":null,\"projectId\":null,\"content\":\"0\",\"createdAt\":\"2026-09-07T22:26:20.778244Z\"},{\"id\":\"8f7707b9-41f6-465a-8b3e-8c45ad5a59ac\",\"taskId\":null,\"projectId\":null,\"content\":\"\u00d0\u00e3\\u0018/\u00c5\",\"createdAt\":\"2026-09-07T22:26:20.880328Z\"},{\"id\":\"e7691c31-1f8a-49e6-a71f-5aa2d5f5bf55\",\"taskId\":null,\"projectId\":null,\"content\":\"\ud925\udcf3\",\"createdAt\":\"2026-09-07T22:26:21.183133Z\"},{\"id\":\"22bf6468-986f-4b0a-9089-f9fd22c0ce5a\",\"taskId\":null,\"projectId\":null,\"content\":\"\u00f0\u00c6B\\u001Ez\u00de\u0090\u00ad\\u0011\ud95a\ude9e\ud9d8\udef1\",\"createdAt\":\"2026-09-07T22:26:19.815395Z\"}]"
+      },
+      "link": null,
+      "checks": [],
+      "meta": {
+        "generation": {
+          "time": 0.005335864028893411,
+          "mode": "positive"
+        },
+        "components": {
+          "QUERY": "positive"
+        },
+        "phase": {
+          "name": "stateful",
+          "data": {
+            "type": "StatefulPhaseData",
+            "description": "Positive test case",
+            "location": null,
+            "parameter": null,
+            "parameter_location": null,
+            "mutations": []
+          }
+        },
+        "pool_draws": [],
+        "pool_misses": [],
+        "semantic_draws": [],
+        "dictionary_draws": [],
+        "constants_draws": [],
+        "raw_containers": {}
+      },
+      "path": "/comments",
+      "path_parameters": {},
+      "query": {},
+      "case_headers": {
+        "Authorization": "[Filtered]"
+      },
+      "cookies": {},
+      "case_body": {
+        "encoding": "none"
+      },
+      "media_type": null,
+      "parent_index": null
+    },
+    {
+      "method": "GET",
+      "url": "http://taska-backend:8080/tasks/None",
+      "url_template": "http://taska-backend:8080/tasks/{id}",
+      "headers": {
+        "User-Agent": "schemathesis/4.25.2",
+        "Accept-Encoding": "gzip, deflate",
+        "Accept": "*/*",
+        "Connection": "keep-alive",
+        "Authorization": "[Filtered]",
+        "X-Schemathesis-TestCaseId": "999u1s"
+      },
+      "response": {
+        "status_code": 500,
+        "headers": {
+          "vary": "Origin",
+          "x-content-type-options": "nosniff",
+          "x-xss-protection": "0",
+          "cache-control": "no-cache, no-store, max-age=0, must-revalidate",
+          "pragma": "no-cache",
+          "expires": "0",
+          "x-frame-options": "DENY",
+          "content-type": "application/problem+json",
+          "transfer-encoding": "chunked",
+          "date": "Mon, 07 Sep 2026 22:27:35 GMT",
+          "connection": "close"
+        },
+        "body": "{\"detail\":\"Internal error\",\"instance\":\"/tasks/None\",\"status\":500,\"title\":\"Internal Server Error\",\"type\":\"about:blank\"}"
+      },
+      "link": {
+        "operationId": "GET /comments -> [200] GetTask -> GET /tasks/{id}",
+        "parameters": {
+          "path.id": "$response.body#/*/taskId"
+        }
+      },
+      "checks": [
+        {
+          "name": "not_a_server_error",
+          "status": "failure",
+          "message": "Server error"
+        }
+      ],
+      "meta": {
+        "generation": {
+          "time": 0.0005131890065968037,
+          "mode": "positive"
+        },
+        "components": {},
+        "phase": {
+          "name": "stateful",
+          "data": {
+            "type": "StatefulPhaseData",
+            "description": "Positive test case",
+            "location": null,
+            "parameter": null,
+            "parameter_location": null,
+            "mutations": []
+          }
+        },
+        "pool_draws": [],
+        "pool_misses": [],
+        "semantic_draws": [],
+        "dictionary_draws": [],
+        "constants_draws": [],
+        "raw_containers": {}
+      },
+      "path": "/tasks/{id}",
+      "path_parameters": {
+        "id": null
+      },
+      "query": {},
+      "case_headers": {
+        "Authorization": "[Filtered]"
+      },
+      "cookies": {},
+      "case_body": {
+        "encoding": "none"
+      },
+      "media_type": null,
+      "parent_index": 0
+    }
+  ]
+}

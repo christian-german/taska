@@ -1,0 +1,105 @@
+{
+  "operation": "POST /tasks",
+  "method": "POST",
+  "path_template": "/tasks",
+  "fingerprint": "d08908d4",
+  "case_id": "bRAlOu",
+  "code_sample": "curl -X POST -H 'Authorization: [Filtered]' -H 'Content-Type: application/json' -d '{\"allDay\": null, \"content\": \"0\", \"description\": null, \"dueAt\": null, \"estimateMinutes\": 1, \"isRecurring\": true, \"labels\": [], \"mentionContext\": null, \"order\": 0, \"parentId\": \"e3e70682-c209-1cac-a29f-6fbed82c07cd\", \"priority\": 1, \"projectId\": \"f728b4fa-4248-1e3a-8a5d-2f346baa9455\", \"recurrenceRule\": null, \"scheduledAt\": \"2000-01-01T00:00:00Z\", \"type\": \"APPOINTMENT\"}' http://taska-backend:8080/tasks",
+  "sequence": [
+    {
+      "method": "POST",
+      "url": "http://taska-backend:8080/tasks",
+      "url_template": "http://taska-backend:8080/tasks",
+      "headers": {
+        "User-Agent": "schemathesis/4.25.2",
+        "Accept-Encoding": "gzip, deflate",
+        "Accept": "*/*",
+        "Connection": "keep-alive",
+        "Authorization": "[Filtered]",
+        "X-Schemathesis-TestCaseId": "bRAlOu",
+        "Content-Type": "application/json",
+        "Content-Length": "367"
+      },
+      "response": {
+        "status_code": 400,
+        "headers": {
+          "vary": "Origin",
+          "x-content-type-options": "nosniff",
+          "x-xss-protection": "0",
+          "cache-control": "no-cache, no-store, max-age=0, must-revalidate",
+          "pragma": "no-cache",
+          "expires": "0",
+          "x-frame-options": "DENY",
+          "content-type": "application/problem+json",
+          "transfer-encoding": "chunked",
+          "date": "Sat, 19 Sep 2026 14:02:19 GMT",
+          "connection": "close"
+        },
+        "body": "{\"detail\":\"Recurring series requires a recurrence rule\",\"instance\":\"/tasks\",\"status\":400,\"title\":\"Bad Request\",\"type\":\"about:blank\"}"
+      },
+      "link": null,
+      "checks": [
+        {
+          "name": "positive_data_acceptance",
+          "status": "failure",
+          "message": "API rejected schema-compliant request\n\nValid data should have been accepted\nExpected: 2xx, 401, 403, 404, 409, 5xx"
+        }
+      ],
+      "meta": {
+        "generation": {
+          "time": 1.3059994671493769e-05,
+          "mode": "positive"
+        },
+        "components": {
+          "BODY": "positive"
+        },
+        "phase": {
+          "name": "coverage",
+          "data": {
+            "type": "CoveragePhaseData",
+            "description": "Object with valid 'type' value: Enum value",
+            "location": null,
+            "parameter": "application/json",
+            "parameter_location": "BODY",
+            "scenario": "valid_object"
+          }
+        },
+        "pool_draws": [],
+        "pool_misses": [],
+        "semantic_draws": [],
+        "dictionary_draws": [],
+        "constants_draws": [],
+        "raw_containers": {}
+      },
+      "path": "/tasks",
+      "path_parameters": {},
+      "query": {},
+      "case_headers": {
+        "Authorization": "[Filtered]"
+      },
+      "cookies": {},
+      "case_body": {
+        "encoding": "json",
+        "value": {
+          "allDay": null,
+          "content": "0",
+          "description": null,
+          "dueAt": null,
+          "estimateMinutes": 1,
+          "isRecurring": true,
+          "labels": [],
+          "mentionContext": null,
+          "order": 0,
+          "parentId": "e3e70682-c209-1cac-a29f-6fbed82c07cd",
+          "priority": 1,
+          "projectId": "f728b4fa-4248-1e3a-8a5d-2f346baa9455",
+          "recurrenceRule": null,
+          "scheduledAt": "2000-01-01T00:00:00Z",
+          "type": "APPOINTMENT"
+        }
+      },
+      "media_type": "application/json",
+      "parent_index": null
+    }
+  ]
+}

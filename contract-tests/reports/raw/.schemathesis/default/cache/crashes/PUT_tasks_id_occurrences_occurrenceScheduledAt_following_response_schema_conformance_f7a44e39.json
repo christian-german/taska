@@ -1,0 +1,229 @@
+{
+  "operation": "PUT /tasks/{id}/occurrences/{occurrenceScheduledAt}/following",
+  "method": "PUT",
+  "path_template": "/tasks/{id}/occurrences/{occurrenceScheduledAt}/following",
+  "fingerprint": "f7a44e39",
+  "case_id": "nS9bZh",
+  "code_sample": "curl -X PUT -H 'Authorization: [Filtered]' -H 'Content-Type: application/json' -d '{\"content\": \"0\", \"type\": \"TODO\", \"description\": \"\", \"projectId\": \"5fcc59d1-472d-45cf-8b73-7f1c49d56816\", \"sectionId\": \"a48d3ec7-64a9-438d-a2ec-3cfea1caf814\", \"parentId\": \"e3e70682-c209-1cac-a29f-6fbed82c07cd\", \"order\": 0, \"priority\": 1, \"labels\": [], \"scheduledAt\": \"2000-01-01T00:00:00Z\", \"dueAt\": \"2000-01-01T00:00:00Z\", \"allDay\": false, \"isRecurring\": false, \"estimateMinutes\": 2147483646, \"mentionContext\": \"\", \"recurrenceRule\": \"\"}' http://taska-backend:8080/tasks/337f88bc-4036-4caf-bb83-97b690fc5ccd/occurrences/2000-01-01T00%3A00%3A00Z/following",
+  "sequence": [
+    {
+      "method": "PUT",
+      "url": "http://taska-backend:8080/tasks/337f88bc-4036-4caf-bb83-97b690fc5ccd/occurrences/2000-01-01T00%3A00%3A00Z/following",
+      "url_template": "http://taska-backend:8080/tasks/{id}/occurrences/{occurrenceScheduledAt}/following",
+      "headers": {
+        "User-Agent": "schemathesis/4.25.2",
+        "Accept-Encoding": "gzip, deflate",
+        "Accept": "*/*",
+        "Connection": "keep-alive",
+        "Authorization": "[Filtered]",
+        "X-Schemathesis-TestCaseId": "nS9bZh",
+        "Content-Type": "application/json",
+        "Content-Length": "436"
+      },
+      "response": {
+        "status_code": 400,
+        "headers": {
+          "vary": "Origin",
+          "x-content-type-options": "nosniff",
+          "x-xss-protection": "0",
+          "cache-control": "no-cache, no-store, max-age=0, must-revalidate",
+          "pragma": "no-cache",
+          "expires": "0",
+          "x-frame-options": "DENY",
+          "content-type": "application/problem+json",
+          "transfer-encoding": "chunked",
+          "date": "Sat, 05 Sep 2026 09:55:03 GMT",
+          "connection": "close"
+        },
+        "body": "{\"detail\":\"Following-series replacement requires a recurring task\",\"instance\":\"/tasks/337f88bc-4036-4caf-bb83-97b690fc5ccd/occurrences/2000-01-01T00%3A00%3A00Z/following\",\"status\":400,\"title\":\"Bad Request\"}"
+      },
+      "link": null,
+      "checks": [
+        {
+          "name": "response_schema_conformance",
+          "status": "failure",
+          "message": "Response violates schema\n\n\"type\" is a required property\n\nValidated against the response schema for status code 400.\n\nSchema at /ProblemDetails:\n\n    {\n        \"required\": [\n            \"type\",\n            \"title\",\n            \"status\"\n        ],\n        \"type\": \"object\",\n        \"description\": \"RFC 9457 problem details returned for API errors.\",\n        \"properties\": {\n            \"type\": {\n                \"type\": \"string\",\n                \"format\": \"uri-reference\",\n                \"description\": \"Problem type identifier.\"\n            },\n            \"title\": {\n                \"type\": \"string\",\n                \"description\": \"Short, human-readable problem summary.\"\n            },\n            \"status\": {\n                \"type\": \"integer\",\n                \"minimum\": 100,\n                \"maximum\": 599,\n                \"description\": \"HTTP status code.\"\n            },\n            \"detail\": {\n                \"type\": \"string\",\n                \"description\": \"Problem details specific to this occurrence.\"\n            },\n            \"instance\": {\n                \"type\": \"string\",\n                \"format\": \"uri-reference\",\n                \"description\": \"Identifier for this occurrence.\"\n            },\n            \"code\": {\n                \"type\": \"string\",\n                \"description\": \"Stable, machine-readable Taska error code.\"\n            },\n            \"violations\": {\n                \"type\": \"array\",\n                \"items\": {\n                    \"$ref\": \"#/Violation\"\n                }\n            }\n        }\n    }\n\nValue:\n\n    {\n        \"detail\": \"Following-series replacement requires a recurring task\",\n        \"instance\": \"/tasks/337f88bc-4036-4caf-bb83-97b690fc5ccd/occurrences/2000-01-01T00%3A00%3A00Z/following\",\n        \"status\": 400,\n        \"title\": \"Bad Request\"\n    }"
+        }
+      ],
+      "meta": {
+        "generation": {
+          "time": 1.7149955965578556e-05,
+          "mode": "positive"
+        },
+        "components": {
+          "PATH": "positive",
+          "BODY": "positive"
+        },
+        "phase": {
+          "name": "coverage",
+          "data": {
+            "type": "CoveragePhaseData",
+            "description": "Object with valid 'estimateMinutes' value: Near-boundary number",
+            "location": null,
+            "parameter": "application/json",
+            "parameter_location": "BODY",
+            "scenario": "valid_object"
+          }
+        },
+        "pool_draws": [
+          {
+            "location": "path",
+            "parameter_name": "id",
+            "resource_name": "Task",
+            "resource_field": "id",
+            "source_operation": "POST /tasks",
+            "source_status": 201
+          },
+          {
+            "location": "body",
+            "parameter_name": "type",
+            "resource_name": "Task",
+            "resource_field": "type",
+            "source_operation": "POST /tasks",
+            "source_status": 201
+          },
+          {
+            "location": "body",
+            "parameter_name": "projectId",
+            "resource_name": "Project",
+            "resource_field": "id",
+            "source_operation": "POST /projects",
+            "source_status": 201
+          },
+          {
+            "location": "body",
+            "parameter_name": "sectionId",
+            "resource_name": "Section",
+            "resource_field": "id",
+            "source_operation": "POST /sections",
+            "source_status": 201
+          },
+          {
+            "location": "body",
+            "parameter_name": "order",
+            "resource_name": "Task",
+            "resource_field": "order",
+            "source_operation": "POST /tasks",
+            "source_status": 201
+          },
+          {
+            "location": "body",
+            "parameter_name": "priority",
+            "resource_name": "Task",
+            "resource_field": "priority",
+            "source_operation": "POST /tasks",
+            "source_status": 201
+          },
+          {
+            "location": "body",
+            "parameter_name": "labels",
+            "resource_name": "Task",
+            "resource_field": "labels",
+            "source_operation": "POST /tasks",
+            "source_status": 201
+          },
+          {
+            "location": "body",
+            "parameter_name": "scheduledAt",
+            "resource_name": "Task",
+            "resource_field": "scheduledAt",
+            "source_operation": "POST /tasks",
+            "source_status": 201
+          },
+          {
+            "location": "body",
+            "parameter_name": "dueAt",
+            "resource_name": "Task",
+            "resource_field": "dueAt",
+            "source_operation": "POST /tasks/{taskId}/reopen",
+            "source_status": 200
+          },
+          {
+            "location": "body",
+            "parameter_name": "allDay",
+            "resource_name": "Task",
+            "resource_field": "allDay",
+            "source_operation": "POST /tasks",
+            "source_status": 201
+          },
+          {
+            "location": "body",
+            "parameter_name": "isRecurring",
+            "resource_name": "Task",
+            "resource_field": "isRecurring",
+            "source_operation": "POST /tasks/{taskId}/close",
+            "source_status": 200
+          },
+          {
+            "location": "body",
+            "parameter_name": "mentionContext",
+            "resource_name": "Task",
+            "resource_field": "mentionContext",
+            "source_operation": "POST /tasks",
+            "source_status": 201
+          },
+          {
+            "location": "body",
+            "parameter_name": "recurrenceRule",
+            "resource_name": "Task",
+            "resource_field": "recurrenceRule",
+            "source_operation": "POST /tasks",
+            "source_status": 201
+          }
+        ],
+        "pool_misses": [
+          [
+            "body",
+            "parentId"
+          ],
+          [
+            "body",
+            "estimateMinutes"
+          ]
+        ],
+        "semantic_draws": [],
+        "dictionary_draws": [],
+        "constants_draws": [],
+        "raw_containers": {
+          "PATH": {
+            "id": "337f88bc-4036-4caf-bb83-97b690fc5ccd",
+            "occurrenceScheduledAt": "2000-01-01T00:00:00Z"
+          }
+        }
+      },
+      "path": "/tasks/{id}/occurrences/{occurrenceScheduledAt}/following",
+      "path_parameters": {
+        "id": "337f88bc-4036-4caf-bb83-97b690fc5ccd",
+        "occurrenceScheduledAt": "2000-01-01T00%3A00%3A00Z"
+      },
+      "query": {},
+      "case_headers": {
+        "Authorization": "[Filtered]"
+      },
+      "cookies": {},
+      "case_body": {
+        "encoding": "json",
+        "value": {
+          "content": "0",
+          "type": "TODO",
+          "description": "",
+          "projectId": "5fcc59d1-472d-45cf-8b73-7f1c49d56816",
+          "sectionId": "a48d3ec7-64a9-438d-a2ec-3cfea1caf814",
+          "parentId": "e3e70682-c209-1cac-a29f-6fbed82c07cd",
+          "order": 0,
+          "priority": 1,
+          "labels": [],
+          "scheduledAt": "2000-01-01T00:00:00Z",
+          "dueAt": "2000-01-01T00:00:00Z",
+          "allDay": false,
+          "isRecurring": false,
+          "estimateMinutes": 2147483646,
+          "mentionContext": "",
+          "recurrenceRule": ""
+        }
+      },
+      "media_type": "application/json",
+      "parent_index": null
+    }
+  ]
+}

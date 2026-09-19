@@ -1,0 +1,268 @@
+prism-1  | [2:04:16 PM] › [CLI] …  awaiting  Starting Prism…
+prism-1  | [2:04:16 PM] › [CLI] ℹ  info      GET        http://0.0.0.0:4010/tasks/f9a4d65d-2320-40fb-ba87-2a5e1b031733
+prism-1  | [2:04:16 PM] › [CLI] ℹ  info      PUT        http://0.0.0.0:4010/tasks/0f7f3e14-d04e-bc07-3bd7-cc5369f9e774
+prism-1  | [2:04:16 PM] › [CLI] ℹ  info      DELETE     http://0.0.0.0:4010/tasks/d1b5fd86-b232-73e0-f04e-1b438fd0f016
+prism-1  | [2:04:16 PM] › [CLI] ℹ  info      GET        http://0.0.0.0:4010/tasks/{taskId}/occurrences/{occurrenceScheduledAt}
+prism-1  | [2:04:16 PM] › [CLI] ℹ  info      PUT        http://0.0.0.0:4010/tasks/{taskId}/occurrences/{occurrenceScheduledAt}
+prism-1  | [2:04:16 PM] › [CLI] ℹ  info      PUT        http://0.0.0.0:4010/tasks/{taskId}/occurrences/{occurrenceScheduledAt}/following
+prism-1  | [2:04:16 PM] › [CLI] ℹ  info      GET        http://0.0.0.0:4010/projects/1bab3754-e56f-1e2a-e2a4-636286905936
+prism-1  | [2:04:16 PM] › [CLI] ℹ  info      PUT        http://0.0.0.0:4010/projects/6297140d-4203-a601-86c2-4f9587265c4b
+prism-1  | [2:04:16 PM] › [CLI] ℹ  info      DELETE     http://0.0.0.0:4010/projects/7e9f26e9-c1b3-bfd5-fe79-6ab38fd00038
+prism-1  | [2:04:16 PM] › [CLI] ℹ  info      GET        http://0.0.0.0:4010/planning-calendars/2e9d955e-691d-f412-0e77-671a16b891d8
+prism-1  | [2:04:16 PM] › [CLI] ℹ  info      PUT        http://0.0.0.0:4010/planning-calendars/759b5938-35d8-275e-0cf1-75b6f349ddad
+prism-1  | [2:04:16 PM] › [CLI] ℹ  info      GET        http://0.0.0.0:4010/labels/30a4b21d-418f-a343-b06d-f0f8b1a39d6f
+prism-1  | [2:04:16 PM] › [CLI] ℹ  info      PUT        http://0.0.0.0:4010/labels/b0809d4a-139a-8813-5de9-d079dbe11f4c
+prism-1  | [2:04:16 PM] › [CLI] ℹ  info      DELETE     http://0.0.0.0:4010/labels/d8d188ff-b3f9-43ad-d54a-0ebf8e8bcbb9
+prism-1  | [2:04:16 PM] › [CLI] ℹ  info      PUT        http://0.0.0.0:4010/comments/052b031e-ec3f-668c-6255-62385ec7861c
+prism-1  | [2:04:16 PM] › [CLI] ℹ  info      DELETE     http://0.0.0.0:4010/comments/f72207db-7011-b82b-6b67-ac972259e744
+prism-1  | [2:04:16 PM] › [CLI] ℹ  info      GET        http://0.0.0.0:4010/tasks
+prism-1  | [2:04:16 PM] › [CLI] ℹ  info      POST       http://0.0.0.0:4010/tasks
+prism-1  | [2:04:16 PM] › [CLI] ℹ  info      POST       http://0.0.0.0:4010/tasks/b362c785-1f4e-862a-ea51-e762b3449964/reopen
+prism-1  | [2:04:16 PM] › [CLI] ℹ  info      POST       http://0.0.0.0:4010/tasks/5c901efc-9521-0e3e-1ef8-7f4673d81734/close
+prism-1  | [2:04:16 PM] › [CLI] ℹ  info      POST       http://0.0.0.0:4010/register-device
+prism-1  | [2:04:16 PM] › [CLI] ℹ  info      GET        http://0.0.0.0:4010/projects
+prism-1  | [2:04:16 PM] › [CLI] ℹ  info      POST       http://0.0.0.0:4010/projects
+prism-1  | [2:04:16 PM] › [CLI] ℹ  info      GET        http://0.0.0.0:4010/planning-calendars
+prism-1  | [2:04:16 PM] › [CLI] ℹ  info      POST       http://0.0.0.0:4010/planning-calendars
+prism-1  | [2:04:16 PM] › [CLI] ℹ  info      GET        http://0.0.0.0:4010/labels
+prism-1  | [2:04:16 PM] › [CLI] ℹ  info      POST       http://0.0.0.0:4010/labels
+prism-1  | [2:04:16 PM] › [CLI] ℹ  info      GET        http://0.0.0.0:4010/comments
+prism-1  | [2:04:16 PM] › [CLI] ℹ  info      POST       http://0.0.0.0:4010/comments
+prism-1  | [2:04:16 PM] › [CLI] ℹ  info      PATCH      http://0.0.0.0:4010/projects/reorder
+prism-1  | [2:04:16 PM] › [CLI] ℹ  info      GET        http://0.0.0.0:4010/version
+prism-1  | [2:04:16 PM] › [CLI] ℹ  info      GET        http://0.0.0.0:4010/tasks/961555cf-48bf-f01c-7fc2-3d515f82b44d/subtasks
+prism-1  | [2:04:16 PM] › [CLI] ℹ  info      GET        http://0.0.0.0:4010/tasks/caafa693-d6f1-3650-52b0-0960e0420e9d/priority-evaluation
+prism-1  | [2:04:16 PM] › [CLI] ℹ  info      GET        http://0.0.0.0:4010/projects/d7e76afb-42ab-c949-95e9-4ad96108640f/tasks
+prism-1  | [2:04:16 PM] › [CLI] ▶  start     Prism is listening on http://0.0.0.0:4010
+prism-1  | [2:04:20 PM] › [HTTP SERVER] get /version ℹ  info      Request received
+prism-1  | [2:04:20 PM] ›     [VALIDATOR] ⚠  warning   Request did not pass the validation rules
+prism-1  | [2:04:20 PM] ›     [VALIDATOR] ✖  error     Invalid security scheme used
+prism-1  | [2:04:20 PM] ›     [NEGOTIATOR] ✔  success   Found response 401. I'll try with it.
+prism-1  | [2:04:20 PM] ›     [NEGOTIATOR] ✔  success   The response 401 has an example. I'll keep going with this one
+prism-1  | [2:04:20 PM] ›     [NEGOTIATOR] ✔  success   Responding with the requested status code 401
+prism-1  | [2:04:20 PM] ›     [NEGOTIATOR] ℹ  info      > Responding with "401"
+prism-1  | [2:04:20 PM] ›     [VALIDATOR] ✖  error     Violation: request Invalid security scheme used
+prism-1  | [2:04:22 PM] › [HTTP SERVER] get /version ℹ  info      Request received
+prism-1  | [2:04:22 PM] ›     [VALIDATOR] ⚠  warning   Request did not pass the validation rules
+prism-1  | [2:04:22 PM] ›     [VALIDATOR] ✖  error     Invalid security scheme used
+prism-1  | [2:04:22 PM] ›     [NEGOTIATOR] ✔  success   Found response 401. I'll try with it.
+prism-1  | [2:04:22 PM] ›     [NEGOTIATOR] ✔  success   The response 401 has an example. I'll keep going with this one
+prism-1  | [2:04:22 PM] ›     [NEGOTIATOR] ✔  success   Responding with the requested status code 401
+prism-1  | [2:04:22 PM] ›     [NEGOTIATOR] ℹ  info      > Responding with "401"
+prism-1  | [2:04:22 PM] ›     [VALIDATOR] ✖  error     Violation: request Invalid security scheme used
+prism-1  | [2:04:23 PM] › [HTTP SERVER] get /comments ℹ  info      Request received
+prism-1  | [2:04:23 PM] ›     [NEGOTIATOR] ℹ  info      Request contains an accept header: application/json, text/plain, */*
+prism-1  | [2:04:23 PM] ›     [VALIDATOR] ✔  success   The request passed the validation rules. Looking for the best response
+prism-1  | [2:04:23 PM] ›     [NEGOTIATOR] ✔  success   Found a compatible content for application/json, text/plain, */*
+prism-1  | [2:04:23 PM] ›     [NEGOTIATOR] ✔  success   Responding with the requested status code 200
+prism-1  | [2:04:23 PM] ›     [NEGOTIATOR] ℹ  info      > Responding with "200"
+prism-1  | [2:04:23 PM] › [HTTP SERVER] post /comments ℹ  info      Request received
+prism-1  | [2:04:23 PM] ›     [NEGOTIATOR] ℹ  info      Request contains an accept header: application/json, text/plain, */*
+prism-1  | [2:04:23 PM] ›     [VALIDATOR] ✔  success   The request passed the validation rules. Looking for the best response
+prism-1  | [2:04:23 PM] ›     [NEGOTIATOR] ✔  success   Found a compatible content for application/json, text/plain, */*
+prism-1  | [2:04:23 PM] ›     [NEGOTIATOR] ✔  success   Responding with the requested status code 201
+prism-1  | [2:04:23 PM] ›     [NEGOTIATOR] ℹ  info      > Responding with "201"
+prism-1  | [2:04:23 PM] › [HTTP SERVER] put /comments/40000000-0000-4000-8000-000000000004 ℹ  info      Request received
+prism-1  | [2:04:23 PM] ›     [NEGOTIATOR] ℹ  info      Request contains an accept header: application/json, text/plain, */*
+prism-1  | [2:04:23 PM] ›     [VALIDATOR] ✔  success   The request passed the validation rules. Looking for the best response
+prism-1  | [2:04:23 PM] ›     [NEGOTIATOR] ✔  success   Found a compatible content for application/json, text/plain, */*
+prism-1  | [2:04:23 PM] ›     [NEGOTIATOR] ✔  success   Responding with the requested status code 200
+prism-1  | [2:04:23 PM] ›     [NEGOTIATOR] ℹ  info      > Responding with "200"
+prism-1  | [2:04:23 PM] › [HTTP SERVER] delete /comments/40000000-0000-4000-8000-000000000004 ℹ  info      Request received
+prism-1  | [2:04:23 PM] ›     [NEGOTIATOR] ℹ  info      Request contains an accept header: application/json, text/plain, */*
+prism-1  | [2:04:23 PM] ›     [VALIDATOR] ✔  success   The request passed the validation rules. Looking for the best response
+prism-1  | [2:04:23 PM] ›     [NEGOTIATOR] ⚠  warning   Unable to find content for application/json, text/plain, */*
+prism-1  | [2:04:23 PM] ›     [NEGOTIATOR] ✔  success   Responding with the requested status code 204
+prism-1  | [2:04:23 PM] ›     [NEGOTIATOR] ℹ  info      > Responding with "204"
+prism-1  | [2:04:23 PM] › [HTTP SERVER] get /labels ℹ  info      Request received
+prism-1  | [2:04:23 PM] ›     [NEGOTIATOR] ℹ  info      Request contains an accept header: application/json, text/plain, */*
+prism-1  | [2:04:23 PM] ›     [VALIDATOR] ✔  success   The request passed the validation rules. Looking for the best response
+prism-1  | [2:04:23 PM] ›     [NEGOTIATOR] ✔  success   Found a compatible content for application/json, text/plain, */*
+prism-1  | [2:04:23 PM] ›     [NEGOTIATOR] ✔  success   Responding with the requested status code 200
+prism-1  | [2:04:23 PM] ›     [NEGOTIATOR] ℹ  info      > Responding with "200"
+prism-1  | [2:04:23 PM] › [HTTP SERVER] post /labels ℹ  info      Request received
+prism-1  | [2:04:23 PM] ›     [NEGOTIATOR] ℹ  info      Request contains an accept header: application/json, text/plain, */*
+prism-1  | [2:04:23 PM] ›     [VALIDATOR] ✔  success   The request passed the validation rules. Looking for the best response
+prism-1  | [2:04:23 PM] ›     [NEGOTIATOR] ✔  success   Found a compatible content for application/json, text/plain, */*
+prism-1  | [2:04:23 PM] ›     [NEGOTIATOR] ✔  success   Responding with the requested status code 201
+prism-1  | [2:04:23 PM] ›     [NEGOTIATOR] ℹ  info      > Responding with "201"
+prism-1  | [2:04:23 PM] › [HTTP SERVER] put /labels/30000000-0000-4000-8000-000000000003 ℹ  info      Request received
+prism-1  | [2:04:23 PM] ›     [NEGOTIATOR] ℹ  info      Request contains an accept header: application/json, text/plain, */*
+prism-1  | [2:04:23 PM] ›     [VALIDATOR] ✔  success   The request passed the validation rules. Looking for the best response
+prism-1  | [2:04:23 PM] ›     [NEGOTIATOR] ✔  success   Found a compatible content for application/json, text/plain, */*
+prism-1  | [2:04:23 PM] ›     [NEGOTIATOR] ✔  success   Responding with the requested status code 200
+prism-1  | [2:04:23 PM] ›     [NEGOTIATOR] ℹ  info      > Responding with "200"
+prism-1  | [2:04:23 PM] › [HTTP SERVER] delete /labels/30000000-0000-4000-8000-000000000003 ℹ  info      Request received
+prism-1  | [2:04:23 PM] ›     [NEGOTIATOR] ℹ  info      Request contains an accept header: application/json, text/plain, */*
+prism-1  | [2:04:23 PM] ›     [VALIDATOR] ✔  success   The request passed the validation rules. Looking for the best response
+prism-1  | [2:04:23 PM] ›     [NEGOTIATOR] ⚠  warning   Unable to find content for application/json, text/plain, */*
+prism-1  | [2:04:23 PM] ›     [NEGOTIATOR] ✔  success   Responding with the requested status code 204
+prism-1  | [2:04:23 PM] ›     [NEGOTIATOR] ℹ  info      > Responding with "204"
+prism-1  | [2:04:23 PM] › [HTTP SERVER] get /planning-calendars ℹ  info      Request received
+prism-1  | [2:04:23 PM] ›     [NEGOTIATOR] ℹ  info      Request contains an accept header: application/json, text/plain, */*
+prism-1  | [2:04:23 PM] ›     [VALIDATOR] ✔  success   The request passed the validation rules. Looking for the best response
+prism-1  | [2:04:23 PM] ›     [NEGOTIATOR] ✔  success   Found a compatible content for application/json, text/plain, */*
+prism-1  | [2:04:23 PM] ›     [NEGOTIATOR] ✔  success   Responding with the requested status code 200
+prism-1  | [2:04:23 PM] ›     [NEGOTIATOR] ℹ  info      > Responding with "200"
+prism-1  | [2:04:23 PM] › [HTTP SERVER] post /planning-calendars ℹ  info      Request received
+prism-1  | [2:04:23 PM] ›     [NEGOTIATOR] ℹ  info      Request contains an accept header: application/json, text/plain, */*
+prism-1  | [2:04:23 PM] ›     [VALIDATOR] ✔  success   The request passed the validation rules. Looking for the best response
+prism-1  | [2:04:23 PM] ›     [NEGOTIATOR] ✔  success   Found a compatible content for application/json, text/plain, */*
+prism-1  | [2:04:23 PM] ›     [NEGOTIATOR] ✔  success   Responding with the requested status code 201
+prism-1  | [2:04:23 PM] ›     [NEGOTIATOR] ℹ  info      > Responding with "201"
+prism-1  | [2:04:23 PM] › [HTTP SERVER] put /planning-calendars/50000000-0000-4000-8000-000000000005 ℹ  info      Request received
+prism-1  | [2:04:23 PM] ›     [NEGOTIATOR] ℹ  info      Request contains an accept header: application/json, text/plain, */*
+prism-1  | [2:04:23 PM] ›     [VALIDATOR] ✔  success   The request passed the validation rules. Looking for the best response
+prism-1  | [2:04:23 PM] ›     [NEGOTIATOR] ✔  success   Found a compatible content for application/json, text/plain, */*
+prism-1  | [2:04:23 PM] ›     [NEGOTIATOR] ✔  success   Responding with the requested status code 200
+prism-1  | [2:04:23 PM] ›     [NEGOTIATOR] ℹ  info      > Responding with "200"
+prism-1  | [2:04:23 PM] › [HTTP SERVER] get /projects ℹ  info      Request received
+prism-1  | [2:04:23 PM] ›     [NEGOTIATOR] ℹ  info      Request contains an accept header: application/json, text/plain, */*
+prism-1  | [2:04:23 PM] ›     [VALIDATOR] ✔  success   The request passed the validation rules. Looking for the best response
+prism-1  | [2:04:23 PM] ›     [NEGOTIATOR] ✔  success   Found a compatible content for application/json, text/plain, */*
+prism-1  | [2:04:23 PM] ›     [NEGOTIATOR] ✔  success   Responding with the requested status code 200
+prism-1  | [2:04:23 PM] ›     [NEGOTIATOR] ℹ  info      > Responding with "200"
+prism-1  | [2:04:23 PM] › [HTTP SERVER] get /projects/10000000-0000-4000-8000-000000000001 ℹ  info      Request received
+prism-1  | [2:04:23 PM] ›     [NEGOTIATOR] ℹ  info      Request contains an accept header: application/json, text/plain, */*
+prism-1  | [2:04:23 PM] ›     [VALIDATOR] ✔  success   The request passed the validation rules. Looking for the best response
+prism-1  | [2:04:23 PM] ›     [NEGOTIATOR] ✔  success   Found a compatible content for application/json, text/plain, */*
+prism-1  | [2:04:23 PM] ›     [NEGOTIATOR] ✔  success   Responding with the requested status code 200
+prism-1  | [2:04:23 PM] ›     [NEGOTIATOR] ℹ  info      > Responding with "200"
+prism-1  | [2:04:23 PM] › [HTTP SERVER] post /projects ℹ  info      Request received
+prism-1  | [2:04:23 PM] ›     [NEGOTIATOR] ℹ  info      Request contains an accept header: application/json, text/plain, */*
+prism-1  | [2:04:23 PM] ›     [VALIDATOR] ✔  success   The request passed the validation rules. Looking for the best response
+prism-1  | [2:04:23 PM] ›     [NEGOTIATOR] ✔  success   Found a compatible content for application/json, text/plain, */*
+prism-1  | [2:04:23 PM] ›     [NEGOTIATOR] ✔  success   Responding with the requested status code 201
+prism-1  | [2:04:23 PM] ›     [NEGOTIATOR] ℹ  info      > Responding with "201"
+prism-1  | [2:04:23 PM] › [HTTP SERVER] get /projects ℹ  info      Request received
+prism-1  | [2:04:23 PM] ›     [NEGOTIATOR] ℹ  info      Request contains an accept header: application/json, text/plain, */*
+prism-1  | [2:04:23 PM] ›     [VALIDATOR] ✔  success   The request passed the validation rules. Looking for the best response
+prism-1  | [2:04:23 PM] ›     [NEGOTIATOR] ✔  success   Found a compatible content for application/json, text/plain, */*
+prism-1  | [2:04:23 PM] ›     [NEGOTIATOR] ✔  success   Responding with the requested status code 200
+prism-1  | [2:04:23 PM] ›     [NEGOTIATOR] ℹ  info      > Responding with "200"
+prism-1  | [2:04:23 PM] › [HTTP SERVER] put /projects/10000000-0000-4000-8000-000000000001 ℹ  info      Request received
+prism-1  | [2:04:23 PM] ›     [NEGOTIATOR] ℹ  info      Request contains an accept header: application/json, text/plain, */*
+prism-1  | [2:04:23 PM] ›     [VALIDATOR] ✔  success   The request passed the validation rules. Looking for the best response
+prism-1  | [2:04:23 PM] ›     [NEGOTIATOR] ✔  success   Found a compatible content for application/json, text/plain, */*
+prism-1  | [2:04:23 PM] ›     [NEGOTIATOR] ✔  success   Responding with the requested status code 200
+prism-1  | [2:04:23 PM] ›     [NEGOTIATOR] ℹ  info      > Responding with "200"
+prism-1  | [2:04:23 PM] › [HTTP SERVER] delete /projects/10000000-0000-4000-8000-000000000001 ℹ  info      Request received
+prism-1  | [2:04:23 PM] ›     [NEGOTIATOR] ℹ  info      Request contains an accept header: application/json, text/plain, */*
+prism-1  | [2:04:23 PM] ›     [VALIDATOR] ✔  success   The request passed the validation rules. Looking for the best response
+prism-1  | [2:04:23 PM] ›     [NEGOTIATOR] ⚠  warning   Unable to find content for application/json, text/plain, */*
+prism-1  | [2:04:23 PM] ›     [NEGOTIATOR] ✔  success   Responding with the requested status code 204
+prism-1  | [2:04:23 PM] ›     [NEGOTIATOR] ℹ  info      > Responding with "204"
+prism-1  | [2:04:23 PM] › [HTTP SERVER] patch /projects/reorder ℹ  info      Request received
+prism-1  | [2:04:23 PM] ›     [NEGOTIATOR] ℹ  info      Request contains an accept header: application/json, text/plain, */*
+prism-1  | [2:04:23 PM] ›     [VALIDATOR] ✔  success   The request passed the validation rules. Looking for the best response
+prism-1  | [2:04:23 PM] ›     [NEGOTIATOR] ⚠  warning   Unable to find content for application/json, text/plain, */*
+prism-1  | [2:04:23 PM] ›     [NEGOTIATOR] ✔  success   Responding with the requested status code 204
+prism-1  | [2:04:23 PM] ›     [NEGOTIATOR] ℹ  info      > Responding with "204"
+prism-1  | [2:04:23 PM] › [HTTP SERVER] get /projects/10000000-0000-4000-8000-000000000001/tasks ℹ  info      Request received
+prism-1  | [2:04:23 PM] ›     [NEGOTIATOR] ℹ  info      Request contains an accept header: application/json, text/plain, */*
+prism-1  | [2:04:23 PM] ›     [VALIDATOR] ✔  success   The request passed the validation rules. Looking for the best response
+prism-1  | [2:04:23 PM] ›     [NEGOTIATOR] ✔  success   Found a compatible content for application/json, text/plain, */*
+prism-1  | [2:04:23 PM] ›     [NEGOTIATOR] ✔  success   Responding with the requested status code 200
+prism-1  | [2:04:23 PM] ›     [NEGOTIATOR] ℹ  info      > Responding with "200"
+prism-1  | [2:04:23 PM] › [HTTP SERVER] get /tasks ℹ  info      Request received
+prism-1  | [2:04:23 PM] ›     [NEGOTIATOR] ℹ  info      Request contains an accept header: application/json, text/plain, */*
+prism-1  | [2:04:23 PM] ›     [VALIDATOR] ✔  success   The request passed the validation rules. Looking for the best response
+prism-1  | [2:04:23 PM] ›     [NEGOTIATOR] ✔  success   Found a compatible content for application/json, text/plain, */*
+prism-1  | [2:04:23 PM] ›     [NEGOTIATOR] ✔  success   Responding with the requested status code 200
+prism-1  | [2:04:23 PM] ›     [NEGOTIATOR] ℹ  info      > Responding with "200"
+prism-1  | [2:04:23 PM] › [HTTP SERVER] get /tasks/20000000-0000-4000-8000-000000000002 ℹ  info      Request received
+prism-1  | [2:04:23 PM] ›     [NEGOTIATOR] ℹ  info      Request contains an accept header: application/json, text/plain, */*
+prism-1  | [2:04:23 PM] ›     [VALIDATOR] ✔  success   The request passed the validation rules. Looking for the best response
+prism-1  | [2:04:23 PM] ›     [NEGOTIATOR] ✔  success   Found a compatible content for application/json, text/plain, */*
+prism-1  | [2:04:23 PM] ›     [NEGOTIATOR] ✔  success   Responding with the requested status code 200
+prism-1  | [2:04:23 PM] ›     [NEGOTIATOR] ℹ  info      > Responding with "200"
+prism-1  | [2:04:23 PM] › [HTTP SERVER] post /tasks ℹ  info      Request received
+prism-1  | [2:04:23 PM] ›     [NEGOTIATOR] ℹ  info      Request contains an accept header: application/json, text/plain, */*
+prism-1  | [2:04:23 PM] ›     [VALIDATOR] ✔  success   The request passed the validation rules. Looking for the best response
+prism-1  | [2:04:23 PM] ›     [NEGOTIATOR] ✔  success   Found a compatible content for application/json, text/plain, */*
+prism-1  | [2:04:23 PM] ›     [NEGOTIATOR] ✔  success   Responding with the requested status code 201
+prism-1  | [2:04:23 PM] ›     [NEGOTIATOR] ℹ  info      > Responding with "201"
+prism-1  | [2:04:23 PM] › [HTTP SERVER] get /tasks/20000000-0000-4000-8000-000000000002 ℹ  info      Request received
+prism-1  | [2:04:23 PM] ›     [NEGOTIATOR] ℹ  info      Request contains an accept header: application/json, text/plain, */*
+prism-1  | [2:04:23 PM] ›     [VALIDATOR] ✔  success   The request passed the validation rules. Looking for the best response
+prism-1  | [2:04:23 PM] ›     [NEGOTIATOR] ✔  success   Found a compatible content for application/json, text/plain, */*
+prism-1  | [2:04:23 PM] ›     [NEGOTIATOR] ✔  success   Responding with the requested status code 200
+prism-1  | [2:04:23 PM] ›     [NEGOTIATOR] ℹ  info      > Responding with "200"
+prism-1  | [2:04:23 PM] › [HTTP SERVER] put /tasks/20000000-0000-4000-8000-000000000002 ℹ  info      Request received
+prism-1  | [2:04:23 PM] ›     [NEGOTIATOR] ℹ  info      Request contains an accept header: application/json, text/plain, */*
+prism-1  | [2:04:23 PM] ›     [VALIDATOR] ✔  success   The request passed the validation rules. Looking for the best response
+prism-1  | [2:04:23 PM] ›     [NEGOTIATOR] ✔  success   Found a compatible content for application/json, text/plain, */*
+prism-1  | [2:04:23 PM] ›     [NEGOTIATOR] ✔  success   Responding with the requested status code 200
+prism-1  | [2:04:23 PM] ›     [NEGOTIATOR] ℹ  info      > Responding with "200"
+prism-1  | [2:04:23 PM] › [HTTP SERVER] get /tasks/20000000-0000-4000-8000-000000000002/occurrences/2026-09-08T09%3A00%3A00Z ℹ  info      Request received
+prism-1  | [2:04:23 PM] ›     [NEGOTIATOR] ℹ  info      Request contains an accept header: application/json, text/plain, */*
+prism-1  | [2:04:23 PM] ›     [VALIDATOR] ✔  success   The request passed the validation rules. Looking for the best response
+prism-1  | [2:04:23 PM] ›     [NEGOTIATOR] ✔  success   Found a compatible content for application/json, text/plain, */*
+prism-1  | [2:04:23 PM] ›     [NEGOTIATOR] ✔  success   Responding with the requested status code 200
+prism-1  | [2:04:23 PM] ›     [NEGOTIATOR] ℹ  info      > Responding with "200"
+prism-1  | [2:04:23 PM] › [HTTP SERVER] put /tasks/20000000-0000-4000-8000-000000000002/occurrences/2026-09-08T09%3A00%3A00Z ℹ  info      Request received
+prism-1  | [2:04:23 PM] ›     [NEGOTIATOR] ℹ  info      Request contains an accept header: application/json, text/plain, */*
+prism-1  | [2:04:23 PM] ›     [VALIDATOR] ✔  success   The request passed the validation rules. Looking for the best response
+prism-1  | [2:04:23 PM] ›     [NEGOTIATOR] ✔  success   Found a compatible content for application/json, text/plain, */*
+prism-1  | [2:04:23 PM] ›     [NEGOTIATOR] ✔  success   Responding with the requested status code 200
+prism-1  | [2:04:23 PM] ›     [NEGOTIATOR] ℹ  info      > Responding with "200"
+prism-1  | [2:04:23 PM] › [HTTP SERVER] get /tasks/20000000-0000-4000-8000-000000000002 ℹ  info      Request received
+prism-1  | [2:04:23 PM] ›     [NEGOTIATOR] ℹ  info      Request contains an accept header: application/json, text/plain, */*
+prism-1  | [2:04:23 PM] ›     [VALIDATOR] ✔  success   The request passed the validation rules. Looking for the best response
+prism-1  | [2:04:23 PM] ›     [NEGOTIATOR] ✔  success   Found a compatible content for application/json, text/plain, */*
+prism-1  | [2:04:23 PM] ›     [NEGOTIATOR] ✔  success   Responding with the requested status code 200
+prism-1  | [2:04:23 PM] ›     [NEGOTIATOR] ℹ  info      > Responding with "200"
+prism-1  | [2:04:23 PM] › [HTTP SERVER] put /tasks/20000000-0000-4000-8000-000000000002/occurrences/2026-09-08T09%3A00%3A00Z/following ℹ  info      Request received
+prism-1  | [2:04:23 PM] ›     [NEGOTIATOR] ℹ  info      Request contains an accept header: application/json, text/plain, */*
+prism-1  | [2:04:23 PM] ›     [VALIDATOR] ✔  success   The request passed the validation rules. Looking for the best response
+prism-1  | [2:04:23 PM] ›     [NEGOTIATOR] ✔  success   Found a compatible content for application/json, text/plain, */*
+prism-1  | [2:04:23 PM] ›     [NEGOTIATOR] ✔  success   Responding with the requested status code 200
+prism-1  | [2:04:23 PM] ›     [NEGOTIATOR] ℹ  info      > Responding with "200"
+prism-1  | [2:04:23 PM] › [HTTP SERVER] delete /tasks/20000000-0000-4000-8000-000000000002 ℹ  info      Request received
+prism-1  | [2:04:23 PM] ›     [NEGOTIATOR] ℹ  info      Request contains an accept header: application/json, text/plain, */*
+prism-1  | [2:04:23 PM] ›     [VALIDATOR] ✔  success   The request passed the validation rules. Looking for the best response
+prism-1  | [2:04:23 PM] ›     [NEGOTIATOR] ⚠  warning   Unable to find content for application/json, text/plain, */*
+prism-1  | [2:04:23 PM] ›     [NEGOTIATOR] ✔  success   Responding with the requested status code 204
+prism-1  | [2:04:23 PM] ›     [NEGOTIATOR] ℹ  info      > Responding with "204"
+prism-1  | [2:04:23 PM] › [HTTP SERVER] delete /tasks/20000000-0000-4000-8000-000000000002 ℹ  info      Request received
+prism-1  | [2:04:23 PM] ›     [NEGOTIATOR] ℹ  info      Request contains an accept header: application/json, text/plain, */*
+prism-1  | [2:04:23 PM] ›     [VALIDATOR] ✔  success   The request passed the validation rules. Looking for the best response
+prism-1  | [2:04:23 PM] ›     [NEGOTIATOR] ⚠  warning   Unable to find content for application/json, text/plain, */*
+prism-1  | [2:04:23 PM] ›     [NEGOTIATOR] ✔  success   Responding with the requested status code 204
+prism-1  | [2:04:23 PM] ›     [NEGOTIATOR] ℹ  info      > Responding with "204"
+prism-1  | [2:04:23 PM] › [HTTP SERVER] post /tasks/20000000-0000-4000-8000-000000000002/close ℹ  info      Request received
+prism-1  | [2:04:23 PM] ›     [NEGOTIATOR] ℹ  info      Request contains an accept header: application/json, text/plain, */*
+prism-1  | [2:04:23 PM] ›     [VALIDATOR] ✔  success   The request passed the validation rules. Looking for the best response
+prism-1  | [2:04:23 PM] ›     [NEGOTIATOR] ✔  success   Found a compatible content for application/json, text/plain, */*
+prism-1  | [2:04:23 PM] ›     [NEGOTIATOR] ✔  success   Responding with the requested status code 200
+prism-1  | [2:04:23 PM] ›     [NEGOTIATOR] ℹ  info      > Responding with "200"
+prism-1  | [2:04:24 PM] › [HTTP SERVER] post /tasks/20000000-0000-4000-8000-000000000002/close ℹ  info      Request received
+prism-1  | [2:04:24 PM] ›     [NEGOTIATOR] ℹ  info      Request contains an accept header: application/json, text/plain, */*
+prism-1  | [2:04:24 PM] ›     [VALIDATOR] ✔  success   The request passed the validation rules. Looking for the best response
+prism-1  | [2:04:24 PM] ›     [NEGOTIATOR] ✔  success   Found a compatible content for application/json, text/plain, */*
+prism-1  | [2:04:24 PM] ›     [NEGOTIATOR] ✔  success   Responding with the requested status code 200
+prism-1  | [2:04:24 PM] ›     [NEGOTIATOR] ℹ  info      > Responding with "200"
+prism-1  | [2:04:24 PM] › [HTTP SERVER] post /tasks/20000000-0000-4000-8000-000000000002/reopen ℹ  info      Request received
+prism-1  | [2:04:24 PM] ›     [NEGOTIATOR] ℹ  info      Request contains an accept header: application/json, text/plain, */*
+prism-1  | [2:04:24 PM] ›     [VALIDATOR] ✔  success   The request passed the validation rules. Looking for the best response
+prism-1  | [2:04:24 PM] ›     [NEGOTIATOR] ✔  success   Found a compatible content for application/json, text/plain, */*
+prism-1  | [2:04:24 PM] ›     [NEGOTIATOR] ✔  success   Responding with the requested status code 200
+prism-1  | [2:04:24 PM] ›     [NEGOTIATOR] ℹ  info      > Responding with "200"
+prism-1  | [2:04:24 PM] › [HTTP SERVER] post /tasks/20000000-0000-4000-8000-000000000002/reopen ℹ  info      Request received
+prism-1  | [2:04:24 PM] ›     [NEGOTIATOR] ℹ  info      Request contains an accept header: application/json, text/plain, */*
+prism-1  | [2:04:24 PM] ›     [VALIDATOR] ✔  success   The request passed the validation rules. Looking for the best response
+prism-1  | [2:04:24 PM] ›     [NEGOTIATOR] ✔  success   Found a compatible content for application/json, text/plain, */*
+prism-1  | [2:04:24 PM] ›     [NEGOTIATOR] ✔  success   Responding with the requested status code 200
+prism-1  | [2:04:24 PM] ›     [NEGOTIATOR] ℹ  info      > Responding with "200"
+prism-1  | [2:04:24 PM] › [HTTP SERVER] get /tasks/20000000-0000-4000-8000-000000000002/subtasks ℹ  info      Request received
+prism-1  | [2:04:24 PM] ›     [NEGOTIATOR] ℹ  info      Request contains an accept header: application/json, text/plain, */*
+prism-1  | [2:04:24 PM] ›     [VALIDATOR] ✔  success   The request passed the validation rules. Looking for the best response
+prism-1  | [2:04:24 PM] ›     [NEGOTIATOR] ✔  success   Found a compatible content for application/json, text/plain, */*
+prism-1  | [2:04:24 PM] ›     [NEGOTIATOR] ✔  success   Responding with the requested status code 200
+prism-1  | [2:04:24 PM] ›     [NEGOTIATOR] ℹ  info      > Responding with "200"
+prism-1  | [2:04:24 PM] › [HTTP SERVER] get /version ℹ  info      Request received
+prism-1  | [2:04:24 PM] ›     [NEGOTIATOR] ℹ  info      Request contains an accept header: application/json, text/plain, */*
+prism-1  | [2:04:24 PM] ›     [VALIDATOR] ✔  success   The request passed the validation rules. Looking for the best response
+prism-1  | [2:04:24 PM] ›     [NEGOTIATOR] ✔  success   Found a compatible content for application/json, text/plain, */*
+prism-1  | [2:04:24 PM] ›     [NEGOTIATOR] ✔  success   Responding with the requested status code 200
+prism-1  | [2:04:24 PM] ›     [NEGOTIATOR] ℹ  info      > Responding with "200"

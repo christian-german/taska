@@ -1,0 +1,110 @@
+{
+  "operation": "PUT /labels/{id}",
+  "method": "PUT",
+  "path_template": "/labels/{id}",
+  "fingerprint": "75de3e69",
+  "case_id": "T1iJcJ",
+  "code_sample": "curl -X PUT -H 'Authorization: [Filtered]' -H 'Content-Type: application/json' -d '{\"name\": \"00\", \"color\": \"\", \"order\": 0, \"isFavorite\": false}' http://taska-backend:8080/labels/6cacf9ab-9fbe-4362-881f-935fb59a2dce",
+  "sequence": [
+    {
+      "method": "PUT",
+      "url": "http://taska-backend:8080/labels/6cacf9ab-9fbe-4362-881f-935fb59a2dce",
+      "url_template": "http://taska-backend:8080/labels/{id}",
+      "headers": {
+        "User-Agent": "schemathesis/4.25.2",
+        "Accept-Encoding": "gzip, deflate",
+        "Accept": "*/*",
+        "Connection": "keep-alive",
+        "Authorization": "[Filtered]",
+        "X-Schemathesis-TestCaseId": "T1iJcJ",
+        "Content-Type": "application/json",
+        "Content-Length": "60"
+      },
+      "response": {
+        "status_code": 500,
+        "headers": {
+          "vary": "Origin",
+          "x-content-type-options": "nosniff",
+          "x-xss-protection": "0",
+          "cache-control": "no-cache, no-store, max-age=0, must-revalidate",
+          "pragma": "no-cache",
+          "expires": "0",
+          "x-frame-options": "DENY",
+          "content-type": "application/problem+json",
+          "transfer-encoding": "chunked",
+          "date": "Mon, 07 Sep 2026 22:26:05 GMT",
+          "connection": "close"
+        },
+        "body": "{\"detail\":\"Internal error\",\"instance\":\"/labels/6cacf9ab-9fbe-4362-881f-935fb59a2dce\",\"status\":500,\"title\":\"Internal Server Error\",\"type\":\"about:blank\"}"
+      },
+      "link": null,
+      "checks": [
+        {
+          "name": "not_a_server_error",
+          "status": "failure",
+          "message": "Server error"
+        }
+      ],
+      "meta": {
+        "generation": {
+          "time": 0.00019466003868728876,
+          "mode": "positive"
+        },
+        "components": {
+          "PATH": "positive",
+          "BODY": "positive"
+        },
+        "phase": {
+          "name": "coverage",
+          "data": {
+            "type": "CoveragePhaseData",
+            "description": "Object with valid 'name' value: Near-boundary length string",
+            "location": null,
+            "parameter": "application/json",
+            "parameter_location": "BODY",
+            "scenario": "valid_object"
+          }
+        },
+        "pool_draws": [
+          {
+            "location": "path",
+            "parameter_name": "id",
+            "resource_name": "Label",
+            "resource_field": "id",
+            "source_operation": "POST /labels",
+            "source_status": 201
+          }
+        ],
+        "pool_misses": [],
+        "semantic_draws": [],
+        "dictionary_draws": [],
+        "constants_draws": [],
+        "raw_containers": {
+          "PATH": {
+            "id": "6cacf9ab-9fbe-4362-881f-935fb59a2dce"
+          }
+        }
+      },
+      "path": "/labels/{id}",
+      "path_parameters": {
+        "id": "6cacf9ab-9fbe-4362-881f-935fb59a2dce"
+      },
+      "query": {},
+      "case_headers": {
+        "Authorization": "[Filtered]"
+      },
+      "cookies": {},
+      "case_body": {
+        "encoding": "json",
+        "value": {
+          "name": "00",
+          "color": "",
+          "order": 0,
+          "isFavorite": false
+        }
+      },
+      "media_type": "application/json",
+      "parent_index": null
+    }
+  ]
+}

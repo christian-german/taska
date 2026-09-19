@@ -1,0 +1,295 @@
+{
+  "operation": "POST /comments",
+  "method": "POST",
+  "path_template": "/comments",
+  "fingerprint": "359b2ed7",
+  "case_id": "HdQnS8",
+  "code_sample": "curl -X GET -H 'Authorization: [Filtered]' -H 'Content-Type: application/json' 'http://taska-backend:8080/comments?task_id=480012c1-d3c5-47d3-8233-4af46237d392&project_id=3cb94586-0238-47c6-b6a7-d0020ec66767'\ncurl -X GET -H 'Authorization: [Filtered]' -H 'Content-Type: application/json' http://taska-backend:8080/tasks/3dfba1bc-e08f-42fe-83b3-eb9c831cb42e\ncurl -X POST -H 'Authorization: [Filtered]' -H 'Content-Type: application/json' -d '{\"\\u00bc\\u000f\\ud830\\ude22\": {}, \"projectId\": \"3cb94586-0238-47c6-b6a7-d0020ec66767\", \"content\": \"\\t\", \"taskId\": \"480012c1-d3c5-47d3-8233-4af46237d392\"}' http://taska-backend:8080/comments",
+  "sequence": [
+    {
+      "method": "GET",
+      "url": "http://taska-backend:8080/comments?task_id=480012c1-d3c5-47d3-8233-4af46237d392&project_id=3cb94586-0238-47c6-b6a7-d0020ec66767",
+      "url_template": "http://taska-backend:8080/comments",
+      "headers": {
+        "User-Agent": "schemathesis/4.25.2",
+        "Accept-Encoding": "gzip, deflate",
+        "Accept": "*/*",
+        "Connection": "keep-alive",
+        "Authorization": "[Filtered]",
+        "X-Schemathesis-TestCaseId": "QHXWxb"
+      },
+      "response": {
+        "status_code": 200,
+        "headers": {
+          "vary": "Origin",
+          "x-content-type-options": "nosniff",
+          "x-xss-protection": "0",
+          "cache-control": "no-cache, no-store, max-age=0, must-revalidate",
+          "pragma": "no-cache",
+          "expires": "0",
+          "x-frame-options": "DENY",
+          "content-type": "application/json",
+          "content-length": "2",
+          "date": "Sat, 05 Sep 2026 09:56:47 GMT",
+          "keep-alive": "timeout=60",
+          "connection": "keep-alive"
+        },
+        "body": "[]"
+      },
+      "link": null,
+      "checks": [],
+      "meta": {
+        "generation": {
+          "time": 0.002072555013000965,
+          "mode": "positive"
+        },
+        "components": {
+          "QUERY": "positive"
+        },
+        "phase": {
+          "name": "stateful",
+          "data": {
+            "type": "StatefulPhaseData",
+            "description": "Positive test case",
+            "location": null,
+            "parameter": null,
+            "parameter_location": null,
+            "mutations": []
+          }
+        },
+        "pool_draws": [
+          {
+            "location": "query",
+            "parameter_name": "task_id",
+            "resource_name": "Task",
+            "resource_field": "id",
+            "source_operation": "POST /tasks/{taskId}/close",
+            "source_status": 200
+          },
+          {
+            "location": "query",
+            "parameter_name": "project_id",
+            "resource_name": "Project",
+            "resource_field": "id",
+            "source_operation": "PUT /filters/{id}",
+            "source_status": 200
+          }
+        ],
+        "pool_misses": [],
+        "semantic_draws": [],
+        "dictionary_draws": [],
+        "constants_draws": [],
+        "raw_containers": {}
+      },
+      "path": "/comments",
+      "path_parameters": {},
+      "query": {
+        "task_id": "480012c1-d3c5-47d3-8233-4af46237d392",
+        "project_id": "3cb94586-0238-47c6-b6a7-d0020ec66767"
+      },
+      "case_headers": {
+        "Authorization": "[Filtered]"
+      },
+      "cookies": {},
+      "case_body": {
+        "encoding": "none"
+      },
+      "media_type": null,
+      "parent_index": null
+    },
+    {
+      "method": "GET",
+      "url": "http://taska-backend:8080/tasks/3dfba1bc-e08f-42fe-83b3-eb9c831cb42e",
+      "url_template": "http://taska-backend:8080/tasks/{id}",
+      "headers": {
+        "User-Agent": "schemathesis/4.25.2",
+        "Accept-Encoding": "gzip, deflate",
+        "Accept": "*/*",
+        "Connection": "keep-alive",
+        "Authorization": "[Filtered]",
+        "X-Schemathesis-TestCaseId": "j48cY7"
+      },
+      "response": {
+        "status_code": 200,
+        "headers": {
+          "vary": "Origin",
+          "x-content-type-options": "nosniff",
+          "x-xss-protection": "0",
+          "cache-control": "no-cache, no-store, max-age=0, must-revalidate",
+          "pragma": "no-cache",
+          "expires": "0",
+          "x-frame-options": "DENY",
+          "content-type": "application/json",
+          "content-length": "567",
+          "date": "Sat, 05 Sep 2026 09:56:47 GMT",
+          "keep-alive": "timeout=60",
+          "connection": "keep-alive"
+        },
+        "body": "{\"id\":\"3dfba1bc-e08f-42fe-83b3-eb9c831cb42e\",\"content\":\"\ud99e\udc3e\u00d0\u00b7p\u00bd\ud989\udfc5\u00a6\",\"description\":null,\"projectId\":\"3cb94586-0238-47c6-b6a7-d0020ec66767\",\"sectionId\":null,\"parentId\":null,\"order\":0,\"priority\":3,\"labels\":[],\"isCompleted\":false,\"scheduledAt\":null,\"dueAt\":null,\"allDay\":false,\"isRecurring\":false,\"estimateMinutes\":null,\"mentionContext\":null,\"recurrenceRule\":null,\"createdAt\":\"2026-09-05T09:56:42.219333Z\",\"updatedAt\":\"2026-09-05T09:56:42.219333Z\",\"completedAt\":null,\"instanceId\":null,\"occurrenceScheduledAt\":null,\"isVirtual\":null,\"rruleEndsAt\":null,\"type\":\"TODO\"}"
+      },
+      "link": {
+        "operationId": "GET /comments -> [200] GetTask -> GET /tasks/{id}",
+        "parameters": {
+          "path.id": "$response.body#/*/taskId"
+        }
+      },
+      "checks": [],
+      "meta": {
+        "generation": {
+          "time": 0.0018500139703974128,
+          "mode": "positive"
+        },
+        "components": {
+          "PATH": "positive"
+        },
+        "phase": {
+          "name": "stateful",
+          "data": {
+            "type": "StatefulPhaseData",
+            "description": "Positive test case",
+            "location": null,
+            "parameter": null,
+            "parameter_location": null,
+            "mutations": []
+          }
+        },
+        "pool_draws": [
+          {
+            "location": "path",
+            "parameter_name": "id",
+            "resource_name": "Task",
+            "resource_field": "id",
+            "source_operation": "GET /filters/{id}/tasks",
+            "source_status": 200
+          }
+        ],
+        "pool_misses": [],
+        "semantic_draws": [],
+        "dictionary_draws": [],
+        "constants_draws": [],
+        "raw_containers": {}
+      },
+      "path": "/tasks/{id}",
+      "path_parameters": {
+        "id": "3dfba1bc-e08f-42fe-83b3-eb9c831cb42e"
+      },
+      "query": {},
+      "case_headers": {
+        "Authorization": "[Filtered]"
+      },
+      "cookies": {},
+      "case_body": {
+        "encoding": "none"
+      },
+      "media_type": null,
+      "parent_index": 0
+    },
+    {
+      "method": "POST",
+      "url": "http://taska-backend:8080/comments",
+      "url_template": "http://taska-backend:8080/comments",
+      "headers": {
+        "User-Agent": "schemathesis/4.25.2",
+        "Accept-Encoding": "gzip, deflate",
+        "Accept": "*/*",
+        "Connection": "keep-alive",
+        "Authorization": "[Filtered]",
+        "X-Schemathesis-TestCaseId": "HdQnS8",
+        "Content-Type": "application/json",
+        "Content-Length": "152"
+      },
+      "response": {
+        "status_code": 400,
+        "headers": {
+          "vary": "Origin",
+          "x-content-type-options": "nosniff",
+          "x-xss-protection": "0",
+          "cache-control": "no-cache, no-store, max-age=0, must-revalidate",
+          "pragma": "no-cache",
+          "expires": "0",
+          "x-frame-options": "DENY",
+          "content-type": "application/problem+json",
+          "transfer-encoding": "chunked",
+          "date": "Sat, 05 Sep 2026 09:56:47 GMT",
+          "connection": "close"
+        },
+        "body": "{\"detail\":\"Validation failed\",\"instance\":\"/comments\",\"status\":400,\"title\":\"Bad Request\",\"errors\":{\"content\":\"must not be blank\"}}"
+      },
+      "link": {
+        "operationId": "GET /tasks/{id} -> [200] PostTask_2 -> POST /comments",
+        "parameters": {},
+        "requestBody": {
+          "taskId": "$response.body#/id"
+        }
+      },
+      "checks": [
+        {
+          "name": "response_schema_conformance",
+          "status": "failure",
+          "message": "Response violates schema\n\n\"type\" is a required property\n\nValidated against the response schema for status code 400.\n\nSchema at /ProblemDetails:\n\n    {\n        \"required\": [\n            \"type\",\n            \"title\",\n            \"status\"\n        ],\n        \"type\": \"object\",\n        \"description\": \"RFC 9457 problem details returned for API errors.\",\n        \"properties\": {\n            \"type\": {\n                \"type\": \"string\",\n                \"format\": \"uri-reference\",\n                \"description\": \"Problem type identifier.\"\n            },\n            \"title\": {\n                \"type\": \"string\",\n                \"description\": \"Short, human-readable problem summary.\"\n            },\n            \"status\": {\n                \"type\": \"integer\",\n                \"minimum\": 100,\n                \"maximum\": 599,\n                \"description\": \"HTTP status code.\"\n            },\n            \"detail\": {\n                \"type\": \"string\",\n                \"description\": \"Problem details specific to this occurrence.\"\n            },\n            \"instance\": {\n                \"type\": \"string\",\n                \"format\": \"uri-reference\",\n                \"description\": \"Identifier for this occurrence.\"\n            },\n            \"code\": {\n                \"type\": \"string\",\n                \"description\": \"Stable, machine-readable Taska error code.\"\n            },\n            \"violations\": {\n                \"type\": \"array\",\n                \"items\": {\n                    \"$ref\": \"#/Violation\"\n                }\n            }\n        }\n    }\n\nValue:\n\n    {\n        \"detail\": \"Validation failed\",\n        \"errors\": {\n            \"content\": \"must not be blank\"\n        },\n        \"instance\": \"/comments\",\n        \"status\": 400,\n        \"title\": \"Bad Request\"\n    }"
+        }
+      ],
+      "meta": {
+        "generation": {
+          "time": 0.00580722198355943,
+          "mode": "positive"
+        },
+        "components": {
+          "BODY": "positive"
+        },
+        "phase": {
+          "name": "stateful",
+          "data": {
+            "type": "StatefulPhaseData",
+            "description": "Positive test case",
+            "location": null,
+            "parameter": null,
+            "parameter_location": null,
+            "mutations": []
+          }
+        },
+        "pool_draws": [
+          {
+            "location": "body",
+            "parameter_name": "taskId",
+            "resource_name": "Task",
+            "resource_field": "id",
+            "source_operation": "POST /tasks/{taskId}/close",
+            "source_status": 200
+          },
+          {
+            "location": "body",
+            "parameter_name": "projectId",
+            "resource_name": "Project",
+            "resource_field": "id",
+            "source_operation": "PUT /filters/{id}",
+            "source_status": 200
+          }
+        ],
+        "pool_misses": [],
+        "semantic_draws": [],
+        "dictionary_draws": [],
+        "constants_draws": [],
+        "raw_containers": {}
+      },
+      "path": "/comments",
+      "path_parameters": {},
+      "query": {},
+      "case_headers": {
+        "Authorization": "[Filtered]"
+      },
+      "cookies": {},
+      "case_body": {
+        "encoding": "json",
+        "value": {
+          "\u00bc\u000f\ud830\ude22": {},
+          "projectId": "3cb94586-0238-47c6-b6a7-d0020ec66767",
+          "content": "\t",
+          "taskId": "480012c1-d3c5-47d3-8233-4af46237d392"
+        }
+      },
+      "media_type": "application/json",
+      "parent_index": 1
+    }
+  ]
+}

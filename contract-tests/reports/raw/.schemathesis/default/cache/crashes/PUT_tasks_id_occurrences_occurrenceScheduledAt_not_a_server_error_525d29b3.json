@@ -1,0 +1,197 @@
+{
+  "operation": "PUT /tasks/{id}/occurrences/{occurrenceScheduledAt}",
+  "method": "PUT",
+  "path_template": "/tasks/{id}/occurrences/{occurrenceScheduledAt}",
+  "fingerprint": "525d29b3",
+  "case_id": "1SU8SG",
+  "code_sample": "curl -X GET -H 'Authorization: [Filtered]' -H 'Content-Type: application/json' 'http://taska-backend:8080/tasks?date=0051-11-18&to=2879-12-15&label=__main__&from=2761-01-03&projectId=0bf5616b-397e-4b03-a81c-7b0cffff77eb'\ncurl -X PUT -H 'Authorization: [Filtered]' -H 'Content-Type: application/json' -d '{\"dueAt\": \"0954-11-01T04:37:01.61786+12:03\", \"title\": \":\\u00df\\u00dd\", \"priority\": null}' http://taska-backend:8080/tasks/4cdd8fea-2bb1-426f-84e8-f959bd737556/occurrences/1657-08-26T19%3A21%3A19-22%3A34",
+  "sequence": [
+    {
+      "method": "GET",
+      "url": "http://taska-backend:8080/tasks?date=0051-11-18&to=2879-12-15&label=__main__&from=2761-01-03&projectId=0bf5616b-397e-4b03-a81c-7b0cffff77eb",
+      "url_template": "http://taska-backend:8080/tasks",
+      "headers": {
+        "User-Agent": "schemathesis/4.25.2",
+        "Accept-Encoding": "gzip, deflate",
+        "Accept": "*/*",
+        "Connection": "keep-alive",
+        "Authorization": "[Filtered]",
+        "X-Schemathesis-TestCaseId": "Yr05Vd"
+      },
+      "response": {
+        "status_code": 200,
+        "headers": {
+          "vary": "Origin",
+          "x-content-type-options": "nosniff",
+          "x-xss-protection": "0",
+          "cache-control": "no-cache, no-store, max-age=0, must-revalidate",
+          "pragma": "no-cache",
+          "expires": "0",
+          "x-frame-options": "DENY",
+          "content-type": "application/json",
+          "content-length": "2",
+          "date": "Mon, 07 Sep 2026 22:26:59 GMT",
+          "keep-alive": "timeout=60",
+          "connection": "keep-alive"
+        },
+        "body": "[]"
+      },
+      "link": null,
+      "checks": [],
+      "meta": {
+        "generation": {
+          "time": 0.006212775013409555,
+          "mode": "positive"
+        },
+        "components": {
+          "QUERY": "positive"
+        },
+        "phase": {
+          "name": "stateful",
+          "data": {
+            "type": "StatefulPhaseData",
+            "description": "Positive test case",
+            "location": null,
+            "parameter": null,
+            "parameter_location": null,
+            "mutations": []
+          }
+        },
+        "pool_draws": [
+          {
+            "location": "query",
+            "parameter_name": "projectId",
+            "resource_name": "Project",
+            "resource_field": "id",
+            "source_operation": "GET /projects",
+            "source_status": 200
+          }
+        ],
+        "pool_misses": [],
+        "semantic_draws": [],
+        "dictionary_draws": [],
+        "constants_draws": [],
+        "raw_containers": {}
+      },
+      "path": "/tasks",
+      "path_parameters": {},
+      "query": {
+        "date": "0051-11-18",
+        "to": "2879-12-15",
+        "label": "__main__",
+        "from": "2761-01-03",
+        "projectId": "0bf5616b-397e-4b03-a81c-7b0cffff77eb"
+      },
+      "case_headers": {
+        "Authorization": "[Filtered]"
+      },
+      "cookies": {},
+      "case_body": {
+        "encoding": "none"
+      },
+      "media_type": null,
+      "parent_index": null
+    },
+    {
+      "method": "PUT",
+      "url": "http://taska-backend:8080/tasks/4cdd8fea-2bb1-426f-84e8-f959bd737556/occurrences/1657-08-26T19%3A21%3A19-22%3A34",
+      "url_template": "http://taska-backend:8080/tasks/{id}/occurrences/{occurrenceScheduledAt}",
+      "headers": {
+        "User-Agent": "schemathesis/4.25.2",
+        "Accept-Encoding": "gzip, deflate",
+        "Accept": "*/*",
+        "Connection": "keep-alive",
+        "Authorization": "[Filtered]",
+        "X-Schemathesis-TestCaseId": "1SU8SG",
+        "Content-Type": "application/json",
+        "Content-Length": "88"
+      },
+      "response": {
+        "status_code": 500,
+        "headers": {
+          "vary": "Origin",
+          "x-content-type-options": "nosniff",
+          "x-xss-protection": "0",
+          "cache-control": "no-cache, no-store, max-age=0, must-revalidate",
+          "pragma": "no-cache",
+          "expires": "0",
+          "x-frame-options": "DENY",
+          "content-type": "application/problem+json",
+          "transfer-encoding": "chunked",
+          "date": "Mon, 07 Sep 2026 22:26:59 GMT",
+          "connection": "close"
+        },
+        "body": "{\"detail\":\"Internal error\",\"instance\":\"/tasks/4cdd8fea-2bb1-426f-84e8-f959bd737556/occurrences/1657-08-26T19%3A21%3A19-22%3A34\",\"status\":500,\"title\":\"Internal Server Error\",\"type\":\"about:blank\"}"
+      },
+      "link": {
+        "operationId": "GET /tasks -> [200] PutTask_0 -> PUT /tasks/{id}/occurrences/{occurrenceScheduledAt}",
+        "parameters": {
+          "path.id": "$response.body#/*/id"
+        }
+      },
+      "checks": [
+        {
+          "name": "not_a_server_error",
+          "status": "failure",
+          "message": "Server error"
+        }
+      ],
+      "meta": {
+        "generation": {
+          "time": 0.011561139952391386,
+          "mode": "positive"
+        },
+        "components": {
+          "PATH": "positive",
+          "BODY": "positive"
+        },
+        "phase": {
+          "name": "stateful",
+          "data": {
+            "type": "StatefulPhaseData",
+            "description": "Positive test case",
+            "location": null,
+            "parameter": null,
+            "parameter_location": null,
+            "mutations": []
+          }
+        },
+        "pool_draws": [
+          {
+            "location": "path",
+            "parameter_name": "id",
+            "resource_name": "Task",
+            "resource_field": "id",
+            "source_operation": "GET /tasks",
+            "source_status": 200
+          }
+        ],
+        "pool_misses": [],
+        "semantic_draws": [],
+        "dictionary_draws": [],
+        "constants_draws": [],
+        "raw_containers": {}
+      },
+      "path": "/tasks/{id}/occurrences/{occurrenceScheduledAt}",
+      "path_parameters": {
+        "id": "4cdd8fea-2bb1-426f-84e8-f959bd737556",
+        "occurrenceScheduledAt": "1657-08-26T19%3A21%3A19-22%3A34"
+      },
+      "query": {},
+      "case_headers": {
+        "Authorization": "[Filtered]"
+      },
+      "cookies": {},
+      "case_body": {
+        "encoding": "json",
+        "value": {
+          "dueAt": "0954-11-01T04:37:01.61786+12:03",
+          "title": ":\u00df\u00dd",
+          "priority": null
+        }
+      },
+      "media_type": "application/json",
+      "parent_index": 0
+    }
+  ]
+}

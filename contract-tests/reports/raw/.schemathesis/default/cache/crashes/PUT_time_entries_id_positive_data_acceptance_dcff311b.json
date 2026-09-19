@@ -1,0 +1,201 @@
+{
+  "operation": "PUT /time-entries/{id}",
+  "method": "PUT",
+  "path_template": "/time-entries/{id}",
+  "fingerprint": "dcff311b",
+  "case_id": "Qm0h1f",
+  "code_sample": "curl -X GET -H 'Authorization: [Filtered]' -H 'Content-Type: application/json' http://taska-backend:8080/projects\ncurl -X PUT -H 'Authorization: [Filtered]' -H 'Content-Type: application/json' -d '{\"\\ubc93K\\u00c4\\u00826\\uda96\\udf49\\u00b1\\u0007?D\\u001a7\\u00b0\\uda5d\\udcc0\\u0085\": {}, \"\\u0089?\\u00b0Mp]\\u00ed\": [{}, {\"\\u00ef\\u001a\\u00e6\\u4618\\u0095\\u0015\": null, \"\\u00ac\\ud87a\\udf680\\u0085\\u00dfk\": 6.103515625e-05}, \"\\ud858\\ude9a\"], \"projectId\": \"82db0e15-db20-53a9-a000-32d886f83afa\", \"startAt\": \"7695-09-03T16:49:13.9-18:28\", \"endAt\": \"2026-09-06T13:24:01.037956387Z\"}' http://taska-backend:8080/time-entries/137a151d-7ce1-484e-9428-f97b1a324fa9",
+  "sequence": [
+    {
+      "method": "GET",
+      "url": "http://taska-backend:8080/projects",
+      "url_template": "http://taska-backend:8080/projects",
+      "headers": {
+        "User-Agent": "schemathesis/4.25.2",
+        "Accept-Encoding": "gzip, deflate",
+        "Accept": "*/*",
+        "Connection": "keep-alive",
+        "Authorization": "[Filtered]",
+        "X-Schemathesis-TestCaseId": "GtPd9y"
+      },
+      "response": {
+        "status_code": 200,
+        "headers": {
+          "vary": "Origin",
+          "x-content-type-options": "nosniff",
+          "x-xss-protection": "0",
+          "cache-control": "no-cache, no-store, max-age=0, must-revalidate",
+          "pragma": "no-cache",
+          "expires": "0",
+          "x-frame-options": "DENY",
+          "content-type": "application/json",
+          "content-length": "2612",
+          "date": "Sun, 06 Sep 2026 13:24:11 GMT",
+          "keep-alive": "timeout=60",
+          "connection": "keep-alive"
+        },
+        "body": "[{\"id\":\"3de5d26c-f90b-4cca-8899-0d1ec511271d\",\"name\":\"\\u0004\uda9e\udc71\u00ce\",\"color\":\"\u00c0\\\"\ud8c0\udf36r\udb9b\udeb3\u00c0f2\u00cf\\u0005\u00d4\\u000E\udab5\udc91\u00b2\u00a2\u00f9\",\"parentId\":null,\"order\":-33522,\"isFavorite\":true,\"viewStyle\":\"CALENDAR\",\"isInboxProject\":false,\"planningCalendarId\":\"00000000-0000-0000-0000-000000000001\",\"createdAt\":\"2026-09-06T13:24:01.130497Z\",\"updatedAt\":\"2026-09-06T13:24:10.371218Z\"},{\"id\":\"d6f19e8f-b303-4c4e-be2e-ee30e5f2d7ad\",\"name\":\"/\ud929\uded4\u00b9*\u00c6\ud9e0\udd43\u0085!-\u00a6\u00c2\u00af\u0097v\",\"color\":\"K\u00a1(\",\"parentId\":null,\"order\":-6180,\"isFavorite\":false,\"viewStyle\":\"LIST\",\"isInboxProject\":false,\"planningCalendarId\":\"00000000-0000-0000-0000-000000000001\",\"createdAt\":\"2026-09-06T13:24:08.142237Z\",\"updatedAt\":\"2026-09-06T13:24:08.142237Z\"},{\"id\":\"46ca6cb0-1bcf-4a0b-9224-aa816b6d915a\",\"name\":\"\\u0004\uda9e\udc71\u00ce\",\"color\":\"\\u001F\\u0015i\",\"parentId\":null,\"order\":-2908,\"isFavorite\":false,\"viewStyle\":\"BOARD\",\"isInboxProject\":true,\"planningCalendarId\":\"00000000-0000-0000-0000-000000000001\",\"createdAt\":\"2026-09-06T13:21:35.617982Z\",\"updatedAt\":\"2026-09-06T13:24:09.746728Z\"},{\"id\":\"a23b21b5-8b0b-41fc-9662-054f15daf8dc\",\"name\":\"\u00e8[\ud938\udde2\u00e5\u00da\",\"color\":\"#808080\",\"parentId\":null,\"order\":0,\"isFavorite\":false,\"viewStyle\":\"LIST\",\"isInboxProject\":false,\"planningCalendarId\":\"00000000-0000-0000-0000-000000000001\",\"createdAt\":\"2026-09-06T13:24:06.339255Z\",\"updatedAt\":\"2026-09-06T13:24:06.339255Z\"},{\"id\":\"30539372-c41c-48b4-975c-acf068c7c57c\",\"name\":\"\u00e8[\ud938\udde2\u00e5\u00da\",\"color\":\"#808080\",\"parentId\":null,\"order\":0,\"isFavorite\":false,\"viewStyle\":\"LIST\",\"isInboxProject\":false,\"planningCalendarId\":\"00000000-0000-0000-0000-000000000001\",\"createdAt\":\"2026-09-06T13:24:06.400898Z\",\"updatedAt\":\"2026-09-06T13:24:06.400898Z\"},{\"id\":\"dbd3160d-2624-4b1a-842e-c4135276193c\",\"name\":\"0\",\"color\":\"#808080\",\"parentId\":null,\"order\":0,\"isFavorite\":false,\"viewStyle\":\"LIST\",\"isInboxProject\":false,\"planningCalendarId\":\"00000000-0000-0000-0000-000000000001\",\"createdAt\":\"2026-09-06T13:24:00.598876Z\",\"updatedAt\":\"2026-09-06T13:24:06.519134Z\"},{\"id\":\"653f593f-90cd-4c52-9a34-cbde343c7565\",\"name\":\"\u00a5\u007f\\u0006\u0082J\udb5d\udc79\udac1\udd75\u00bb\",\"color\":\"#808080\",\"parentId\":null,\"order\":0,\"isFavorite\":false,\"viewStyle\":\"LIST\",\"isInboxProject\":false,\"planningCalendarId\":\"00000000-0000-0000-0000-000000000001\",\"createdAt\":\"2026-09-06T13:24:11.164270Z\",\"updatedAt\":\"2026-09-06T13:24:11.164270Z\"},{\"id\":\"f8041206-59e7-4ee6-857b-6580c6057c3d\",\"name\":\"\u00e6\\u0004\u00e2\\t\",\"color\":\"#808080\",\"parentId\":null,\"order\":240100391,\"isFavorite\":false,\"viewStyle\":\"LIST\",\"isInboxProject\":false,\"planningCalendarId\":\"00000000-0000-0000-0000-000000000001\",\"createdAt\":\"2026-09-06T13:24:10.135159Z\",\"updatedAt\":\"2026-09-06T13:24:10.135159Z\"}]"
+      },
+      "link": null,
+      "checks": [],
+      "meta": {
+        "generation": {
+          "time": 0.00017658004071563482,
+          "mode": "positive"
+        },
+        "components": {},
+        "phase": {
+          "name": "stateful",
+          "data": {
+            "type": "StatefulPhaseData",
+            "description": "Positive test case",
+            "location": null,
+            "parameter": null,
+            "parameter_location": null,
+            "mutations": []
+          }
+        },
+        "pool_draws": [],
+        "pool_misses": [],
+        "semantic_draws": [],
+        "dictionary_draws": [],
+        "constants_draws": [],
+        "raw_containers": {}
+      },
+      "path": "/projects",
+      "path_parameters": {},
+      "query": {},
+      "case_headers": {
+        "Authorization": "[Filtered]"
+      },
+      "cookies": {},
+      "case_body": {
+        "encoding": "none"
+      },
+      "media_type": null,
+      "parent_index": null
+    },
+    {
+      "method": "PUT",
+      "url": "http://taska-backend:8080/time-entries/137a151d-7ce1-484e-9428-f97b1a324fa9",
+      "url_template": "http://taska-backend:8080/time-entries/{id}",
+      "headers": {
+        "User-Agent": "schemathesis/4.25.2",
+        "Accept-Encoding": "gzip, deflate",
+        "Accept": "*/*",
+        "Connection": "keep-alive",
+        "Authorization": "[Filtered]",
+        "X-Schemathesis-TestCaseId": "Qm0h1f",
+        "Content-Type": "application/json",
+        "Content-Length": "372"
+      },
+      "response": {
+        "status_code": 400,
+        "headers": {
+          "vary": "Origin",
+          "x-content-type-options": "nosniff",
+          "x-xss-protection": "0",
+          "cache-control": "no-cache, no-store, max-age=0, must-revalidate",
+          "pragma": "no-cache",
+          "expires": "0",
+          "x-frame-options": "DENY",
+          "content-type": "application/problem+json",
+          "transfer-encoding": "chunked",
+          "date": "Sun, 06 Sep 2026 13:24:11 GMT",
+          "connection": "close"
+        },
+        "body": "{\"detail\":\"Invalid request body\",\"instance\":\"/time-entries/137a151d-7ce1-484e-9428-f97b1a324fa9\",\"status\":400,\"title\":\"Bad Request\",\"type\":\"about:blank\"}"
+      },
+      "link": {
+        "operationId": "GET /projects -> [200] PutProject -> PUT /time-entries/{id}",
+        "parameters": {},
+        "requestBody": {
+          "projectId": "$response.body#/*/id"
+        }
+      },
+      "checks": [
+        {
+          "name": "positive_data_acceptance",
+          "status": "failure",
+          "message": "API rejected schema-compliant request\n\nValid data should have been accepted\nExpected: 2xx, 401, 403, 404, 409, 5xx\nHint: The request body contains 2 additional properties not defined in the schema (`\u0089?\u00b0Mp]\u00ed`, `\ubc93K\u00c4\u00826\uda96\udf49\u00b1\u0007?D\u001a7\u00b0\uda5d\udcc0\u0085`). The server likely rejects unexpected fields. Add `additionalProperties: false` to your schema to prevent this."
+        }
+      ],
+      "meta": {
+        "generation": {
+          "time": 0.011558589991182089,
+          "mode": "positive"
+        },
+        "components": {
+          "PATH": "positive",
+          "BODY": "positive"
+        },
+        "phase": {
+          "name": "stateful",
+          "data": {
+            "type": "StatefulPhaseData",
+            "description": "Positive test case",
+            "location": null,
+            "parameter": null,
+            "parameter_location": null,
+            "mutations": []
+          }
+        },
+        "pool_draws": [
+          {
+            "location": "path",
+            "parameter_name": "id",
+            "resource_name": "TimeEntry",
+            "resource_field": "id",
+            "source_operation": "PUT /time-entries/{id}",
+            "source_status": 200
+          }
+        ],
+        "pool_misses": [],
+        "semantic_draws": [
+          {
+            "path": [
+              "endAt"
+            ],
+            "type_token": "string",
+            "format_token": "date-time",
+            "pattern_hash": null,
+            "normalized_name": "endat",
+            "value": "2026-09-06T13:24:01.037956387Z",
+            "source_operation": "POST /comments"
+          }
+        ],
+        "dictionary_draws": [],
+        "constants_draws": [],
+        "raw_containers": {}
+      },
+      "path": "/time-entries/{id}",
+      "path_parameters": {
+        "id": "137a151d-7ce1-484e-9428-f97b1a324fa9"
+      },
+      "query": {},
+      "case_headers": {
+        "Authorization": "[Filtered]"
+      },
+      "cookies": {},
+      "case_body": {
+        "encoding": "json",
+        "value": {
+          "\ubc93K\u00c4\u00826\uda96\udf49\u00b1\u0007?D\u001a7\u00b0\uda5d\udcc0\u0085": {},
+          "\u0089?\u00b0Mp]\u00ed": [
+            {},
+            {
+              "\u00ef\u001a\u00e6\u4618\u0095\u0015": null,
+              "\u00ac\ud87a\udf680\u0085\u00dfk": 6.103515625e-05
+            },
+            "\ud858\ude9a"
+          ],
+          "projectId": "82db0e15-db20-53a9-a000-32d886f83afa",
+          "startAt": "7695-09-03T16:49:13.9-18:28",
+          "endAt": "2026-09-06T13:24:01.037956387Z"
+        }
+      },
+      "media_type": "application/json",
+      "parent_index": 0
+    }
+  ]
+}

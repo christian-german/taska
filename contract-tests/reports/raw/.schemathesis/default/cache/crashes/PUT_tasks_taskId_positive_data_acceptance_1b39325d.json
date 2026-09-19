@@ -1,0 +1,172 @@
+{
+  "operation": "PUT /tasks/{taskId}",
+  "method": "PUT",
+  "path_template": "/tasks/{taskId}",
+  "fingerprint": "1b39325d",
+  "case_id": "R6gM60",
+  "code_sample": "curl -X PUT -H 'Authorization: [Filtered]' -H 'Content-Type: application/json' -d '{\"dueAt\": \"2026-09-19T14:02:19.715740930Z\", \"mentionContext\": \"__main__\", \"description\": null, \"content\": \"0\", \"labels\": [\"\", \"\\u0016k\\udb69\\udc76\", \"\\u0014\\ud826\\udf52\\ubd68\\u00c2vA\", \"\\u00c0w\\u0012\\u00f5\\udb8e\\udd82\\u00ddo9\\udb8f\\udc3a\\ud9e6\\udd85\\u000f3\", \"l\\u00e8\\u00edO\\ud9cf\\udf54\", \"\\u0006\\u00d9W\\u00dd\\udabd\\udd5b\\u00193\\u0013\\u00eb\\u00c2\\u00a8\\u00cd\\u00ae\\u001a\\u009c&\\udade\\udf15\\ud9fe\\udee8\\ud96c\\udd70\", \"\\u00e9\\u00ff\\u0087\\ud906\\udcc2\\u00cd\", \"\", \"\\udb01\\udec5\\u00fd\\u00a0\\u00cc\", \"\\ud81d\\udd58\\u00b7C\\t\\u00b7\\udb25\\udd81\", \"\\u00fa\\u0000\", \"\\udade\\udd3aQ\\u00d0\\\"b\\ud8c0\\udeaf\\ud963\\udeb9\\ud992\\udcc5\\u00da\\u00e9\\u000e\", \"\", \".exe\", \"\\u001bK\\u0015\\udb5a\\udce8\\u0016\", \"\\uda8d\\udc36\", \"\\ud922\\ude99\\udbc3\\udc5f\\udaa8\\udc99\\u00e9\", \"\\u00b3\\u001b\\u00f9Z`\\u90db\\u00ad\"], \"allDay\": true, \"recurrenceRule\": \"d\\\\Zb\\uda09\\ude2c\\uda9f\\ude59\\u00e7\\u001a\\u00f2\\u00ac\\u0080g\\u001e\\u00f2\\u00da\\u00c4\", \"parentId\": null, \"isRecurring\": false, \"projectId\": \"769523d0-6409-2893-aaec-24551e705bab\", \"estimateMinutes\": 1, \"scheduledAt\": \"3787-12-17T01:35:43.90125+19:56\", \"type\": \"APPOINTMENT\", \"order\": -5446, \"priority\": 1}' http://taska-backend:8080/tasks/ef1bbe9c-5f5e-3c56-b2b5-c545ff3ff8b7",
+  "sequence": [
+    {
+      "method": "PUT",
+      "url": "http://taska-backend:8080/tasks/ef1bbe9c-5f5e-3c56-b2b5-c545ff3ff8b7",
+      "url_template": "http://taska-backend:8080/tasks/{taskId}",
+      "headers": {
+        "User-Agent": "schemathesis/4.25.2",
+        "Accept-Encoding": "gzip, deflate",
+        "Accept": "*/*",
+        "Connection": "keep-alive",
+        "Authorization": "[Filtered]",
+        "X-Schemathesis-TestCaseId": "R6gM60",
+        "Content-Type": "application/json",
+        "Content-Length": "1119"
+      },
+      "response": {
+        "status_code": 400,
+        "headers": {
+          "vary": "Origin",
+          "x-content-type-options": "nosniff",
+          "x-xss-protection": "0",
+          "cache-control": "no-cache, no-store, max-age=0, must-revalidate",
+          "pragma": "no-cache",
+          "expires": "0",
+          "x-frame-options": "DENY",
+          "content-type": "application/problem+json",
+          "transfer-encoding": "chunked",
+          "date": "Sat, 19 Sep 2026 14:02:23 GMT",
+          "connection": "close"
+        },
+        "body": "{\"detail\":\"Invalid request body\",\"instance\":\"/tasks/ef1bbe9c-5f5e-3c56-b2b5-c545ff3ff8b7\",\"status\":400,\"title\":\"Bad Request\",\"type\":\"about:blank\"}"
+      },
+      "link": null,
+      "checks": [
+        {
+          "name": "positive_data_acceptance",
+          "status": "failure",
+          "message": "API rejected schema-compliant request\n\nValid data should have been accepted\nExpected: 2xx, 401, 403, 404, 409, 5xx"
+        }
+      ],
+      "meta": {
+        "generation": {
+          "time": 0.00562929900479503,
+          "mode": "positive"
+        },
+        "components": {
+          "PATH": "positive",
+          "BODY": "positive"
+        },
+        "phase": {
+          "name": "fuzzing",
+          "data": {
+            "type": "FuzzingPhaseData",
+            "description": "Positive test case",
+            "location": null,
+            "parameter": null,
+            "parameter_location": null,
+            "mutations": []
+          }
+        },
+        "pool_draws": [],
+        "pool_misses": [],
+        "semantic_draws": [
+          {
+            "path": [
+              "dueAt"
+            ],
+            "type_token": "string",
+            "format_token": "date-time",
+            "pattern_hash": null,
+            "normalized_name": "dueat",
+            "value": "2026-09-19T14:02:19.715740930Z",
+            "source_operation": "POST /tasks"
+          },
+          {
+            "path": [
+              "content"
+            ],
+            "type_token": "string",
+            "format_token": null,
+            "pattern_hash": null,
+            "normalized_name": "content",
+            "value": "0",
+            "source_operation": "POST /tasks"
+          },
+          {
+            "path": [
+              "priority"
+            ],
+            "type_token": "integer",
+            "format_token": "int32",
+            "pattern_hash": null,
+            "normalized_name": "priority",
+            "value": 1,
+            "source_operation": "POST /tasks"
+          },
+          {
+            "path": [
+              "estimateMinutes"
+            ],
+            "type_token": "integer",
+            "format_token": "int32",
+            "pattern_hash": null,
+            "normalized_name": "estimateminutes",
+            "value": 1,
+            "source_operation": "POST /tasks"
+          }
+        ],
+        "dictionary_draws": [],
+        "constants_draws": [],
+        "raw_containers": {}
+      },
+      "path": "/tasks/{taskId}",
+      "path_parameters": {
+        "taskId": "ef1bbe9c-5f5e-3c56-b2b5-c545ff3ff8b7"
+      },
+      "query": {},
+      "case_headers": {
+        "Authorization": "[Filtered]"
+      },
+      "cookies": {},
+      "case_body": {
+        "encoding": "json",
+        "value": {
+          "dueAt": "2026-09-19T14:02:19.715740930Z",
+          "mentionContext": "__main__",
+          "description": null,
+          "content": "0",
+          "labels": [
+            "",
+            "\u0016k\udb69\udc76",
+            "\u0014\ud826\udf52\ubd68\u00c2vA",
+            "\u00c0w\u0012\u00f5\udb8e\udd82\u00ddo9\udb8f\udc3a\ud9e6\udd85\u000f3",
+            "l\u00e8\u00edO\ud9cf\udf54",
+            "\u0006\u00d9W\u00dd\udabd\udd5b\u00193\u0013\u00eb\u00c2\u00a8\u00cd\u00ae\u001a\u009c&\udade\udf15\ud9fe\udee8\ud96c\udd70",
+            "\u00e9\u00ff\u0087\ud906\udcc2\u00cd",
+            "",
+            "\udb01\udec5\u00fd\u00a0\u00cc",
+            "\ud81d\udd58\u00b7C\t\u00b7\udb25\udd81",
+            "\u00fa\u0000",
+            "\udade\udd3aQ\u00d0\"b\ud8c0\udeaf\ud963\udeb9\ud992\udcc5\u00da\u00e9\u000e",
+            "",
+            ".exe",
+            "\u001bK\u0015\udb5a\udce8\u0016",
+            "\uda8d\udc36",
+            "\ud922\ude99\udbc3\udc5f\udaa8\udc99\u00e9",
+            "\u00b3\u001b\u00f9Z`\u90db\u00ad"
+          ],
+          "allDay": true,
+          "recurrenceRule": "d\\Zb\uda09\ude2c\uda9f\ude59\u00e7\u001a\u00f2\u00ac\u0080g\u001e\u00f2\u00da\u00c4",
+          "parentId": null,
+          "isRecurring": false,
+          "projectId": "769523d0-6409-2893-aaec-24551e705bab",
+          "estimateMinutes": 1,
+          "scheduledAt": "3787-12-17T01:35:43.90125+19:56",
+          "type": "APPOINTMENT",
+          "order": -5446,
+          "priority": 1
+        }
+      },
+      "media_type": "application/json",
+      "parent_index": null
+    }
+  ]
+}

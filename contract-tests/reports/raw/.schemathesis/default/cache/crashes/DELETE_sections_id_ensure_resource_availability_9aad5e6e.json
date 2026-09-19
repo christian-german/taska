@@ -1,0 +1,191 @@
+{
+  "operation": "DELETE /sections/{id}",
+  "method": "DELETE",
+  "path_template": "/sections/{id}",
+  "fingerprint": "9aad5e6e",
+  "case_id": "Ek4WEL",
+  "code_sample": "curl -X POST -H 'Authorization: [Filtered]' -H 'Content-Type: application/json' -d '{\"name\": \"0\", \"projectId\": \"f73e3ada-6258-41f1-a71a-0c804bcf5ee6\"}' http://taska-backend:8080/sections\ncurl -X DELETE -H 'Authorization: [Filtered]' http://taska-backend:8080/sections/efa3c0dc-3393-45ab-b97f-5a0f08145601",
+  "sequence": [
+    {
+      "method": "POST",
+      "url": "http://taska-backend:8080/sections",
+      "url_template": "http://taska-backend:8080/sections",
+      "headers": {
+        "User-Agent": "schemathesis/4.25.2",
+        "Accept-Encoding": "gzip, deflate",
+        "Accept": "*/*",
+        "Connection": "keep-alive",
+        "Authorization": "[Filtered]",
+        "X-Schemathesis-TestCaseId": "vBpRNJ",
+        "Content-Type": "application/json",
+        "Content-Length": "66"
+      },
+      "response": {
+        "status_code": 201,
+        "headers": {
+          "vary": "Origin",
+          "x-content-type-options": "nosniff",
+          "x-xss-protection": "0",
+          "cache-control": "no-cache, no-store, max-age=0, must-revalidate",
+          "pragma": "no-cache",
+          "expires": "0",
+          "x-frame-options": "DENY",
+          "content-type": "application/json",
+          "content-length": "162",
+          "date": "Sun, 06 Sep 2026 13:22:54 GMT",
+          "keep-alive": "timeout=60",
+          "connection": "keep-alive"
+        },
+        "body": "{\"id\":\"efa3c0dc-3393-45ab-b97f-5a0f08145601\",\"name\":\"0\",\"projectId\":\"f73e3ada-6258-41f1-a71a-0c804bcf5ee6\",\"order\":0,\"createdAt\":\"2026-09-06T13:22:54.071180288Z\"}"
+      },
+      "link": null,
+      "checks": [],
+      "meta": {
+        "generation": {
+          "time": 0.0028319739503785968,
+          "mode": "positive"
+        },
+        "components": {
+          "BODY": "positive"
+        },
+        "phase": {
+          "name": "stateful",
+          "data": {
+            "type": "StatefulPhaseData",
+            "description": "Positive test case",
+            "location": null,
+            "parameter": null,
+            "parameter_location": null,
+            "mutations": []
+          }
+        },
+        "pool_draws": [
+          {
+            "location": "body",
+            "parameter_name": "projectId",
+            "resource_name": "Project",
+            "resource_field": "id",
+            "source_operation": "POST /projects",
+            "source_status": 201
+          }
+        ],
+        "pool_misses": [],
+        "semantic_draws": [
+          {
+            "path": [
+              "name"
+            ],
+            "type_token": "string",
+            "format_token": null,
+            "pattern_hash": null,
+            "normalized_name": "name",
+            "value": "0",
+            "source_operation": "POST /labels"
+          }
+        ],
+        "dictionary_draws": [],
+        "constants_draws": [],
+        "raw_containers": {}
+      },
+      "path": "/sections",
+      "path_parameters": {},
+      "query": {},
+      "case_headers": {
+        "Authorization": "[Filtered]"
+      },
+      "cookies": {},
+      "case_body": {
+        "encoding": "json",
+        "value": {
+          "name": "0",
+          "projectId": "f73e3ada-6258-41f1-a71a-0c804bcf5ee6"
+        }
+      },
+      "media_type": "application/json",
+      "parent_index": null
+    },
+    {
+      "method": "DELETE",
+      "url": "http://taska-backend:8080/sections/efa3c0dc-3393-45ab-b97f-5a0f08145601",
+      "url_template": "http://taska-backend:8080/sections/{id}",
+      "headers": {
+        "User-Agent": "schemathesis/4.25.2",
+        "Accept-Encoding": "gzip, deflate",
+        "Accept": "*/*",
+        "Connection": "keep-alive",
+        "Authorization": "[Filtered]",
+        "X-Schemathesis-TestCaseId": "Ek4WEL",
+        "Content-Length": "0"
+      },
+      "response": {
+        "status_code": 404,
+        "headers": {
+          "vary": "Origin",
+          "x-content-type-options": "nosniff",
+          "x-xss-protection": "0",
+          "cache-control": "no-cache, no-store, max-age=0, must-revalidate",
+          "pragma": "no-cache",
+          "expires": "0",
+          "x-frame-options": "DENY",
+          "content-type": "application/problem+json",
+          "transfer-encoding": "chunked",
+          "date": "Sun, 06 Sep 2026 13:22:54 GMT",
+          "keep-alive": "timeout=60",
+          "connection": "keep-alive"
+        },
+        "body": "{\"detail\":\"Section not found: efa3c0dc-3393-45ab-b97f-5a0f08145601\",\"instance\":\"/sections/efa3c0dc-3393-45ab-b97f-5a0f08145601\",\"status\":404,\"title\":\"Not Found\",\"type\":\"about:blank\"}"
+      },
+      "link": {
+        "operationId": "POST /sections -> [201] DeleteSection -> DELETE /sections/{id}",
+        "parameters": {
+          "path.id": "$response.body#/id"
+        }
+      },
+      "checks": [
+        {
+          "name": "ensure_resource_availability",
+          "status": "failure",
+          "message": "Resource is not available after creation\n\nThe API returned `404 Not Found` for a resource that was just created.\n\nCreated with      : `POST /sections`\nNot available with: `DELETE /sections/{id}`"
+        }
+      ],
+      "meta": {
+        "generation": {
+          "time": 0.0004330109804868698,
+          "mode": "positive"
+        },
+        "components": {},
+        "phase": {
+          "name": "stateful",
+          "data": {
+            "type": "StatefulPhaseData",
+            "description": "Positive test case",
+            "location": null,
+            "parameter": null,
+            "parameter_location": null,
+            "mutations": []
+          }
+        },
+        "pool_draws": [],
+        "pool_misses": [],
+        "semantic_draws": [],
+        "dictionary_draws": [],
+        "constants_draws": [],
+        "raw_containers": {}
+      },
+      "path": "/sections/{id}",
+      "path_parameters": {
+        "id": "efa3c0dc-3393-45ab-b97f-5a0f08145601"
+      },
+      "query": {},
+      "case_headers": {
+        "Authorization": "[Filtered]"
+      },
+      "cookies": {},
+      "case_body": {
+        "encoding": "none"
+      },
+      "media_type": null,
+      "parent_index": 0
+    }
+  ]
+}

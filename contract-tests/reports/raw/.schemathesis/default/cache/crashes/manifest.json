@@ -1,0 +1,7 @@
+{
+  "format_version": 1,
+  "schemathesis_version": "4.25.2",
+  "schema_location": "/openapi/taska.openapi.yaml",
+  "base_url": "http://taska-backend:8080",
+  "created_at": "2026-09-19T14:02:15.672987+00:00"
+}

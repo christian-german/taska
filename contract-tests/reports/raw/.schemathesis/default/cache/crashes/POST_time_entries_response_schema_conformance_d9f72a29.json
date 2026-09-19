@@ -1,0 +1,193 @@
+{
+  "operation": "POST /time-entries",
+  "method": "POST",
+  "path_template": "/time-entries",
+  "fingerprint": "d9f72a29",
+  "case_id": "OzIfWT",
+  "code_sample": "curl -X GET -H 'Authorization: [Filtered]' -H 'Content-Type: application/json' http://taska-backend:8080/projects\ncurl -X POST -H 'Authorization: [Filtered]' -H 'Content-Type: application/json' -d '{\"notes\": \"__main__\", \"projectId\": \"a358fb42-190e-2f4e-a773-fb6dca31b7bb\", \"endAt\": \"5711-12-24T08:08:49+23:44\", \"startAt\": \"2026-09-05T09:55:58.424244Z\", \"description\": \"\"}' http://taska-backend:8080/time-entries",
+  "sequence": [
+    {
+      "method": "GET",
+      "url": "http://taska-backend:8080/projects",
+      "url_template": "http://taska-backend:8080/projects",
+      "headers": {
+        "User-Agent": "schemathesis/4.25.2",
+        "Accept-Encoding": "gzip, deflate",
+        "Accept": "*/*",
+        "Connection": "keep-alive",
+        "Authorization": "[Filtered]",
+        "X-Schemathesis-TestCaseId": "IuzmO9"
+      },
+      "response": {
+        "status_code": 200,
+        "headers": {
+          "vary": "Origin",
+          "x-content-type-options": "nosniff",
+          "x-xss-protection": "0",
+          "cache-control": "no-cache, no-store, max-age=0, must-revalidate",
+          "pragma": "no-cache",
+          "expires": "0",
+          "x-frame-options": "DENY",
+          "content-type": "application/json",
+          "transfer-encoding": "chunked",
+          "date": "Sat, 05 Sep 2026 09:56:06 GMT",
+          "keep-alive": "timeout=60",
+          "connection": "keep-alive"
+        },
+        "body": "[{\"id\":\"3cb94586-0238-47c6-b6a7-d0020ec66767\",\"name\":\"\u3b65\u00d8<Gp\\u001D\",\"color\":\"]\u0087\uda00\ude11d\u00fa\\u0014\u00c0\u00f3\udbb1\udd16,\u00ef\ud8f7\ude6e\u00e7\",\"parentId\":null,\"order\":-216,\"isFavorite\":true,\"viewStyle\":\"BOARD\",\"isInboxProject\":true,\"planningCalendarId\":\"00000000-0000-0000-0000-000000000001\",\"createdAt\":\"2026-09-05T09:54:47.417887Z\",\"updatedAt\":\"2026-09-05T09:56:05.820433Z\"},{\"id\":\"4a42a9b2-0e90-464f-8fa4-9a56be516419\",\"name\":\"0\",\"color\":\"#808080\",\"parentId\":null,\"order\":0,\"isFavorite\":false,\"viewStyle\":\"LIST\",\"isInboxProject\":false,\"planningCalendarId\":\"00000000-0000-0000-0000-000000000001\",\"createdAt\":\"2026-09-05T09:55:14.405755Z\",\"updatedAt\":\"2026-09-05T09:55:14.405758Z\"},{\"id\":\"ba83b5ff-b85e-4c2b-906e-093b658c7ade\",\"name\":\"0\",\"color\":\"#808080\",\"parentId\":null,\"order\":0,\"isFavorite\":false,\"viewStyle\":\"LIST\",\"isInboxProject\":false,\"planningCalendarId\":\"00000000-0000-0000-0000-000000000001\",\"createdAt\":\"2026-09-05T09:55:14.439306Z\",\"updatedAt\":\"2026-09-05T09:55:14.439306Z\"},{\"id\":\"0872383a-40c5-461c-a66f-1c61fed5868b\",\"name\":\"0\",\"color\":\"#808080\",\"parentId\":null,\"order\":0,\"isFavorite\":false,\"viewStyle\":\"LIST\",\"isInboxProject\":false,\"planningCalendarId\":\"00000000-0000-0000-0000-000000000001\",\"createdAt\":\"2026-09-05T09:55:14.510545Z\",\"updatedAt\":\"2026-09-05T09:55:14.510545Z\"},{\"id\":\"e4cffc49-f123-4d16-a588-9c2d3047c284\",\"name\":\"0\",\"color\":\"#808080\",\"parentId\":null,\"order\":0,\"isFavorite\":false,\"viewStyle\":\"LIST\",\"isInboxProject\":false,\"planningCalendarId\":\"00000000-0000-0000-0000-000000000001\",\"createdAt\":\"2026-09-05T09:55:14.524107Z\",\"updatedAt\":\"2026-09-05T09:55:14.524107Z\"},{\"id\":\"75f7d822-1d06-4efd-928d-93b386f803e2\",\"name\":\"m\u00f1\\u0011:\",\"color\":\"#808080\",\"parentId\":null,\"order\":0,\"isFavorite\":false,\"viewStyle\":\"LIST\",\"isInboxProject\":false,\"planningCalendarId\":\"00000000-0000-0000-0000-000000000001\",\"createdAt\":\"2026-09-05T09:55:14.629192Z\",\"updatedAt\":\"2026-09-05T09:55:14.629192Z\"},{\"id\":\"c94f8a69-410f-4cf5-9ded-76f9ce6fb0e1\",\"name\":\"\ud9e4\udf35\",\"color\":\"#808080\",\"parentId\":null,\"order\":0,\"isFavorite\":false,\"viewStyle\":\"LIST\",\"isInboxProject\":false,\"planningCalendarId\":\"00000000-0000-0000-0000-000000000001\",\"createdAt\":\"2026-09-05T09:55:14.652233Z\",\"updatedAt\":\"2026-09-05T09:55:14.652233Z\"},{\"id\":\"a7c6dab2-32cf-493a-a30b-faa34ed536ff\",\"name\":\"\u3b65\u00d8<Gp\\u001D\",\"color\":\"#808080\",\"parentId\":null,\"order\":0,\"isFavorite\":false,\"viewStyle\":\"LIST\",\"isInboxProject\":false,\"planningCalendarId\":\"00000000-0000-0000-0000-000000000001\",\"createdAt\":\"2026-09-05T09:55:14.660354Z\",\"updatedAt\":\"2026-09-05T09:55:14.660354Z\"},{\"id\":\"6e4e7d13-0030-41c1-8f01-eb2c69baf002\",\"name\":\"\uda64\udfecF0!\u00c4\",\"color\":\"#808080\",\"parentId\":null,\"order\":0,\"isFavorite\":false,\"viewStyle\":\"LIST\",\"isInboxProject\":false,\"planningCalendarId\":\"00000000-0000-0000-0000-000000000001\",\"createdAt\":\"2026-09-05T09:55:14.668771Z\",\"updatedAt\":\"2026-09-05T09:55:14.668771Z\"},{\"id\":\"048ef0b0-a546-4361-b878-4c61961bcd30\",\"name\":\"0\",\"color\":\"#808080\",\"parentId\":null,\"order\":0,\"isFavorite\":false,\"viewStyle\":\"LIST\",\"isInboxProject\":false,\"planningCalendarId\":\"00000000-0000-0000-0000-000000000001\",\"createdAt\":\"2026-09-05T09:55:14.676783Z\",\"updatedAt\":\"2026-09-05T09:55:14.676783Z\"},{\"id\":\"d9e4fa5c-50b7-403b-92b5-e0a6669203f9\",\"name\":\"0\",\"color\":\"#808080\",\"parentId\":null,\"order\":0,\"isFavorite\":false,\"viewStyle\":\"LIST\",\"isInboxProject\":false,\"planningCalendarId\":\"00000000-0000-0000-0000-000000000001\",\"createdAt\":\"2026-09-05T09:55:14.691687Z\",\"updatedAt\":\"2026-09-05T09:55:14.691688Z\"},{\"id\":\"703c3371-0f7e-4d0d-aaaf-ca3a20f38693\",\"name\":\"0\",\"color\":\"#808080\",\"parentId\":null,\"order\":0,\"isFavorite\":false,\"viewStyle\":\"LIST\",\"isInboxProject\":false,\"planningCalendarId\":\"00000000-0000-0000-0000-000000000001\",\"createdAt\":\"2026-09-05T09:55:14.699423Z\",\"updatedAt\":\"2026-09-05T09:55:14.699423Z\"},{\"id\":\"9f84af99-4bd8-46e6-91d5-939f4857ce1d\",\"name\":\"0\",\"color\":\"#808080\",\"parentId\":null,\"order\":0,\"isFavorite\":false,\"viewStyle\":\"LIST\",\"isInboxProject\":false,\"planningCalendarId\":\"00000000-0000-0000-0000-000000000001\",\"createdAt\":\"2026-09-05T09:55:14.707094Z\",\"updatedAt\":\"2026-09-05T09:55:14.707094Z\"},{\"id\":\"13dc8510-1d8e-4b00-bbc6-e5b1348025b9\",\"name\":\"0\",\"color\":\"#808080\",\"parentId\":null,\"order\":0,\"isFavorite\":false,\"viewStyle\":\"LIST\",\"isInboxProject\":false,\"planningCalendarId\":\"00000000-0000-0000-0000-000000000001\",\"createdAt\":\"2026-09-05T09:55:14.755294Z\",\"updatedAt\":\"2026-09-05T09:55:14.755294Z\"},{\"id\":\"f01f5ad6-558f-466d-a886-526e793f04d0\",\"name\":\"0\",\"color\":\"#808080\",\"parentId\":null,\"order\":0,\"isFavorite\":false,\"viewStyle\":\"LIST\",\"isInboxProject\":false,\"planningCalendarId\":\"00000000-0000-0000-0000-000000000001\",\"createdAt\":\"2026-09-05T09:55:14.829554Z\",\"updatedAt\":\"2026-09-05T09:55:14.829554Z\"},{\"id\":\"4ad8fa55-b8fd-41ff-ae95-52db53d58b36\",\"name\":\"0\",\"color\":\"#808080\",\"parentId\":null,\"order\":0,\"isFavorite\":false,\"viewStyle\":\"LIST\",\"isInboxProject\":false,\"planningCalendarId\":\"00000000-0000-0000-0000-000000000001\",\"createdAt\":\"2026-09-05T09:55:14.885506Z\",\"updatedAt\":\"2026-09-05T09:55:14.885506Z\"},{\"id\":\"ba17db6c-2c4d-4ef6-803d-1ae62eceb6c0\",\"name\":\"0\",\"color\":\"#808080\",\"parentId\":null,\"order\":0,\"isFavorite\":false,\"viewStyle\":\"LIST\",\"isInboxProject\":false,\"planningCalendarId\":\"00000000-0000-0000-0000-000000000001\",\"createdAt\":\"2026-09-05T09:55:14.908227Z\",\"updatedAt\":\"2026-09-05T09:55:14.908227Z\"},{\"id\":\"55ada3e9-01bc-4377-90ab-0d8a5fac7267\",\"name\":\"0\",\"color\":\"#808080\",\"parentId\":null,\"order\":0,\"isFavorite\":false,\"viewStyle\":\"LIST\",\"isInboxProject\":false,\"planningCalendarId\":\"00000000-0000-0000-0000-000000000001\",\"createdAt\":\"2026-09-05T09:55:14.920541Z\",\"updatedAt\":\"2026-09-05T09:55:14.920542Z\"},{\"id\":\"7437714f-2bec-41a1-b152-385566ec2793\",\"name\":\"0\",\"color\":\"#808080\",\"parentId\":null,\"order\":0,\"isFavorite\":false,\"viewStyle\":\"LIST\",\"isInboxProject\":false,\"planningCalendarId\":\"00000000-0000-0000-0000-000000000001\",\"createdAt\":\"2026-09-05T09:55:14.958978Z\",\"updatedAt\":\"2026-09-05T09:55:14.958979Z\"},{\"id\":\"16df643e-1df8-4286-9298-e9f78a6aee4f\",\"name\":\"0\",\"color\":\"#808080\",\"parentId\":null,\"order\":0,\"isFavorite\":false,\"viewStyle\":\"LIST\",\"isInboxProject\":false,\"planningCalendarId\":\"00000000-0000-0000-0000-000000000001\",\"createdAt\":\"2026-09-05T09:55:14.968702Z\",\"updatedAt\":\"2026-09-05T09:55:14.968702Z\"},{\"id\":\"dd0e8e09-4bd9-4c27-9d3b-14ea4ccea4bc\",\"name\":\"0\",\"color\":\"#808080\",\"parentId\":null,\"order\":0,\"isFavorite\":false,\"viewStyle\":\"LIST\",\"isInboxProject\":false,\"planningCalendarId\":\"00000000-0000-0000-0000-000000000001\",\"createdAt\":\"2026-09-05T09:55:14.991232Z\",\"updatedAt\":\"2026-09-05T09:55:14.991232Z\"},{\"id\":\"401c2387-f693-4686-82fd-1475b61d8f2c\",\"name\":\"0\",\"color\":\"#808080\",\"parentId\":null,\"order\":0,\"isFavorite\":false,\"viewStyle\":\"LIST\",\"isInboxProject\":false,\"planningCalendarId\":\"00000000-0000-0000-0000-000000000001\",\"createdAt\":\"2026-09-05T09:55:15.005321Z\",\"updatedAt\":\"2026-09-05T09:55:15.005321Z\"},{\"id\":\"8ddd330f-2d31-4071-be17-0ffd787ee1b6\",\"name\":\"0\",\"color\":\"#808080\",\"parentId\":null,\"order\":0,\"isFavorite\":false,\"viewStyle\":\"LIST\",\"isInboxProject\":false,\"planningCalendarId\":\"00000000-0000-0000-0000-000000000001\",\"createdAt\":\"2026-09-05T09:55:15.046209Z\",\"updatedAt\":\"2026-09-05T09:55:15.046209Z\"},{\"id\":\"836caea1-3d41-4ff1-bc85-8a0e9f9b84a8\",\"name\":\"0\",\"color\":\"#808080\",\"parentId\":null,\"order\":0,\"isFavorite\":false,\"viewStyle\":\"LIST\",\"isInboxProject\":false,\"planningCalendarId\":\"00000000-0000-0000-0000-000000000001\",\"createdAt\":\"2026-09-05T09:55:15.071151Z\",\"updatedAt\":\"2026-09-05T09:55:15.071151Z\"},{\"id\":\"d374ec11-b150-411a-a4c2-dced9cd82736\",\"name\":\"0\",\"color\":\"#808080\",\"parentId\":null,\"order\":0,\"isFavorite\":false,\"viewStyle\":\"LIST\",\"isInboxProject\":false,\"planningCalendarId\":\"00000000-0000-0000-0000-000000000001\",\"createdAt\":\"2026-09-05T09:55:15.082309Z\",\"updatedAt\":\"2026-09-05T09:55:15.082309Z\"},{\"id\":\"143484c1-c766-424f-9f08-47af9a732724\",\"name\":\"0\",\"color\":\"#808080\",\"parentId\":null,\"order\":0,\"isFavorite\":false,\"viewStyle\":\"LIST\",\"isInboxProject\":false,\"planningCalendarId\":\"00000000-0000-0000-0000-000000000001\",\"createdAt\":\"2026-09-05T09:55:15.127355Z\",\"updatedAt\":\"2026-09-05T09:55:15.127356Z\"},{\"id\":\"c17edec5-ebda-4559-a4bc-362237e85340\",\"name\":\"0\",\"color\":\"#808080\",\"parentId\":null,\"order\":0,\"isFavorite\":false,\"viewStyle\":\"LIST\",\"isInboxProject\":false,\"planningCalendarId\":\"00000000-0000-0000-0000-000000000001\",\"createdAt\":\"2026-09-05T09:55:15.176943Z\",\"updatedAt\":\"2026-09-05T09:55:15.176943Z\"},{\"id\":\"ae10885d-87e9-4a47-85b4-6c790e56a806\",\"name\":\"0\",\"color\":\"#808080\",\"parentId\":null,\"order\":0,\"isFavorite\":false,\"viewStyle\":\"LIST\",\"isInboxProject\":false,\"planningCalendarId\":\"00000000-0000-0000-0000-000000000001\",\"createdAt\":\"2026-09-05T09:55:15.185260Z\",\"updatedAt\":\"2026-09-05T09:55:15.185260Z\"},{\"id\":\"994dff7a-b2b7-4d94-8fdd-d8fdcd80f48c\",\"name\":\"Inbox\",\"color\":\"#808080\",\"parentId\":null,\"order\":14529,\"isFavorite\":false,\"viewStyle\":\"LIST\",\"isInboxProject\":false,\"planningCalendarId\":\"00000000-0000-0000-0000-000000000001\",\"createdAt\":\"2026-09-05T09:55:14.944219Z\",\"updatedAt\":\"2026-09-05T09:56:05.956142Z\"}]"
+      },
+      "link": null,
+      "checks": [],
+      "meta": {
+        "generation": {
+          "time": 0.00010003102943301201,
+          "mode": "positive"
+        },
+        "components": {},
+        "phase": {
+          "name": "stateful",
+          "data": {
+            "type": "StatefulPhaseData",
+            "description": "Positive test case",
+            "location": null,
+            "parameter": null,
+            "parameter_location": null,
+            "mutations": []
+          }
+        },
+        "pool_draws": [],
+        "pool_misses": [],
+        "semantic_draws": [],
+        "dictionary_draws": [],
+        "constants_draws": [],
+        "raw_containers": {}
+      },
+      "path": "/projects",
+      "path_parameters": {},
+      "query": {},
+      "case_headers": {
+        "Authorization": "[Filtered]"
+      },
+      "cookies": {},
+      "case_body": {
+        "encoding": "none"
+      },
+      "media_type": null,
+      "parent_index": null
+    },
+    {
+      "method": "POST",
+      "url": "http://taska-backend:8080/time-entries",
+      "url_template": "http://taska-backend:8080/time-entries",
+      "headers": {
+        "User-Agent": "schemathesis/4.25.2",
+        "Accept-Encoding": "gzip, deflate",
+        "Accept": "*/*",
+        "Connection": "keep-alive",
+        "Authorization": "[Filtered]",
+        "X-Schemathesis-TestCaseId": "OzIfWT",
+        "Content-Type": "application/json",
+        "Content-Length": "173"
+      },
+      "response": {
+        "status_code": 400,
+        "headers": {
+          "vary": "Origin",
+          "x-content-type-options": "nosniff",
+          "x-xss-protection": "0",
+          "cache-control": "no-cache, no-store, max-age=0, must-revalidate",
+          "pragma": "no-cache",
+          "expires": "0",
+          "x-frame-options": "DENY",
+          "content-type": "application/problem+json",
+          "transfer-encoding": "chunked",
+          "date": "Sat, 05 Sep 2026 09:56:06 GMT",
+          "connection": "close"
+        },
+        "body": "{\"detail\":\"Invalid request body\",\"instance\":\"/time-entries\",\"status\":400,\"title\":\"Bad Request\"}"
+      },
+      "link": {
+        "operationId": "GET /projects -> [200] PostProject -> POST /time-entries",
+        "parameters": {},
+        "requestBody": {
+          "projectId": "$response.body#/*/id"
+        }
+      },
+      "checks": [
+        {
+          "name": "response_schema_conformance",
+          "status": "failure",
+          "message": "Response violates schema\n\n\"type\" is a required property\n\nValidated against the response schema for status code 400.\n\nSchema at /ProblemDetails:\n\n    {\n        \"required\": [\n            \"type\",\n            \"title\",\n            \"status\"\n        ],\n        \"type\": \"object\",\n        \"description\": \"RFC 9457 problem details returned for API errors.\",\n        \"properties\": {\n            \"type\": {\n                \"type\": \"string\",\n                \"format\": \"uri-reference\",\n                \"description\": \"Problem type identifier.\"\n            },\n            \"title\": {\n                \"type\": \"string\",\n                \"description\": \"Short, human-readable problem summary.\"\n            },\n            \"status\": {\n                \"type\": \"integer\",\n                \"minimum\": 100,\n                \"maximum\": 599,\n                \"description\": \"HTTP status code.\"\n            },\n            \"detail\": {\n                \"type\": \"string\",\n                \"description\": \"Problem details specific to this occurrence.\"\n            },\n            \"instance\": {\n                \"type\": \"string\",\n                \"format\": \"uri-reference\",\n                \"description\": \"Identifier for this occurrence.\"\n            },\n            \"code\": {\n                \"type\": \"string\",\n                \"description\": \"Stable, machine-readable Taska error code.\"\n            },\n            \"violations\": {\n                \"type\": \"array\",\n                \"items\": {\n                    \"$ref\": \"#/Violation\"\n                }\n            }\n        }\n    }\n\nValue:\n\n    {\n        \"detail\": \"Invalid request body\",\n        \"instance\": \"/time-entries\",\n        \"status\": 400,\n        \"title\": \"Bad Request\"\n    }"
+        }
+      ],
+      "meta": {
+        "generation": {
+          "time": 0.003907869919203222,
+          "mode": "positive"
+        },
+        "components": {
+          "BODY": "positive"
+        },
+        "phase": {
+          "name": "stateful",
+          "data": {
+            "type": "StatefulPhaseData",
+            "description": "Positive test case",
+            "location": null,
+            "parameter": null,
+            "parameter_location": null,
+            "mutations": []
+          }
+        },
+        "pool_draws": [],
+        "pool_misses": [],
+        "semantic_draws": [
+          {
+            "path": [
+              "startAt"
+            ],
+            "type_token": "string",
+            "format_token": "date-time",
+            "pattern_hash": null,
+            "normalized_name": "startat",
+            "value": "2026-09-05T09:55:58.424244Z",
+            "source_operation": "GET /tasks/{id}"
+          },
+          {
+            "path": [
+              "notes"
+            ],
+            "type_token": "string",
+            "format_token": null,
+            "pattern_hash": null,
+            "normalized_name": "notes",
+            "value": "__main__",
+            "source_operation": "POST /time-entries"
+          }
+        ],
+        "dictionary_draws": [],
+        "constants_draws": [],
+        "raw_containers": {}
+      },
+      "path": "/time-entries",
+      "path_parameters": {},
+      "query": {},
+      "case_headers": {
+        "Authorization": "[Filtered]"
+      },
+      "cookies": {},
+      "case_body": {
+        "encoding": "json",
+        "value": {
+          "notes": "__main__",
+          "projectId": "a358fb42-190e-2f4e-a773-fb6dca31b7bb",
+          "endAt": "5711-12-24T08:08:49+23:44",
+          "startAt": "2026-09-05T09:55:58.424244Z",
+          "description": ""
+        }
+      },
+      "media_type": "application/json",
+      "parent_index": 0
+    }
+  ]
+}

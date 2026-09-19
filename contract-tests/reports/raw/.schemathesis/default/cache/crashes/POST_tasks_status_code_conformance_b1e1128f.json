@@ -1,0 +1,164 @@
+{
+  "operation": "POST /tasks",
+  "method": "POST",
+  "path_template": "/tasks",
+  "fingerprint": "b1e1128f",
+  "case_id": "OInoyv",
+  "code_sample": "curl -X POST -H 'Authorization: [Filtered]' -H 'Content-Type: application/json' -d '{\"0\\ud8ee\\udf58v&k\": {\"\\u00f0\\u00ee\\u009e\": [\"$\\u00a7\"], \"\\u00e2|)\\u00a8W\\udbe3\\udca8\\u00a8\\u009eX\\u00e8]\\n\": [null], \"\": {\"S\": 1.0274657188293165e+113}}, \"\": {\"2\": false, \"\\u00d3\\u00e7\": null, \"\\ud839\\udf15\\u001e\\u00bf`s\\udb1b\\ude94\\uda05\\udedd|3\\u00acF\": [false]}, \"\\u00f57m\\u0081\\u00af\\u0001>$\\ud933\\udd7e\\u00c9\\u00f1\\u00e7\\u0005\\u0005\": {\"\\u00c4\\u00ae\\u0088\\u00e9\\ud8b0\\udec8\\u0082}\\ud902\\ude1d<\\u00b0\\u00dbx\": []}, \"\\udae8\\udfda\": 1.8730171081055003e+172, \"\\u00df+\\u0005+\\u0000~\\uda41\\udc7a\": [null], \"occurrenceScheduledAt\": \"2026-09-07T22:15:33.623191Z\", \"scheduledAt\": \"2026-09-07T22:15:15.615885Z\", \"scope\": null, \"content\": \"\\u00b6\\u00dd\\u00dd\\u001c\\u00db}\\u00f8\\u0090\\ud9de\\udd50AF\\ud865\\udf8f\\udb06\\udd8d\", \"projectId\": \"107143d0-ef3f-4aa1-82ab-a8e983e8f96b\"}' http://taska-backend:8080/tasks",
+  "sequence": [
+    {
+      "method": "POST",
+      "url": "http://taska-backend:8080/tasks",
+      "url_template": "http://taska-backend:8080/tasks",
+      "headers": {
+        "User-Agent": "schemathesis/4.25.2",
+        "Accept-Encoding": "gzip, deflate",
+        "Accept": "*/*",
+        "Connection": "keep-alive",
+        "Authorization": "[Filtered]",
+        "X-Schemathesis-TestCaseId": "OInoyv",
+        "Content-Type": "application/json",
+        "Content-Length": "771"
+      },
+      "response": {
+        "status_code": 404,
+        "headers": {
+          "vary": "Origin",
+          "x-content-type-options": "nosniff",
+          "x-xss-protection": "0",
+          "cache-control": "no-cache, no-store, max-age=0, must-revalidate",
+          "pragma": "no-cache",
+          "expires": "0",
+          "x-frame-options": "DENY",
+          "content-type": "application/problem+json",
+          "transfer-encoding": "chunked",
+          "date": "Mon, 07 Sep 2026 22:16:18 GMT",
+          "keep-alive": "timeout=60",
+          "connection": "keep-alive"
+        },
+        "body": "{\"detail\":\"Project not found: 107143d0-ef3f-4aa1-82ab-a8e983e8f96b\",\"instance\":\"/tasks\",\"status\":404,\"title\":\"Not Found\",\"type\":\"about:blank\"}"
+      },
+      "link": null,
+      "checks": [
+        {
+          "name": "status_code_conformance",
+          "status": "failure",
+          "message": "Undocumented HTTP status code\n\nReceived: 404\nDocumented: 201, 400, 401, 403, 409, 422, 500"
+        }
+      ],
+      "meta": {
+        "generation": {
+          "time": 0.01793899293988943,
+          "mode": "positive"
+        },
+        "components": {
+          "BODY": "positive"
+        },
+        "phase": {
+          "name": "stateful",
+          "data": {
+            "type": "StatefulPhaseData",
+            "description": "Positive test case",
+            "location": null,
+            "parameter": null,
+            "parameter_location": null,
+            "mutations": []
+          }
+        },
+        "pool_draws": [
+          {
+            "location": "body",
+            "parameter_name": "projectId",
+            "resource_name": "Project",
+            "resource_field": "id",
+            "source_operation": "GET /projects/{id}",
+            "source_status": 200
+          }
+        ],
+        "pool_misses": [],
+        "semantic_draws": [
+          {
+            "path": [
+              "content"
+            ],
+            "type_token": "string",
+            "format_token": null,
+            "pattern_hash": null,
+            "normalized_name": "content",
+            "value": "\u00b6\u00dd\u00dd\u001c\u00db}\u00f8\u0090\ud9de\udd50AF\ud865\udf8f\udb06\udd8d",
+            "source_operation": "PUT /comments/{id}"
+          },
+          {
+            "path": [
+              "scheduledAt"
+            ],
+            "type_token": "string",
+            "format_token": "date-time",
+            "pattern_hash": null,
+            "normalized_name": "scheduledat",
+            "value": "2026-09-07T22:15:15.615885Z",
+            "source_operation": "PUT /projects/{id}"
+          },
+          {
+            "path": [
+              "occurrenceScheduledAt"
+            ],
+            "type_token": "string",
+            "format_token": "date-time",
+            "pattern_hash": null,
+            "normalized_name": "occurrencescheduledat",
+            "value": "2026-09-07T22:15:33.623191Z",
+            "source_operation": "GET /tasks/{id}"
+          }
+        ],
+        "dictionary_draws": [],
+        "constants_draws": [],
+        "raw_containers": {}
+      },
+      "path": "/tasks",
+      "path_parameters": {},
+      "query": {},
+      "case_headers": {
+        "Authorization": "[Filtered]"
+      },
+      "cookies": {},
+      "case_body": {
+        "encoding": "json",
+        "value": {
+          "0\ud8ee\udf58v&k": {
+            "\u00f0\u00ee\u009e": [
+              "$\u00a7"
+            ],
+            "\u00e2|)\u00a8W\udbe3\udca8\u00a8\u009eX\u00e8]\n": [
+              null
+            ],
+            "": {
+              "S": 1.0274657188293165e+113
+            }
+          },
+          "": {
+            "2": false,
+            "\u00d3\u00e7": null,
+            "\ud839\udf15\u001e\u00bf`s\udb1b\ude94\uda05\udedd|3\u00acF": [
+              false
+            ]
+          },
+          "\u00f57m\u0081\u00af\u0001>$\ud933\udd7e\u00c9\u00f1\u00e7\u0005\u0005": {
+            "\u00c4\u00ae\u0088\u00e9\ud8b0\udec8\u0082}\ud902\ude1d<\u00b0\u00dbx": []
+          },
+          "\udae8\udfda": 1.8730171081055003e+172,
+          "\u00df+\u0005+\u0000~\uda41\udc7a": [
+            null
+          ],
+          "occurrenceScheduledAt": "2026-09-07T22:15:33.623191Z",
+          "scheduledAt": "2026-09-07T22:15:15.615885Z",
+          "scope": null,
+          "content": "\u00b6\u00dd\u00dd\u001c\u00db}\u00f8\u0090\ud9de\udd50AF\ud865\udf8f\udb06\udd8d",
+          "projectId": "107143d0-ef3f-4aa1-82ab-a8e983e8f96b"
+        }
+      },
+      "media_type": "application/json",
+      "parent_index": null
+    }
+  ]
+}

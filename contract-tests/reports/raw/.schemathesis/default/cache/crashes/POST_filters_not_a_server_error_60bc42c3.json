@@ -1,0 +1,110 @@
+{
+  "operation": "POST /filters",
+  "method": "POST",
+  "path_template": "/filters",
+  "fingerprint": "60bc42c3",
+  "case_id": "YaMbxw",
+  "code_sample": "curl -X POST -H 'Authorization: [Filtered]' -H 'Content-Type: application/json' -d '{\"p\\u27f3\\u00fc\\ud804\\udf2b\\uda2a\\uddcd\\u008e\\u00f3\\u0095\\ud902\\ude0b\\u00d8\\u0004H\\u00df\\ud92b\\udf07\\u00d3?\\u0017\": true, \"clearProject\": true, \"order\": 786, \"isFavorite\": false, \"color\": \"|\\u0096\\u0007*\\u0014\\u00d0\", \"hasDate\": true, \"name\": \"\\u0012\\u00c1\\udaf1\\udc43\\udb7f\\udc21\", \"projectId\": \"5b778382-dfa1-5437-a53b-d1e6bcc4a7dc\"}' http://taska-backend:8080/filters",
+  "sequence": [
+    {
+      "method": "POST",
+      "url": "http://taska-backend:8080/filters",
+      "url_template": "http://taska-backend:8080/filters",
+      "headers": {
+        "User-Agent": "schemathesis/4.25.2",
+        "Accept-Encoding": "gzip, deflate",
+        "Accept": "*/*",
+        "Connection": "keep-alive",
+        "Authorization": "[Filtered]",
+        "X-Schemathesis-TestCaseId": "YaMbxw",
+        "Content-Type": "application/json",
+        "Content-Length": "335"
+      },
+      "response": {
+        "status_code": 500,
+        "headers": {
+          "vary": "Origin",
+          "x-content-type-options": "nosniff",
+          "x-xss-protection": "0",
+          "cache-control": "no-cache, no-store, max-age=0, must-revalidate",
+          "pragma": "no-cache",
+          "expires": "0",
+          "x-frame-options": "DENY",
+          "content-type": "application/problem+json",
+          "transfer-encoding": "chunked",
+          "date": "Sun, 06 Sep 2026 15:51:33 GMT",
+          "connection": "close"
+        },
+        "body": "{\"detail\":\"Internal error\",\"instance\":\"/filters\",\"status\":500,\"title\":\"Internal Server Error\",\"type\":\"about:blank\"}"
+      },
+      "link": null,
+      "checks": [
+        {
+          "name": "not_a_server_error",
+          "status": "failure",
+          "message": "Server error"
+        }
+      ],
+      "meta": {
+        "generation": {
+          "time": 0.003563595935702324,
+          "mode": "positive"
+        },
+        "components": {
+          "BODY": "positive"
+        },
+        "phase": {
+          "name": "stateful",
+          "data": {
+            "type": "StatefulPhaseData",
+            "description": "Positive test case",
+            "location": null,
+            "parameter": null,
+            "parameter_location": null,
+            "mutations": []
+          }
+        },
+        "pool_draws": [],
+        "pool_misses": [],
+        "semantic_draws": [
+          {
+            "path": [
+              "name"
+            ],
+            "type_token": "string",
+            "format_token": null,
+            "pattern_hash": null,
+            "normalized_name": "name",
+            "value": "\u0012\u00c1\udaf1\udc43\udb7f\udc21",
+            "source_operation": "POST /projects"
+          }
+        ],
+        "dictionary_draws": [],
+        "constants_draws": [],
+        "raw_containers": {}
+      },
+      "path": "/filters",
+      "path_parameters": {},
+      "query": {},
+      "case_headers": {
+        "Authorization": "[Filtered]"
+      },
+      "cookies": {},
+      "case_body": {
+        "encoding": "json",
+        "value": {
+          "p\u27f3\u00fc\ud804\udf2b\uda2a\uddcd\u008e\u00f3\u0095\ud902\ude0b\u00d8\u0004H\u00df\ud92b\udf07\u00d3?\u0017": true,
+          "clearProject": true,
+          "order": 786,
+          "isFavorite": false,
+          "color": "|\u0096\u0007*\u0014\u00d0",
+          "hasDate": true,
+          "name": "\u0012\u00c1\udaf1\udc43\udb7f\udc21",
+          "projectId": "5b778382-dfa1-5437-a53b-d1e6bcc4a7dc"
+        }
+      },
+      "media_type": "application/json",
+      "parent_index": null
+    }
+  ]
+}

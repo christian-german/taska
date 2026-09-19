@@ -1,0 +1,194 @@
+{
+  "operation": "DELETE /projects/{id}",
+  "method": "DELETE",
+  "path_template": "/projects/{id}",
+  "fingerprint": "65b2c3ca",
+  "case_id": "1dD9lk",
+  "code_sample": "curl -X GET -H 'Authorization: [Filtered]' 'http://taska-backend:8080/comments?taskId=69c55044-3bcf-1856-991b-b8430e451ea7&projectId=c91195da-6238-45d7-a51e-227783063069'\ncurl -X DELETE -H 'Authorization: [Filtered]' http://taska-backend:8080/projects/c91195da-6238-45d7-a51e-227783063069",
+  "sequence": [
+    {
+      "method": "GET",
+      "url": "http://taska-backend:8080/comments?taskId=69c55044-3bcf-1856-991b-b8430e451ea7&projectId=c91195da-6238-45d7-a51e-227783063069",
+      "url_template": "http://taska-backend:8080/comments",
+      "headers": {
+        "User-Agent": "schemathesis/4.25.2",
+        "Accept-Encoding": "gzip, deflate",
+        "Accept": "*/*",
+        "Connection": "keep-alive",
+        "Authorization": "[Filtered]",
+        "X-Schemathesis-TestCaseId": "769VWc"
+      },
+      "response": {
+        "status_code": 200,
+        "headers": {
+          "vary": "Origin",
+          "x-content-type-options": "nosniff",
+          "x-xss-protection": "0",
+          "cache-control": "no-cache, no-store, max-age=0, must-revalidate",
+          "pragma": "no-cache",
+          "expires": "0",
+          "x-frame-options": "DENY",
+          "content-type": "application/json",
+          "content-length": "2",
+          "date": "Mon, 07 Sep 2026 22:26:58 GMT",
+          "keep-alive": "timeout=60",
+          "connection": "keep-alive"
+        },
+        "body": "[]"
+      },
+      "link": null,
+      "checks": [],
+      "meta": {
+        "generation": {
+          "time": 0.0025598190259188414,
+          "mode": "positive"
+        },
+        "components": {
+          "QUERY": "positive"
+        },
+        "phase": {
+          "name": "stateful",
+          "data": {
+            "type": "StatefulPhaseData",
+            "description": "Positive test case",
+            "location": null,
+            "parameter": null,
+            "parameter_location": null,
+            "mutations": []
+          }
+        },
+        "pool_draws": [
+          {
+            "location": "query",
+            "parameter_name": "taskId",
+            "resource_name": "Task",
+            "resource_field": "id",
+            "source_operation": "GET /tasks/{taskId}/subtasks",
+            "source_status": 200
+          },
+          {
+            "location": "query",
+            "parameter_name": "projectId",
+            "resource_name": "Project",
+            "resource_field": "id",
+            "source_operation": "PUT /projects/{id}",
+            "source_status": 200
+          }
+        ],
+        "pool_misses": [],
+        "semantic_draws": [],
+        "dictionary_draws": [],
+        "constants_draws": [],
+        "raw_containers": {}
+      },
+      "path": "/comments",
+      "path_parameters": {},
+      "query": {
+        "taskId": "69c55044-3bcf-1856-991b-b8430e451ea7",
+        "projectId": "c91195da-6238-45d7-a51e-227783063069"
+      },
+      "case_headers": {
+        "Authorization": "[Filtered]"
+      },
+      "cookies": {},
+      "case_body": {
+        "encoding": "none"
+      },
+      "media_type": null,
+      "parent_index": null
+    },
+    {
+      "method": "DELETE",
+      "url": "http://taska-backend:8080/projects/c91195da-6238-45d7-a51e-227783063069",
+      "url_template": "http://taska-backend:8080/projects/{id}",
+      "headers": {
+        "User-Agent": "schemathesis/4.25.2",
+        "Accept-Encoding": "gzip, deflate",
+        "Accept": "*/*",
+        "Connection": "keep-alive",
+        "Authorization": "[Filtered]",
+        "X-Schemathesis-TestCaseId": "1dD9lk",
+        "Content-Length": "0"
+      },
+      "response": {
+        "status_code": 500,
+        "headers": {
+          "vary": "Origin",
+          "x-content-type-options": "nosniff",
+          "x-xss-protection": "0",
+          "cache-control": "no-cache, no-store, max-age=0, must-revalidate",
+          "pragma": "no-cache",
+          "expires": "0",
+          "x-frame-options": "DENY",
+          "content-type": "application/problem+json",
+          "transfer-encoding": "chunked",
+          "date": "Mon, 07 Sep 2026 22:26:58 GMT",
+          "connection": "close"
+        },
+        "body": "{\"detail\":\"Internal error\",\"instance\":\"/projects/c91195da-6238-45d7-a51e-227783063069\",\"status\":500,\"title\":\"Internal Server Error\",\"type\":\"about:blank\"}"
+      },
+      "link": {
+        "operationId": "GET /comments -> [200] DeleteProject -> DELETE /projects/{id}",
+        "parameters": {
+          "path.id": "$response.body#/*/projectId"
+        }
+      },
+      "checks": [
+        {
+          "name": "not_a_server_error",
+          "status": "failure",
+          "message": "Server error"
+        }
+      ],
+      "meta": {
+        "generation": {
+          "time": 0.004022106993943453,
+          "mode": "positive"
+        },
+        "components": {
+          "PATH": "positive"
+        },
+        "phase": {
+          "name": "stateful",
+          "data": {
+            "type": "StatefulPhaseData",
+            "description": "Positive test case",
+            "location": null,
+            "parameter": null,
+            "parameter_location": null,
+            "mutations": []
+          }
+        },
+        "pool_draws": [
+          {
+            "location": "path",
+            "parameter_name": "id",
+            "resource_name": "Project",
+            "resource_field": "id",
+            "source_operation": "PUT /projects/{id}",
+            "source_status": 200
+          }
+        ],
+        "pool_misses": [],
+        "semantic_draws": [],
+        "dictionary_draws": [],
+        "constants_draws": [],
+        "raw_containers": {}
+      },
+      "path": "/projects/{id}",
+      "path_parameters": {
+        "id": "c91195da-6238-45d7-a51e-227783063069"
+      },
+      "query": {},
+      "case_headers": {
+        "Authorization": "[Filtered]"
+      },
+      "cookies": {},
+      "case_body": {
+        "encoding": "none"
+      },
+      "media_type": null,
+      "parent_index": 0
+    }
+  ]
+}

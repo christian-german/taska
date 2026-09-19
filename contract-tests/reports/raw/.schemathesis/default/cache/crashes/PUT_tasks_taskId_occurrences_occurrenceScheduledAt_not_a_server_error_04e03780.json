@@ -1,0 +1,96 @@
+{
+  "operation": "PUT /tasks/{taskId}/occurrences/{occurrenceScheduledAt}",
+  "method": "PUT",
+  "path_template": "/tasks/{taskId}/occurrences/{occurrenceScheduledAt}",
+  "fingerprint": "04e03780",
+  "case_id": "wbFZhZ",
+  "code_sample": "curl -X PUT -H 'Authorization: [Filtered]' -H 'Content-Type: application/json' -d '{\"title\": \"s\\u00be\\ud89f\\ude03\"}' http://taska-backend:8080/tasks/12e521a4-c425-39ca-86b0-75994d01dda3/occurrences/7211-11-25T21%3A11%3A16.20%2B21%3A26",
+  "sequence": [
+    {
+      "method": "PUT",
+      "url": "http://taska-backend:8080/tasks/12e521a4-c425-39ca-86b0-75994d01dda3/occurrences/7211-11-25T21%3A11%3A16.20%2B21%3A26",
+      "url_template": "http://taska-backend:8080/tasks/{taskId}/occurrences/{occurrenceScheduledAt}",
+      "headers": {
+        "User-Agent": "schemathesis/4.25.2",
+        "Accept-Encoding": "gzip, deflate",
+        "Accept": "*/*",
+        "Connection": "keep-alive",
+        "Authorization": "[Filtered]",
+        "X-Schemathesis-TestCaseId": "wbFZhZ",
+        "Content-Type": "application/json",
+        "Content-Length": "32"
+      },
+      "response": {
+        "status_code": 500,
+        "headers": {
+          "vary": "Origin",
+          "content-disposition": "inline;filename=f.txt",
+          "x-content-type-options": "nosniff",
+          "x-xss-protection": "0",
+          "cache-control": "no-cache, no-store, max-age=0, must-revalidate",
+          "pragma": "no-cache",
+          "expires": "0",
+          "x-frame-options": "DENY",
+          "content-type": "application/problem+json",
+          "transfer-encoding": "chunked",
+          "date": "Fri, 18 Sep 2026 19:18:54 GMT",
+          "connection": "close"
+        },
+        "body": "{\"detail\":\"Internal error\",\"instance\":\"/tasks/12e521a4-c425-39ca-86b0-75994d01dda3/occurrences/7211-11-25T21%3A11%3A16.20%2B21%3A26\",\"status\":500,\"title\":\"Internal Server Error\",\"type\":\"about:blank\"}"
+      },
+      "link": null,
+      "checks": [
+        {
+          "name": "not_a_server_error",
+          "status": "failure",
+          "message": "Server error"
+        }
+      ],
+      "meta": {
+        "generation": {
+          "time": 0.0048898359964368865,
+          "mode": "positive"
+        },
+        "components": {
+          "PATH": "positive",
+          "BODY": "positive"
+        },
+        "phase": {
+          "name": "fuzzing",
+          "data": {
+            "type": "FuzzingPhaseData",
+            "description": "Positive test case",
+            "location": null,
+            "parameter": null,
+            "parameter_location": null,
+            "mutations": []
+          }
+        },
+        "pool_draws": [],
+        "pool_misses": [],
+        "semantic_draws": [],
+        "dictionary_draws": [],
+        "constants_draws": [],
+        "raw_containers": {}
+      },
+      "path": "/tasks/{taskId}/occurrences/{occurrenceScheduledAt}",
+      "path_parameters": {
+        "taskId": "12e521a4-c425-39ca-86b0-75994d01dda3",
+        "occurrenceScheduledAt": "7211-11-25T21%3A11%3A16.20%2B21%3A26"
+      },
+      "query": {},
+      "case_headers": {
+        "Authorization": "[Filtered]"
+      },
+      "cookies": {},
+      "case_body": {
+        "encoding": "json",
+        "value": {
+          "title": "s\u00be\ud89f\ude03"
+        }
+      },
+      "media_type": "application/json",
+      "parent_index": null
+    }
+  ]
+}

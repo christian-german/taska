@@ -1,0 +1,106 @@
+{
+  "operation": "PUT /planning-calendars/{planningCalendarId}",
+  "method": "PUT",
+  "path_template": "/planning-calendars/{planningCalendarId}",
+  "fingerprint": "490a4fa6",
+  "case_id": "XYP6We",
+  "code_sample": "curl -X PUT -H 'Authorization: [Filtered]' -H 'Content-Type: application/json' -d '{\"rules\": [{\"endMinute\": 780, \"startMinute\": 551, \"dayOfWeek\": 4}, {\"endMinute\": 780, \"startMinute\": 551, \"dayOfWeek\": 4}], \"name\": \"\\u00eet9.\\uda11\\ude43\\u00e9\\u00e7\\u0091\\u001a\\ud8cc\\udd7c\\udb45\\uded7\\ud824\\uddcd\\u0095j\\u00e2!ca\"}' http://taska-backend:8080/planning-calendars/5c39e3e6-9906-5bdf-b6fc-68a4477c7aaf",
+  "sequence": [
+    {
+      "method": "PUT",
+      "url": "http://taska-backend:8080/planning-calendars/5c39e3e6-9906-5bdf-b6fc-68a4477c7aaf",
+      "url_template": "http://taska-backend:8080/planning-calendars/{planningCalendarId}",
+      "headers": {
+        "User-Agent": "schemathesis/4.25.2",
+        "Accept-Encoding": "gzip, deflate",
+        "Accept": "*/*",
+        "Connection": "keep-alive",
+        "Authorization": "[Filtered]",
+        "X-Schemathesis-TestCaseId": "XYP6We",
+        "Content-Type": "application/json",
+        "Content-Length": "232"
+      },
+      "response": {
+        "status_code": 400,
+        "headers": {
+          "vary": "Origin",
+          "x-content-type-options": "nosniff",
+          "x-xss-protection": "0",
+          "cache-control": "no-cache, no-store, max-age=0, must-revalidate",
+          "pragma": "no-cache",
+          "expires": "0",
+          "x-frame-options": "DENY",
+          "content-type": "application/problem+json",
+          "transfer-encoding": "chunked",
+          "date": "Sat, 19 Sep 2026 14:02:27 GMT",
+          "connection": "close"
+        },
+        "body": "{\"detail\":\"Validation failed\",\"instance\":\"/planning-calendars/5c39e3e6-9906-5bdf-b6fc-68a4477c7aaf\",\"status\":400,\"title\":\"Bad Request\",\"type\":\"about:blank\",\"errors\":{\"rules\":\"availability rules must not overlap\"}}"
+      },
+      "link": null,
+      "checks": [
+        {
+          "name": "positive_data_acceptance",
+          "status": "failure",
+          "message": "API rejected schema-compliant request\n\nValid data should have been accepted\nExpected: 2xx, 401, 403, 404, 409, 5xx"
+        }
+      ],
+      "meta": {
+        "generation": {
+          "time": 0.002937698009191081,
+          "mode": "positive"
+        },
+        "components": {
+          "PATH": "positive",
+          "BODY": "positive"
+        },
+        "phase": {
+          "name": "fuzzing",
+          "data": {
+            "type": "FuzzingPhaseData",
+            "description": "Positive test case",
+            "location": null,
+            "parameter": null,
+            "parameter_location": null,
+            "mutations": []
+          }
+        },
+        "pool_draws": [],
+        "pool_misses": [],
+        "semantic_draws": [],
+        "dictionary_draws": [],
+        "constants_draws": [],
+        "raw_containers": {}
+      },
+      "path": "/planning-calendars/{planningCalendarId}",
+      "path_parameters": {
+        "planningCalendarId": "5c39e3e6-9906-5bdf-b6fc-68a4477c7aaf"
+      },
+      "query": {},
+      "case_headers": {
+        "Authorization": "[Filtered]"
+      },
+      "cookies": {},
+      "case_body": {
+        "encoding": "json",
+        "value": {
+          "rules": [
+            {
+              "endMinute": 780,
+              "startMinute": 551,
+              "dayOfWeek": 4
+            },
+            {
+              "endMinute": 780,
+              "startMinute": 551,
+              "dayOfWeek": 4
+            }
+          ],
+          "name": "\u00eet9.\uda11\ude43\u00e9\u00e7\u0091\u001a\ud8cc\udd7c\udb45\uded7\ud824\uddcd\u0095j\u00e2!ca"
+        }
+      },
+      "media_type": "application/json",
+      "parent_index": null
+    }
+  ]
+}

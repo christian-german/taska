@@ -1,0 +1,152 @@
+{
+  "operation": "POST /time-entries",
+  "method": "POST",
+  "path_template": "/time-entries",
+  "fingerprint": "5ddc152a",
+  "case_id": "zzO2TH",
+  "code_sample": "curl -X POST -H 'Authorization: [Filtered]' -H 'Content-Type: application/json' -d '{\"\\u00da_&\\u00d8\": {\"\\u00d6\\u00ad,\": [\"\\u00e8`\\u007f\", 26849]}, \"\\ud9e8\\udd62\\u0091\": {\"\\u00e9\": [null], \"\": null, \"]\\u00a2\\u00b5)\\u00da\": [null, -4.5141780676947965e-65, \"\\ud99d\\ude26\"]}, \",\": [{\"\\u008c\\u00d4j\": true, \"\\ud8c5\\udd0c\\u00d2#\\ud872\\udf5a\\ud9eb\\udc93\\u00d1\": false, \"\\u00fa\\u00f8\\u0086\\ud857\\ude3e\\u00db\\u000f\\u0018?\\u0001\\u009e:\\u0090\\ud9cd\\udf17Z\\udbce\\udefd\\u0098\": null}, 0.0], \"\\u00c3\\u00ec\\u008dzgl\\u0087\": [\"\\u00ea\", [\"\\u00ed\\u00c6\\uda99\\udd4brP(\"], [\"sI\\ud9b3\\udd04\\u00a0\\u0081~\\ud8c7\\udcb4\\u0002\\udbc8\\udd98\", true]], \"\": {}, \"projectId\": \"9cc8ff7f-e476-49e3-9693-d65481f1dca6\", \"description\": \"\\u00a9U\\u00e3\\u00dc\\ud89e\\uddb4\", \"startAt\": \"0233-10-12T00:02:03Z\", \"endAt\": \"2026-09-06T13:22:12.501299Z\"}' http://taska-backend:8080/time-entries",
+  "sequence": [
+    {
+      "method": "POST",
+      "url": "http://taska-backend:8080/time-entries",
+      "url_template": "http://taska-backend:8080/time-entries",
+      "headers": {
+        "User-Agent": "schemathesis/4.25.2",
+        "Accept-Encoding": "gzip, deflate",
+        "Accept": "*/*",
+        "Connection": "keep-alive",
+        "Authorization": "[Filtered]",
+        "X-Schemathesis-TestCaseId": "zzO2TH",
+        "Content-Type": "application/json",
+        "Content-Length": "725"
+      },
+      "response": {
+        "status_code": 201,
+        "headers": {
+          "vary": "Origin",
+          "x-content-type-options": "nosniff",
+          "x-xss-protection": "0",
+          "cache-control": "no-cache, no-store, max-age=0, must-revalidate",
+          "pragma": "no-cache",
+          "expires": "0",
+          "x-frame-options": "DENY",
+          "content-type": "application/json",
+          "content-length": "298",
+          "date": "Sun, 06 Sep 2026 13:22:17 GMT",
+          "keep-alive": "timeout=60",
+          "connection": "keep-alive"
+        },
+        "body": "{\"id\":\"83213c69-69cc-4c08-916d-c1885a81b052\",\"startAt\":\"0233-10-12T00:02:03Z\",\"endAt\":\"2026-09-06T13:22:12.501299Z\",\"projectId\":\"9cc8ff7f-e476-49e3-9693-d65481f1dca6\",\"description\":\"\u00a9U\u00e3\u00dc\ud89e\uddb4\",\"notes\":null,\"createdAt\":\"2026-09-06T13:22:17.221151383Z\",\"updatedAt\":\"2026-09-06T13:22:17.221151463Z\"}"
+      },
+      "link": null,
+      "checks": [
+        {
+          "name": "response_schema_conformance",
+          "status": "failure",
+          "message": "Response violates schema\n\nnull is not of type \"string\"\n\nValidated against the response schema for status code 201.\n\nSchema at /properties/notes:\n\n    {\n        \"type\": \"string\"\n    }\n\nValue:\n\n    null"
+        }
+      ],
+      "meta": {
+        "generation": {
+          "time": 0.011828819988295436,
+          "mode": "positive"
+        },
+        "components": {
+          "BODY": "positive"
+        },
+        "phase": {
+          "name": "fuzzing",
+          "data": {
+            "type": "FuzzingPhaseData",
+            "description": "Positive test case",
+            "location": null,
+            "parameter": null,
+            "parameter_location": null,
+            "mutations": []
+          }
+        },
+        "pool_draws": [
+          {
+            "location": "body",
+            "parameter_name": "projectId",
+            "resource_name": "Project",
+            "resource_field": "id",
+            "source_operation": "POST /projects",
+            "source_status": 201
+          }
+        ],
+        "pool_misses": [],
+        "semantic_draws": [
+          {
+            "path": [
+              "endAt"
+            ],
+            "type_token": "string",
+            "format_token": "date-time",
+            "pattern_hash": null,
+            "normalized_name": "endat",
+            "value": "2026-09-06T13:22:12.501299Z",
+            "source_operation": "POST /tasks/{taskId}/reopen"
+          }
+        ],
+        "dictionary_draws": [],
+        "constants_draws": [],
+        "raw_containers": {}
+      },
+      "path": "/time-entries",
+      "path_parameters": {},
+      "query": {},
+      "case_headers": {
+        "Authorization": "[Filtered]"
+      },
+      "cookies": {},
+      "case_body": {
+        "encoding": "json",
+        "value": {
+          "\u00da_&\u00d8": {
+            "\u00d6\u00ad,": [
+              "\u00e8`\u007f",
+              26849
+            ]
+          },
+          "\ud9e8\udd62\u0091": {
+            "\u00e9": [
+              null
+            ],
+            "": null,
+            "]\u00a2\u00b5)\u00da": [
+              null,
+              -4.5141780676947965e-65,
+              "\ud99d\ude26"
+            ]
+          },
+          ",": [
+            {
+              "\u008c\u00d4j": true,
+              "\ud8c5\udd0c\u00d2#\ud872\udf5a\ud9eb\udc93\u00d1": false,
+              "\u00fa\u00f8\u0086\ud857\ude3e\u00db\u000f\u0018?\u0001\u009e:\u0090\ud9cd\udf17Z\udbce\udefd\u0098": null
+            },
+            0.0
+          ],
+          "\u00c3\u00ec\u008dzgl\u0087": [
+            "\u00ea",
+            [
+              "\u00ed\u00c6\uda99\udd4brP("
+            ],
+            [
+              "sI\ud9b3\udd04\u00a0\u0081~\ud8c7\udcb4\u0002\udbc8\udd98",
+              true
+            ]
+          ],
+          "": {},
+          "projectId": "9cc8ff7f-e476-49e3-9693-d65481f1dca6",
+          "description": "\u00a9U\u00e3\u00dc\ud89e\uddb4",
+          "startAt": "0233-10-12T00:02:03Z",
+          "endAt": "2026-09-06T13:22:12.501299Z"
+        }
+      },
+      "media_type": "application/json",
+      "parent_index": null
+    }
+  ]
+}

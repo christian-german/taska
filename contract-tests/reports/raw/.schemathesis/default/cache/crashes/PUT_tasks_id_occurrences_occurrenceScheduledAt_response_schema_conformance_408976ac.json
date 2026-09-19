@@ -1,0 +1,112 @@
+{
+  "operation": "PUT /tasks/{id}/occurrences/{occurrenceScheduledAt}",
+  "method": "PUT",
+  "path_template": "/tasks/{id}/occurrences/{occurrenceScheduledAt}",
+  "fingerprint": "408976ac",
+  "case_id": "VcuQY5",
+  "code_sample": "curl -X PUT -H 'Authorization: [Filtered]' -H 'Content-Type: application/json' -d '{\"title\": \"0\", \"priority\": 3, \"scheduledAt\": \"2000-01-01T00:00:00Z\", \"dueAt\": \"2000-01-01T00:00:00Z\"}' http://taska-backend:8080/tasks/5b991e22-04ab-41ae-ae4e-e9d2f8e3465f/occurrences/2000-01-01T00%3A00%3A00Z",
+  "sequence": [
+    {
+      "method": "PUT",
+      "url": "http://taska-backend:8080/tasks/5b991e22-04ab-41ae-ae4e-e9d2f8e3465f/occurrences/2000-01-01T00%3A00%3A00Z",
+      "url_template": "http://taska-backend:8080/tasks/{id}/occurrences/{occurrenceScheduledAt}",
+      "headers": {
+        "User-Agent": "schemathesis/4.25.2",
+        "Accept-Encoding": "gzip, deflate",
+        "Accept": "*/*",
+        "Connection": "keep-alive",
+        "Authorization": "[Filtered]",
+        "X-Schemathesis-TestCaseId": "VcuQY5",
+        "Content-Type": "application/json",
+        "Content-Length": "101"
+      },
+      "response": {
+        "status_code": 400,
+        "headers": {
+          "vary": "Origin",
+          "x-content-type-options": "nosniff",
+          "x-xss-protection": "0",
+          "cache-control": "no-cache, no-store, max-age=0, must-revalidate",
+          "pragma": "no-cache",
+          "expires": "0",
+          "x-frame-options": "DENY",
+          "content-type": "application/problem+json",
+          "transfer-encoding": "chunked",
+          "date": "Sat, 05 Sep 2026 09:55:03 GMT",
+          "connection": "close"
+        },
+        "body": "{\"detail\":\"Occurrence replacement requires a recurring task\",\"instance\":\"/tasks/5b991e22-04ab-41ae-ae4e-e9d2f8e3465f/occurrences/2000-01-01T00%3A00%3A00Z\",\"status\":400,\"title\":\"Bad Request\"}"
+      },
+      "link": null,
+      "checks": [
+        {
+          "name": "response_schema_conformance",
+          "status": "failure",
+          "message": "Response violates schema\n\n\"type\" is a required property\n\nValidated against the response schema for status code 400.\n\nSchema at /ProblemDetails:\n\n    {\n        \"required\": [\n            \"type\",\n            \"title\",\n            \"status\"\n        ],\n        \"type\": \"object\",\n        \"description\": \"RFC 9457 problem details returned for API errors.\",\n        \"properties\": {\n            \"type\": {\n                \"type\": \"string\",\n                \"format\": \"uri-reference\",\n                \"description\": \"Problem type identifier.\"\n            },\n            \"title\": {\n                \"type\": \"string\",\n                \"description\": \"Short, human-readable problem summary.\"\n            },\n            \"status\": {\n                \"type\": \"integer\",\n                \"minimum\": 100,\n                \"maximum\": 599,\n                \"description\": \"HTTP status code.\"\n            },\n            \"detail\": {\n                \"type\": \"string\",\n                \"description\": \"Problem details specific to this occurrence.\"\n            },\n            \"instance\": {\n                \"type\": \"string\",\n                \"format\": \"uri-reference\",\n                \"description\": \"Identifier for this occurrence.\"\n            },\n            \"code\": {\n                \"type\": \"string\",\n                \"description\": \"Stable, machine-readable Taska error code.\"\n            },\n            \"violations\": {\n                \"type\": \"array\",\n                \"items\": {\n                    \"$ref\": \"#/Violation\"\n                }\n            }\n        }\n    }\n\nValue:\n\n    {\n        \"detail\": \"Occurrence replacement requires a recurring task\",\n        \"instance\": \"/tasks/5b991e22-04ab-41ae-ae4e-e9d2f8e3465f/occurrences/2000-01-01T00%3A00%3A00Z\",\n        \"status\": 400,\n        \"title\": \"Bad Request\"\n    }"
+        }
+      ],
+      "meta": {
+        "generation": {
+          "time": 8.730997797101736e-05,
+          "mode": "positive"
+        },
+        "components": {
+          "PATH": "positive",
+          "BODY": "positive"
+        },
+        "phase": {
+          "name": "coverage",
+          "data": {
+            "type": "CoveragePhaseData",
+            "description": "Object with valid 'priority' value: Near-boundary number",
+            "location": null,
+            "parameter": "application/json",
+            "parameter_location": "BODY",
+            "scenario": "valid_object"
+          }
+        },
+        "pool_draws": [
+          {
+            "location": "path",
+            "parameter_name": "id",
+            "resource_name": "Task",
+            "resource_field": "id",
+            "source_operation": "POST /tasks",
+            "source_status": 201
+          }
+        ],
+        "pool_misses": [],
+        "semantic_draws": [],
+        "dictionary_draws": [],
+        "constants_draws": [],
+        "raw_containers": {
+          "PATH": {
+            "id": "5b991e22-04ab-41ae-ae4e-e9d2f8e3465f",
+            "occurrenceScheduledAt": "2000-01-01T00:00:00Z"
+          }
+        }
+      },
+      "path": "/tasks/{id}/occurrences/{occurrenceScheduledAt}",
+      "path_parameters": {
+        "id": "5b991e22-04ab-41ae-ae4e-e9d2f8e3465f",
+        "occurrenceScheduledAt": "2000-01-01T00%3A00%3A00Z"
+      },
+      "query": {},
+      "case_headers": {
+        "Authorization": "[Filtered]"
+      },
+      "cookies": {},
+      "case_body": {
+        "encoding": "json",
+        "value": {
+          "title": "0",
+          "priority": 3,
+          "scheduledAt": "2000-01-01T00:00:00Z",
+          "dueAt": "2000-01-01T00:00:00Z"
+        }
+      },
+      "media_type": "application/json",
+      "parent_index": null
+    }
+  ]
+}

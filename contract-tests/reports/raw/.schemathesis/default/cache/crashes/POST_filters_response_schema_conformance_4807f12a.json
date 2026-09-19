@@ -1,0 +1,107 @@
+{
+  "operation": "POST /filters",
+  "method": "POST",
+  "path_template": "/filters",
+  "fingerprint": "4807f12a",
+  "case_id": "P7W28P",
+  "code_sample": "curl -X POST -H 'Authorization: [Filtered]' -H 'Content-Type: application/json' -d '{\"name\": \"0\", \"color\": \"\", \"order\": 0, \"isFavorite\": false, \"projectId\": \"46ca6cb0-1bcf-4a0b-9224-aa816b6d915a\", \"clearProject\": true, \"hasDate\": null}' http://taska-backend:8080/filters",
+  "sequence": [
+    {
+      "method": "POST",
+      "url": "http://taska-backend:8080/filters",
+      "url_template": "http://taska-backend:8080/filters",
+      "headers": {
+        "User-Agent": "schemathesis/4.25.2",
+        "Accept-Encoding": "gzip, deflate",
+        "Accept": "*/*",
+        "Connection": "keep-alive",
+        "Authorization": "[Filtered]",
+        "X-Schemathesis-TestCaseId": "P7W28P",
+        "Content-Type": "application/json",
+        "Content-Length": "151"
+      },
+      "response": {
+        "status_code": 201,
+        "headers": {
+          "vary": "Origin",
+          "x-content-type-options": "nosniff",
+          "x-xss-protection": "0",
+          "cache-control": "no-cache, no-store, max-age=0, must-revalidate",
+          "pragma": "no-cache",
+          "expires": "0",
+          "x-frame-options": "DENY",
+          "content-type": "application/json",
+          "content-length": "162",
+          "date": "Sun, 06 Sep 2026 13:21:54 GMT",
+          "keep-alive": "timeout=60",
+          "connection": "keep-alive"
+        },
+        "body": "{\"id\":\"5881f372-4ca9-4bd4-a87b-9603f5aa71f2\",\"name\":\"0\",\"color\":\"\",\"order\":0,\"isFavorite\":false,\"projectId\":\"46ca6cb0-1bcf-4a0b-9224-aa816b6d915a\",\"hasDate\":null}"
+      },
+      "link": null,
+      "checks": [
+        {
+          "name": "response_schema_conformance",
+          "status": "failure",
+          "message": "Response violates schema\n\nnull is not of type \"boolean\"\n\nValidated against the response schema for status code 201.\n\nSchema at /properties/hasDate:\n\n    {\n        \"type\": \"boolean\"\n    }\n\nValue:\n\n    null"
+        }
+      ],
+      "meta": {
+        "generation": {
+          "time": 4.7900015488266945e-05,
+          "mode": "positive"
+        },
+        "components": {
+          "BODY": "positive"
+        },
+        "phase": {
+          "name": "coverage",
+          "data": {
+            "type": "CoveragePhaseData",
+            "description": "Object with valid 'clearProject' value: Valid boolean value",
+            "location": null,
+            "parameter": "application/json",
+            "parameter_location": "BODY",
+            "scenario": "valid_object"
+          }
+        },
+        "pool_draws": [
+          {
+            "location": "body",
+            "parameter_name": "projectId",
+            "resource_name": "Project",
+            "resource_field": "id",
+            "source_operation": "POST /comments",
+            "source_status": 201
+          }
+        ],
+        "pool_misses": [],
+        "semantic_draws": [],
+        "dictionary_draws": [],
+        "constants_draws": [],
+        "raw_containers": {}
+      },
+      "path": "/filters",
+      "path_parameters": {},
+      "query": {},
+      "case_headers": {
+        "Authorization": "[Filtered]"
+      },
+      "cookies": {},
+      "case_body": {
+        "encoding": "json",
+        "value": {
+          "name": "0",
+          "color": "",
+          "order": 0,
+          "isFavorite": false,
+          "projectId": "46ca6cb0-1bcf-4a0b-9224-aa816b6d915a",
+          "clearProject": true,
+          "hasDate": null
+        }
+      },
+      "media_type": "application/json",
+      "parent_index": null
+    }
+  ]
+}

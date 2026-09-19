@@ -1,0 +1,262 @@
+{
+  "operation": "PUT /projects/{projectId}",
+  "method": "PUT",
+  "path_template": "/projects/{projectId}",
+  "fingerprint": "5d7100ce",
+  "case_id": "HizJHC",
+  "code_sample": "curl -X POST -H 'Authorization: [Filtered]' -H 'Content-Type: application/json' -d '{\"name\": \"8$\\uda5c\\ude2c\\u0011\", \"color\": \"\\u00ce\", \"planningCalendarId\": \"00000000-0000-0000-0000-000000000001\", \"parentId\": null, \"order\": 1, \"isFavorite\": true, \"viewStyle\": \"LIST\"}' http://taska-backend:8080/projects\ncurl -X PUT -H 'Authorization: [Filtered]' -H 'Content-Type: application/json' -d '{\"order\": 1, \"planningCalendarId\": \"34f9fa10-8eb9-4c5f-92a0-daed2bf79ae7\", \"parentId\": null, \"viewStyle\": \"LIST\", \"color\": \"\\u00ce\", \"isFavorite\": true, \"name\": \"8$\\uda5c\\ude2c\\u0011\"}' http://taska-backend:8080/projects/4fa78494-e259-496d-9535-37a8c69b92a6",
+  "sequence": [
+    {
+      "method": "POST",
+      "url": "http://taska-backend:8080/projects",
+      "url_template": "http://taska-backend:8080/projects",
+      "headers": {
+        "User-Agent": "schemathesis/4.25.2",
+        "Accept-Encoding": "gzip, deflate",
+        "Accept": "*/*",
+        "Connection": "keep-alive",
+        "Authorization": "[Filtered]",
+        "X-Schemathesis-TestCaseId": "ucsY6v",
+        "Content-Type": "application/json",
+        "Content-Length": "184"
+      },
+      "response": {
+        "status_code": 201,
+        "headers": {
+          "vary": "Origin",
+          "x-content-type-options": "nosniff",
+          "x-xss-protection": "0",
+          "cache-control": "no-cache, no-store, max-age=0, must-revalidate",
+          "pragma": "no-cache",
+          "expires": "0",
+          "x-frame-options": "DENY",
+          "content-type": "application/json",
+          "content-length": "316",
+          "date": "Fri, 18 Sep 2026 00:05:49 GMT",
+          "keep-alive": "timeout=60",
+          "connection": "keep-alive"
+        },
+        "body": "{\"id\":\"4fa78494-e259-496d-9535-37a8c69b92a6\",\"name\":\"8$\uda5c\ude2c\\u0011\",\"color\":\"\u00ce\",\"parentId\":null,\"order\":1,\"isFavorite\":true,\"viewStyle\":\"LIST\",\"isInboxProject\":false,\"planningCalendarId\":\"00000000-0000-0000-0000-000000000001\",\"createdAt\":\"2026-09-18T00:05:49.530647909Z\",\"updatedAt\":\"2026-09-18T00:05:49.530648009Z\"}"
+      },
+      "link": null,
+      "checks": [],
+      "meta": {
+        "generation": {
+          "time": 0.005540319998544874,
+          "mode": "positive"
+        },
+        "components": {
+          "BODY": "positive"
+        },
+        "phase": {
+          "name": "stateful",
+          "data": {
+            "type": "StatefulPhaseData",
+            "description": "Positive test case",
+            "location": null,
+            "parameter": null,
+            "parameter_location": null,
+            "mutations": []
+          }
+        },
+        "pool_draws": [
+          {
+            "location": "body",
+            "parameter_name": "planningCalendarId",
+            "resource_name": "Project",
+            "resource_field": "planningCalendarId",
+            "source_operation": "GET /projects/{projectId}",
+            "source_status": 200
+          }
+        ],
+        "pool_misses": [],
+        "semantic_draws": [
+          {
+            "path": [
+              "name"
+            ],
+            "type_token": "string",
+            "format_token": null,
+            "pattern_hash": null,
+            "normalized_name": "name",
+            "value": "8$\uda5c\ude2c\u0011",
+            "source_operation": "POST /planning-calendars"
+          },
+          {
+            "path": [
+              "color"
+            ],
+            "type_token": "string",
+            "format_token": null,
+            "pattern_hash": null,
+            "normalized_name": "color",
+            "value": "\u00ce",
+            "source_operation": "POST /labels"
+          },
+          {
+            "path": [
+              "order"
+            ],
+            "type_token": "integer",
+            "format_token": "int32",
+            "pattern_hash": null,
+            "normalized_name": "order",
+            "value": 1,
+            "source_operation": "POST /tasks"
+          }
+        ],
+        "dictionary_draws": [],
+        "constants_draws": [],
+        "raw_containers": {}
+      },
+      "path": "/projects",
+      "path_parameters": {},
+      "query": {},
+      "case_headers": {
+        "Authorization": "[Filtered]"
+      },
+      "cookies": {},
+      "case_body": {
+        "encoding": "json",
+        "value": {
+          "name": "8$\uda5c\ude2c\u0011",
+          "color": "\u00ce",
+          "planningCalendarId": "00000000-0000-0000-0000-000000000001",
+          "parentId": null,
+          "order": 1,
+          "isFavorite": true,
+          "viewStyle": "LIST"
+        }
+      },
+      "media_type": "application/json",
+      "parent_index": null
+    },
+    {
+      "method": "PUT",
+      "url": "http://taska-backend:8080/projects/4fa78494-e259-496d-9535-37a8c69b92a6",
+      "url_template": "http://taska-backend:8080/projects/{projectId}",
+      "headers": {
+        "User-Agent": "schemathesis/4.25.2",
+        "Accept-Encoding": "gzip, deflate",
+        "Accept": "*/*",
+        "Connection": "keep-alive",
+        "Authorization": "[Filtered]",
+        "X-Schemathesis-TestCaseId": "HizJHC",
+        "Content-Type": "application/json",
+        "Content-Length": "184"
+      },
+      "response": {
+        "status_code": 404,
+        "headers": {
+          "vary": "Origin",
+          "x-content-type-options": "nosniff",
+          "x-xss-protection": "0",
+          "cache-control": "no-cache, no-store, max-age=0, must-revalidate",
+          "pragma": "no-cache",
+          "expires": "0",
+          "x-frame-options": "DENY",
+          "content-type": "application/problem+json",
+          "transfer-encoding": "chunked",
+          "date": "Fri, 18 Sep 2026 00:05:49 GMT",
+          "keep-alive": "timeout=60",
+          "connection": "keep-alive"
+        },
+        "body": "{\"detail\":\"Planning calendar not found: 34f9fa10-8eb9-4c5f-92a0-daed2bf79ae7\",\"instance\":\"/projects/4fa78494-e259-496d-9535-37a8c69b92a6\",\"status\":404,\"title\":\"Not Found\",\"type\":\"about:blank\"}"
+      },
+      "link": {
+        "operationId": "POST /projects -> [201] PutProject -> PUT /projects/{projectId}",
+        "parameters": {
+          "path.projectId": "$response.body#/id"
+        },
+        "requestBody": {
+          "name": "$response.body#/name",
+          "color": "$response.body#/color",
+          "parentId": "$response.body#/parentId",
+          "order": "$response.body#/order",
+          "isFavorite": "$response.body#/isFavorite",
+          "viewStyle": "$response.body#/viewStyle",
+          "planningCalendarId": "$response.body#/planningCalendarId"
+        }
+      },
+      "checks": [
+        {
+          "name": "ensure_resource_availability",
+          "status": "failure",
+          "message": "Resource is not available after creation\n\nThe API returned `404 Not Found` for a resource that was just created.\n\nCreated with      : `POST /projects`\nNot available with: `PUT /projects/{projectId}`"
+        }
+      ],
+      "meta": {
+        "generation": {
+          "time": 0.009098033999180188,
+          "mode": "positive"
+        },
+        "components": {
+          "BODY": "positive"
+        },
+        "phase": {
+          "name": "stateful",
+          "data": {
+            "type": "StatefulPhaseData",
+            "description": "Positive test case",
+            "location": null,
+            "parameter": null,
+            "parameter_location": null,
+            "mutations": []
+          }
+        },
+        "pool_draws": [],
+        "pool_misses": [],
+        "semantic_draws": [
+          {
+            "path": [
+              "color"
+            ],
+            "type_token": "string",
+            "format_token": null,
+            "pattern_hash": null,
+            "normalized_name": "color",
+            "value": "\ud9e6\ude98",
+            "source_operation": "POST /labels"
+          },
+          {
+            "path": [
+              "order"
+            ],
+            "type_token": "integer",
+            "format_token": "int32",
+            "pattern_hash": null,
+            "normalized_name": "order",
+            "value": 3,
+            "source_operation": "POST /tasks"
+          }
+        ],
+        "dictionary_draws": [],
+        "constants_draws": [],
+        "raw_containers": {}
+      },
+      "path": "/projects/{projectId}",
+      "path_parameters": {
+        "projectId": "4fa78494-e259-496d-9535-37a8c69b92a6"
+      },
+      "query": {},
+      "case_headers": {
+        "Authorization": "[Filtered]"
+      },
+      "cookies": {},
+      "case_body": {
+        "encoding": "json",
+        "value": {
+          "order": 1,
+          "planningCalendarId": "34f9fa10-8eb9-4c5f-92a0-daed2bf79ae7",
+          "parentId": null,
+          "viewStyle": "LIST",
+          "color": "\u00ce",
+          "isFavorite": true,
+          "name": "8$\uda5c\ude2c\u0011"
+        }
+      },
+      "media_type": "application/json",
+      "parent_index": 0
+    }
+  ]
+}

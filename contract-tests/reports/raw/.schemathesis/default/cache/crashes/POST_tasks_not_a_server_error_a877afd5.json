@@ -1,0 +1,105 @@
+{
+  "operation": "POST /tasks",
+  "method": "POST",
+  "path_template": "/tasks",
+  "fingerprint": "a877afd5",
+  "case_id": "5j7k1o",
+  "code_sample": "curl -X POST -H 'Authorization: [Filtered]' -H 'Content-Type: application/json' -d '{\"allDay\": null, \"content\": \"0\", \"description\": null, \"dueAt\": \"2000-01-01T00:00:00Z\", \"estimateMinutes\": 1, \"isRecurring\": null, \"labels\": [], \"mentionContext\": null, \"order\": 0, \"parentId\": \"e3e70682-c209-1cac-a29f-6fbed82c07cd\", \"priority\": 1, \"projectId\": \"f728b4fa-4248-1e3a-8a5d-2f346baa9455\", \"recurrenceRule\": null, \"scheduledAt\": null, \"type\": null}' http://taska-backend:8080/tasks",
+  "sequence": [
+    {
+      "method": "POST",
+      "url": "http://taska-backend:8080/tasks",
+      "url_template": "http://taska-backend:8080/tasks",
+      "headers": {
+        "User-Agent": "schemathesis/4.25.2",
+        "Accept-Encoding": "gzip, deflate",
+        "Accept": "*/*",
+        "Connection": "keep-alive",
+        "Authorization": "[Filtered]",
+        "X-Schemathesis-TestCaseId": "5j7k1o",
+        "Content-Type": "application/json",
+        "Content-Length": "358"
+      },
+      "response": {
+        "status_code": 500,
+        "headers": {
+          "vary": "Origin",
+          "x-content-type-options": "nosniff",
+          "x-xss-protection": "0",
+          "cache-control": "no-cache, no-store, max-age=0, must-revalidate",
+          "pragma": "no-cache",
+          "expires": "0",
+          "x-frame-options": "DENY",
+          "content-type": "application/problem+json",
+          "transfer-encoding": "chunked",
+          "date": "Sat, 19 Sep 2026 14:02:19 GMT",
+          "connection": "close"
+        },
+        "body": "{\"detail\":\"Internal error\",\"instance\":\"/tasks\",\"status\":500,\"title\":\"Internal Server Error\",\"type\":\"about:blank\"}"
+      },
+      "link": null,
+      "checks": [
+        {
+          "name": "not_a_server_error",
+          "status": "failure",
+          "message": "Server error"
+        }
+      ],
+      "meta": {
+        "generation": {
+          "time": 4.490002174861729e-05,
+          "mode": "positive"
+        },
+        "components": {
+          "BODY": "positive"
+        },
+        "phase": {
+          "name": "coverage",
+          "data": {
+            "type": "CoveragePhaseData",
+            "description": "Object with valid 'scheduledAt' value: Value null value",
+            "location": null,
+            "parameter": "application/json",
+            "parameter_location": "BODY",
+            "scenario": "valid_object"
+          }
+        },
+        "pool_draws": [],
+        "pool_misses": [],
+        "semantic_draws": [],
+        "dictionary_draws": [],
+        "constants_draws": [],
+        "raw_containers": {}
+      },
+      "path": "/tasks",
+      "path_parameters": {},
+      "query": {},
+      "case_headers": {
+        "Authorization": "[Filtered]"
+      },
+      "cookies": {},
+      "case_body": {
+        "encoding": "json",
+        "value": {
+          "allDay": null,
+          "content": "0",
+          "description": null,
+          "dueAt": "2000-01-01T00:00:00Z",
+          "estimateMinutes": 1,
+          "isRecurring": null,
+          "labels": [],
+          "mentionContext": null,
+          "order": 0,
+          "parentId": "e3e70682-c209-1cac-a29f-6fbed82c07cd",
+          "priority": 1,
+          "projectId": "f728b4fa-4248-1e3a-8a5d-2f346baa9455",
+          "recurrenceRule": null,
+          "scheduledAt": null,
+          "type": null
+        }
+      },
+      "media_type": "application/json",
+      "parent_index": null
+    }
+  ]
+}

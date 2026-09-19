@@ -1,0 +1,208 @@
+{
+  "operation": "POST /tasks",
+  "method": "POST",
+  "path_template": "/tasks",
+  "fingerprint": "e8f1b895",
+  "case_id": "5Dd7Rl",
+  "code_sample": "curl -X POST -H 'Authorization: [Filtered]' -H 'Content-Type: application/json' -d '{}' http://taska-backend:8080/tasks/b643b839-7e24-4b60-9cc8-557b0c347786/reopen\ncurl -X POST -H 'Authorization: [Filtered]' -H 'Content-Type: application/json' -d '{\"\\ud881\\udce1w\\u00d6?\\f]\": 3.461557001015629e+108, \"\": [[], {\"\\u00c8\\u0010\\u00d2\\u0080\\u0090\\uda91\\udd7b\\u008d\\u0004U\\udb12\\udf28 \\ud8e5\\udf01Z\\u0083\\udbdd\\ude3e^`\": 3853}, [-1.7976931348623157e+308, null, false]], \"G(!\": [], \"tl\\u0015U\": {\"\\udba0\\udcff\\u00c4_\\udb25\\udcbd\\u00b5\\ud905\\ude72\": [\"}\\u00bd\"]}, \"\\ud8ad\\uddfb\\u00ce\\uda93\\udcdc\\u96540\\udae6\\ude78\\ud8d0\\udcfe\\u0090X\\udb99\\uddf4\": [3.0487537863731974e-65, -4288, null], \"content\": \"g\\uda78\\udd3d2\\u009c:\\u0012\\u00ddY\", \"parentId\": null}' http://taska-backend:8080/tasks",
+  "sequence": [
+    {
+      "method": "POST",
+      "url": "http://taska-backend:8080/tasks/b643b839-7e24-4b60-9cc8-557b0c347786/reopen",
+      "url_template": "http://taska-backend:8080/tasks/{taskId}/reopen",
+      "headers": {
+        "User-Agent": "schemathesis/4.25.2",
+        "Accept-Encoding": "gzip, deflate",
+        "Accept": "*/*",
+        "Connection": "keep-alive",
+        "Authorization": "[Filtered]",
+        "X-Schemathesis-TestCaseId": "iXd2ZT",
+        "Content-Type": "application/json",
+        "Content-Length": "2"
+      },
+      "response": {
+        "status_code": 200,
+        "headers": {
+          "vary": "Origin",
+          "x-content-type-options": "nosniff",
+          "x-xss-protection": "0",
+          "cache-control": "no-cache, no-store, max-age=0, must-revalidate",
+          "pragma": "no-cache",
+          "expires": "0",
+          "x-frame-options": "DENY",
+          "content-type": "application/json",
+          "content-length": "540",
+          "date": "Mon, 07 Sep 2026 20:05:04 GMT",
+          "keep-alive": "timeout=60",
+          "connection": "keep-alive"
+        },
+        "body": "{\"id\":\"b643b839-7e24-4b60-9cc8-557b0c347786\",\"content\":\".exe\",\"description\":null,\"projectId\":\"aa8d1a9b-7c0e-4b1b-9bf6-b96d3d7037ba\",\"parentId\":null,\"order\":0,\"priority\":null,\"labels\":[],\"isCompleted\":false,\"scheduledAt\":null,\"dueAt\":null,\"allDay\":false,\"isRecurring\":false,\"estimateMinutes\":null,\"mentionContext\":null,\"recurrenceRule\":null,\"createdAt\":\"2026-09-07T20:04:30.712100Z\",\"updatedAt\":\"2026-09-07T20:04:30.712100Z\",\"completedAt\":null,\"instanceId\":null,\"occurrenceScheduledAt\":null,\"isVirtual\":null,\"rruleEndsAt\":null,\"type\":\"TODO\"}"
+      },
+      "link": null,
+      "checks": [],
+      "meta": {
+        "generation": {
+          "time": 0.004068469046615064,
+          "mode": "positive"
+        },
+        "components": {
+          "PATH": "positive",
+          "BODY": "positive"
+        },
+        "phase": {
+          "name": "stateful",
+          "data": {
+            "type": "StatefulPhaseData",
+            "description": "Positive test case",
+            "location": null,
+            "parameter": null,
+            "parameter_location": null,
+            "mutations": []
+          }
+        },
+        "pool_draws": [
+          {
+            "location": "path",
+            "parameter_name": "taskId",
+            "resource_name": "Task",
+            "resource_field": "id",
+            "source_operation": "GET /tasks",
+            "source_status": 200
+          }
+        ],
+        "pool_misses": [],
+        "semantic_draws": [],
+        "dictionary_draws": [],
+        "constants_draws": [],
+        "raw_containers": {}
+      },
+      "path": "/tasks/{taskId}/reopen",
+      "path_parameters": {
+        "taskId": "b643b839-7e24-4b60-9cc8-557b0c347786"
+      },
+      "query": {},
+      "case_headers": {
+        "Authorization": "[Filtered]"
+      },
+      "cookies": {},
+      "case_body": {
+        "encoding": "json",
+        "value": {}
+      },
+      "media_type": "application/json",
+      "parent_index": null
+    },
+    {
+      "method": "POST",
+      "url": "http://taska-backend:8080/tasks",
+      "url_template": "http://taska-backend:8080/tasks",
+      "headers": {
+        "User-Agent": "schemathesis/4.25.2",
+        "Accept-Encoding": "gzip, deflate",
+        "Accept": "*/*",
+        "Connection": "keep-alive",
+        "Authorization": "[Filtered]",
+        "X-Schemathesis-TestCaseId": "5Dd7Rl",
+        "Content-Type": "application/json",
+        "Content-Length": "497"
+      },
+      "response": {
+        "status_code": 201,
+        "headers": {
+          "vary": "Origin",
+          "x-content-type-options": "nosniff",
+          "x-xss-protection": "0",
+          "cache-control": "no-cache, no-store, max-age=0, must-revalidate",
+          "pragma": "no-cache",
+          "expires": "0",
+          "x-frame-options": "DENY",
+          "content-type": "application/json",
+          "content-length": "560",
+          "date": "Mon, 07 Sep 2026 20:05:04 GMT",
+          "keep-alive": "timeout=60",
+          "connection": "keep-alive"
+        },
+        "body": "{\"id\":\"8d59624f-9b22-4517-b63b-c4f43d249037\",\"content\":\"g\uda78\udd3d2\u009c:\\u0012\u00ddY\",\"description\":null,\"projectId\":\"aa8d1a9b-7c0e-4b1b-9bf6-b96d3d7037ba\",\"parentId\":null,\"order\":0,\"priority\":null,\"labels\":[],\"isCompleted\":false,\"scheduledAt\":null,\"dueAt\":null,\"allDay\":false,\"isRecurring\":false,\"estimateMinutes\":null,\"mentionContext\":null,\"recurrenceRule\":null,\"createdAt\":\"2026-09-07T20:05:04.053209712Z\",\"updatedAt\":\"2026-09-07T20:05:04.053209902Z\",\"completedAt\":null,\"instanceId\":null,\"occurrenceScheduledAt\":null,\"isVirtual\":null,\"rruleEndsAt\":null,\"type\":\"TODO\"}"
+      },
+      "link": {
+        "operationId": "POST /tasks/{taskId}/reopen -> [200] PostTask -> POST /tasks",
+        "parameters": {},
+        "requestBody": {
+          "parentId": "$response.body#/parentId"
+        }
+      },
+      "checks": [
+        {
+          "name": "negative_data_rejection",
+          "status": "failure",
+          "message": "API accepted schema-violating request\n\nInvalid data should have been rejected\nExpected: 400, 401, 403, 404, 405, 406, 409, 422, 428, 5xx\nInvalid component: positive test case"
+        }
+      ],
+      "meta": {
+        "generation": {
+          "time": 0.009548741043545306,
+          "mode": "negative"
+        },
+        "components": {
+          "BODY": "negative"
+        },
+        "phase": {
+          "name": "stateful",
+          "data": {
+            "type": "StatefulPhaseData",
+            "description": "Positive test case",
+            "location": null,
+            "parameter": null,
+            "parameter_location": null,
+            "mutations": []
+          }
+        },
+        "pool_draws": [],
+        "pool_misses": [],
+        "semantic_draws": [],
+        "dictionary_draws": [],
+        "constants_draws": [],
+        "raw_containers": {}
+      },
+      "path": "/tasks",
+      "path_parameters": {},
+      "query": {},
+      "case_headers": {
+        "Authorization": "[Filtered]"
+      },
+      "cookies": {},
+      "case_body": {
+        "encoding": "json",
+        "value": {
+          "\ud881\udce1w\u00d6?\f]": 3.461557001015629e+108,
+          "": [
+            [],
+            {
+              "\u00c8\u0010\u00d2\u0080\u0090\uda91\udd7b\u008d\u0004U\udb12\udf28 \ud8e5\udf01Z\u0083\udbdd\ude3e^`": 3853
+            },
+            [
+              -1.7976931348623157e+308,
+              null,
+              false
+            ]
+          ],
+          "G(!": [],
+          "tl\u0015U": {
+            "\udba0\udcff\u00c4_\udb25\udcbd\u00b5\ud905\ude72": [
+              "}\u00bd"
+            ]
+          },
+          "\ud8ad\uddfb\u00ce\uda93\udcdc\u96540\udae6\ude78\ud8d0\udcfe\u0090X\udb99\uddf4": [
+            3.0487537863731974e-65,
+            -4288,
+            null
+          ],
+          "content": "g\uda78\udd3d2\u009c:\u0012\u00ddY",
+          "parentId": null
+        }
+      },
+      "media_type": "application/json",
+      "parent_index": 0
+    }
+  ]
+}

@@ -1,0 +1,238 @@
+{
+  "operation": "PUT /comments/{id}",
+  "method": "PUT",
+  "path_template": "/comments/{id}",
+  "fingerprint": "d653f8f6",
+  "case_id": "m3n35D",
+  "code_sample": "curl -X POST -H 'Authorization: [Filtered]' -H 'Content-Type: application/json' -d '{\"\": null, \"content\": \"00\", \"projectId\": \"ae6f79d1-0eec-40c2-b266-f7be4dde3afb\", \"taskId\": \"446157d5-15da-4d35-9446-6405af3e7bdc\"}' http://taska-backend:8080/comments\ncurl -X PUT -H 'Authorization: [Filtered]' -H 'Content-Type: application/json' -d '{\"content\": \"\\uda28\\udf33}\", \"taskId\": \"446157d5-15da-4d35-9446-6405af3e7bdc\", \"projectId\": \"ae6f79d1-0eec-40c2-b266-f7be4dde3afb\"}' http://taska-backend:8080/comments/045b9ddc-575c-418e-9b4f-beeff3c2a38d",
+  "sequence": [
+    {
+      "method": "POST",
+      "url": "http://taska-backend:8080/comments",
+      "url_template": "http://taska-backend:8080/comments",
+      "headers": {
+        "User-Agent": "schemathesis/4.25.2",
+        "Accept-Encoding": "gzip, deflate",
+        "Accept": "*/*",
+        "Connection": "keep-alive",
+        "Authorization": "[Filtered]",
+        "X-Schemathesis-TestCaseId": "Cn6O2o",
+        "Content-Type": "application/json",
+        "Content-Length": "130"
+      },
+      "response": {
+        "status_code": 201,
+        "headers": {
+          "vary": "Origin",
+          "x-content-type-options": "nosniff",
+          "x-xss-protection": "0",
+          "cache-control": "no-cache, no-store, max-age=0, must-revalidate",
+          "pragma": "no-cache",
+          "expires": "0",
+          "x-frame-options": "DENY",
+          "content-type": "application/json",
+          "content-length": "204",
+          "date": "Mon, 07 Sep 2026 22:27:08 GMT",
+          "keep-alive": "timeout=60",
+          "connection": "keep-alive"
+        },
+        "body": "{\"id\":\"045b9ddc-575c-418e-9b4f-beeff3c2a38d\",\"taskId\":\"446157d5-15da-4d35-9446-6405af3e7bdc\",\"projectId\":\"ae6f79d1-0eec-40c2-b266-f7be4dde3afb\",\"content\":\"00\",\"createdAt\":\"2026-09-07T22:27:08.691010835Z\"}"
+      },
+      "link": null,
+      "checks": [],
+      "meta": {
+        "generation": {
+          "time": 0.006988008040934801,
+          "mode": "positive"
+        },
+        "components": {
+          "BODY": "positive"
+        },
+        "phase": {
+          "name": "stateful",
+          "data": {
+            "type": "StatefulPhaseData",
+            "description": "Positive test case",
+            "location": null,
+            "parameter": null,
+            "parameter_location": null,
+            "mutations": []
+          }
+        },
+        "pool_draws": [
+          {
+            "location": "body",
+            "parameter_name": "taskId",
+            "resource_name": "Task",
+            "resource_field": "id",
+            "source_operation": "POST /tasks/{taskId}/reopen",
+            "source_status": 200
+          },
+          {
+            "location": "body",
+            "parameter_name": "projectId",
+            "resource_name": "Project",
+            "resource_field": "id",
+            "source_operation": "GET /projects/{id}",
+            "source_status": 200
+          }
+        ],
+        "pool_misses": [],
+        "semantic_draws": [
+          {
+            "path": [
+              "content"
+            ],
+            "type_token": "string",
+            "format_token": null,
+            "pattern_hash": null,
+            "normalized_name": "content",
+            "value": "00",
+            "source_operation": "POST /comments"
+          }
+        ],
+        "dictionary_draws": [],
+        "constants_draws": [],
+        "raw_containers": {}
+      },
+      "path": "/comments",
+      "path_parameters": {},
+      "query": {},
+      "case_headers": {
+        "Authorization": "[Filtered]"
+      },
+      "cookies": {},
+      "case_body": {
+        "encoding": "json",
+        "value": {
+          "": null,
+          "content": "00",
+          "projectId": "ae6f79d1-0eec-40c2-b266-f7be4dde3afb",
+          "taskId": "446157d5-15da-4d35-9446-6405af3e7bdc"
+        }
+      },
+      "media_type": "application/json",
+      "parent_index": null
+    },
+    {
+      "method": "PUT",
+      "url": "http://taska-backend:8080/comments/045b9ddc-575c-418e-9b4f-beeff3c2a38d",
+      "url_template": "http://taska-backend:8080/comments/{id}",
+      "headers": {
+        "User-Agent": "schemathesis/4.25.2",
+        "Accept-Encoding": "gzip, deflate",
+        "Accept": "*/*",
+        "Connection": "keep-alive",
+        "Authorization": "[Filtered]",
+        "X-Schemathesis-TestCaseId": "m3n35D",
+        "Content-Type": "application/json",
+        "Content-Length": "131"
+      },
+      "response": {
+        "status_code": 404,
+        "headers": {
+          "vary": "Origin",
+          "x-content-type-options": "nosniff",
+          "x-xss-protection": "0",
+          "cache-control": "no-cache, no-store, max-age=0, must-revalidate",
+          "pragma": "no-cache",
+          "expires": "0",
+          "x-frame-options": "DENY",
+          "content-type": "application/problem+json",
+          "transfer-encoding": "chunked",
+          "date": "Mon, 07 Sep 2026 22:27:08 GMT",
+          "keep-alive": "timeout=60",
+          "connection": "keep-alive"
+        },
+        "body": "{\"detail\":\"Comment not found: 045b9ddc-575c-418e-9b4f-beeff3c2a38d\",\"instance\":\"/comments/045b9ddc-575c-418e-9b4f-beeff3c2a38d\",\"status\":404,\"title\":\"Not Found\",\"type\":\"about:blank\"}"
+      },
+      "link": {
+        "operationId": "POST /comments -> [201] PutComment -> PUT /comments/{id}",
+        "parameters": {
+          "path.id": "$response.body#/id"
+        }
+      },
+      "checks": [
+        {
+          "name": "ensure_resource_availability",
+          "status": "failure",
+          "message": "Resource is not available after creation\n\nThe API returned `404 Not Found` for a resource that was just created.\n\nCreated with      : `POST /comments`\nNot available with: `PUT /comments/{id}`"
+        }
+      ],
+      "meta": {
+        "generation": {
+          "time": 0.0036942959995940328,
+          "mode": "positive"
+        },
+        "components": {
+          "BODY": "positive"
+        },
+        "phase": {
+          "name": "stateful",
+          "data": {
+            "type": "StatefulPhaseData",
+            "description": "Positive test case",
+            "location": null,
+            "parameter": null,
+            "parameter_location": null,
+            "mutations": []
+          }
+        },
+        "pool_draws": [
+          {
+            "location": "body",
+            "parameter_name": "taskId",
+            "resource_name": "Task",
+            "resource_field": "id",
+            "source_operation": "POST /tasks/{taskId}/reopen",
+            "source_status": 200
+          },
+          {
+            "location": "body",
+            "parameter_name": "projectId",
+            "resource_name": "Project",
+            "resource_field": "id",
+            "source_operation": "GET /projects/{id}",
+            "source_status": 200
+          }
+        ],
+        "pool_misses": [],
+        "semantic_draws": [
+          {
+            "path": [
+              "content"
+            ],
+            "type_token": "string",
+            "format_token": null,
+            "pattern_hash": null,
+            "normalized_name": "content",
+            "value": "\uda28\udf33}",
+            "source_operation": "POST /tasks"
+          }
+        ],
+        "dictionary_draws": [],
+        "constants_draws": [],
+        "raw_containers": {}
+      },
+      "path": "/comments/{id}",
+      "path_parameters": {
+        "id": "045b9ddc-575c-418e-9b4f-beeff3c2a38d"
+      },
+      "query": {},
+      "case_headers": {
+        "Authorization": "[Filtered]"
+      },
+      "cookies": {},
+      "case_body": {
+        "encoding": "json",
+        "value": {
+          "content": "\uda28\udf33}",
+          "taskId": "446157d5-15da-4d35-9446-6405af3e7bdc",
+          "projectId": "ae6f79d1-0eec-40c2-b266-f7be4dde3afb"
+        }
+      },
+      "media_type": "application/json",
+      "parent_index": 0
+    }
+  ]
+}

@@ -1,0 +1,85 @@
+{
+  "operation": "GET /filters",
+  "method": "GET",
+  "path_template": "/filters",
+  "fingerprint": "99f1fd78",
+  "case_id": "u45hVf",
+  "code_sample": "curl -X GET -H 'Authorization: [Filtered]' http://taska-backend:8080/filters",
+  "sequence": [
+    {
+      "method": "GET",
+      "url": "http://taska-backend:8080/filters",
+      "url_template": "http://taska-backend:8080/filters",
+      "headers": {
+        "User-Agent": "schemathesis/4.25.2",
+        "Accept-Encoding": "gzip, deflate",
+        "Accept": "*/*",
+        "Connection": "keep-alive",
+        "Authorization": "[Filtered]",
+        "X-Schemathesis-TestCaseId": "u45hVf"
+      },
+      "response": {
+        "status_code": 200,
+        "headers": {
+          "vary": "Origin",
+          "x-content-type-options": "nosniff",
+          "x-xss-protection": "0",
+          "cache-control": "no-cache, no-store, max-age=0, must-revalidate",
+          "pragma": "no-cache",
+          "expires": "0",
+          "x-frame-options": "DENY",
+          "content-type": "application/json",
+          "content-length": "2998",
+          "date": "Sun, 06 Sep 2026 13:22:00 GMT",
+          "keep-alive": "timeout=60",
+          "connection": "keep-alive"
+        },
+        "body": "[{\"id\":\"d5bb449d-acca-4763-a84b-ae9d1de549b2\",\"name\":\"0\",\"color\":\"\",\"order\":-2147483648,\"isFavorite\":false,\"projectId\":\"46ca6cb0-1bcf-4a0b-9224-aa816b6d915a\",\"hasDate\":null},{\"id\":\"adab4f94-1723-4604-a876-363af9d7ec64\",\"name\":\"0\",\"color\":\"\",\"order\":-2147483647,\"isFavorite\":false,\"projectId\":\"46ca6cb0-1bcf-4a0b-9224-aa816b6d915a\",\"hasDate\":null},{\"id\":\"bf4f027a-a716-47a4-843f-c346edffe895\",\"name\":\"0\",\"color\":\"\",\"order\":0,\"isFavorite\":true,\"projectId\":\"46ca6cb0-1bcf-4a0b-9224-aa816b6d915a\",\"hasDate\":null},{\"id\":\"84a6e9ed-6261-4827-8bc2-f982f8332a24\",\"name\":\"0\",\"color\":\"\",\"order\":0,\"isFavorite\":false,\"projectId\":\"b556a7bd-5f52-429a-b9a0-146b701b3f17\",\"hasDate\":true},{\"id\":\"5881f372-4ca9-4bd4-a87b-9603f5aa71f2\",\"name\":\"0\",\"color\":\"\",\"order\":0,\"isFavorite\":false,\"projectId\":\"46ca6cb0-1bcf-4a0b-9224-aa816b6d915a\",\"hasDate\":null},{\"id\":\"d7bef91e-dc5e-4cdc-8f69-fc03e54679c7\",\"name\":\"0\",\"color\":\"\",\"order\":0,\"isFavorite\":false,\"projectId\":\"46ca6cb0-1bcf-4a0b-9224-aa816b6d915a\",\"hasDate\":true},{\"id\":\"287c89cc-6dac-41df-8a77-92cfa63845a3\",\"name\":\"00\",\"color\":\"\",\"order\":0,\"isFavorite\":false,\"projectId\":\"46ca6cb0-1bcf-4a0b-9224-aa816b6d915a\",\"hasDate\":null},{\"id\":\"7eb29d94-cd2e-43a3-acc5-052fdfa2031c\",\"name\":\"0\",\"color\":\"charcoal\",\"order\":0,\"isFavorite\":false,\"projectId\":null,\"hasDate\":null},{\"id\":\"cece2cc9-ec3f-4592-8dee-6ba745503f04\",\"name\":\"0\",\"color\":\"\",\"order\":0,\"isFavorite\":false,\"projectId\":null,\"hasDate\":null},{\"id\":\"9c7ee815-c59b-4204-95c5-fb3e800dc049\",\"name\":\"0\",\"color\":\"\",\"order\":0,\"isFavorite\":false,\"projectId\":null,\"hasDate\":null},{\"id\":\"a6f79ee8-ccae-47c1-9cf6-b3b0e21fbb20\",\"name\":\"0\",\"color\":\"\",\"order\":0,\"isFavorite\":false,\"projectId\":null,\"hasDate\":null},{\"id\":\"11124f70-014c-43f1-bc4b-8dda0e8906f2\",\"name\":\"0\",\"color\":\"\",\"order\":0,\"isFavorite\":false,\"projectId\":null,\"hasDate\":null},{\"id\":\"eaed5cb7-0c69-45e8-89f8-b915caaccac3\",\"name\":\"0\",\"color\":\"charcoal\",\"order\":0,\"isFavorite\":false,\"projectId\":\"46ca6cb0-1bcf-4a0b-9224-aa816b6d915a\",\"hasDate\":null},{\"id\":\"124ea80d-5555-4924-8a04-cb5e44d3ebeb\",\"name\":\"0\",\"color\":\"charcoal\",\"order\":0,\"isFavorite\":false,\"projectId\":null,\"hasDate\":null},{\"id\":\"35e742f0-7555-4387-b907-006274671210\",\"name\":\"0\",\"color\":\"charcoal\",\"order\":0,\"isFavorite\":false,\"projectId\":null,\"hasDate\":null},{\"id\":\"f5c4bfa6-ffbc-43ca-846c-9f5a2e382547\",\"name\":\"0\",\"color\":\"charcoal\",\"order\":0,\"isFavorite\":false,\"projectId\":null,\"hasDate\":null},{\"id\":\"59c22576-fc90-4749-a099-728ce61032ab\",\"name\":\"0\",\"color\":\"\",\"order\":0,\"isFavorite\":false,\"projectId\":null,\"hasDate\":null},{\"id\":\"0bb15c20-131b-4c4d-9126-a3476faa754d\",\"name\":\"0\",\"color\":\"charcoal\",\"order\":0,\"isFavorite\":false,\"projectId\":null,\"hasDate\":null},{\"id\":\"d9a77198-01b2-44b4-acae-49f38e5e69b3\",\"name\":\"0\",\"color\":\"\",\"order\":0,\"isFavorite\":false,\"projectId\":\"46ca6cb0-1bcf-4a0b-9224-aa816b6d915a\",\"hasDate\":null},{\"id\":\"67ecd71a-957b-4bc7-a7d4-b96560c3b61d\",\"name\":\"0\",\"color\":\"\",\"order\":2147483647,\"isFavorite\":false,\"projectId\":\"46ca6cb0-1bcf-4a0b-9224-aa816b6d915a\",\"hasDate\":null}]"
+      },
+      "link": null,
+      "checks": [
+        {
+          "name": "response_schema_conformance",
+          "status": "failure",
+          "message": "Response violates schema\n\nnull is not of type \"boolean\"\n\nValidated against the response schema for status code 200.\n\nSchema at /FilterDto/properties/hasDate:\n\n    {\n        \"type\": \"boolean\"\n    }\n\nValue:\n\n    null"
+        }
+      ],
+      "meta": {
+        "generation": {
+          "time": 0.000162540003657341,
+          "mode": "positive"
+        },
+        "components": {},
+        "phase": {
+          "name": "fuzzing",
+          "data": {
+            "type": "FuzzingPhaseData",
+            "description": "Positive test case",
+            "location": null,
+            "parameter": null,
+            "parameter_location": null,
+            "mutations": []
+          }
+        },
+        "pool_draws": [],
+        "pool_misses": [],
+        "semantic_draws": [],
+        "dictionary_draws": [],
+        "constants_draws": [],
+        "raw_containers": {}
+      },
+      "path": "/filters",
+      "path_parameters": {},
+      "query": {},
+      "case_headers": {
+        "Authorization": "[Filtered]"
+      },
+      "cookies": {},
+      "case_body": {
+        "encoding": "none"
+      },
+      "media_type": null,
+      "parent_index": null
+    }
+  ]
+}

@@ -1,0 +1,103 @@
+{
+  "operation": "PUT /tasks/{taskId}/occurrences/{occurrenceScheduledAt}",
+  "method": "PUT",
+  "path_template": "/tasks/{taskId}/occurrences/{occurrenceScheduledAt}",
+  "fingerprint": "af507c1c",
+  "case_id": "uC7ALd",
+  "code_sample": "curl -X PUT -H 'Authorization: [Filtered]' -H 'Content-Type: application/json' -d '{\"dueAt\": null, \"priority\": 1, \"scheduledAt\": \"2000-01-01T00:00:00Z\", \"title\": \"0\"}' http://taska-backend:8080/tasks/e3e70682-c209-1cac-a29f-6fbed82c07cd/occurrences/value",
+  "sequence": [
+    {
+      "method": "PUT",
+      "url": "http://taska-backend:8080/tasks/e3e70682-c209-1cac-a29f-6fbed82c07cd/occurrences/value",
+      "url_template": "http://taska-backend:8080/tasks/{taskId}/occurrences/{occurrenceScheduledAt}",
+      "headers": {
+        "User-Agent": "schemathesis/4.25.2",
+        "Accept-Encoding": "gzip, deflate",
+        "Accept": "*/*",
+        "Connection": "keep-alive",
+        "Authorization": "[Filtered]",
+        "X-Schemathesis-TestCaseId": "uC7ALd",
+        "Content-Type": "application/json",
+        "Content-Length": "83"
+      },
+      "response": {
+        "status_code": 400,
+        "headers": {
+          "vary": "Origin",
+          "x-content-type-options": "nosniff",
+          "x-xss-protection": "0",
+          "cache-control": "no-cache, no-store, max-age=0, must-revalidate",
+          "pragma": "no-cache",
+          "expires": "0",
+          "x-frame-options": "DENY",
+          "content-type": "application/problem+json",
+          "transfer-encoding": "chunked",
+          "date": "Sat, 19 Sep 2026 14:02:18 GMT",
+          "connection": "close"
+        },
+        "body": "{\"detail\":\"Invalid request parameter\",\"instance\":\"/tasks/e3e70682-c209-1cac-a29f-6fbed82c07cd/occurrences/value\",\"status\":400,\"title\":\"Bad Request\",\"type\":\"about:blank\"}"
+      },
+      "link": null,
+      "checks": [
+        {
+          "name": "positive_data_acceptance",
+          "status": "failure",
+          "message": "API rejected schema-compliant request\n\nValid data should have been accepted\nExpected: 2xx, 401, 403, 404, 409, 5xx"
+        }
+      ],
+      "meta": {
+        "generation": {
+          "time": 7.773999823257327e-05,
+          "mode": "positive"
+        },
+        "components": {
+          "PATH": "negative",
+          "BODY": "positive"
+        },
+        "phase": {
+          "name": "coverage",
+          "data": {
+            "type": "CoveragePhaseData",
+            "description": "Object with valid 'dueAt' value: Value null value",
+            "location": null,
+            "parameter": "application/json",
+            "parameter_location": "BODY",
+            "scenario": "valid_object"
+          }
+        },
+        "pool_draws": [],
+        "pool_misses": [],
+        "semantic_draws": [],
+        "dictionary_draws": [],
+        "constants_draws": [],
+        "raw_containers": {
+          "PATH": {
+            "taskId": "e3e70682-c209-1cac-a29f-6fbed82c07cd",
+            "occurrenceScheduledAt": "value"
+          }
+        }
+      },
+      "path": "/tasks/{taskId}/occurrences/{occurrenceScheduledAt}",
+      "path_parameters": {
+        "taskId": "e3e70682-c209-1cac-a29f-6fbed82c07cd",
+        "occurrenceScheduledAt": "value"
+      },
+      "query": {},
+      "case_headers": {
+        "Authorization": "[Filtered]"
+      },
+      "cookies": {},
+      "case_body": {
+        "encoding": "json",
+        "value": {
+          "dueAt": null,
+          "priority": 1,
+          "scheduledAt": "2000-01-01T00:00:00Z",
+          "title": "0"
+        }
+      },
+      "media_type": "application/json",
+      "parent_index": null
+    }
+  ]
+}

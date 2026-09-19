@@ -1,0 +1,130 @@
+{
+  "operation": "POST /tasks",
+  "method": "POST",
+  "path_template": "/tasks",
+  "fingerprint": "d90c48ae",
+  "case_id": "5H3uul",
+  "code_sample": "curl -X POST -H 'Authorization: [Filtered]' -H 'Content-Type: application/json' -d '{\"content\": \"0\", \"description\": \"\", \"projectId\": \"1441205a-3d2a-4a82-8c73-57b702b6c23a\", \"sectionId\": \"2dde1d65-57fe-4e7c-971c-6596b50b97c1\", \"parentId\": \"e3e70682-c209-1cac-a29f-6fbed82c07cd\", \"order\": 0, \"priority\": 1, \"labels\": [], \"scheduledAt\": \"2000-01-01T00:00:00Z\", \"dueAt\": \"2000-01-01T00:00:00Z\", \"allDay\": false, \"isRecurring\": false, \"estimateMinutes\": 0, \"mentionContext\": \"\", \"recurrenceRule\": \"\", \"scope\": \"THIS_ONLY\", \"occurrenceScheduledAt\": \"2000-01-01T00:00:00Z\", \"type\": \"APPOINTMENT\"}' http://taska-backend:8080/tasks",
+  "sequence": [
+    {
+      "method": "POST",
+      "url": "http://taska-backend:8080/tasks",
+      "url_template": "http://taska-backend:8080/tasks",
+      "headers": {
+        "User-Agent": "schemathesis/4.25.2",
+        "Accept-Encoding": "gzip, deflate",
+        "Accept": "*/*",
+        "Connection": "keep-alive",
+        "Authorization": "[Filtered]",
+        "X-Schemathesis-TestCaseId": "5H3uul",
+        "Content-Type": "application/json",
+        "Content-Length": "505"
+      },
+      "response": {
+        "status_code": 400,
+        "headers": {
+          "vary": "Origin",
+          "x-content-type-options": "nosniff",
+          "x-xss-protection": "0",
+          "cache-control": "no-cache, no-store, max-age=0, must-revalidate",
+          "pragma": "no-cache",
+          "expires": "0",
+          "x-frame-options": "DENY",
+          "content-type": "application/problem+json",
+          "transfer-encoding": "chunked",
+          "date": "Sat, 05 Sep 2026 09:55:02 GMT",
+          "connection": "close"
+        },
+        "body": "{\"detail\":\"Validation failed\",\"instance\":\"/tasks\",\"status\":400,\"title\":\"Bad Request\",\"errors\":{\"estimateMinutes\":\"must be greater than 0\"}}"
+      },
+      "link": null,
+      "checks": [
+        {
+          "name": "response_schema_conformance",
+          "status": "failure",
+          "message": "Response violates schema\n\n\"type\" is a required property\n\nValidated against the response schema for status code 400.\n\nSchema at /ProblemDetails:\n\n    {\n        \"required\": [\n            \"type\",\n            \"title\",\n            \"status\"\n        ],\n        \"type\": \"object\",\n        \"description\": \"RFC 9457 problem details returned for API errors.\",\n        \"properties\": {\n            \"type\": {\n                \"type\": \"string\",\n                \"format\": \"uri-reference\",\n                \"description\": \"Problem type identifier.\"\n            },\n            \"title\": {\n                \"type\": \"string\",\n                \"description\": \"Short, human-readable problem summary.\"\n            },\n            \"status\": {\n                \"type\": \"integer\",\n                \"minimum\": 100,\n                \"maximum\": 599,\n                \"description\": \"HTTP status code.\"\n            },\n            \"detail\": {\n                \"type\": \"string\",\n                \"description\": \"Problem details specific to this occurrence.\"\n            },\n            \"instance\": {\n                \"type\": \"string\",\n                \"format\": \"uri-reference\",\n                \"description\": \"Identifier for this occurrence.\"\n            },\n            \"code\": {\n                \"type\": \"string\",\n                \"description\": \"Stable, machine-readable Taska error code.\"\n            },\n            \"violations\": {\n                \"type\": \"array\",\n                \"items\": {\n                    \"$ref\": \"#/Violation\"\n                }\n            }\n        }\n    }\n\nValue:\n\n    {\n        \"detail\": \"Validation failed\",\n        \"errors\": {\n            \"estimateMinutes\": \"must be greater than 0\"\n        },\n        \"instance\": \"/tasks\",\n        \"status\": 400,\n        \"title\": \"Bad Request\"\n    }"
+        }
+      ],
+      "meta": {
+        "generation": {
+          "time": 4.0140002965927124e-05,
+          "mode": "positive"
+        },
+        "components": {
+          "BODY": "positive"
+        },
+        "phase": {
+          "name": "coverage",
+          "data": {
+            "type": "CoveragePhaseData",
+            "description": "Object with valid 'type' value: Enum value",
+            "location": null,
+            "parameter": "application/json",
+            "parameter_location": "BODY",
+            "scenario": "valid_object"
+          }
+        },
+        "pool_draws": [
+          {
+            "location": "body",
+            "parameter_name": "projectId",
+            "resource_name": "Project",
+            "resource_field": "id",
+            "source_operation": "POST /projects",
+            "source_status": 201
+          },
+          {
+            "location": "body",
+            "parameter_name": "sectionId",
+            "resource_name": "Section",
+            "resource_field": "id",
+            "source_operation": "POST /sections",
+            "source_status": 201
+          }
+        ],
+        "pool_misses": [
+          [
+            "body",
+            "parentId"
+          ]
+        ],
+        "semantic_draws": [],
+        "dictionary_draws": [],
+        "constants_draws": [],
+        "raw_containers": {}
+      },
+      "path": "/tasks",
+      "path_parameters": {},
+      "query": {},
+      "case_headers": {
+        "Authorization": "[Filtered]"
+      },
+      "cookies": {},
+      "case_body": {
+        "encoding": "json",
+        "value": {
+          "content": "0",
+          "description": "",
+          "projectId": "1441205a-3d2a-4a82-8c73-57b702b6c23a",
+          "sectionId": "2dde1d65-57fe-4e7c-971c-6596b50b97c1",
+          "parentId": "e3e70682-c209-1cac-a29f-6fbed82c07cd",
+          "order": 0,
+          "priority": 1,
+          "labels": [],
+          "scheduledAt": "2000-01-01T00:00:00Z",
+          "dueAt": "2000-01-01T00:00:00Z",
+          "allDay": false,
+          "isRecurring": false,
+          "estimateMinutes": 0,
+          "mentionContext": "",
+          "recurrenceRule": "",
+          "scope": "THIS_ONLY",
+          "occurrenceScheduledAt": "2000-01-01T00:00:00Z",
+          "type": "APPOINTMENT"
+        }
+      },
+      "media_type": "application/json",
+      "parent_index": null
+    }
+  ]
+}

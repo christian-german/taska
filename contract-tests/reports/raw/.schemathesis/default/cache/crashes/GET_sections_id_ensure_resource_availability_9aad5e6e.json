@@ -1,0 +1,190 @@
+{
+  "operation": "GET /sections/{id}",
+  "method": "GET",
+  "path_template": "/sections/{id}",
+  "fingerprint": "9aad5e6e",
+  "case_id": "q2Y6hC",
+  "code_sample": "curl -X POST -H 'Authorization: [Filtered]' -H 'Content-Type: application/json' -d '{\"name\": \"\\ud802\\udd52\", \"projectId\": \"2606185e-080e-434c-af4e-ebe2b33b94dd\"}' http://taska-backend:8080/sections\ncurl -X GET -H 'Authorization: [Filtered]' http://taska-backend:8080/sections/503c2b91-388d-471f-81a4-4859e344fd9c",
+  "sequence": [
+    {
+      "method": "POST",
+      "url": "http://taska-backend:8080/sections",
+      "url_template": "http://taska-backend:8080/sections",
+      "headers": {
+        "User-Agent": "schemathesis/4.25.2",
+        "Accept-Encoding": "gzip, deflate",
+        "Accept": "*/*",
+        "Connection": "keep-alive",
+        "Authorization": "[Filtered]",
+        "X-Schemathesis-TestCaseId": "1swBqp",
+        "Content-Type": "application/json",
+        "Content-Length": "77"
+      },
+      "response": {
+        "status_code": 201,
+        "headers": {
+          "vary": "Origin",
+          "x-content-type-options": "nosniff",
+          "x-xss-protection": "0",
+          "cache-control": "no-cache, no-store, max-age=0, must-revalidate",
+          "pragma": "no-cache",
+          "expires": "0",
+          "x-frame-options": "DENY",
+          "content-type": "application/json",
+          "content-length": "165",
+          "date": "Fri, 04 Sep 2026 22:32:59 GMT",
+          "keep-alive": "timeout=60",
+          "connection": "keep-alive"
+        },
+        "body": "{\"id\":\"503c2b91-388d-471f-81a4-4859e344fd9c\",\"name\":\"\ud802\udd52\",\"projectId\":\"2606185e-080e-434c-af4e-ebe2b33b94dd\",\"order\":0,\"createdAt\":\"2026-09-04T22:32:59.303259896Z\"}"
+      },
+      "link": null,
+      "checks": [],
+      "meta": {
+        "generation": {
+          "time": 0.002521460992284119,
+          "mode": "positive"
+        },
+        "components": {
+          "BODY": "positive"
+        },
+        "phase": {
+          "name": "stateful",
+          "data": {
+            "type": "StatefulPhaseData",
+            "description": "Positive test case",
+            "location": null,
+            "parameter": null,
+            "parameter_location": null,
+            "mutations": []
+          }
+        },
+        "pool_draws": [
+          {
+            "location": "body",
+            "parameter_name": "projectId",
+            "resource_name": "Project",
+            "resource_field": "id",
+            "source_operation": "POST /projects",
+            "source_status": 201
+          }
+        ],
+        "pool_misses": [],
+        "semantic_draws": [
+          {
+            "path": [
+              "name"
+            ],
+            "type_token": "string",
+            "format_token": null,
+            "pattern_hash": null,
+            "normalized_name": "name",
+            "value": "\ud802\udd52",
+            "source_operation": "POST /filters"
+          }
+        ],
+        "dictionary_draws": [],
+        "constants_draws": [],
+        "raw_containers": {}
+      },
+      "path": "/sections",
+      "path_parameters": {},
+      "query": {},
+      "case_headers": {
+        "Authorization": "[Filtered]"
+      },
+      "cookies": {},
+      "case_body": {
+        "encoding": "json",
+        "value": {
+          "name": "\ud802\udd52",
+          "projectId": "2606185e-080e-434c-af4e-ebe2b33b94dd"
+        }
+      },
+      "media_type": "application/json",
+      "parent_index": null
+    },
+    {
+      "method": "GET",
+      "url": "http://taska-backend:8080/sections/503c2b91-388d-471f-81a4-4859e344fd9c",
+      "url_template": "http://taska-backend:8080/sections/{id}",
+      "headers": {
+        "User-Agent": "schemathesis/4.25.2",
+        "Accept-Encoding": "gzip, deflate",
+        "Accept": "*/*",
+        "Connection": "keep-alive",
+        "Authorization": "[Filtered]",
+        "X-Schemathesis-TestCaseId": "q2Y6hC"
+      },
+      "response": {
+        "status_code": 404,
+        "headers": {
+          "vary": "Origin",
+          "x-content-type-options": "nosniff",
+          "x-xss-protection": "0",
+          "cache-control": "no-cache, no-store, max-age=0, must-revalidate",
+          "pragma": "no-cache",
+          "expires": "0",
+          "x-frame-options": "DENY",
+          "content-type": "application/problem+json",
+          "transfer-encoding": "chunked",
+          "date": "Fri, 04 Sep 2026 22:32:59 GMT",
+          "keep-alive": "timeout=60",
+          "connection": "keep-alive"
+        },
+        "body": "{\"detail\":\"Section not found: 503c2b91-388d-471f-81a4-4859e344fd9c\",\"instance\":\"/sections/503c2b91-388d-471f-81a4-4859e344fd9c\",\"status\":404,\"title\":\"Not Found\"}"
+      },
+      "link": {
+        "operationId": "POST /sections -> [201] GetSection -> GET /sections/{id}",
+        "parameters": {
+          "path.id": "$response.body#/id"
+        }
+      },
+      "checks": [
+        {
+          "name": "ensure_resource_availability",
+          "status": "failure",
+          "message": "Resource is not available after creation\n\nThe API returned `404 Not Found` for a resource that was just created.\n\nCreated with      : `POST /sections`\nNot available with: `GET /sections/{id}`"
+        }
+      ],
+      "meta": {
+        "generation": {
+          "time": 0.0003125900402665138,
+          "mode": "positive"
+        },
+        "components": {},
+        "phase": {
+          "name": "stateful",
+          "data": {
+            "type": "StatefulPhaseData",
+            "description": "Positive test case",
+            "location": null,
+            "parameter": null,
+            "parameter_location": null,
+            "mutations": []
+          }
+        },
+        "pool_draws": [],
+        "pool_misses": [],
+        "semantic_draws": [],
+        "dictionary_draws": [],
+        "constants_draws": [],
+        "raw_containers": {}
+      },
+      "path": "/sections/{id}",
+      "path_parameters": {
+        "id": "503c2b91-388d-471f-81a4-4859e344fd9c"
+      },
+      "query": {},
+      "case_headers": {
+        "Authorization": "[Filtered]"
+      },
+      "cookies": {},
+      "case_body": {
+        "encoding": "none"
+      },
+      "media_type": null,
+      "parent_index": 0
+    }
+  ]
+}

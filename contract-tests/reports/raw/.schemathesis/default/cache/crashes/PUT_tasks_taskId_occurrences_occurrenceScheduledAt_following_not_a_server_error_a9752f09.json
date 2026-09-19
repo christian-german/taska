@@ -1,0 +1,169 @@
+{
+  "operation": "PUT /tasks/{taskId}/occurrences/{occurrenceScheduledAt}/following",
+  "method": "PUT",
+  "path_template": "/tasks/{taskId}/occurrences/{occurrenceScheduledAt}/following",
+  "fingerprint": "a9752f09",
+  "case_id": "o4Cbcq",
+  "code_sample": "curl -X PUT -H 'Authorization: [Filtered]' -H 'Content-Type: application/json' -d '{\"projectId\": null, \"allDay\": false, \"description\": \"Ph\\b\\u001e\\u0007\\u0018j\", \"recurrenceRule\": \"2\", \"scheduledAt\": \"2026-09-18T19:18:46.294363940Z\", \"type\": \"TODO\", \"mentionContext\": null, \"order\": 1, \"priority\": 1, \"isRecurring\": true, \"estimateMinutes\": 24, \"dueAt\": null, \"content\": \"0\", \"parentId\": \"f8e14072-b5a0-5ad3-b5d7-ff6d01b0d0d5\", \"labels\": [\"\\u00e0\\u0014\\uda37\\ude93g\\u0012\\u4c2c\\u00ccW\", \"r\\ud918\\ude37P\\udbbf\\udf444\", \"\\ud8ad\\udd95\\u000fk\\u00f0\\udb45\\udf2c\\u0082\\ud888\\udd1a\\uda4d\\udcf29\\u00c8_\", \"x\\u00ab(\", \"\\u00fe\\u0087\", \"\\udba1\\udcdfz\\u0007\\u00b5\\u00db\", \"\\u00a8\\u00f2 \\udbae\\udd37\\u00dc\\u0015{:X\\u0093r\\u16e9\\u001f\", \"\\u0000\\u00e6\\u00da\\ud85b\\udd87\\u00de\", \"\", \"\\u00cf\\u00d1)\\u001e\\uda95\\udc04\\u00fd\\ud824\\ude49\", \"\\ud87b\\udf0d\\u00c8\\u00edp\", \"M_\\u00ac6u\\u00b7\\u009f\\u008b\\udaff\\udef0:\", \"\\ud965\\udf7e\", \"\\u00a8,\\u00bd\\u00ac\\uda70\\udd60\"]}' http://taska-backend:8080/tasks/5421901f-9faa-2dab-bb9a-e12e86d04d3c/occurrences/0382-03-31T11%3A19%3A38.5-21%3A10/following",
+  "sequence": [
+    {
+      "method": "PUT",
+      "url": "http://taska-backend:8080/tasks/5421901f-9faa-2dab-bb9a-e12e86d04d3c/occurrences/0382-03-31T11%3A19%3A38.5-21%3A10/following",
+      "url_template": "http://taska-backend:8080/tasks/{taskId}/occurrences/{occurrenceScheduledAt}/following",
+      "headers": {
+        "User-Agent": "schemathesis/4.25.2",
+        "Accept-Encoding": "gzip, deflate",
+        "Accept": "*/*",
+        "Connection": "keep-alive",
+        "Authorization": "[Filtered]",
+        "X-Schemathesis-TestCaseId": "o4Cbcq",
+        "Content-Type": "application/json",
+        "Content-Length": "862"
+      },
+      "response": {
+        "status_code": 500,
+        "headers": {
+          "vary": "Origin",
+          "x-content-type-options": "nosniff",
+          "x-xss-protection": "0",
+          "cache-control": "no-cache, no-store, max-age=0, must-revalidate",
+          "pragma": "no-cache",
+          "expires": "0",
+          "x-frame-options": "DENY",
+          "content-type": "application/problem+json",
+          "transfer-encoding": "chunked",
+          "date": "Fri, 18 Sep 2026 19:18:55 GMT",
+          "connection": "close"
+        },
+        "body": "{\"detail\":\"Internal error\",\"instance\":\"/tasks/5421901f-9faa-2dab-bb9a-e12e86d04d3c/occurrences/0382-03-31T11%3A19%3A38.5-21%3A10/following\",\"status\":500,\"title\":\"Internal Server Error\",\"type\":\"about:blank\"}"
+      },
+      "link": null,
+      "checks": [
+        {
+          "name": "not_a_server_error",
+          "status": "failure",
+          "message": "Server error"
+        }
+      ],
+      "meta": {
+        "generation": {
+          "time": 0.008997037992230617,
+          "mode": "positive"
+        },
+        "components": {
+          "PATH": "positive",
+          "BODY": "positive"
+        },
+        "phase": {
+          "name": "fuzzing",
+          "data": {
+            "type": "FuzzingPhaseData",
+            "description": "Positive test case",
+            "location": null,
+            "parameter": null,
+            "parameter_location": null,
+            "mutations": []
+          }
+        },
+        "pool_draws": [],
+        "pool_misses": [],
+        "semantic_draws": [
+          {
+            "path": [
+              "content"
+            ],
+            "type_token": "string",
+            "format_token": null,
+            "pattern_hash": null,
+            "normalized_name": "content",
+            "value": "0",
+            "source_operation": "POST /tasks"
+          },
+          {
+            "path": [
+              "order"
+            ],
+            "type_token": "integer",
+            "format_token": "int32",
+            "pattern_hash": null,
+            "normalized_name": "order",
+            "value": 1,
+            "source_operation": "POST /tasks"
+          },
+          {
+            "path": [
+              "priority"
+            ],
+            "type_token": "integer",
+            "format_token": "int32",
+            "pattern_hash": null,
+            "normalized_name": "priority",
+            "value": 1,
+            "source_operation": "POST /tasks"
+          },
+          {
+            "path": [
+              "scheduledAt"
+            ],
+            "type_token": "string",
+            "format_token": "date-time",
+            "pattern_hash": null,
+            "normalized_name": "scheduledat",
+            "value": "2026-09-18T19:18:46.294363940Z",
+            "source_operation": "POST /tasks"
+          }
+        ],
+        "dictionary_draws": [],
+        "constants_draws": [],
+        "raw_containers": {}
+      },
+      "path": "/tasks/{taskId}/occurrences/{occurrenceScheduledAt}/following",
+      "path_parameters": {
+        "taskId": "5421901f-9faa-2dab-bb9a-e12e86d04d3c",
+        "occurrenceScheduledAt": "0382-03-31T11%3A19%3A38.5-21%3A10"
+      },
+      "query": {},
+      "case_headers": {
+        "Authorization": "[Filtered]"
+      },
+      "cookies": {},
+      "case_body": {
+        "encoding": "json",
+        "value": {
+          "projectId": null,
+          "allDay": false,
+          "description": "Ph\b\u001e\u0007\u0018j",
+          "recurrenceRule": "2",
+          "scheduledAt": "2026-09-18T19:18:46.294363940Z",
+          "type": "TODO",
+          "mentionContext": null,
+          "order": 1,
+          "priority": 1,
+          "isRecurring": true,
+          "estimateMinutes": 24,
+          "dueAt": null,
+          "content": "0",
+          "parentId": "f8e14072-b5a0-5ad3-b5d7-ff6d01b0d0d5",
+          "labels": [
+            "\u00e0\u0014\uda37\ude93g\u0012\u4c2c\u00ccW",
+            "r\ud918\ude37P\udbbf\udf444",
+            "\ud8ad\udd95\u000fk\u00f0\udb45\udf2c\u0082\ud888\udd1a\uda4d\udcf29\u00c8_",
+            "x\u00ab(",
+            "\u00fe\u0087",
+            "\udba1\udcdfz\u0007\u00b5\u00db",
+            "\u00a8\u00f2 \udbae\udd37\u00dc\u0015{:X\u0093r\u16e9\u001f",
+            "\u0000\u00e6\u00da\ud85b\udd87\u00de",
+            "",
+            "\u00cf\u00d1)\u001e\uda95\udc04\u00fd\ud824\ude49",
+            "\ud87b\udf0d\u00c8\u00edp",
+            "M_\u00ac6u\u00b7\u009f\u008b\udaff\udef0:",
+            "\ud965\udf7e",
+            "\u00a8,\u00bd\u00ac\uda70\udd60"
+          ]
+        }
+      },
+      "media_type": "application/json",
+      "parent_index": null
+    }
+  ]
+}

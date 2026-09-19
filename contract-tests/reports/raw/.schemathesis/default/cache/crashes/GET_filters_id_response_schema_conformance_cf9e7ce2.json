@@ -1,0 +1,102 @@
+{
+  "operation": "GET /filters/{id}",
+  "method": "GET",
+  "path_template": "/filters/{id}",
+  "fingerprint": "cf9e7ce2",
+  "case_id": "lq5RPO",
+  "code_sample": "curl -X GET -H 'Authorization: [Filtered]' http://taska-backend:8080/filters/5881f372-4ca9-4bd4-a87b-9603f5aa71f2",
+  "sequence": [
+    {
+      "method": "GET",
+      "url": "http://taska-backend:8080/filters/5881f372-4ca9-4bd4-a87b-9603f5aa71f2",
+      "url_template": "http://taska-backend:8080/filters/{id}",
+      "headers": {
+        "User-Agent": "schemathesis/4.25.2",
+        "Accept-Encoding": "gzip, deflate",
+        "Accept": "*/*",
+        "Connection": "keep-alive",
+        "Authorization": "[Filtered]",
+        "X-Schemathesis-TestCaseId": "lq5RPO"
+      },
+      "response": {
+        "status_code": 200,
+        "headers": {
+          "vary": "Origin",
+          "x-content-type-options": "nosniff",
+          "x-xss-protection": "0",
+          "cache-control": "no-cache, no-store, max-age=0, must-revalidate",
+          "pragma": "no-cache",
+          "expires": "0",
+          "x-frame-options": "DENY",
+          "content-type": "application/json",
+          "content-length": "162",
+          "date": "Sun, 06 Sep 2026 13:21:57 GMT",
+          "keep-alive": "timeout=60",
+          "connection": "keep-alive"
+        },
+        "body": "{\"id\":\"5881f372-4ca9-4bd4-a87b-9603f5aa71f2\",\"name\":\"0\",\"color\":\"\",\"order\":0,\"isFavorite\":false,\"projectId\":\"46ca6cb0-1bcf-4a0b-9224-aa816b6d915a\",\"hasDate\":null}"
+      },
+      "link": null,
+      "checks": [
+        {
+          "name": "response_schema_conformance",
+          "status": "failure",
+          "message": "Response violates schema\n\nnull is not of type \"boolean\"\n\nValidated against the response schema for status code 200.\n\nSchema at /properties/hasDate:\n\n    {\n        \"type\": \"boolean\"\n    }\n\nValue:\n\n    null"
+        }
+      ],
+      "meta": {
+        "generation": {
+          "time": 0.0005777400219812989,
+          "mode": "positive"
+        },
+        "components": {
+          "PATH": "positive"
+        },
+        "phase": {
+          "name": "coverage",
+          "data": {
+            "type": "CoveragePhaseData",
+            "description": "Default positive test case",
+            "location": null,
+            "parameter": null,
+            "parameter_location": null,
+            "scenario": "default_positive_test"
+          }
+        },
+        "pool_draws": [
+          {
+            "location": "path",
+            "parameter_name": "id",
+            "resource_name": "Filter",
+            "resource_field": "id",
+            "source_operation": "POST /filters",
+            "source_status": 201
+          }
+        ],
+        "pool_misses": [],
+        "semantic_draws": [],
+        "dictionary_draws": [],
+        "constants_draws": [],
+        "raw_containers": {
+          "PATH": {
+            "id": "5881f372-4ca9-4bd4-a87b-9603f5aa71f2"
+          }
+        }
+      },
+      "path": "/filters/{id}",
+      "path_parameters": {
+        "id": "5881f372-4ca9-4bd4-a87b-9603f5aa71f2"
+      },
+      "query": {},
+      "case_headers": {
+        "Authorization": "[Filtered]"
+      },
+      "cookies": {},
+      "case_body": {
+        "encoding": "none"
+      },
+      "media_type": null,
+      "parent_index": null
+    }
+  ]
+}

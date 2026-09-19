@@ -1,0 +1,327 @@
+{
+  "operation": "POST /projects",
+  "method": "POST",
+  "path_template": "/projects",
+  "fingerprint": "e5b3d2bc",
+  "case_id": "55O80H",
+  "code_sample": "curl -X POST -H 'Authorization: [Filtered]' -H 'Content-Type: application/json' -d '{\"\\ud928\\udf69\": {\"J\\u00e4\\u0094\\r\\u00f7i\\udbf6\\udd19\\u009b\": null, \"\\u00a4N=\\u0002-\\u00e7\\u0002q*\\u00ce\\u00ac\": null, \".exe\": false}, \"\\u00c3\\uda52\\udec8\\ud8b5\\udcee\\u0004\\udad6\\udef1x\": {\"\\udbcf\\uddc9\\ud812\\udf75`m\\u0019\\udbc1\\ude19\\u00c8\\u2eae\": \"\\u0081\\u00dcT\\u009e\\u00e3\\u00b3\\uea62\\u00ef9MB\\ud81d\\udf74\"}, \"\": [[[], []], {}, 59864155385], \"FY\\ud93c\\udd32\\u001e\\u00b6\\u00fd\\ud89b\\ude79o}\": {}, \"\\u00b2\\ud8e5\\uddbb\\udb6c\\udc6e`\\u00b8i\\u00ba\\uda50\\udd05\\uda48\\uddea\\u00a4%\": {\"\\u00ab\\u00e5c:\\u00bd\\u00a4\\uf7dc\": [], \"\\u0016\\ud88f\\udc75 \": {\"\": 6268835}, \"\\u092e\\u0928\\u0940\\u0937 \\u0645\\u0646\\u0634\": 2815}, \"projectId\": \"71731181-d317-403c-8f9d-6b6cf51834d5\", \"name\": \"\\ud9cb\\udd75\\u0081\\ud89e\\udd6fq\\u00c5\\uda3c\\ude96\\b\"}' http://taska-backend:8080/sections\ncurl -X PUT -H 'Authorization: [Filtered]' -H 'Content-Type: application/json' -d '{\"I\": {}, \"}\\u0006\": \"\\u0099\\udbfc\\udf27\\u00e1\", \"_\\u00c0\\u0092\": [], \"name\": \"1\"}' http://taska-backend:8080/projects/71731181-d317-403c-8f9d-6b6cf51834d5\ncurl -X POST -H 'Authorization: [Filtered]' -H 'Content-Type: application/json' -d '{\"name\": \"\\udb51\\udf86k:\\u00e4\\u00c8!E\\u0082Q\\u00b9\\u0011\\u00c3\\u00a8\\f\", \"planningCalendarId\": \"00000000-0000-0000-0000-000000000001\", \"order\": 131071, \"parentId\": null}' http://taska-backend:8080/projects",
+  "sequence": [
+    {
+      "method": "POST",
+      "url": "http://taska-backend:8080/sections",
+      "url_template": "http://taska-backend:8080/sections",
+      "headers": {
+        "User-Agent": "schemathesis/4.25.2",
+        "Accept-Encoding": "gzip, deflate",
+        "Accept": "*/*",
+        "Connection": "keep-alive",
+        "Authorization": "[Filtered]",
+        "X-Schemathesis-TestCaseId": "5BjgUM",
+        "Content-Type": "application/json",
+        "Content-Length": "726"
+      },
+      "response": {
+        "status_code": 201,
+        "headers": {
+          "vary": "Origin",
+          "x-content-type-options": "nosniff",
+          "x-xss-protection": "0",
+          "cache-control": "no-cache, no-store, max-age=0, must-revalidate",
+          "pragma": "no-cache",
+          "expires": "0",
+          "x-frame-options": "DENY",
+          "content-type": "application/json",
+          "content-length": "180",
+          "date": "Sat, 05 Sep 2026 10:03:11 GMT",
+          "keep-alive": "timeout=60",
+          "connection": "keep-alive"
+        },
+        "body": "{\"id\":\"99c23343-ca3f-4281-be8a-960391396216\",\"name\":\"\ud9cb\udd75\u0081\ud89e\udd6fq\u00c5\uda3c\ude96\\b\",\"projectId\":\"71731181-d317-403c-8f9d-6b6cf51834d5\",\"order\":0,\"createdAt\":\"2026-09-05T10:03:11.087851004Z\"}"
+      },
+      "link": null,
+      "checks": [],
+      "meta": {
+        "generation": {
+          "time": 0.0071469119284302,
+          "mode": "positive"
+        },
+        "components": {
+          "BODY": "positive"
+        },
+        "phase": {
+          "name": "stateful",
+          "data": {
+            "type": "StatefulPhaseData",
+            "description": "Positive test case",
+            "location": null,
+            "parameter": null,
+            "parameter_location": null,
+            "mutations": []
+          }
+        },
+        "pool_draws": [
+          {
+            "location": "body",
+            "parameter_name": "projectId",
+            "resource_name": "Project",
+            "resource_field": "id",
+            "source_operation": "GET /projects",
+            "source_status": 200
+          }
+        ],
+        "pool_misses": [],
+        "semantic_draws": [],
+        "dictionary_draws": [],
+        "constants_draws": [],
+        "raw_containers": {}
+      },
+      "path": "/sections",
+      "path_parameters": {},
+      "query": {},
+      "case_headers": {
+        "Authorization": "[Filtered]"
+      },
+      "cookies": {},
+      "case_body": {
+        "encoding": "json",
+        "value": {
+          "\ud928\udf69": {
+            "J\u00e4\u0094\r\u00f7i\udbf6\udd19\u009b": null,
+            "\u00a4N=\u0002-\u00e7\u0002q*\u00ce\u00ac": null,
+            ".exe": false
+          },
+          "\u00c3\uda52\udec8\ud8b5\udcee\u0004\udad6\udef1x": {
+            "\udbcf\uddc9\ud812\udf75`m\u0019\udbc1\ude19\u00c8\u2eae": "\u0081\u00dcT\u009e\u00e3\u00b3\uea62\u00ef9MB\ud81d\udf74"
+          },
+          "": [
+            [
+              [],
+              []
+            ],
+            {},
+            59864155385
+          ],
+          "FY\ud93c\udd32\u001e\u00b6\u00fd\ud89b\ude79o}": {},
+          "\u00b2\ud8e5\uddbb\udb6c\udc6e`\u00b8i\u00ba\uda50\udd05\uda48\uddea\u00a4%": {
+            "\u00ab\u00e5c:\u00bd\u00a4\uf7dc": [],
+            "\u0016\ud88f\udc75 ": {
+              "": 6268835
+            },
+            "\u092e\u0928\u0940\u0937 \u0645\u0646\u0634": 2815
+          },
+          "projectId": "71731181-d317-403c-8f9d-6b6cf51834d5",
+          "name": "\ud9cb\udd75\u0081\ud89e\udd6fq\u00c5\uda3c\ude96\b"
+        }
+      },
+      "media_type": "application/json",
+      "parent_index": null
+    },
+    {
+      "method": "PUT",
+      "url": "http://taska-backend:8080/projects/71731181-d317-403c-8f9d-6b6cf51834d5",
+      "url_template": "http://taska-backend:8080/projects/{id}",
+      "headers": {
+        "User-Agent": "schemathesis/4.25.2",
+        "Accept-Encoding": "gzip, deflate",
+        "Accept": "*/*",
+        "Connection": "keep-alive",
+        "Authorization": "[Filtered]",
+        "X-Schemathesis-TestCaseId": "1T8wDm",
+        "Content-Type": "application/json",
+        "Content-Length": "82"
+      },
+      "response": {
+        "status_code": 200,
+        "headers": {
+          "vary": "Origin",
+          "x-content-type-options": "nosniff",
+          "x-xss-protection": "0",
+          "cache-control": "no-cache, no-store, max-age=0, must-revalidate",
+          "pragma": "no-cache",
+          "expires": "0",
+          "x-frame-options": "DENY",
+          "content-type": "application/json",
+          "content-length": "305",
+          "date": "Sat, 05 Sep 2026 10:03:11 GMT",
+          "keep-alive": "timeout=60",
+          "connection": "keep-alive"
+        },
+        "body": "{\"id\":\"71731181-d317-403c-8f9d-6b6cf51834d5\",\"name\":\"1\",\"color\":\"\",\"parentId\":null,\"order\":-3033,\"isFavorite\":false,\"viewStyle\":\"BOARD\",\"isInboxProject\":true,\"planningCalendarId\":\"00000000-0000-0000-0000-000000000001\",\"createdAt\":\"2026-09-05T10:01:45.787077Z\",\"updatedAt\":\"2026-09-05T10:03:11.100846728Z\"}"
+      },
+      "link": {
+        "operationId": "POST /sections -> [201] PutProject -> PUT /projects/{id}",
+        "parameters": {
+          "path.id": "$response.body#/projectId"
+        }
+      },
+      "checks": [],
+      "meta": {
+        "generation": {
+          "time": 0.0032175129745155573,
+          "mode": "positive"
+        },
+        "components": {
+          "BODY": "positive"
+        },
+        "phase": {
+          "name": "stateful",
+          "data": {
+            "type": "StatefulPhaseData",
+            "description": "Positive test case",
+            "location": null,
+            "parameter": null,
+            "parameter_location": null,
+            "mutations": []
+          }
+        },
+        "pool_draws": [],
+        "pool_misses": [],
+        "semantic_draws": [],
+        "dictionary_draws": [],
+        "constants_draws": [],
+        "raw_containers": {}
+      },
+      "path": "/projects/{id}",
+      "path_parameters": {
+        "id": "71731181-d317-403c-8f9d-6b6cf51834d5"
+      },
+      "query": {},
+      "case_headers": {
+        "Authorization": "[Filtered]"
+      },
+      "cookies": {},
+      "case_body": {
+        "encoding": "json",
+        "value": {
+          "I": {},
+          "}\u0006": "\u0099\udbfc\udf27\u00e1",
+          "_\u00c0\u0092": [],
+          "name": "1"
+        }
+      },
+      "media_type": "application/json",
+      "parent_index": 0
+    },
+    {
+      "method": "POST",
+      "url": "http://taska-backend:8080/projects",
+      "url_template": "http://taska-backend:8080/projects",
+      "headers": {
+        "User-Agent": "schemathesis/4.25.2",
+        "Accept-Encoding": "gzip, deflate",
+        "Accept": "*/*",
+        "Connection": "keep-alive",
+        "Authorization": "[Filtered]",
+        "X-Schemathesis-TestCaseId": "55O80H",
+        "Content-Type": "application/json",
+        "Content-Length": "170"
+      },
+      "response": {
+        "status_code": 201,
+        "headers": {
+          "vary": "Origin",
+          "x-content-type-options": "nosniff",
+          "x-xss-protection": "0",
+          "cache-control": "no-cache, no-store, max-age=0, must-revalidate",
+          "pragma": "no-cache",
+          "expires": "0",
+          "x-frame-options": "DENY",
+          "content-type": "application/json",
+          "content-length": "344",
+          "date": "Sat, 05 Sep 2026 10:03:11 GMT",
+          "keep-alive": "timeout=60",
+          "connection": "keep-alive"
+        },
+        "body": "{\"id\":\"1df96abe-d8d2-482e-9979-165648c17ff2\",\"name\":\"\udb51\udf86k:\u00e4\u00c8!E\u0082Q\u00b9\\u0011\u00c3\u00a8\\f\",\"color\":\"#808080\",\"parentId\":null,\"order\":131071,\"isFavorite\":false,\"viewStyle\":\"LIST\",\"isInboxProject\":false,\"planningCalendarId\":\"00000000-0000-0000-0000-000000000001\",\"createdAt\":\"2026-09-05T10:03:11.110755335Z\",\"updatedAt\":\"2026-09-05T10:03:11.110755475Z\"}"
+      },
+      "link": {
+        "operationId": "PUT /projects/{id} -> [200] PostProject_2 -> POST /projects",
+        "parameters": {},
+        "requestBody": {
+          "parentId": "$response.body#/parentId",
+          "planningCalendarId": "$response.body#/planningCalendarId"
+        }
+      },
+      "checks": [
+        {
+          "name": "negative_data_rejection",
+          "status": "failure",
+          "message": "API accepted schema-violating request\n\nInvalid data should have been rejected\nExpected: 400, 401, 403, 404, 405, 406, 409, 422, 428, 5xx\nInvalid component: positive test case"
+        }
+      ],
+      "meta": {
+        "generation": {
+          "time": 0.0027626140508800745,
+          "mode": "negative"
+        },
+        "components": {
+          "BODY": "negative"
+        },
+        "phase": {
+          "name": "stateful",
+          "data": {
+            "type": "StatefulPhaseData",
+            "description": "Positive test case",
+            "location": null,
+            "parameter": null,
+            "parameter_location": null,
+            "mutations": []
+          }
+        },
+        "pool_draws": [
+          {
+            "location": "body",
+            "parameter_name": "parentId",
+            "resource_name": "Project",
+            "resource_field": "parentId",
+            "source_operation": "PUT /projects/{id}",
+            "source_status": 200
+          },
+          {
+            "location": "body",
+            "parameter_name": "planningCalendarId",
+            "resource_name": "Project",
+            "resource_field": "planningCalendarId",
+            "source_operation": "GET /projects",
+            "source_status": 200
+          }
+        ],
+        "pool_misses": [],
+        "semantic_draws": [
+          {
+            "path": [
+              "name"
+            ],
+            "type_token": "string",
+            "format_token": null,
+            "pattern_hash": null,
+            "normalized_name": "name",
+            "value": "\udb51\udf86k:\u00e4\u00c8!E\u0082Q\u00b9\u0011\u00c3\u00a8\f",
+            "source_operation": "PUT /filters/{id}"
+          }
+        ],
+        "dictionary_draws": [],
+        "constants_draws": [],
+        "raw_containers": {}
+      },
+      "path": "/projects",
+      "path_parameters": {},
+      "query": {},
+      "case_headers": {
+        "Authorization": "[Filtered]"
+      },
+      "cookies": {},
+      "case_body": {
+        "encoding": "json",
+        "value": {
+          "name": "\udb51\udf86k:\u00e4\u00c8!E\u0082Q\u00b9\u0011\u00c3\u00a8\f",
+          "planningCalendarId": "00000000-0000-0000-0000-000000000001",
+          "order": 131071,
+          "parentId": null
+        }
+      },
+      "media_type": "application/json",
+      "parent_index": 1
+    }
+  ]
+}

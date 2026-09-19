@@ -1,0 +1,281 @@
+{
+  "operation": "PUT /tasks/{id}/occurrences/{occurrenceScheduledAt}/following",
+  "method": "PUT",
+  "path_template": "/tasks/{id}/occurrences/{occurrenceScheduledAt}/following",
+  "fingerprint": "ed88e831",
+  "case_id": "wghNW5",
+  "code_sample": "curl -X PUT -H 'Authorization: [Filtered]' -H 'Content-Type: application/json' -d '{\"allDay\": false, \"content\": \"00\", \"description\": \"\", \"dueAt\": \"2026-09-07T22:26:35.330905300Z\", \"estimateMinutes\": 1, \"isRecurring\": false, \"labels\": [], \"mentionContext\": \"\", \"order\": 0, \"parentId\": \"f728b4fa-4248-1e3a-8a5d-2f346baa9455\", \"priority\": 1, \"projectId\": \"c9c16061-1b9e-3469-9f30-8ea6028c7128\", \"recurrenceRule\": \"\", \"scheduledAt\": \"2026-09-07T22:26:28.148422Z\", \"type\": \"TODO\"}' http://taska-backend:8080/tasks/ae05ab8d-a471-4571-93f2-976a7541fdc8/occurrences/2000-01-01T00%3A00%3A00Z/following",
+  "sequence": [
+    {
+      "method": "PUT",
+      "url": "http://taska-backend:8080/tasks/ae05ab8d-a471-4571-93f2-976a7541fdc8/occurrences/2000-01-01T00%3A00%3A00Z/following",
+      "url_template": "http://taska-backend:8080/tasks/{id}/occurrences/{occurrenceScheduledAt}/following",
+      "headers": {
+        "User-Agent": "schemathesis/4.25.2",
+        "Accept-Encoding": "gzip, deflate",
+        "Accept": "*/*",
+        "Connection": "keep-alive",
+        "Authorization": "[Filtered]",
+        "X-Schemathesis-TestCaseId": "wghNW5",
+        "Content-Type": "application/json",
+        "Content-Length": "392"
+      },
+      "response": {
+        "status_code": 400,
+        "headers": {
+          "vary": "Origin",
+          "x-content-type-options": "nosniff",
+          "x-xss-protection": "0",
+          "cache-control": "no-cache, no-store, max-age=0, must-revalidate",
+          "pragma": "no-cache",
+          "expires": "0",
+          "x-frame-options": "DENY",
+          "content-type": "application/problem+json",
+          "transfer-encoding": "chunked",
+          "date": "Mon, 07 Sep 2026 22:26:42 GMT",
+          "connection": "close"
+        },
+        "body": "{\"detail\":\"Following-series replacement requires a recurring task\",\"instance\":\"/tasks/ae05ab8d-a471-4571-93f2-976a7541fdc8/occurrences/2000-01-01T00%3A00%3A00Z/following\",\"status\":400,\"title\":\"Bad Request\",\"type\":\"about:blank\"}"
+      },
+      "link": null,
+      "checks": [
+        {
+          "name": "positive_data_acceptance",
+          "status": "failure",
+          "message": "API rejected schema-compliant request\n\nValid data should have been accepted\nExpected: 2xx, 401, 403, 404, 409, 5xx"
+        }
+      ],
+      "meta": {
+        "generation": {
+          "time": 0.016993573983199894,
+          "mode": "positive"
+        },
+        "components": {
+          "PATH": "positive",
+          "BODY": "positive"
+        },
+        "phase": {
+          "name": "fuzzing",
+          "data": {
+            "type": "FuzzingPhaseData",
+            "description": "Positive test case",
+            "location": null,
+            "parameter": null,
+            "parameter_location": null,
+            "mutations": []
+          }
+        },
+        "pool_draws": [
+          {
+            "location": "path",
+            "parameter_name": "id",
+            "resource_name": "Task",
+            "resource_field": "id",
+            "source_operation": "POST /tasks/{taskId}/close",
+            "source_status": 200
+          },
+          {
+            "location": "body",
+            "parameter_name": "type",
+            "resource_name": "Task",
+            "resource_field": "type",
+            "source_operation": "POST /tasks/{taskId}/close",
+            "source_status": 200
+          },
+          {
+            "location": "body",
+            "parameter_name": "projectId",
+            "resource_name": "Project",
+            "resource_field": "id",
+            "source_operation": "PUT /comments/{id}",
+            "source_status": 200
+          },
+          {
+            "location": "body",
+            "parameter_name": "order",
+            "resource_name": "Task",
+            "resource_field": "order",
+            "source_operation": "POST /tasks/{taskId}/close",
+            "source_status": 200
+          },
+          {
+            "location": "body",
+            "parameter_name": "priority",
+            "resource_name": "Task",
+            "resource_field": "priority",
+            "source_operation": "POST /tasks/{taskId}/close",
+            "source_status": 200
+          },
+          {
+            "location": "body",
+            "parameter_name": "labels",
+            "resource_name": "Task",
+            "resource_field": "labels",
+            "source_operation": "POST /tasks/{taskId}/close",
+            "source_status": 200
+          },
+          {
+            "location": "body",
+            "parameter_name": "scheduledAt",
+            "resource_name": "Task",
+            "resource_field": "scheduledAt",
+            "source_operation": "PUT /tasks/{id}",
+            "source_status": 200
+          },
+          {
+            "location": "body",
+            "parameter_name": "dueAt",
+            "resource_name": "Task",
+            "resource_field": "dueAt",
+            "source_operation": "PUT /tasks/{id}",
+            "source_status": 200
+          },
+          {
+            "location": "body",
+            "parameter_name": "allDay",
+            "resource_name": "Task",
+            "resource_field": "allDay",
+            "source_operation": "POST /tasks/{taskId}/close",
+            "source_status": 200
+          },
+          {
+            "location": "body",
+            "parameter_name": "isRecurring",
+            "resource_name": "Task",
+            "resource_field": "isRecurring",
+            "source_operation": "POST /tasks/{taskId}/close",
+            "source_status": 200
+          },
+          {
+            "location": "body",
+            "parameter_name": "estimateMinutes",
+            "resource_name": "Task",
+            "resource_field": "estimateMinutes",
+            "source_operation": "POST /tasks/{taskId}/close",
+            "source_status": 200
+          },
+          {
+            "location": "body",
+            "parameter_name": "mentionContext",
+            "resource_name": "Task",
+            "resource_field": "mentionContext",
+            "source_operation": "POST /tasks/{taskId}/close",
+            "source_status": 200
+          },
+          {
+            "location": "body",
+            "parameter_name": "recurrenceRule",
+            "resource_name": "Task",
+            "resource_field": "recurrenceRule",
+            "source_operation": "POST /tasks/{taskId}/close",
+            "source_status": 200
+          }
+        ],
+        "pool_misses": [],
+        "semantic_draws": [
+          {
+            "path": [
+              "content"
+            ],
+            "type_token": "string",
+            "format_token": null,
+            "pattern_hash": null,
+            "normalized_name": "content",
+            "value": "00",
+            "source_operation": "POST /comments"
+          },
+          {
+            "path": [
+              "description"
+            ],
+            "type_token": "string",
+            "format_token": null,
+            "pattern_hash": null,
+            "normalized_name": "description",
+            "value": "",
+            "source_operation": "POST /tasks"
+          },
+          {
+            "path": [
+              "scheduledAt"
+            ],
+            "type_token": "string",
+            "format_token": "date-time",
+            "pattern_hash": null,
+            "normalized_name": "scheduledat",
+            "value": "2026-09-07T22:26:04.020039Z",
+            "source_operation": "PUT /comments/{id}"
+          },
+          {
+            "path": [
+              "dueAt"
+            ],
+            "type_token": "string",
+            "format_token": "date-time",
+            "pattern_hash": null,
+            "normalized_name": "dueat",
+            "value": "2026-09-07T22:26:04.020039Z",
+            "source_operation": "PUT /comments/{id}"
+          },
+          {
+            "path": [
+              "mentionContext"
+            ],
+            "type_token": "string",
+            "format_token": null,
+            "pattern_hash": null,
+            "normalized_name": "mentioncontext",
+            "value": "",
+            "source_operation": "POST /tasks"
+          },
+          {
+            "path": [
+              "recurrenceRule"
+            ],
+            "type_token": "string",
+            "format_token": null,
+            "pattern_hash": null,
+            "normalized_name": "recurrencerule",
+            "value": "",
+            "source_operation": "POST /tasks"
+          }
+        ],
+        "dictionary_draws": [],
+        "constants_draws": [],
+        "raw_containers": {}
+      },
+      "path": "/tasks/{id}/occurrences/{occurrenceScheduledAt}/following",
+      "path_parameters": {
+        "id": "ae05ab8d-a471-4571-93f2-976a7541fdc8",
+        "occurrenceScheduledAt": "2000-01-01T00%3A00%3A00Z"
+      },
+      "query": {},
+      "case_headers": {
+        "Authorization": "[Filtered]"
+      },
+      "cookies": {},
+      "case_body": {
+        "encoding": "json",
+        "value": {
+          "allDay": false,
+          "content": "00",
+          "description": "",
+          "dueAt": "2026-09-07T22:26:35.330905300Z",
+          "estimateMinutes": 1,
+          "isRecurring": false,
+          "labels": [],
+          "mentionContext": "",
+          "order": 0,
+          "parentId": "f728b4fa-4248-1e3a-8a5d-2f346baa9455",
+          "priority": 1,
+          "projectId": "c9c16061-1b9e-3469-9f30-8ea6028c7128",
+          "recurrenceRule": "",
+          "scheduledAt": "2026-09-07T22:26:28.148422Z",
+          "type": "TODO"
+        }
+      },
+      "media_type": "application/json",
+      "parent_index": null
+    }
+  ]
+}

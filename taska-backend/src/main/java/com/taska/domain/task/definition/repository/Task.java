@@ -105,7 +105,7 @@ public class Task {
 
   /**
    * Instant at which the recurrence series is truncated. Occurrences at or after this instant are
-   * not generated. Set by {@code FROM_THIS} scope operations on update or delete.
+   * not generated. Set by the {@code FROM_THIS} series-stopping deletion operation.
    */
   @Column(name = "rrule_ends_at")
   private Instant rruleEndsAt;

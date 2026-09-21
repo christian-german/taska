@@ -110,8 +110,6 @@ export class TaskDetailComponent implements OnChanges {
   showPriorityMenu = signal(false);
   showDeleteConfirm = signal(false);
   showDeleteScopeDialog = signal(false);
-  showModifyScopeDialog = signal(false);
-  pendingPatch = signal<TaskPatch | null>(null);
   activeDetailPicker = signal<DetailPicker>(null);
   tagSearch = signal('');
 
@@ -134,6 +132,8 @@ export class TaskDetailComponent implements OnChanges {
   currentProject = computed(
     () => this.projects().find((p) => p.id === this.task().projectId) ?? null,
   );
+  isOccurrence = computed(() => this.task().kind === 'RECURRING_OCCURRENCE');
+  isSeries = computed(() => this.task().kind === 'RECURRING_SERIES');
   isDetached = computed(
     () => this.task().kind === 'RECURRING_OCCURRENCE' && this.task().isDetached === true,
   );
@@ -219,12 +219,13 @@ export class TaskDetailComponent implements OnChanges {
   }
 
   saveContent(): void {
+    if (this.isOccurrence()) return;
     const next = this.editedContent().trim();
     if (next && next !== this.task().content) this.save({ content: next });
   }
 
   saveDescription(): void {
-    if (this.isDetached()) return;
+    if (this.isOccurrence()) return;
     if (this.editedDescription() !== (this.task().description ?? '')) {
       this.save({ description: this.editedDescription() });
     }
@@ -250,6 +251,7 @@ export class TaskDetailComponent implements OnChanges {
   }
 
   togglePriorityMenu(e: Event): void {
+    if (this.isOccurrence()) return;
     e.stopPropagation();
     this.showPriorityMenu.set(!this.showPriorityMenu());
     this.activeDetailPicker.set(null);
@@ -261,7 +263,7 @@ export class TaskDetailComponent implements OnChanges {
   }
 
   setTaskType(type: TaskType): void {
-    if (this.isDetached()) return;
+    if (this.isOccurrence()) return;
     if (this.task().type !== type) this.save({ type });
   }
 
@@ -272,12 +274,17 @@ export class TaskDetailComponent implements OnChanges {
   }
 
   setProject(projectId: string): void {
-    if (this.isDetached()) return;
+    if (this.isOccurrence()) return;
     this.showProjectMenu.set(false);
     this.save({ projectId });
   }
 
   openPicker(name: DetailPicker, e: Event): void {
+    if (
+      (this.isOccurrence() && name !== 'date') ||
+      (this.isSeries() && (name === 'date' || name === 'recurrence'))
+    )
+      return;
     e.stopPropagation();
     this.showProjectMenu.set(false);
     this.showPriorityMenu.set(false);
@@ -291,13 +298,14 @@ export class TaskDetailComponent implements OnChanges {
   onDatetimeChange(value: string): void {
     const hasTime = value.includes('T');
     const scheduledAt = hasTime ? value : value + 'T00:00:00Z';
-    this.save({ scheduledAt, allDay: !hasTime });
+    this.save(this.isOccurrence() ? { scheduledAt } : { scheduledAt, allDay: !hasTime });
   }
 
   clearDate(e: Event): void {
+    if (this.isSeries()) return;
     e.stopPropagation();
     this.activeDetailPicker.set(null);
-    this.save({ scheduledAt: null, allDay: false });
+    this.save(this.isOccurrence() ? { scheduledAt: null } : { scheduledAt: null, allDay: false });
   }
 
   onDueDateChange(value: string): void {
@@ -307,7 +315,7 @@ export class TaskDetailComponent implements OnChanges {
 
   toggleTag(name: string, e: Event): void {
     e.stopPropagation();
-    if (this.isDetached()) return;
+    if (this.isOccurrence()) return;
     const labels = this.task().labels.includes(name)
       ? this.task().labels.filter((l) => l !== name)
       : [...this.task().labels, name];
@@ -316,22 +324,23 @@ export class TaskDetailComponent implements OnChanges {
 
   selectEstimate(minutes: number, e: Event): void {
     e.stopPropagation();
-    if (this.isDetached()) return;
+    if (this.isOccurrence()) return;
     this.activeDetailPicker.set(null);
     this.save({ estimateMinutes: minutes });
   }
 
   clearEstimate(e: Event): void {
     e.stopPropagation();
-    if (this.isDetached()) return;
+    if (this.isOccurrence()) return;
     this.save({ estimateMinutes: undefined });
   }
 
   selectRecurrence(value: string, e: Event): void {
+    if (this.isSeries()) return;
     e.stopPropagation();
-    if (this.isDetached()) return;
+    if (this.isOccurrence()) return;
     this.activeDetailPicker.set(null);
-    this.save({ recurrenceRule: value || (null as any) });
+    this.save({ recurrenceRule: value || null, isRecurring: !!value });
   }
 
   toggleSubtask(s: Task): void {
@@ -395,20 +404,6 @@ export class TaskDetailComponent implements OnChanges {
     });
   }
 
-  onModifyScope(scope: RecurrenceScope): void {
-    this.showModifyScopeDialog.set(false);
-    const patch = this.pendingPatch();
-    if (!patch) return;
-    this.pendingPatch.set(null);
-    const occurrenceScheduledAt = this.task().occurrenceScheduledAt ?? undefined;
-    this.taskService
-      .updateTask(this.task().id, { ...patch, scope, occurrenceScheduledAt })
-      .subscribe({
-        next: (updated) => this.taskUpdated.emit(updated),
-        error: () => undefined,
-      });
-  }
-
   onClose(): void {
     this.close.emit();
   }
@@ -424,7 +419,8 @@ export class TaskDetailComponent implements OnChanges {
 
   private save(patch: TaskPatch): void {
     const task = this.task();
-    if (task.kind === 'RECURRING_OCCURRENCE' && task.isDetached) {
+    if (task.kind === 'RECURRING_OCCURRENCE') {
+      if (Object.keys(patch).some((key) => key !== 'scheduledAt')) return;
       this.taskService
         .updateTask(task.id, {
           ...patch,
@@ -435,9 +431,6 @@ export class TaskDetailComponent implements OnChanges {
           next: (updated) => this.taskUpdated.emit(updated),
           error: () => undefined,
         });
-    } else if (task.kind === 'RECURRING_OCCURRENCE') {
-      this.pendingPatch.set(patch);
-      this.showModifyScopeDialog.set(true);
     } else {
       this.taskService.updateTask(task.id, patch).subscribe({
         next: (updated) => this.taskUpdated.emit(updated),

@@ -21,14 +21,14 @@ import { RecurrenceScope } from '../../../core/models';
             style="justify-content: flex-start; text-align: left; padding: 12px 14px;"
             (click)="selected.emit('THIS_ONLY')"
           >
-            <span style="font-weight: 500;">Cette occurrence seulement</span>
+            <span style="font-weight: 500;">Supprimer cette occurrence</span>
           </button>
           <button
             class="btn btn-ghost"
             style="justify-content: flex-start; text-align: left; padding: 12px 14px;"
             (click)="selected.emit('FROM_THIS')"
           >
-            <span style="font-weight: 500;">Cette occurrence et les suivantes</span>
+            <span style="font-weight: 500;">Arrêter la série à partir d’ici</span>
           </button>
         </div>
 
@@ -40,7 +40,7 @@ import { RecurrenceScope } from '../../../core/models';
   `,
 })
 export class RecurrenceScopeDialogComponent {
-  title = input('Modifier la récurrence');
+  title = input('Supprimer l’occurrence ou arrêter la série');
   selected = output<RecurrenceScope>();
   cancelled = output<void>();
 }

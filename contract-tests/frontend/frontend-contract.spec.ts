@@ -260,15 +260,7 @@ describe('Angular outgoing OpenAPI contract', () => {
         TestBed.inject(TaskService).updateTask(TASK_ID, {
           scope: 'THIS_ONLY',
           occurrenceScheduledAt: OCCURRENCE,
-          content: 'Updated occurrence',
-        }),
-      ));
-    it('PUT /tasks/{taskId}/occurrences/{occurrenceScheduledAt}/following', () =>
-      exercise(
-        TestBed.inject(TaskService).updateTask(TASK_ID, {
-          scope: 'FROM_THIS',
-          occurrenceScheduledAt: OCCURRENCE,
-          content: 'Updated series',
+          scheduledAt: '2026-09-09T10:00:00Z',
         }),
       ));
     it('DELETE /tasks/{taskId} without a body', () =>

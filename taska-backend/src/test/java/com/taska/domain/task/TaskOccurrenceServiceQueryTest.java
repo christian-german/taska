@@ -119,9 +119,7 @@ class TaskOccurrenceServiceQueryTest {
     when(taskOccurrenceStateRepository.findBySeriesIdInAndOccurrenceScheduledAtBetween(
             List.of(series.getId()), start, end))
         .thenReturn(List.of());
-    when(taskOccurrenceStateRepository.findBySeriesIdInAndStatusAndScheduledAtBetween(
-            List.of(series.getId()), TaskOccurrenceStatus.MODIFIED, start, end))
-        .thenReturn(List.of());
+
     when(taskRecurrenceService.getOccurrencesInRange(series, start, end))
         .thenReturn(List.of(occurrence));
 
@@ -337,12 +335,7 @@ class TaskOccurrenceServiceQueryTest {
             eq(List.of(task.getId())), eq(originalStart), eq(originalEnd)))
         .thenReturn(List.of(modified));
     // movedScheduledAt (May 23) is outside the May-21 window → no moved-in instances.
-    when(taskOccurrenceStateRepository.findBySeriesIdInAndStatusAndScheduledAtBetween(
-            eq(List.of(task.getId())),
-            eq(TaskOccurrenceStatus.MODIFIED),
-            eq(originalStart),
-            eq(originalEnd)))
-        .thenReturn(List.of());
+
     when(taskRecurrenceService.getOccurrencesInRange(task, originalStart, originalEnd))
         .thenReturn(List.of(occurrenceScheduledAt));
 
@@ -382,9 +375,9 @@ class TaskOccurrenceServiceQueryTest {
             eq(List.of(task.getId())), eq(newStart), eq(newEnd)))
         .thenReturn(List.of());
     // scheduledAt=May23 is inside the May-23 window → returned by scheduledAt query.
-    when(taskOccurrenceStateRepository.findBySeriesIdInAndStatusAndScheduledAtBetween(
-            eq(List.of(task.getId())), eq(TaskOccurrenceStatus.MODIFIED), eq(newStart), eq(newEnd)))
+    when(taskOccurrenceStateRepository.findMovedInPeriod(newStart, newEnd))
         .thenReturn(List.of(modified));
+    when(taskRepository.findAllById(List.of(task.getId()))).thenReturn(List.of(task));
     when(taskRecurrenceService.getOccurrencesInRange(task, newStart, newEnd))
         .thenReturn(List.of(movedScheduledAt));
 
@@ -449,9 +442,7 @@ class TaskOccurrenceServiceQueryTest {
     when(taskOccurrenceStateRepository.findBySeriesIdInAndOccurrenceScheduledAtBetween(
             eq(List.of(series.getId())), eq(START), eq(END)))
         .thenReturn(List.of());
-    when(taskOccurrenceStateRepository.findBySeriesIdInAndStatusAndScheduledAtBetween(
-            eq(List.of(series.getId())), eq(TaskOccurrenceStatus.MODIFIED), eq(START), eq(END)))
-        .thenReturn(List.of(moved));
+    when(taskOccurrenceStateRepository.findMovedInPeriod(START, END)).thenReturn(List.of(moved));
     when(taskRecurrenceService.getOccurrencesInRange(series, START, END)).thenReturn(List.of());
 
     assertThat(taskOccurrenceService.findOccurrencesForDateRange(DATE, DATE, false)).isEmpty();
@@ -484,5 +475,47 @@ class TaskOccurrenceServiceQueryTest {
               assertThat(occurrence.detached()).isTrue();
               assertThat(occurrence.completed()).isTrue();
             });
+  }
+
+  @Test
+  void completedMovedOccurrenceIsVisibleEvenWhenItsSeriesIsInactiveInTheQueriedPeriod() {
+    Task series = buildRecurringTask();
+    Instant anchor = Instant.parse("2026-05-19T10:00:00Z");
+    series.setRruleEndsAt(Instant.parse("2026-05-19T23:59:59Z"));
+    var moved = buildOccurrenceState(series.getId(), anchor, TaskOccurrenceStatus.DONE);
+    moved.setScheduledAt(Instant.parse("2026-05-20T15:00:00Z"));
+    moved.setCompletedAt(Instant.parse("2026-05-20T16:00:00Z"));
+    when(taskOccurrenceStateRepository.findMovedInPeriod(START, END)).thenReturn(List.of(moved));
+    when(taskRepository.findAllById(List.of(series.getId()))).thenReturn(List.of(series));
+
+    var results = taskOccurrenceService.findOccurrencesForDateRange(DATE, DATE, false);
+
+    assertThat(results)
+        .singleElement()
+        .isInstanceOfSatisfying(
+            RecurringTaskOccurrenceResult.class,
+            occurrence -> {
+              assertThat(occurrence.occurrenceScheduledAt()).isEqualTo(anchor);
+              assertThat(occurrence.resolvedScheduledAt()).isEqualTo(moved.getScheduledAt());
+              assertThat(occurrence.completed()).isTrue();
+            });
+  }
+
+  @Test
+  void movingWithinTheQueryPeriodDoesNotDuplicateTheOccurrence() {
+    Task series = buildRecurringTask();
+    Instant anchor = Instant.parse("2026-05-20T10:00:00Z");
+    var moved = buildOccurrenceState(series.getId(), anchor, TaskOccurrenceStatus.MODIFIED);
+    moved.setScheduledAt(anchor.plusSeconds(3600));
+    when(taskOccurrenceStateRepository.findMovedInPeriod(START, END)).thenReturn(List.of(moved));
+    when(taskRepository.findActiveRecurringTasksForPeriod(START, END)).thenReturn(List.of(series));
+    when(taskOccurrenceStateRepository.findBySeriesIdInAndOccurrenceScheduledAtBetween(
+            List.of(series.getId()), START, END))
+        .thenReturn(List.of(moved));
+    when(taskRecurrenceService.getOccurrencesInRange(series, START, END))
+        .thenReturn(List.of(anchor));
+
+    assertThat(taskOccurrenceService.findOccurrencesForDateRange(DATE, DATE, false))
+        .containsExactly(TaskResult.occurrence(series, moved, anchor));
   }
 }

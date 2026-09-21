@@ -27,8 +27,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-data class PendingReschedule(val millis: Long?, val timeMinutes: Int?)
-
 data class TaskDetailUiState(
   val task: TaskDto? = null,
   val project: ProjectDto? = null,
@@ -39,7 +37,6 @@ data class TaskDetailUiState(
   val error: String? = null,
   val mutationError: String? = null,
   val isCompletionPending: Boolean = false,
-  val pendingReschedule: PendingReschedule? = null,
 )
 
 class TaskDetailViewModel(
@@ -102,31 +99,14 @@ class TaskDetailViewModel(
     }
   }
 
-  private fun applyUpdate(
-    supportsDetachedOccurrence: Boolean = false,
-    transform: TaskUpdateRequest.() -> TaskUpdateRequest,
-  ) {
+  private fun applyUpdate(transform: TaskUpdateRequest.() -> TaskUpdateRequest) {
     val task = _uiState.value.task ?: return
-    if (task.isDetached && !supportsDetachedOccurrence) return
+    if (task.kind == TaskRepresentationKind.RECURRING_OCCURRENCE) return
     val base = task.toTaskUpdateRequest()
     viewModelScope.launch {
       try {
         val request = base.transform()
-        val updated =
-          if (task.isDetached) {
-            taskRepo.updateOccurrence(
-              taskId,
-              checkNotNull(instanceOccurrenceScheduledAt),
-              OccurrenceUpdateRequest(
-                request.content,
-                request.priority,
-                request.scheduledAt,
-                request.dueAt,
-              ),
-            )
-          } else {
-            taskRepo.updateTask(taskId, request)
-          }
+        val updated = taskRepo.updateTask(taskId, request)
         val newProject = _uiState.value.projects.firstOrNull { it.id == updated.projectId }
         _uiState.update {
           it.copy(
@@ -142,7 +122,7 @@ class TaskDetailViewModel(
 
   fun updateContent(content: String) {
     if (content.isBlank()) return
-    applyUpdate(supportsDetachedOccurrence = true) { copy(content = content) }
+    applyUpdate { copy(content = content) }
   }
 
   fun updateDescription(desc: String) = applyUpdate { copy(description = desc.ifEmpty { null }) }
@@ -151,122 +131,40 @@ class TaskDetailViewModel(
 
   fun requestRescheduleAllDay(millis: Long) {
     val task = _uiState.value.task ?: return
-    if (task.isDetached) {
-      doReschedule(millis, null, scope = RecurrenceScope.THIS_ONLY)
-    } else if (
-      task.kind != TaskRepresentationKind.NON_RECURRING && instanceOccurrenceScheduledAt != null
-    ) {
-      _uiState.update { it.copy(pendingReschedule = PendingReschedule(millis, null)) }
-    } else {
-      doReschedule(millis, null, scope = null)
-    }
+    // Moving an occurrence keeps the series' all-day/timed classification.
+    val timeMinutes =
+      if (task.kind == TaskRepresentationKind.RECURRING_OCCURRENCE && !task.allDay) {
+        task.scheduledAt?.let {
+          val time = java.time.Instant.parse(it).atZone(java.time.ZoneId.systemDefault())
+          time.hour * 60 + time.minute
+        }
+      } else null
+    reschedule(millisToApiDateTime(millis, timeMinutes), timeMinutes == null)
   }
 
   fun requestRescheduleWithTime(millis: Long, hour: Int, minute: Int) {
+    reschedule(millisToApiDateTime(millis, hour * 60 + minute), false)
+  }
+
+  fun clearDue() = reschedule(null, false)
+
+  private fun reschedule(scheduledAt: String?, allDay: Boolean) {
     val task = _uiState.value.task ?: return
-    if (task.isDetached) {
-      doReschedule(millis, hour * 60 + minute, scope = RecurrenceScope.THIS_ONLY)
-    } else if (
-      task.kind != TaskRepresentationKind.NON_RECURRING && instanceOccurrenceScheduledAt != null
-    ) {
-      _uiState.update { it.copy(pendingReschedule = PendingReschedule(millis, hour * 60 + minute)) }
-    } else {
-      doReschedule(millis, hour * 60 + minute, scope = null)
-    }
-  }
-
-  fun confirmReschedule(scope: RecurrenceScope?) {
-    val pending = _uiState.value.pendingReschedule ?: return
-    _uiState.update { it.copy(pendingReschedule = null) }
-    if (pending.millis == null) {
-      doClearSchedule(scope)
-    } else {
-      doReschedule(pending.millis, pending.timeMinutes, scope)
-    }
-  }
-
-  fun dismissRescheduleScope() {
-    _uiState.update { it.copy(pendingReschedule = null) }
-  }
-
-  private fun doReschedule(millis: Long, timeMinutes: Int?, scope: RecurrenceScope?) {
-    val task = _uiState.value.task ?: return
-    val request =
-      task
-        .toTaskUpdateRequest()
-        .copy(
-          scheduledAt = millisToApiDateTime(millis, timeMinutes),
-          allDay = timeMinutes == null,
-        )
+    if (task.kind == TaskRepresentationKind.RECURRING_SERIES) return
     viewModelScope.launch {
       try {
         val updated =
-          when (scope) {
-            RecurrenceScope.THIS_ONLY ->
-              taskRepo.updateOccurrence(
-                taskId,
-                checkNotNull(instanceOccurrenceScheduledAt),
-                OccurrenceUpdateRequest(
-                  task.content,
-                  task.priority,
-                  request.scheduledAt,
-                  task.dueAt,
-                ),
-              )
-            RecurrenceScope.FROM_THIS ->
-              taskRepo.updateFollowingTask(
-                taskId,
-                checkNotNull(instanceOccurrenceScheduledAt),
-                request,
-              )
-            null -> taskRepo.updateTask(taskId, request)
-          }
-        val newProject = _uiState.value.projects.firstOrNull { it.id == updated.projectId }
-        _uiState.update {
-          it.copy(
-            task = updated,
-            project = newProject ?: if (updated.projectId == null) null else it.project,
-          )
-        }
-      } catch (exception: Exception) {
-        reportMutationError(exception)
-      }
-    }
-  }
-
-  fun clearDue() {
-    val task = _uiState.value.task ?: return
-    if (task.isDetached) {
-      doClearSchedule(scope = RecurrenceScope.THIS_ONLY)
-    } else if (
-      task.kind != TaskRepresentationKind.NON_RECURRING && instanceOccurrenceScheduledAt != null
-    ) {
-      _uiState.update { it.copy(pendingReschedule = PendingReschedule(null, null)) }
-    } else {
-      doClearSchedule(scope = null)
-    }
-  }
-
-  private fun doClearSchedule(scope: RecurrenceScope?) {
-    val task = _uiState.value.task ?: return
-    val request = task.toTaskUpdateRequest().copy(scheduledAt = null, allDay = false)
-    viewModelScope.launch {
-      try {
-        val updated =
-          when (scope) {
-            RecurrenceScope.THIS_ONLY ->
-              taskRepo.updateOccurrence(
-                taskId,
-                checkNotNull(instanceOccurrenceScheduledAt),
-                OccurrenceUpdateRequest(task.content, task.priority, null, task.dueAt),
-              )
-            RecurrenceScope.FROM_THIS ->
-              taskRepo.updateFollowingTask(
-                taskId,
-                checkNotNull(instanceOccurrenceScheduledAt),
-                request,
-              )
-            null -> taskRepo.updateTask(taskId, request)
+          if (task.kind == TaskRepresentationKind.RECURRING_OCCURRENCE) {
+            taskRepo.updateOccurrence(
+              taskId,
+              checkNotNull(task.occurrenceScheduledAt),
+              OccurrenceUpdateRequest(scheduledAt),
+            )
+          } else {
+            taskRepo.updateTask(
+              taskId,
+              task.toTaskUpdateRequest().copy(scheduledAt = scheduledAt, allDay = allDay),
+            )
           }
         _uiState.update { it.copy(task = updated) }
       } catch (exception: Exception) {
@@ -275,10 +173,7 @@ class TaskDetailViewModel(
     }
   }
 
-  fun updateDueAt(millis: Long) =
-    applyUpdate(supportsDetachedOccurrence = true) {
-      copy(dueAt = millisToApiDateTime(millis, null))
-    }
+  fun updateDueAt(millis: Long) = applyUpdate { copy(dueAt = millisToApiDateTime(millis, null)) }
 
   fun updateProject(projectId: String?) = applyUpdate { copy(projectId = projectId) }
 
@@ -286,21 +181,27 @@ class TaskDetailViewModel(
 
   fun updateLabels(labels: List<String>) = applyUpdate { copy(labels = labels) }
 
-  fun updatePriority(priority: Int) =
-    applyUpdate(supportsDetachedOccurrence = true) { copy(priority = priority) }
+  fun updatePriority(priority: Int) = applyUpdate { copy(priority = priority) }
 
-  fun updateRecurrence(rule: String?) = applyUpdate {
-    copy(isRecurring = if (rule != null) true else false, recurrenceRule = rule)
+  fun updateRecurrence(rule: String?) {
+    if (_uiState.value.task?.kind != TaskRepresentationKind.NON_RECURRING) return
+    applyUpdate {
+      copy(
+        isRecurring = rule != null,
+        recurrenceRule = rule,
+        dueAt = if (rule != null) null else dueAt,
+      )
+    }
   }
 
-  fun deleteTask(onDeleted: () -> Unit) {
+  fun deleteTask(onDeleted: () -> Unit, scope: RecurrenceScope? = null) {
     val task = _uiState.value.task ?: return
     viewModelScope.launch {
       try {
-        if (task.isDetached) {
+        if (task.kind == TaskRepresentationKind.RECURRING_OCCURRENCE) {
           taskRepo.deleteTask(
             taskId,
-            RecurrenceScope.THIS_ONLY,
+            if (task.isDetached) RecurrenceScope.THIS_ONLY else scope ?: RecurrenceScope.THIS_ONLY,
             checkNotNull(instanceOccurrenceScheduledAt),
           )
         } else {

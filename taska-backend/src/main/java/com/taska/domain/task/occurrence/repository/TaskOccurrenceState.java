@@ -42,7 +42,7 @@ public class TaskOccurrenceState {
   @Column(name = "scheduled_at")
   private Instant scheduledAt;
 
-  /** Optional deadline override for this recurring occurrence. */
+  /** Historical deadline override, retained for reading but no longer accepted by mutations. */
   @Column(name = "due_at")
   private Instant dueAt;
 
@@ -65,17 +65,11 @@ public class TaskOccurrenceState {
   @Column(name = "completed_at")
   private Instant completedAt;
 
-  /**
-   * Override for the occurrence's title (task content); non-null only when the occurrence was
-   * modified via a {@code THIS_ONLY} update that changed the content.
-   */
+  /** Historical title override, retained for reading but no longer accepted by mutations. */
   @Column(length = 1000)
   private String title;
 
-  /**
-   * Override for the occurrence's priority; non-null only when the occurrence was modified via a
-   * {@code THIS_ONLY} update that changed the priority.
-   */
+  /** Historical priority override, retained for reading but no longer accepted by mutations. */
   private Integer priority;
 
   /**

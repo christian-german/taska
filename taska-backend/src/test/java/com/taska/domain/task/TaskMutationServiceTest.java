@@ -3,8 +3,6 @@ package com.taska.domain.task;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyBoolean;
-import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -98,172 +96,67 @@ class TaskMutationServiceTest {
   }
 
   @Test
-  void updateRoutesNonRecurringScopedRequestToTaskOperation() {
-    UUID taskId = UUID.randomUUID();
-    Instant occurrenceScheduledAt = Instant.parse("2026-05-20T10:00:00Z");
-    Task task = task(false);
-    TaskPatchParameters parameters = patch(RecurrenceScope.THIS_ONLY, occurrenceScheduledAt);
-    TaskResult result = TaskResult.base(task);
-    when(taskService.findById(taskId)).thenReturn(task);
-    when(taskService.updateTask(taskId, parameters, false)).thenReturn(result);
-
-    assertThat(taskMutationService.update(taskId, parameters, false, "account-a")).isSameAs(result);
-
-    verify(taskService).updateTask(taskId, parameters, false);
-    verify(taskChangePublisher).publishFor("account-a");
+  void unscopedUpdateRoutesToTaskOperation() {
+    UUID id = UUID.randomUUID();
+    var parameters = patch(null, null);
+    var result = TaskResult.base(task(false));
+    when(taskService.updateTask(id, parameters, false)).thenReturn(result);
+    assertThat(taskMutationService.update(id, parameters, false, "account")).isSameAs(result);
+    verify(taskChangePublisher).publishFor("account");
   }
 
   @Test
-  void updateRoutesRecurringScopesToOccurrenceAndFollowingSeriesOperations() {
-    UUID seriesId = UUID.randomUUID();
-    Instant occurrenceScheduledAt = Instant.parse("2026-05-20T10:00:00Z");
-    Task series = task(true);
-    TaskPatchParameters occurrenceParameters =
-        patch(RecurrenceScope.THIS_ONLY, occurrenceScheduledAt);
-    TaskPatchParameters followingParameters =
-        patch(RecurrenceScope.FROM_THIS, occurrenceScheduledAt);
-    TaskResult result = TaskResult.base(series);
-    when(taskService.findById(seriesId)).thenReturn(series);
-    when(taskOccurrenceService.updateOccurrence(
-            seriesId, occurrenceScheduledAt, occurrenceParameters, false))
-        .thenReturn(result);
-    when(recurringTaskSeriesService.updateSeriesFrom(
-            seriesId, occurrenceScheduledAt, followingParameters, false))
-        .thenReturn(result);
-
-    assertThat(
-            taskMutationService.update(seriesId, occurrenceParameters, false, "occurrence-account"))
-        .isSameAs(result);
-    assertThat(taskMutationService.update(seriesId, followingParameters, false, "series-account"))
-        .isSameAs(result);
-
-    verify(taskOccurrenceService)
-        .updateOccurrence(seriesId, occurrenceScheduledAt, occurrenceParameters, false);
-    verify(recurringTaskSeriesService)
-        .updateSeriesFrom(seriesId, occurrenceScheduledAt, followingParameters, false);
-    verify(taskChangePublisher).publishFor("occurrence-account");
-    verify(taskChangePublisher).publishFor("series-account");
+  void followingUpdateIsRejectedBeforeAnyMutationOrPublication() {
+    var parameters = patch(RecurrenceScope.FROM_THIS, Instant.parse("2026-05-20T10:00:00Z"));
+    assertThatThrownBy(
+            () -> taskMutationService.update(UUID.randomUUID(), parameters, false, "account"))
+        .isInstanceOf(IllegalArgumentException.class);
+    org.mockito.Mockito.verifyNoInteractions(
+        taskService, taskOccurrenceService, recurringTaskSeriesService, taskChangePublisher);
   }
 
   @Test
-  void replacementOperationsDelegateToTheirOwningServicesAndPublishOnce() {
-    UUID seriesId = UUID.randomUUID();
-    Instant occurrenceScheduledAt = Instant.parse("2026-05-20T10:00:00Z");
-    TaskUpdateParameters taskParameters = mock(TaskUpdateParameters.class);
-    TaskOccurrenceUpdateParameters occurrenceParameters =
-        mock(TaskOccurrenceUpdateParameters.class);
-    Task series = task(true);
-    TaskResult result = TaskResult.base(series);
-    when(taskService.findById(seriesId)).thenReturn(series);
-    when(taskService.replace(seriesId, taskParameters)).thenReturn(result);
-    when(recurringTaskSeriesService.replaceFollowing(
-            seriesId, occurrenceScheduledAt, taskParameters))
-        .thenReturn(result);
-    when(taskOccurrenceService.replaceOccurrence(
-            seriesId, occurrenceScheduledAt, occurrenceParameters))
-        .thenReturn(result);
-
-    assertThat(taskMutationService.replace(seriesId, taskParameters, "task-account"))
+  void occurrenceReschedulingDelegatesAndPublishesOnce() {
+    UUID id = UUID.randomUUID();
+    Instant anchor = Instant.parse("2026-05-20T10:00:00Z");
+    var parameters = new TaskOccurrenceUpdateParameters(anchor.plusSeconds(3600));
+    var result = TaskResult.base(task(true));
+    when(taskOccurrenceService.replaceOccurrence(id, anchor, parameters)).thenReturn(result);
+    assertThat(taskMutationService.replaceOccurrence(id, anchor, parameters, "account"))
         .isSameAs(result);
-    assertThat(
-            taskMutationService.replaceFollowing(
-                seriesId, occurrenceScheduledAt, taskParameters, "series-account"))
-        .isSameAs(result);
-    assertThat(
-            taskMutationService.replaceOccurrence(
-                seriesId, occurrenceScheduledAt, occurrenceParameters, "occurrence-account"))
-        .isSameAs(result);
-
-    verify(taskService).replace(seriesId, taskParameters);
-    verify(recurringTaskSeriesService)
-        .assertInPlaceGeneratorChangeAllowed(
-            series,
-            taskParameters.recurring(),
-            taskParameters.scheduledAt(),
-            taskParameters.recurrenceRule());
-    verify(recurringTaskSeriesService)
-        .replaceFollowing(seriesId, occurrenceScheduledAt, taskParameters);
-    verify(taskOccurrenceService)
-        .replaceOccurrence(seriesId, occurrenceScheduledAt, occurrenceParameters);
-    verify(taskChangePublisher).publishFor("task-account");
-    verify(taskChangePublisher).publishFor("series-account");
-    verify(taskChangePublisher).publishFor("occurrence-account");
+    verify(taskChangePublisher).publishFor("account");
+    org.mockito.Mockito.verifyNoInteractions(taskService, recurringTaskSeriesService);
   }
 
   @Test
-  void unscopedNonGeneratorUpdateChecksTheSeriesAndThenMutatesIt() {
-    UUID seriesId = UUID.randomUUID();
-    Task series = task(true);
-    series.setScheduledAt(Instant.parse("2026-05-20T10:00:00Z"));
-    series.setRecurrenceRule("FREQ=DAILY");
-    TaskPatchParameters parameters = patch(null, null);
-    TaskResult result = TaskResult.base(series);
-    when(taskService.findById(seriesId)).thenReturn(series);
-    when(taskService.updateTask(seriesId, parameters, false)).thenReturn(result);
-
-    assertThat(taskMutationService.update(seriesId, parameters, false, "account-a"))
-        .isSameAs(result);
-
-    verify(recurringTaskSeriesService)
-        .assertInPlaceGeneratorChangeAllowed(
-            series, true, series.getScheduledAt(), series.getRecurrenceRule());
-    verify(taskService).updateTask(seriesId, parameters, false);
-    verify(taskChangePublisher).publishFor("account-a");
+  void commonSeriesUpdateDelegatesToDefinitionOwner() {
+    UUID id = UUID.randomUUID();
+    var parameters = patch(null, null);
+    var result = TaskResult.base(task(true));
+    when(taskService.updateTask(id, parameters, false)).thenReturn(result);
+    assertThat(taskMutationService.update(id, parameters, false, "account")).isSameAs(result);
+    verify(taskChangePublisher).publishFor("account");
   }
 
   @Test
-  void unsafeUnscopedGeneratorUpdateStopsBeforeTaskMutationAndPublication() {
-    UUID seriesId = UUID.randomUUID();
-    Task series = task(true);
-    series.setScheduledAt(Instant.parse("2026-05-20T10:00:00Z"));
-    series.setRecurrenceRule("FREQ=DAILY");
-    TaskPatchParameters parameters =
-        new TaskPatchParameters(
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            "FREQ=WEEKLY",
-            null,
-            null,
-            null);
-    when(taskService.findById(seriesId)).thenReturn(series);
-    doThrow(new IllegalArgumentException("explicit occurrence"))
-        .when(recurringTaskSeriesService)
-        .assertInPlaceGeneratorChangeAllowed(series, true, series.getScheduledAt(), "FREQ=WEEKLY");
-
-    assertThatThrownBy(() -> taskMutationService.update(seriesId, parameters, false, "account-a"))
-        .isInstanceOf(IllegalArgumentException.class)
-        .hasMessageContaining("explicit occurrence");
-
-    verify(taskService, never()).updateTask(any(), any(), anyBoolean());
+  void rejectedPartialUpdateDoesNotPublish() {
+    UUID id = UUID.randomUUID();
+    var parameters = patch(null, null);
+    when(taskService.updateTask(id, parameters, false))
+        .thenThrow(new IllegalArgumentException("fixed generator"));
+    assertThatThrownBy(() -> taskMutationService.update(id, parameters, false, "account"))
+        .isInstanceOf(IllegalArgumentException.class);
     verify(taskChangePublisher, never()).publishFor(any());
   }
 
   @Test
-  void unsafeBaseReplacementStopsBeforeTaskMutationAndPublication() {
-    UUID seriesId = UUID.randomUUID();
-    Task series = task(true);
-    TaskUpdateParameters parameters = mock(TaskUpdateParameters.class);
-    when(taskService.findById(seriesId)).thenReturn(series);
-    doThrow(new IllegalArgumentException("explicit occurrence"))
-        .when(recurringTaskSeriesService)
-        .assertInPlaceGeneratorChangeAllowed(any(), anyBoolean(), any(), any());
-
-    assertThatThrownBy(() -> taskMutationService.replace(seriesId, parameters, "account-a"))
-        .isInstanceOf(IllegalArgumentException.class)
-        .hasMessageContaining("explicit occurrence");
-
-    verify(taskService, never()).replace(any(), any());
+  void rejectedReplacementDoesNotPublish() {
+    UUID id = UUID.randomUUID();
+    var parameters = mock(TaskUpdateParameters.class);
+    when(taskService.replace(id, parameters))
+        .thenThrow(new IllegalArgumentException("fixed generator"));
+    assertThatThrownBy(() -> taskMutationService.replace(id, parameters, "account"))
+        .isInstanceOf(IllegalArgumentException.class);
     verify(taskChangePublisher, never()).publishFor(any());
   }
 

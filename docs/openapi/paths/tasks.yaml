@@ -71,7 +71,7 @@
       "500":
         "$ref": "../responses.yaml#/InternalServerError"
     summary: "Update a task"
-    description: "Update a task for the authenticated Taska principal."
+    description: "Replace a task. Existing recurring series allow common-property edits, but scheduledAt, allDay, isRecurring and recurrenceRule must remain unchanged."
   delete:
     tags:
       - "Tasks"
@@ -108,7 +108,7 @@
       "500":
         "$ref": "../responses.yaml#/InternalServerError"
     summary: "Delete a task"
-    description: "Delete a task for the authenticated Taska principal."
+    description: "Delete a base task, skip one occurrence with THIS_ONLY, or stop recurrence before the supplied occurrence with FROM_THIS. Stopping preserves moved and completed states as detached and creates no successor."
 "/tasks/{taskId}/occurrences/{occurrenceScheduledAt}":
   get:
     tags:
@@ -197,59 +197,9 @@
         "$ref": "../responses.yaml#/ValidationError"
       "500":
         "$ref": "../responses.yaml#/InternalServerError"
-    summary: "Replace one recurring task occurrence"
-    description: "Replace one recurring task occurrence for the authenticated Taska principal."
-"/tasks/{taskId}/occurrences/{occurrenceScheduledAt}/following":
-  put:
-    tags:
-      - "Tasks"
-    operationId: "replaceFollowingTaskOccurrences"
-    parameters:
-      - name: "taskId"
-        in: "path"
-        required: true
-        schema:
-          type: "string"
-          format: "uuid"
-        description: "Resource identifier."
-      - name: "occurrenceScheduledAt"
-        in: "path"
-        required: true
-        schema:
-          type: "string"
-          format: "date-time"
-          pattern: "(?:Z|[+-](?:(?:0[0-9]|1[0-7]):[0-5][0-9]|18:00))$"
-        description: "Original scheduled timestamp of the recurring occurrence."
-    requestBody:
-      content:
-        "application/json":
-          schema:
-            "$ref": "../schemas/task.yaml#/FollowingTaskUpdateRequest"
-      required: true
-      description: "Request payload."
-    responses:
-      "200":
-        description: "Successful response."
-        content:
-          "application/json":
-            schema:
-              "$ref": "../schemas/task.yaml#/RecurringTaskSeriesDto"
-      "400":
-        "$ref": "../responses.yaml#/BadRequest"
-      "401":
-        "$ref": "../responses.yaml#/Unauthorized"
-      "403":
-        "$ref": "../responses.yaml#/Forbidden"
-      "404":
-        "$ref": "../responses.yaml#/NotFound"
-      "409":
-        "$ref": "../responses.yaml#/Conflict"
-      "422":
-        "$ref": "../responses.yaml#/ValidationError"
-      "500":
-        "$ref": "../responses.yaml#/InternalServerError"
-    summary: "Replace this and following task occurrences"
-    description: "Replace this and following task occurrences for the authenticated Taska principal."
+    summary: "Reschedule one recurring task occurrence"
+    description: "Change only scheduledAt, preserving stable identity, completion, detached status and historical customizations. Explicit null restores the original date. Title, priority, dueAt and other fields are rejected."
+
 "/tasks":
   get:
     tags:

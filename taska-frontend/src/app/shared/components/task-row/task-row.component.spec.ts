@@ -17,7 +17,7 @@ describe('TaskRowComponent detached occurrence', () => {
     component = fixture.componentInstance;
   });
 
-  it('shows the detached badge and targets inline edits to this occurrence', () => {
+  it('shows the detached badge without allowing inline title editing', () => {
     const occurrence = detachedOccurrence();
     fixture.componentRef.setInput('task', occurrence);
     fixture.detectChanges();
@@ -28,16 +28,7 @@ describe('TaskRowComponent detached occurrence', () => {
     component.commitEdit();
 
     expect(fixture.nativeElement.textContent).toContain('Hors série');
-    expect(updates).toEqual([
-      {
-        id: occurrence.id,
-        patch: {
-          content: 'Updated occurrence',
-          scope: 'THIS_ONLY',
-          occurrenceScheduledAt: occurrence.occurrenceScheduledAt,
-        },
-      },
-    ]);
+    expect(updates).toEqual([]);
   });
 });
 

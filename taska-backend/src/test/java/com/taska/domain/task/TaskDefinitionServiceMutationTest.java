@@ -60,6 +60,94 @@ class TaskDefinitionServiceMutationTest {
   }
 
   @Test
+  void patchCannotChangeAnExistingGeneratorEvenWithoutPersistedOccurrences() {
+    Task series = buildRecurringTask(randomId());
+    when(taskRepository.findById(series.getId())).thenReturn(Optional.of(series));
+
+    assertThatThrownBy(
+            () ->
+                taskService.updateTask(
+                    series.getId(), reqWithRRule(null, "FREQ=WEEKLY", null, null), false))
+        .isInstanceOf(IllegalArgumentException.class)
+        .hasMessageContaining("cannot be changed");
+    assertThatThrownBy(
+            () ->
+                taskService.updateTask(
+                    series.getId(),
+                    reqWithScheduledAt(series.getScheduledAt().plusSeconds(3600), null, null),
+                    false))
+        .isInstanceOf(IllegalArgumentException.class)
+        .hasMessageContaining("cannot be changed");
+
+    assertThat(series.getRecurrenceRule()).isEqualTo("FREQ=DAILY");
+    assertThat(series.getScheduledAt()).isEqualTo(Instant.parse("2026-05-01T10:00:00Z"));
+    verify(taskRepository, never()).save(any());
+    verifyNoInteractions(taskOccurrenceStateRepository);
+  }
+
+  @Test
+  void replacementCanEditSeriesCommonPropertiesWithAnUnchangedGenerator() {
+    Task series = buildRecurringTask(randomId());
+    when(taskRepository.findById(series.getId())).thenReturn(Optional.of(series));
+    when(taskRepository.save(series)).thenReturn(series);
+    TaskUpdateParameters replacement =
+        new TaskUpdateParameters(
+            "New series title",
+            TaskType.TODO,
+            "New description",
+            null,
+            null,
+            0,
+            2,
+            List.of("maintenance"),
+            series.getScheduledAt(),
+            null,
+            false,
+            true,
+            30,
+            null,
+            "daily");
+
+    taskService.replace(series.getId(), replacement);
+
+    assertThat(series.getContent()).isEqualTo("New series title");
+    assertThat(series.getPriority()).isEqualTo(2);
+    assertThat(series.getLabels()).containsExactly("maintenance");
+    assertThat(series.getRecurrenceRule()).isEqualTo("FREQ=DAILY");
+    verifyNoInteractions(taskOccurrenceStateRepository);
+  }
+
+  @Test
+  void replacementRejectsGeneratorChangesBeforeMutatingCommonProperties() {
+    Task series = buildRecurringTask(randomId());
+    when(taskRepository.findById(series.getId())).thenReturn(Optional.of(series));
+    TaskUpdateParameters replacement =
+        new TaskUpdateParameters(
+            "Forbidden replacement",
+            TaskType.TODO,
+            null,
+            null,
+            null,
+            0,
+            null,
+            List.of(),
+            series.getScheduledAt(),
+            null,
+            false,
+            true,
+            null,
+            null,
+            "FREQ=WEEKLY");
+
+    assertThatThrownBy(() -> taskService.replace(series.getId(), replacement))
+        .isInstanceOf(IllegalArgumentException.class)
+        .hasMessageContaining("cannot be changed");
+
+    assertThat(series.getContent()).isEqualTo("Recurring task");
+    verify(taskRepository, never()).save(any());
+  }
+
+  @Test
   void create_withoutManualPriority_persistsNullRatherThanNormalPriority() {
     UUID inboxId = randomId();
     Project inbox = new Project();

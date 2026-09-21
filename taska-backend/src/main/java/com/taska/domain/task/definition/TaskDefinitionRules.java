@@ -1,6 +1,8 @@
 package com.taska.domain.task.definition;
 
+import com.taska.domain.task.definition.repository.Task;
 import java.time.Instant;
+import java.util.Objects;
 
 /**
  * Invariants a stored task definition must satisfy, whichever service writes it.
@@ -11,6 +13,21 @@ import java.time.Instant;
 public final class TaskDefinitionRules {
 
   private TaskDefinitionRules() {}
+
+  /** Existing series keep their generator even before the first occurrence is acted on. */
+  public static void assertGeneratorUnchanged(
+      Task task, boolean recurring, Instant scheduledAt, String recurrenceRule, boolean allDay) {
+    if (Boolean.TRUE.equals(task.getIsRecurring())
+        && (!recurring
+            || !Objects.equals(task.getScheduledAt(), scheduledAt)
+            || !Objects.equals(
+                normalizeRecurrenceRule(task.getRecurrenceRule()),
+                normalizeRecurrenceRule(recurrenceRule))
+            || task.isAllDay() != allDay)) {
+      throw new IllegalArgumentException(
+          "An existing series schedule and recurrence cannot be changed; stop the series instead");
+    }
+  }
 
   /**
    * Rejects the invalid combination of a recurring-series definition and an absolute deadline. A

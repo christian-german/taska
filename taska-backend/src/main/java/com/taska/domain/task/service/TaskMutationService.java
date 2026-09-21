@@ -3,6 +3,7 @@ package com.taska.domain.task.service;
 import com.taska.domain.notification.service.TaskChangePublisher;
 import com.taska.domain.task.definition.repository.Task;
 import com.taska.domain.task.definition.service.TaskDefinitionService;
+import com.taska.domain.task.occurrence.RecurrenceScope;
 import com.taska.domain.task.occurrence.service.TaskOccurrenceService;
 import com.taska.domain.task.occurrence.service.TaskOccurrenceUpdateParameters;
 import com.taska.domain.task.series.service.RecurringTaskSeriesService;
@@ -17,7 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
  *
  * <p>Existing HTTP and MCP contracts encode the mutation target through optional scope and
  * occurrence fields. This boundary translates those contracts to the explicit task, occurrence, or
- * following-series operations exposed by their dedicated application services.
+ * series-stopping operations exposed by their dedicated application services.
  */
 @Service
 @RequiredArgsConstructor
@@ -51,7 +52,7 @@ public class TaskMutationService {
    * @param parameters requested changes and optional recurrence scope
    * @param priorityProvided whether the caller explicitly supplied the priority field
    * @param accountSubject account receiving the change signal
-   * @return the updated task, occurrence, or successor series
+   * @return the updated task, series definition, or occurrence
    * @throws IllegalArgumentException if a recurrence scope has no occurrence identity
    */
   @Transactional
@@ -65,30 +66,17 @@ public class TaskMutationService {
           "occurrenceScheduledAt is required when scope is provided");
     }
 
-    Task task = taskService.findById(taskId);
-    TaskResult taskResult;
-    if (parameters.scope() == null || !Boolean.TRUE.equals(task.getIsRecurring())) {
-      if (parameters.scope() == null && Boolean.TRUE.equals(task.getIsRecurring())) {
-        recurringTaskSeriesService.assertInPlaceGeneratorChangeAllowed(
-            task,
-            parameters.recurring() != null ? parameters.recurring() : true,
-            parameters.scheduledAt() != null ? parameters.scheduledAt() : task.getScheduledAt(),
-            parameters.recurrenceRule() != null
-                ? parameters.recurrenceRule()
-                : task.getRecurrenceRule());
-      }
-      taskResult = taskService.updateTask(taskId, parameters, priorityProvided);
-    } else {
-      taskResult =
-          switch (parameters.scope()) {
-            case THIS_ONLY ->
-                taskOccurrenceService.updateOccurrence(
-                    taskId, parameters.occurrenceScheduledAt(), parameters, priorityProvided);
-            case FROM_THIS ->
-                recurringTaskSeriesService.updateSeriesFrom(
-                    taskId, parameters.occurrenceScheduledAt(), parameters, priorityProvided);
-          };
+    if (parameters.scope() == RecurrenceScope.FROM_THIS) {
+      throw new IllegalArgumentException("Following-series updates are no longer supported");
     }
+    if (parameters.scope() == null && parameters.occurrenceScheduledAt() != null) {
+      throw new IllegalArgumentException("Occurrence updates require scope THIS_ONLY");
+    }
+    TaskResult taskResult =
+        parameters.scope() == RecurrenceScope.THIS_ONLY
+            ? taskOccurrenceService.updateOccurrence(
+                taskId, parameters.occurrenceScheduledAt(), parameters, priorityProvided)
+            : taskService.updateTask(taskId, parameters, priorityProvided);
     publishChange(accountSubject);
     return taskResult;
   }
@@ -103,41 +91,17 @@ public class TaskMutationService {
    */
   @Transactional
   public TaskResult replace(UUID taskId, TaskUpdateParameters parameters, String accountSubject) {
-    Task task = taskService.findById(taskId);
-    recurringTaskSeriesService.assertInPlaceGeneratorChangeAllowed(
-        task, parameters.recurring(), parameters.scheduledAt(), parameters.recurrenceRule());
     TaskResult taskResult = taskService.replace(taskId, parameters);
     publishChange(accountSubject);
     return taskResult;
   }
 
   /**
-   * Replaces a recurring series from one occurrence onward and publishes its change signal.
-   *
-   * @param taskId recurring-series identifier
-   * @param occurrenceScheduledAt first occurrence represented by the successor series
-   * @param parameters complete successor-series values
-   * @param accountSubject account receiving the change signal
-   * @return the successor series
-   */
-  @Transactional
-  public TaskResult replaceFollowing(
-      UUID taskId,
-      Instant occurrenceScheduledAt,
-      TaskUpdateParameters parameters,
-      String accountSubject) {
-    TaskResult taskResult =
-        recurringTaskSeriesService.replaceFollowing(taskId, occurrenceScheduledAt, parameters);
-    publishChange(accountSubject);
-    return taskResult;
-  }
-
-  /**
-   * Replaces the overrides of one recurring occurrence and publishes its change signal.
+   * Reschedules one recurring occurrence and publishes its change signal.
    *
    * @param taskId recurring-series identifier
    * @param occurrenceScheduledAt stable schedule identity of the occurrence
-   * @param parameters complete occurrence override values
+   * @param parameters replacement occurrence schedule
    * @param accountSubject account receiving the change signal
    * @return the replaced occurrence
    */

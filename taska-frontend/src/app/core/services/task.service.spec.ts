@@ -98,37 +98,31 @@ describe('TaskService task creation feedback', () => {
     request.flush({ ...task, scheduledAt: null });
   });
 
-  it('uses the following-series endpoint with a complete replacement payload', () => {
-    const task = recurringTaskFixture({ recurrenceRule: 'FREQ=DAILY' });
-    const occurrence = '2026-08-24T09:00:00Z';
+  it('rejects following-series edits without making an HTTP request', () => {
+    const error = vi.fn();
     service
-      .updateTask(task.id, {
+      .updateTask('task-1', {
         scope: 'FROM_THIS',
-        occurrenceScheduledAt: occurrence,
-        content: 'Future title',
+        occurrenceScheduledAt: '2026-08-24T09:00:00Z',
+        content: 'Forbidden',
       })
-      .subscribe();
+      .subscribe({ error });
+    expect(error).toHaveBeenCalled();
+    http.expectNone(() => true);
+  });
 
-    http
-      .expectOne((request) => request.method === 'GET' && request.url.endsWith(`/tasks/${task.id}`))
-      .flush(task);
-    const request = http.expectOne(
-      (request) =>
-        request.method === 'PUT' &&
-        request.url.endsWith(
-          `/tasks/${task.id}/occurrences/${encodeURIComponent(occurrence)}/following`,
-        ),
-    );
-    expect(request.request.method).toBe('PUT');
-    expect(request.request.body).toMatchObject({
-      content: 'Future title',
-      type: 'TODO',
-      dueAt: null,
-      isRecurring: true,
-      recurrenceRule: 'FREQ=DAILY',
-    });
-    expect(Object.keys(request.request.body)).toHaveLength(15);
-    request.flush(task);
+  it('rejects obsolete occurrence properties without making an HTTP request', () => {
+    const error = vi.fn();
+    service
+      .updateTask('task-1', {
+        scope: 'THIS_ONLY',
+        occurrenceScheduledAt: '2026-08-24T09:00:00Z',
+        content: 'Forbidden',
+        scheduledAt: null,
+      })
+      .subscribe({ error });
+    expect(error).toHaveBeenCalled();
+    http.expectNone(() => true);
   });
 
   it('uses the narrow occurrence endpoint for a single recurring occurrence', () => {
@@ -142,23 +136,6 @@ describe('TaskService task creation feedback', () => {
       })
       .subscribe();
 
-    http
-      .expectOne(
-        (request) =>
-          request.method === 'GET' &&
-          request.url.endsWith(`/tasks/${task.id}/occurrences/${encodeURIComponent(occurrence)}`),
-      )
-      .flush({
-        ...task,
-        kind: 'RECURRING_OCCURRENCE',
-        dueAt: '2026-08-25T09:00:00Z',
-        isCompleted: false,
-        completedAt: null,
-        instanceId: null,
-        occurrenceScheduledAt: occurrence,
-        isVirtual: true,
-        isDetached: false,
-      });
     const request = http.expectOne(
       (request) =>
         request.method === 'PUT' &&
@@ -166,10 +143,7 @@ describe('TaskService task creation feedback', () => {
     );
     expect(request.request.method).toBe('PUT');
     expect(request.request.body).toEqual({
-      title: task.content,
-      priority: task.priority,
       scheduledAt: null,
-      dueAt: '2026-08-25T09:00:00Z',
     });
     request.flush(task);
   });

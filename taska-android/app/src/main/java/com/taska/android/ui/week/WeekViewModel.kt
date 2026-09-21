@@ -4,7 +4,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.taska.android.data.model.OccurrenceUpdateRequest
 import com.taska.android.data.model.ProjectDto
-import com.taska.android.data.model.RecurrenceScope
 import com.taska.android.data.model.TaskDto
 import com.taska.android.data.model.TaskRepresentationKind
 import com.taska.android.data.model.toTaskUpdateRequest
@@ -26,12 +25,6 @@ data class TaskBlock(
   val totalCols: Int,
 )
 
-data class PendingReschedule(
-  val task: TaskDto,
-  val newScheduledAt: String,
-  val newEstimateMinutes: Int,
-)
-
 data class WeekUiState(
   val weekOffset: Int = 0,
   val weekDays: List<Calendar> = emptyList(),
@@ -40,7 +33,6 @@ data class WeekUiState(
   val projects: Map<String, ProjectDto> = emptyMap(),
   val isLoading: Boolean = false,
   val error: String? = null,
-  val pendingReschedule: PendingReschedule? = null,
 )
 
 class WeekViewModel(
@@ -64,30 +56,13 @@ class WeekViewModel(
   fun prevWeek() = loadForOffset(_uiState.value.weekOffset - 1)
 
   fun requestRescheduleTask(task: TaskDto, newScheduledAt: String, newEstimateMinutes: Int) {
-    if (task.kind == TaskRepresentationKind.RECURRING_OCCURRENCE) {
-      _uiState.update {
-        it.copy(pendingReschedule = PendingReschedule(task, newScheduledAt, newEstimateMinutes))
-      }
-    } else {
-      executeReschedule(task, newScheduledAt, newEstimateMinutes, scope = null)
-    }
-  }
-
-  fun confirmRescheduleTask(scope: RecurrenceScope?) {
-    val pending = _uiState.value.pendingReschedule ?: return
-    _uiState.update { it.copy(pendingReschedule = null) }
-    executeReschedule(pending.task, pending.newScheduledAt, pending.newEstimateMinutes, scope)
-  }
-
-  fun dismissRescheduleScope() {
-    _uiState.update { it.copy(pendingReschedule = null) }
+    executeReschedule(task, newScheduledAt, newEstimateMinutes)
   }
 
   private fun executeReschedule(
     task: TaskDto,
     newScheduledAt: String,
     newEstimateMinutes: Int,
-    scope: RecurrenceScope?,
   ) {
     viewModelScope.launch {
       try {
@@ -99,19 +74,19 @@ class WeekViewModel(
               allDay = false,
               estimateMinutes = newEstimateMinutes,
             )
-        when (scope) {
-          RecurrenceScope.THIS_ONLY ->
-            taskRepo.updateOccurrence(
-              task.id,
-              checkNotNull(task.occurrenceScheduledAt),
-              OccurrenceUpdateRequest(task.content, task.priority, newScheduledAt, task.dueAt),
-            )
-          RecurrenceScope.FROM_THIS ->
-            taskRepo.updateFollowingTask(task.id, checkNotNull(task.occurrenceScheduledAt), request)
-          null -> taskRepo.updateTask(task.id, request)
+        if (task.kind == TaskRepresentationKind.RECURRING_OCCURRENCE) {
+          taskRepo.updateOccurrence(
+            task.id,
+            checkNotNull(task.occurrenceScheduledAt),
+            OccurrenceUpdateRequest(newScheduledAt),
+          )
+        } else {
+          taskRepo.updateTask(task.id, request)
         }
         loadForOffset(_uiState.value.weekOffset)
-      } catch (_: Exception) {}
+      } catch (exception: Exception) {
+        _uiState.update { it.copy(error = exception.message) }
+      }
     }
   }
 

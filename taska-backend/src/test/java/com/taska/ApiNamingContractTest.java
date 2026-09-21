@@ -1,6 +1,7 @@
 package com.taska;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.taska.domain.comment.controller.CommentController;
 import com.taska.domain.label.controller.LabelController;
@@ -55,9 +56,9 @@ class ApiNamingContractTest {
     assertEquals(
         "/{taskId}/priority-evaluation", getPath(TaskController.class, "getPriorityEvaluation"));
     assertEquals("/{taskId}", putPath(TaskController.class, "update"));
-    assertEquals(
-        "/{taskId}/occurrences/{occurrenceScheduledAt}/following",
-        putPath(TaskController.class, "replaceFollowing"));
+    assertTrue(
+        Arrays.stream(TaskController.class.getDeclaredMethods())
+            .noneMatch(method -> method.getName().equals("replaceFollowing")));
     assertEquals(
         "/{taskId}/occurrences/{occurrenceScheduledAt}",
         putPath(TaskController.class, "replaceOccurrence"));

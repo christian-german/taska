@@ -2,7 +2,6 @@ package com.taska.domain.task;
 
 import static com.taska.domain.task.TaskMutationFixtures.*;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
@@ -11,9 +10,7 @@ import com.taska.config.TaskaProperties;
 import com.taska.domain.notification.service.TaskOccurrenceNotificationService;
 import com.taska.domain.planningcalendar.service.PlanningCalendarService;
 import com.taska.domain.priority.repository.TaskPriorityEvaluationRepository;
-import com.taska.domain.project.repository.Project;
 import com.taska.domain.project.repository.ProjectRepository;
-import com.taska.domain.task.definition.TaskType;
 import com.taska.domain.task.definition.repository.Task;
 import com.taska.domain.task.definition.repository.TaskRepository;
 import com.taska.domain.task.definition.service.TaskDefinitionService;
@@ -22,24 +19,18 @@ import com.taska.domain.task.occurrence.repository.TaskOccurrenceStateRepository
 import com.taska.domain.task.occurrence.service.TaskOccurrenceService;
 import com.taska.domain.task.occurrence.service.TaskRecurrenceService;
 import com.taska.domain.task.series.service.RecurringTaskSeriesService;
-import com.taska.domain.task.service.TaskPatchParameters;
-import com.taska.domain.task.service.TaskResult;
-import com.taska.domain.task.service.TaskUpdateParameters;
 import java.time.Instant;
-import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
- * Write operations on the structure of a recurring series: truncating it and creating the successor
- * series that carries the requested changes from one occurrence onward.
+ * Series stopping validates the cut and preserves history without creating another series.
  *
  * <p>All repository calls are mocked.
  */
@@ -73,381 +64,85 @@ class RecurringTaskSeriesServiceTest {
             taskService,
             taskRepository,
             taskOccurrenceStateRepository,
-            taskRecurrenceService,
+            new TaskRecurrenceService(),
             taskaProperties,
             taskOccurrenceNotificationService);
 
     recurringTaskSeriesService =
-        new RecurringTaskSeriesService(
-            taskService, taskOccurrenceService, taskRepository, priorityEvaluationRepository);
+        new RecurringTaskSeriesService(taskService, taskOccurrenceService, taskRepository);
   }
 
   @Test
-  void inPlaceGeneratorChange_withOccurrenceState_isRejected() {
-    Task series = buildRecurringTask(randomId());
-    when(taskOccurrenceStateRepository.existsBySeriesId(series.getId())).thenReturn(true);
-
-    assertThatThrownBy(
-            () ->
-                recurringTaskSeriesService.assertInPlaceGeneratorChangeAllowed(
-                    series, true, series.getScheduledAt(), "FREQ=WEEKLY"))
-        .isInstanceOf(IllegalArgumentException.class)
-        .hasMessageContaining("explicit occurrence");
-  }
-
-  @Test
-  void inPlaceGeneratorChange_withoutOccurrenceState_isAllowed() {
-    Task series = buildRecurringTask(randomId());
-    when(taskOccurrenceStateRepository.existsBySeriesId(series.getId())).thenReturn(false);
-
-    assertThatCode(
-            () ->
-                recurringTaskSeriesService.assertInPlaceGeneratorChangeAllowed(
-                    series, true, series.getScheduledAt().plusSeconds(3600), "FREQ=WEEKLY"))
-        .doesNotThrowAnyException();
-  }
-
-  @Test
-  void inPlaceGeneratorChange_equivalentNormalizedRule_doesNotConsultOccurrenceState() {
-    Task series = buildRecurringTask(randomId());
-
-    recurringTaskSeriesService.assertInPlaceGeneratorChangeAllowed(
-        series, true, series.getScheduledAt(), "daily");
-
-    verify(taskOccurrenceStateRepository, never()).existsBySeriesId(any());
-  }
-
-  @Test
-  void inPlaceGeneratorChange_nonRecurringTask_isNotRestricted() {
-    Task task = buildNonRecurringTask(randomId());
-
-    recurringTaskSeriesService.assertInPlaceGeneratorChangeAllowed(
-        task, false, task.getScheduledAt(), null);
-
-    verify(taskOccurrenceStateRepository, never()).existsBySeriesId(any());
-  }
-
-  @Test
-  void replaceFollowing_createsACompleteReplacementSeries() {
-    UUID taskId = randomId();
-    UUID projectId = randomId();
-    Instant occurrence = Instant.parse("2026-05-20T10:00:00Z");
-    Task original = buildRecurringTask(taskId);
-    TaskUpdateParameters request =
-        new TaskUpdateParameters(
-            "Following",
-            TaskType.APPOINTMENT,
-            "New description",
-            projectId,
-            null,
-            4,
-            2,
-            List.of("next"),
-            occurrence,
-            null,
-            false,
-            true,
-            45,
-            "context",
-            "FREQ=WEEKLY");
-    when(taskRepository.findById(taskId)).thenReturn(Optional.of(original));
-    when(taskRecurrenceService.getOccurrencesInRange(any(), any(), any()))
-        .thenReturn(List.of(occurrence));
-    Project project = new Project();
-    project.setId(projectId);
-    when(projectRepository.findById(projectId)).thenReturn(Optional.of(project));
-    when(planningCalendarService.allows(any(), eq(occurrence), eq(false))).thenReturn(true);
-    ArgumentCaptor<Task> saved = ArgumentCaptor.forClass(Task.class);
-    when(taskRepository.save(saved.capture())).thenAnswer(invocation -> invocation.getArgument(0));
-
-    recurringTaskSeriesService.replaceFollowing(taskId, occurrence, request);
-
-    List<Task> persisted = saved.getAllValues();
-    assertThat(persisted).hasSize(2);
-    assertThat(persisted.getFirst().getRruleEndsAt())
-        .isEqualTo(occurrence.minus(1, ChronoUnit.SECONDS));
-    Task replacement = persisted.get(1);
-    assertThat(replacement.getContent()).isEqualTo("Following");
-    assertThat(replacement.getType()).isEqualTo(TaskType.APPOINTMENT);
-    assertThat(replacement.getDescription()).isEqualTo("New description");
-    assertThat(replacement.getProjectId()).isEqualTo(projectId);
-    assertThat(replacement.getPosition()).isEqualTo(4);
-    assertThat(replacement.getPriority()).isEqualTo(2);
-    assertThat(replacement.getLabels()).containsExactly("next");
-    assertThat(replacement.getScheduledAt()).isEqualTo(occurrence);
-    assertThat(replacement.getDueAt()).isNull();
-    assertThat(replacement.isAllDay()).isFalse();
-    assertThat(replacement.getIsRecurring()).isTrue();
-    assertThat(replacement.getEstimateMinutes()).isEqualTo(45);
-    assertThat(replacement.getMentionContext()).isEqualTo("context");
-    assertThat(replacement.getRecurrenceRule()).isEqualTo("FREQ=WEEKLY");
-  }
-
-  @Test
-  void replaceFollowing_withDueAt_rejectsBeforeSplittingOriginalSeries() {
-    TaskUpdateParameters request =
-        new TaskUpdateParameters(
-            "Following",
-            TaskType.TODO,
-            null,
-            null,
-            null,
-            0,
-            null,
-            List.of(),
-            Instant.parse("2026-05-20T10:00:00Z"),
-            Instant.parse("2026-05-21T17:00:00Z"),
-            false,
-            true,
-            null,
-            null,
-            "FREQ=DAILY");
-
-    assertThatThrownBy(
-            () ->
-                recurringTaskSeriesService.replaceFollowing(
-                    randomId(), Instant.parse("2026-05-20T10:00:00Z"), request))
-        .isInstanceOf(IllegalArgumentException.class)
-        .hasMessageContaining("Recurring series");
-
-    verifyNoInteractions(taskRepository);
-  }
-
-  @Test
-  void replaceFollowing_withoutSchedule_rejectsBeforeSplittingOriginalSeries() {
-    TaskUpdateParameters request =
-        new TaskUpdateParameters(
-            "Following",
-            TaskType.TODO,
-            null,
-            null,
-            null,
-            0,
-            null,
-            List.of(),
-            null,
-            null,
-            false,
-            true,
-            null,
-            null,
-            "FREQ=DAILY");
-
-    assertThatThrownBy(
-            () ->
-                recurringTaskSeriesService.replaceFollowing(
-                    randomId(), Instant.parse("2026-05-20T10:00:00Z"), request))
-        .isInstanceOf(IllegalArgumentException.class)
-        .hasMessageContaining("requires a scheduledAt");
-
-    verifyNoInteractions(taskRepository, taskOccurrenceStateRepository);
-  }
-
-  @Test
-  void updateSeriesFrom_withDueAt_rejectsBeforeSplittingOriginalSeries() {
-    assertThatThrownBy(
-            () ->
-                recurringTaskSeriesService.updateSeriesFrom(
-                    randomId(),
-                    Instant.parse("2026-05-20T10:00:00Z"),
-                    recurringPatch(Instant.parse("2026-05-21T17:00:00Z")),
-                    false))
-        .isInstanceOf(IllegalArgumentException.class)
-        .hasMessageContaining("Recurring series");
-
-    verifyNoInteractions(taskRepository);
-  }
-
-  @Test
-  void update_fromThis_contentChange_truncatesOriginalAndClonesTaskWithNewContent() {
-    UUID taskId = randomId();
-    Task task = buildRecurringTask(taskId);
-    Instant occurrenceScheduledAt = Instant.parse("2026-05-20T10:00:00Z");
-    TaskPatchParameters request =
-        taskRequest("New content", RecurrenceScope.FROM_THIS, occurrenceScheduledAt);
-
-    when(taskRepository.findById(taskId)).thenReturn(Optional.of(task));
-    ArgumentCaptor<Task> taskCaptor = ArgumentCaptor.forClass(Task.class);
-    when(taskRepository.save(taskCaptor.capture())).thenAnswer(inv -> inv.getArgument(0));
-
-    recurringTaskSeriesService.updateSeriesFrom(
-        taskId, occurrenceScheduledAt, request, request.priority() != null);
-
-    List<Task> savedTasks = taskCaptor.getAllValues();
-    assertThat(savedTasks).hasSize(2);
-
-    Task savedOriginal = savedTasks.get(0);
-    assertThat(savedOriginal.getRruleEndsAt())
-        .isEqualTo(occurrenceScheduledAt.minus(1, ChronoUnit.SECONDS));
-
-    Task clone = savedTasks.get(1);
-    assertThat(clone.getContent()).isEqualTo("New content");
-    assertThat(clone.getScheduledAt()).isEqualTo(occurrenceScheduledAt);
-    assertThat(clone.getIsRecurring()).isTrue();
-  }
-
-  @Test
-  void update_fromThis_cloneInheritsProjectIdAndParentId() {
-    UUID taskId = randomId();
-    UUID projectId = randomId();
-    UUID parentId = randomId();
-    Task task = buildRecurringTask(taskId);
-    task.setProjectId(projectId);
-    task.setParentId(parentId);
-    Instant occurrenceScheduledAt = Instant.parse("2026-05-20T10:00:00Z");
-    TaskPatchParameters request =
-        taskRequest("Updated", RecurrenceScope.FROM_THIS, occurrenceScheduledAt);
-
-    when(taskRepository.findById(taskId)).thenReturn(Optional.of(task));
-    ArgumentCaptor<Task> taskCaptor = ArgumentCaptor.forClass(Task.class);
-    when(taskRepository.save(taskCaptor.capture())).thenAnswer(inv -> inv.getArgument(0));
-
-    recurringTaskSeriesService.updateSeriesFrom(
-        taskId, occurrenceScheduledAt, request, request.priority() != null);
-
-    Task clone = taskCaptor.getAllValues().get(1);
-    assertThat(clone.getProjectId()).isEqualTo(projectId);
-    assertThat(clone.getParentId()).isEqualTo(parentId);
-  }
-
-  @Test
-  void update_fromThis_firstOccurrence_originalRruleEndsAtIsOneDayBeforeScheduledAt() {
-    UUID taskId = randomId();
-    Task task = buildRecurringTask(taskId);
-    Instant firstOccurrence =
-        task.getScheduledAt(); // occurrenceScheduledAt == scheduledAt for the first occurrence
-    TaskPatchParameters request =
-        taskRequest("Updated", RecurrenceScope.FROM_THIS, firstOccurrence);
-
-    when(taskRepository.findById(taskId)).thenReturn(Optional.of(task));
-    ArgumentCaptor<Task> taskCaptor = ArgumentCaptor.forClass(Task.class);
-    when(taskRepository.save(taskCaptor.capture())).thenAnswer(inv -> inv.getArgument(0));
-
-    recurringTaskSeriesService.updateSeriesFrom(
-        taskId, firstOccurrence, request, request.priority() != null);
-
-    Task savedOriginal = taskCaptor.getAllValues().getFirst();
-    assertThat(savedOriginal.getRruleEndsAt())
-        .isEqualTo(firstOccurrence.minus(1, ChronoUnit.SECONDS));
-  }
-
-  @Test
-  void update_fromThis_newRecurrenceRule_cloneHasNewRuleOriginalKeepsOldRule() {
-    UUID taskId = randomId();
-    Task task = buildRecurringTask(taskId);
-    String originalRule = task.getRecurrenceRule(); // FREQ=DAILY
-    Instant occurrenceScheduledAt = Instant.parse("2026-05-20T10:00:00Z");
-    TaskPatchParameters request =
-        reqWithRRule("Updated", "FREQ=WEEKLY", RecurrenceScope.FROM_THIS, occurrenceScheduledAt);
-
-    when(taskRepository.findById(taskId)).thenReturn(Optional.of(task));
-    ArgumentCaptor<Task> taskCaptor = ArgumentCaptor.forClass(Task.class);
-    when(taskRepository.save(taskCaptor.capture())).thenAnswer(inv -> inv.getArgument(0));
-
-    recurringTaskSeriesService.updateSeriesFrom(
-        taskId, occurrenceScheduledAt, request, request.priority() != null);
-
-    List<Task> saved = taskCaptor.getAllValues();
-    assertThat(saved.get(0).getRecurrenceRule()).isEqualTo(originalRule); // original unchanged
-    assertThat(saved.get(1).getRecurrenceRule()).isEqualTo("FREQ=WEEKLY");
-  }
-
-  @Test
-  void update_fromThis_cloneHasNullRruleEndsAtEvenIfOriginalHadOne() {
-    UUID taskId = randomId();
-    Task task = buildRecurringTask(taskId);
-    task.setRruleEndsAt(Instant.parse("2026-12-31T23:59:59Z"));
-    Instant occurrenceScheduledAt = Instant.parse("2026-05-20T10:00:00Z");
-    TaskPatchParameters request =
-        taskRequest("Updated", RecurrenceScope.FROM_THIS, occurrenceScheduledAt);
-
-    when(taskRepository.findById(taskId)).thenReturn(Optional.of(task));
-    ArgumentCaptor<Task> taskCaptor = ArgumentCaptor.forClass(Task.class);
-    when(taskRepository.save(taskCaptor.capture())).thenAnswer(inv -> inv.getArgument(0));
-
-    recurringTaskSeriesService.updateSeriesFrom(
-        taskId, occurrenceScheduledAt, request, request.priority() != null);
-
-    Task clone = taskCaptor.getAllValues().get(1);
-    assertThat(clone.getRruleEndsAt()).isNull();
-  }
-
-  @Test
-  void delete_fromThis_setsRruleEndsAtAndDoesNotDeleteTask() {
-    UUID taskId = randomId();
-    Task task = buildRecurringTask(taskId);
-    Instant occurrenceScheduledAt = Instant.parse("2026-05-20T10:00:00Z");
-
-    when(taskRepository.findById(taskId)).thenReturn(Optional.of(task));
-    when(taskRepository.save(task)).thenReturn(task);
-
-    recurringTaskSeriesService.truncateSeriesFrom(taskId, occurrenceScheduledAt);
-
-    assertThat(task.getRruleEndsAt()).isEqualTo(occurrenceScheduledAt.minus(1, ChronoUnit.SECONDS));
-    verify(taskRepository).save(task);
-    verify(taskRepository, never()).delete(any());
-    verify(taskOccurrenceStateRepository, never()).save(any());
-  }
-
-  @Test
-  void delete_fromThis_firstOccurrence_rruleEndsAtIsOneDayBeforeScheduledAt() {
-    UUID taskId = randomId();
-    Task task = buildRecurringTask(taskId);
-    Instant firstOccurrence = task.getScheduledAt();
-
-    when(taskRepository.findById(taskId)).thenReturn(Optional.of(task));
-    when(taskRepository.save(task)).thenReturn(task);
-
-    recurringTaskSeriesService.truncateSeriesFrom(taskId, firstOccurrence);
-
-    assertThat(task.getRruleEndsAt()).isEqualTo(firstOccurrence.minus(1, ChronoUnit.SECONDS));
-  }
-
-  @Test
-  void truncateSeriesFrom_detachesTheStatesItStrands() {
-    UUID seriesId = randomId();
-    Task series = buildRecurringTask(seriesId);
+  void stoppingPreservesMovedAndCompletedHistoryWithoutCreatingASuccessor() {
+    UUID id = randomId();
+    Task series = buildRecurringTask(id);
     Instant cut = Instant.parse("2026-05-20T10:00:00Z");
-    when(taskRepository.findById(seriesId)).thenReturn(Optional.of(series));
+    var moved = buildOccurrenceState(id, cut, TaskOccurrenceStatus.MODIFIED);
+    moved.setScheduledAt(cut.plusSeconds(3600));
+    var done = buildOccurrenceState(id, cut.plusSeconds(86400), TaskOccurrenceStatus.DONE);
+    var skipped = buildOccurrenceState(id, cut.plusSeconds(172800), TaskOccurrenceStatus.SKIPPED);
+    when(taskRepository.findById(id)).thenReturn(Optional.of(series));
+    when(taskOccurrenceStateRepository.findBySeriesIdAndOccurrenceScheduledAtGreaterThanEqual(
+            id, cut))
+        .thenReturn(List.of(moved, done, skipped));
 
-    recurringTaskSeriesService.truncateSeriesFrom(seriesId, cut);
+    recurringTaskSeriesService.truncateSeriesFrom(id, cut);
 
     assertThat(series.getRruleEndsAt()).isEqualTo(cut.minusSeconds(1));
-    verify(taskOccurrenceStateRepository)
-        .findBySeriesIdAndOccurrenceScheduledAtGreaterThanEqual(seriesId, cut);
+    assertThat(moved.isDetached()).isTrue();
+    assertThat(done.isDetached()).isTrue();
+    assertThat(moved.getScheduledAt()).isEqualTo(cut.plusSeconds(3600));
+    verify(taskOccurrenceStateRepository).delete(skipped);
+    verify(taskRepository).save(series);
+    verify(taskRepository, times(1)).save(any());
+    verify(taskRepository, never()).delete(any());
   }
 
   @Test
-  void updateSeriesFrom_startsTheSuccessorWhereTheCallerMovesTheRhythm() {
-    UUID seriesId = randomId();
-    Task series = buildRecurringTask(seriesId);
-    Instant cut = Instant.parse("2026-05-20T10:00:00Z");
-    Instant movedStart = Instant.parse("2026-05-19T18:00:00Z");
-    when(taskRepository.findById(seriesId)).thenReturn(Optional.of(series));
-    when(taskRepository.save(any(Task.class))).thenAnswer(invocation -> invocation.getArgument(0));
-    TaskPatchParameters parameters =
-        new TaskPatchParameters(
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            movedStart,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            RecurrenceScope.FROM_THIS,
-            cut,
-            null);
+  void stoppingRejectsAnInvalidIdentityWithoutMutations() {
+    UUID id = randomId();
+    Task series = buildRecurringTask(id);
+    when(taskRepository.findById(id)).thenReturn(Optional.of(series));
 
-    TaskResult result =
-        recurringTaskSeriesService.updateSeriesFrom(seriesId, cut, parameters, false);
+    assertThatThrownBy(
+            () ->
+                recurringTaskSeriesService.truncateSeriesFrom(
+                    id, Instant.parse("2026-05-20T11:00:00Z")))
+        .isInstanceOf(com.taska.exception.ResourceNotFoundException.class);
+    assertThat(series.getRruleEndsAt()).isNull();
+    verify(taskRepository, never()).save(any());
+    verifyNoInteractions(taskOccurrenceStateRepository);
+  }
 
-    assertThat(result.task().getScheduledAt()).isEqualTo(movedStart);
+  @Test
+  void stoppingCannotExtendAnExistingEnd() {
+    UUID id = randomId();
+    Task series = buildRecurringTask(id);
+    Instant end = Instant.parse("2026-05-20T09:59:59Z");
+    series.setRruleEndsAt(end);
+    when(taskRepository.findById(id)).thenReturn(Optional.of(series));
+
+    assertThatThrownBy(
+            () ->
+                recurringTaskSeriesService.truncateSeriesFrom(
+                    id, Instant.parse("2026-05-21T10:00:00Z")))
+        .isInstanceOf(com.taska.exception.ResourceNotFoundException.class);
+    assertThat(series.getRruleEndsAt()).isEqualTo(end);
+    verify(taskRepository, never()).save(any());
+  }
+
+  @Test
+  void stoppingAtFirstOccurrenceProducesNoFutureOccurrences() {
+    UUID id = randomId();
+    Task series = buildRecurringTask(id);
+    when(taskRepository.findById(id)).thenReturn(Optional.of(series));
+
+    recurringTaskSeriesService.truncateSeriesFrom(id, series.getScheduledAt());
+
+    assertThat(
+            new TaskRecurrenceService()
+                .getOccurrencesInRange(
+                    series, series.getScheduledAt(), series.getScheduledAt().plusSeconds(86400)))
+        .isEmpty();
   }
 }

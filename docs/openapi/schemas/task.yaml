@@ -1,5 +1,5 @@
 TaskUpdateRequest:
-  description: "Complete task update payload."
+  description: "Complete task update payload. For an existing series, recurrenceRule, scheduledAt, allDay and isRecurring must remain unchanged; common properties remain editable."
   type: "object"
   additionalProperties: false
   allOf:
@@ -93,17 +93,7 @@ TaskUpdateRequest:
     - "recurrenceRule"
     - "scheduledAt"
     - "type"
-FollowingTaskUpdateRequest:
-  description: "Complete recurring-series replacement used when splitting from one occurrence."
-  allOf:
-    - "$ref": "#/TaskUpdateRequest"
-    - type: "object"
-      properties:
-        isRecurring:
-          type: "boolean"
-          const: true
-        dueAt:
-          type: "null"
+
 TaskDto:
   description: "Discriminated task resource or recurring-occurrence representation."
   oneOf:
@@ -283,30 +273,16 @@ RecurringTaskOccurrenceDto:
         - "isDetached"
         - "dueAt"
 OccurrenceUpdateRequest:
-  description: "Changes applied to one recurring task occurrence."
+  description: "Schedule-only occurrence replacement; historical title, priority and deadline overrides are read-only."
   type: "object"
   additionalProperties: false
   properties:
-    title:
-      description: "Required replacement title for this recurring occurrence; must not be blank."
-      type: "string"
-      minLength: 1
-    priority:
-      description: "Optional replacement urgency level from 1 (urgent) through 4 (normal)."
-      type: ["integer", "null"]
-      format: "int32"
-      maximum: 4
-      minimum: 1
     scheduledAt:
-      description: "Optional replacement schedule time in UTC for this occurrence."
-      type: ["string", "null"]
-      format: "date-time"
-    dueAt:
-      description: "Optional replacement deadline in UTC for this occurrence."
+      description: "Effective schedule in UTC; explicit null restores occurrenceScheduledAt, including for detached occurrences."
       type: ["string", "null"]
       format: "date-time"
   required:
-    - "title"
+    - "scheduledAt"
 TaskCreateRequest:
   description: "Payload used to create a task."
   type: "object"

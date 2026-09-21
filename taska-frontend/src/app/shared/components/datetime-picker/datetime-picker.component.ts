@@ -110,7 +110,7 @@ function todayIso(): string {
             <app-icon name="clock" [size]="12" color="var(--mute)" />
             <span class="mono" style="font-size:11px;color:var(--mute);">heure</span>
           </div>
-          @if (selectedTime()) {
+          @if (selectedTime() && !timeRequired()) {
             <button
               class="btn btn-ghost"
               style="font-size:11px;padding:2px 8px;"
@@ -129,7 +129,9 @@ function todayIso(): string {
                          background:var(--bg);color:var(--ink);font-size:13px;font-family:monospace;
                          outline:none;cursor:pointer;appearance:auto;"
           >
-            <option value="">--</option>
+            @if (!timeRequired()) {
+              <option value="">--</option>
+            }
             @for (h of HOURS; track h) {
               <option [value]="h">{{ h }}</option>
             }
@@ -142,7 +144,9 @@ function todayIso(): string {
                          background:var(--bg);color:var(--ink);font-size:13px;font-family:monospace;
                          outline:none;cursor:pointer;appearance:auto;"
           >
-            <option value="">--</option>
+            @if (!timeRequired()) {
+              <option value="">--</option>
+            }
             @for (m of MINUTES; track m) {
               <option [value]="m">{{ m }}</option>
             }
@@ -155,6 +159,7 @@ function todayIso(): string {
 export class DatetimePickerComponent {
   value = input<string>('');
   withTime = input<boolean>(false);
+  timeRequired = input<boolean>(false);
   valueChange = output<string>();
 
   calYear = signal(new Date().getFullYear());
@@ -296,6 +301,7 @@ export class DatetimePickerComponent {
   }
 
   clearTime(): void {
+    if (this.timeRequired()) return;
     const date = this.selectedDate();
     if (date) this.valueChange.emit(date);
   }

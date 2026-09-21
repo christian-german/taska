@@ -131,18 +131,6 @@ public class TaskController {
         taskMutationService.replace(taskId, taskUpdateParameters, jwt.getSubject()));
   }
 
-  @PutMapping("/{taskId}/occurrences/{occurrenceScheduledAt}/following")
-  public TaskDto replaceFollowing(
-      @PathVariable UUID taskId,
-      @PathVariable java.time.Instant occurrenceScheduledAt,
-      @Valid @RequestBody TaskUpdateRequest taskUpdateRequest,
-      @AuthenticationPrincipal Jwt jwt) {
-    TaskUpdateParameters taskUpdateParameters = taskMapper.toParameters(taskUpdateRequest);
-    return taskMapper.toDto(
-        taskMutationService.replaceFollowing(
-            taskId, occurrenceScheduledAt, taskUpdateParameters, jwt.getSubject()));
-  }
-
   @PutMapping("/{taskId}/occurrences/{occurrenceScheduledAt}")
   public TaskDto replaceOccurrence(
       @PathVariable UUID taskId,

@@ -91,49 +91,26 @@ export class TaskService {
     },
   ): Observable<Task> {
     const { scope, occurrenceScheduledAt, ...changes } = patch;
-    const currentTask$ =
-      scope === 'THIS_ONLY' && occurrenceScheduledAt
-        ? this.getOccurrence(taskId, occurrenceScheduledAt)
-        : this.getTask(taskId);
-    return currentTask$.pipe(
-      switchMap((task) => {
-        if (scope && !occurrenceScheduledAt) {
-          return throwError(() => new Error('A recurring update requires an occurrence identity'));
-        }
-        if (scope === 'THIS_ONLY') {
-          const unsupported = Object.keys(changes).filter(
-            (key) => !['content', 'priority', 'scheduledAt', 'dueAt'].includes(key),
-          );
-          if (unsupported.length) {
-            return throwError(
-              () => new Error(`Unsupported single-occurrence fields: ${unsupported.join(', ')}`),
-            );
-          }
-          return this.http.put<Task>(
-            `${this.base}/${taskId}/occurrences/${encodeURIComponent(occurrenceScheduledAt!)}`,
-            {
-              title: 'content' in changes ? changes.content : task.content,
-              priority: 'priority' in changes ? changes.priority : task.priority,
-              scheduledAt: 'scheduledAt' in changes ? changes.scheduledAt : task.scheduledAt,
-              dueAt:
-                'dueAt' in changes
-                  ? changes.dueAt
-                  : task.kind === 'RECURRING_OCCURRENCE'
-                    ? task.dueAt
-                    : null,
-            },
-          );
-        }
-        // A following-occurrences replacement always creates another recurring series.
-        const replacementChanges =
-          scope === 'FROM_THIS' ? { ...changes, isRecurring: true } : changes;
-        const request = this.toUpdateRequest(task, replacementChanges);
-        const url =
-          scope === 'FROM_THIS'
-            ? `${this.base}/${taskId}/occurrences/${encodeURIComponent(occurrenceScheduledAt!)}/following`
-            : `${this.base}/${taskId}`;
-        return this.http.put<Task>(url, request);
-      }),
+    if (scope === 'FROM_THIS') {
+      return throwError(() => new Error('Following-series edits are no longer supported'));
+    }
+    if (scope === 'THIS_ONLY') {
+      if (
+        !occurrenceScheduledAt ||
+        !('scheduledAt' in changes) ||
+        Object.keys(changes).some((key) => key !== 'scheduledAt')
+      ) {
+        return throwError(() => new Error('Only the occurrence schedule can be changed'));
+      }
+      return this.http.put<Task>(
+        `${this.base}/${taskId}/occurrences/${encodeURIComponent(occurrenceScheduledAt)}`,
+        { scheduledAt: changes.scheduledAt ?? null },
+      );
+    }
+    return this.getTask(taskId).pipe(
+      switchMap((task) =>
+        this.http.put<Task>(`${this.base}/${taskId}`, this.toUpdateRequest(task, changes)),
+      ),
     );
   }
 

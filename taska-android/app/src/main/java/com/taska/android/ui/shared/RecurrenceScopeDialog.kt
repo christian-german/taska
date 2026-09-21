@@ -16,15 +16,15 @@ fun RecurrenceScopeDialog(
   AlertDialog(
     onDismissRequest = onDismiss,
     title = { Text(text = title) },
-    text = { Text(text = "Appliquer à :") },
+    text = { Text(text = "Choisir une action :") },
     confirmButton = {
       TextButton(onClick = onFromThis) {
-        Text("Cette occurrence et les suivantes", color = Color(0xFF1A1A1A))
+        Text("Arrêter la série à partir d’ici", color = Color(0xFF1A1A1A))
       }
     },
     dismissButton = {
       TextButton(onClick = onThisOnly) {
-        Text("Cette occurrence seulement", color = Color(0xFF1A1A1A))
+        Text("Supprimer cette occurrence", color = Color(0xFF1A1A1A))
       }
     },
   )

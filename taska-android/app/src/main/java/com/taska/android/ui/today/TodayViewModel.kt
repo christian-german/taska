@@ -139,7 +139,9 @@ class TodayViewModel(
   }
 
   fun requestDeleteTask(task: TaskDto) {
-    if (task.kind == TaskRepresentationKind.RECURRING_OCCURRENCE) {
+    if (task.kind == TaskRepresentationKind.RECURRING_OCCURRENCE && task.isDetached) {
+      confirmDeleteTask(task, RecurrenceScope.THIS_ONLY)
+    } else if (task.kind == TaskRepresentationKind.RECURRING_OCCURRENCE) {
       _uiState.update { it.copy(pendingDeleteTask = task) }
     } else {
       confirmDeleteTask(task, scope = null)

@@ -10,7 +10,7 @@ import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
-/** Complete mutable representation used to replace a base task or following recurrence series. */
+/** Complete mutable representation used to replace a base task or recurring-series definition. */
 public record TaskUpdateRequest(
     @JsonProperty(required = true) @NotBlank String content,
     @JsonProperty(required = true) @NotNull TaskType type,

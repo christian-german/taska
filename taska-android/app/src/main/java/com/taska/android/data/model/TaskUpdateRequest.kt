@@ -18,12 +18,7 @@ data class TaskUpdateRequest(
   val recurrenceRule: String?,
 )
 
-data class OccurrenceUpdateRequest(
-  val title: String,
-  val priority: Int?,
-  val scheduledAt: String?,
-  val dueAt: String?,
-)
+data class OccurrenceUpdateRequest(val scheduledAt: String?)
 
 fun TaskDto.toTaskUpdateRequest() =
   TaskUpdateRequest(

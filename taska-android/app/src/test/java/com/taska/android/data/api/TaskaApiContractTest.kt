@@ -35,16 +35,11 @@ class TaskaApiContractTest {
 
   @Test
   fun occurrenceAndDeletePathsMatchBackendTemplates() {
-    val followingMethod =
-      TaskaApi::class.java.declaredMethods.single { it.name == "updateFollowingTask" }
+    assertTrue(TaskaApi::class.java.declaredMethods.none { it.name == "updateFollowingTask" })
     val occurrenceMethod =
       TaskaApi::class.java.declaredMethods.single { it.name == "updateOccurrence" }
     val deleteMethod = TaskaApi::class.java.declaredMethods.single { it.name == "deleteTask" }
 
-    assertEquals(
-      "/tasks/{taskId}/occurrences/{occurrenceScheduledAt}/following",
-      requireNotNull(followingMethod.getAnnotation(PUT::class.java)).value,
-    )
     assertEquals(
       "/tasks/{taskId}/occurrences/{occurrenceScheduledAt}",
       requireNotNull(occurrenceMethod.getAnnotation(PUT::class.java)).value,
@@ -54,13 +49,13 @@ class TaskaApiContractTest {
       requireNotNull(deleteMethod.getAnnotation(HTTP::class.java)).path,
     )
     assertTrue(
-      followingMethod.parameterAnnotations
+      occurrenceMethod.parameterAnnotations
         .flatMap { annotations -> annotations.filterIsInstance<Path>() }
         .map(Path::value)
         .contains("taskId")
     )
     assertTrue(
-      followingMethod.parameterAnnotations
+      occurrenceMethod.parameterAnnotations
         .flatMap { annotations -> annotations.filterIsInstance<Path>() }
         .map(Path::value)
         .contains("occurrenceScheduledAt")

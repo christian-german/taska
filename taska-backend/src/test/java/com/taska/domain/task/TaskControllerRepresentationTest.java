@@ -143,7 +143,7 @@ class TaskControllerRepresentationTest {
         taskController.replaceOccurrence(
             task.getId(),
             OCCURRENCE,
-            new com.taska.domain.task.controller.OccurrenceUpdateRequest("Moved", null, null, null),
+            new com.taska.domain.task.controller.OccurrenceUpdateRequest(null),
             jwt());
 
     assertThat(taskDto.kind()).isEqualTo(TaskRepresentationKind.RECURRING_OCCURRENCE);

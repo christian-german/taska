@@ -25,4 +25,19 @@ describe('DatetimePickerComponent time clearing', () => {
       fixture.nativeElement.querySelector('[aria-label="Effacer uniquement l\'heure planifiée"]'),
     ).not.toBeNull();
   });
+
+  it('keeps the time when an occurrence requires its inherited timed classification', () => {
+    fixture.componentRef.setInput('timeRequired', true);
+    fixture.detectChanges();
+    const emitted: string[] = [];
+    fixture.componentInstance.valueChange.subscribe((value) => emitted.push(value));
+
+    fixture.componentInstance.clearTime();
+    fixture.componentInstance.onHourChange('');
+    fixture.componentInstance.onMinuteChange('');
+
+    expect(emitted).toEqual([]);
+    expect(fixture.nativeElement.querySelector('button[aria-label]')).toBeNull();
+    expect(fixture.nativeElement.querySelector('option[value=""]')).toBeNull();
+  });
 });

@@ -51,9 +51,8 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.taska.android.data.model.ProjectDto
-import com.taska.android.data.model.RecurrenceScope
 import com.taska.android.data.model.TaskDto
-import com.taska.android.ui.shared.RecurrenceScopeDialog
+import com.taska.android.data.model.TaskRepresentationKind
 import com.taska.android.ui.shared.isAppointmentTask
 import com.taska.android.ui.shared.taskTypeAccessibilityLabel
 import java.text.SimpleDateFormat
@@ -174,15 +173,6 @@ fun WeekScreen(
         }
       }
     }
-  }
-
-  uiState.pendingReschedule?.let {
-    RecurrenceScopeDialog(
-      title = "Déplacer la récurrence",
-      onThisOnly = { viewModel.confirmRescheduleTask(RecurrenceScope.THIS_ONLY) },
-      onFromThis = { viewModel.confirmRescheduleTask(RecurrenceScope.FROM_THIS) },
-      onDismiss = { viewModel.dismissRescheduleScope() },
-    )
   }
 }
 
@@ -429,6 +419,8 @@ private fun DayColumn(
                       blockId = block.task.id,
                       mode =
                         when {
+                          block.task.kind == TaskRepresentationKind.RECURRING_OCCURRENCE ->
+                            DragMode.MOVE
                           startOffset.y < zoneH -> DragMode.TOP
                           startOffset.y > size.height - zoneH -> DragMode.BOTTOM
                           else -> DragMode.MOVE
@@ -477,10 +469,12 @@ private fun DayColumn(
             }
       ) {
         // Top resize zone indicator
-        Box(
-          modifier =
-            Modifier.fillMaxWidth().height(3.dp).background(Color.White.copy(alpha = 0.35f))
-        )
+        if (block.task.kind != TaskRepresentationKind.RECURRING_OCCURRENCE) {
+          Box(
+            modifier =
+              Modifier.fillMaxWidth().height(3.dp).background(Color.White.copy(alpha = 0.35f))
+          )
+        }
 
         // Task content
         Text(
@@ -507,13 +501,15 @@ private fun DayColumn(
         }
 
         // Bottom resize zone indicator
-        Box(
-          modifier =
-            Modifier.align(Alignment.BottomCenter)
-              .fillMaxWidth()
-              .height(3.dp)
-              .background(Color.White.copy(alpha = 0.35f))
-        )
+        if (block.task.kind != TaskRepresentationKind.RECURRING_OCCURRENCE) {
+          Box(
+            modifier =
+              Modifier.align(Alignment.BottomCenter)
+                .fillMaxWidth()
+                .height(3.dp)
+                .background(Color.White.copy(alpha = 0.35f))
+          )
+        }
       }
     }
   }

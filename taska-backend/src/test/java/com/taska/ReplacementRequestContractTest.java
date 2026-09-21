@@ -6,6 +6,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import com.taska.domain.comment.controller.CommentUpdateRequest;
 import com.taska.domain.planningcalendar.controller.PlanningCalendarUpdateRequest;
 import com.taska.domain.project.controller.ProjectUpdateRequest;
+import com.taska.domain.task.controller.OccurrenceUpdateRequest;
 import org.junit.jupiter.api.Test;
 import tools.jackson.databind.DeserializationFeature;
 import tools.jackson.databind.exc.MismatchedInputException;
@@ -64,5 +65,28 @@ class ReplacementRequestContractTest {
                 jsonMapper.readValue(
                     "{\"content\":\"Updated\",\"unexpected\":true}", CommentUpdateRequest.class))
         .isInstanceOf(UnrecognizedPropertyException.class);
+  }
+
+  @Test
+  void occurrenceReschedulingRequiresScheduleButAcceptsNullToRestoreOriginalDate() {
+    assertThatThrownBy(() -> jsonMapper.readValue("{}", OccurrenceUpdateRequest.class))
+        .isInstanceOf(MismatchedInputException.class);
+    assertThat(
+            jsonMapper
+                .readValue("{\"scheduledAt\":null}", OccurrenceUpdateRequest.class)
+                .scheduledAt())
+        .isNull();
+  }
+
+  @Test
+  void occurrenceReschedulingRejectsHistoricalOverrideFields() {
+    for (String field : new String[] {"content", "priority", "dueAt"}) {
+      assertThatThrownBy(
+              () ->
+                  jsonMapper.readValue(
+                      "{\"scheduledAt\":null,\"" + field + "\":null}",
+                      OccurrenceUpdateRequest.class))
+          .isInstanceOf(UnrecognizedPropertyException.class);
+    }
   }
 }

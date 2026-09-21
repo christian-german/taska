@@ -13,8 +13,15 @@ import org.springframework.data.repository.query.Param;
 /** Repository for sparse {@link TaskOccurrenceState} attached to recurring task occurrences. */
 public interface TaskOccurrenceStateRepository extends JpaRepository<TaskOccurrenceState, UUID> {
 
-  /** Returns whether the recurring series has any persisted occurrence state. */
-  boolean existsBySeriesId(UUID seriesId);
+  /** Attached moved occurrences, including completed ones, selected by effective schedule. */
+  @Query(
+      """
+      SELECT state FROM TaskOccurrenceState state
+      WHERE state.detached = false AND state.status <> com.taska.domain.task.occurrence.TaskOccurrenceStatus.SKIPPED
+      AND state.scheduledAt >= :periodStart AND state.scheduledAt < :periodEnd
+      """)
+  List<TaskOccurrenceState> findMovedInPeriod(
+      @Param("periodStart") Instant periodStart, @Param("periodEnd") Instant periodEnd);
 
   /**
    * Returns all persisted states for the given recurring series whose {@code occurrenceScheduledAt}
@@ -36,15 +43,6 @@ public interface TaskOccurrenceStateRepository extends JpaRepository<TaskOccurre
    * recurring occurrence to restore it to its virtual (open) state.
    */
   void deleteBySeriesIdAndOccurrenceScheduledAt(UUID seriesId, Instant occurrenceScheduledAt);
-
-  /**
-   * Returns all MODIFIED states for the given series whose {@code scheduledAt} falls within [{@code
-   * from}, {@code to}]. Used to surface occurrences that were rescheduled into the queried period
-   * from a different day. This is the occurrence's planned-time override, not its {@code
-   * occurrenceScheduledAt} identity.
-   */
-  List<TaskOccurrenceState> findBySeriesIdInAndStatusAndScheduledAtBetween(
-      Collection<UUID> seriesIds, TaskOccurrenceStatus status, Instant from, Instant to);
 
   /**
    * Returns all states with the requested status whose effective schedule falls within the given

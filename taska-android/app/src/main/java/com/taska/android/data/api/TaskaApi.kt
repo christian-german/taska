@@ -46,13 +46,6 @@ interface TaskaApi {
   @PUT("/tasks/{taskId}")
   suspend fun updateTask(@Path("taskId") taskId: String, @Body request: TaskUpdateRequest): TaskDto
 
-  @PUT("/tasks/{taskId}/occurrences/{occurrenceScheduledAt}/following")
-  suspend fun updateFollowingTask(
-    @Path("taskId") taskId: String,
-    @Path("occurrenceScheduledAt") occurrenceScheduledAt: String,
-    @Body request: TaskUpdateRequest,
-  ): TaskDto
-
   @PUT("/tasks/{taskId}/occurrences/{occurrenceScheduledAt}")
   suspend fun updateOccurrence(
     @Path("taskId") taskId: String,

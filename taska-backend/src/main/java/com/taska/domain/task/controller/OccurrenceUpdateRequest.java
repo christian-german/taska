@@ -1,10 +1,7 @@
 package com.taska.domain.task.controller;
 
-import jakarta.validation.constraints.Max;
-import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotBlank;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.time.Instant;
 
-/** Mutable fields that a persisted recurring occurrence can override independently. */
-public record OccurrenceUpdateRequest(
-    @NotBlank String title, @Min(1) @Max(4) Integer priority, Instant scheduledAt, Instant dueAt) {}
+/** New occurrence schedule; null restores the original occurrence date. */
+public record OccurrenceUpdateRequest(@JsonProperty(required = true) Instant scheduledAt) {}

@@ -70,7 +70,7 @@ class TaskDetailViewModelTest {
   }
 
   @Test
-  fun `recurring occurrence clear uses selected recurrence scope`() = runTest {
+  fun `recurring occurrence reset directly targets its stable identity`() = runTest {
     val occurrence = "2026-08-24T09:00:00Z"
     val original = task(isRecurring = true, occurrenceScheduledAt = occurrence)
     prepareLoad(original)
@@ -81,33 +81,52 @@ class TaskDetailViewModelTest {
 
     viewModel.clearDue()
     coVerify(exactly = 0) { taskRepo.updateTask(any(), any()) }
-    viewModel.confirmReschedule(RecurrenceScope.THIS_ONLY)
 
     assertNull(request.captured.scheduledAt)
     assertEquals(occurrence, original.occurrenceScheduledAt)
   }
 
   @Test
-  fun `following-series clear sends a complete request to the following endpoint`() = runTest {
-    val occurrence = "2026-08-24T09:00:00Z"
-    val original = task(isRecurring = true, occurrenceScheduledAt = occurrence)
+  fun `series generator controls cannot mutate the series`() = runTest {
+    val original = task(isRecurring = true)
+    prepareLoad(original)
+    val viewModel = viewModel()
+    viewModel.clearDue()
+    viewModel.updateRecurrence("FREQ=WEEKLY")
+    advanceUntilIdle()
+    assertEquals(original, viewModel.uiState.value.task)
+    coVerify(exactly = 0) { taskRepo.updateTask(any(), any()) }
+  }
+
+  @Test
+  fun `series common fields remain editable without changing its generator`() = runTest {
+    val original = task(isRecurring = true)
     prepareLoad(original)
     val request = slot<TaskUpdateRequest>()
-    coEvery { taskRepo.updateFollowingTask("task-1", occurrence, capture(request)) } returns
-      original.copy(scheduledAt = null)
-    val viewModel = viewModel(occurrence)
+    coEvery { taskRepo.updateTask("task-1", capture(request)) } returns original
+    val viewModel = viewModel()
 
-    viewModel.clearDue()
-    viewModel.confirmReschedule(RecurrenceScope.FROM_THIS)
+    viewModel.updateContent("New series title")
     advanceUntilIdle()
 
-    assertNull(request.captured.scheduledAt)
-    assertEquals(original.dueAt, request.captured.dueAt)
-    assertEquals(original.content, request.captured.content)
+    assertEquals("New series title", request.captured.content)
+    assertEquals(original.scheduledAt, request.captured.scheduledAt)
     assertEquals(original.recurrenceRule, request.captured.recurrenceRule)
-    assertEquals(original.mentionContext, request.captured.mentionContext)
-    coVerify(exactly = 0) { taskRepo.updateTask(any(), any()) }
-    coVerify(exactly = 0) { taskRepo.updateOccurrence(any(), any(), any()) }
+    assertEquals(original.allDay, request.captured.allDay)
+  }
+
+  @Test
+  fun `converting a scheduled task to a series removes its absolute deadline`() = runTest {
+    prepareLoad(task())
+    val request = slot<TaskUpdateRequest>()
+    coEvery { taskRepo.updateTask("task-1", capture(request)) } returns task(isRecurring = true)
+    val viewModel = viewModel()
+
+    viewModel.updateRecurrence("FREQ=WEEKLY")
+    advanceUntilIdle()
+
+    assertEquals(true, request.captured.isRecurring)
+    assertNull(request.captured.dueAt)
   }
 
   @Test
@@ -203,14 +222,12 @@ class TaskDetailViewModelTest {
       viewModel.requestRescheduleAllDay(1_788_134_400_000)
       advanceUntilIdle()
 
-      assertNull(viewModel.uiState.value.pendingReschedule)
       assertNotNull(request.captured.scheduledAt)
       coVerify(exactly = 0) { taskRepo.updateTask(any(), any()) }
-      coVerify(exactly = 0) { taskRepo.updateFollowingTask(any(), any(), any()) }
     }
 
   @Test
-  fun `detached occurrence supports occurrence fields and rejects series fields`() = runTest {
+  fun `detached occurrence historical fields cannot be edited`() = runTest {
     val occurrence = "2026-08-24T09:00:00Z"
     val detached = task(isRecurring = true, occurrenceScheduledAt = occurrence, isDetached = true)
     prepareLoad(detached)
@@ -222,8 +239,8 @@ class TaskDetailViewModelTest {
     viewModel.updateProject("another-project")
     advanceUntilIdle()
 
-    assertEquals("Updated", viewModel.uiState.value.task?.content)
-    coVerify(exactly = 1) { taskRepo.updateOccurrence("task-1", occurrence, any()) }
+    assertEquals(detached.content, viewModel.uiState.value.task?.content)
+    coVerify(exactly = 0) { taskRepo.updateOccurrence("task-1", occurrence, any()) }
     coVerify(exactly = 0) { taskRepo.updateTask(any(), any()) }
   }
 
@@ -236,7 +253,7 @@ class TaskDetailViewModelTest {
     val viewModel = viewModel(occurrence)
     var deleted = false
 
-    viewModel.deleteTask { deleted = true }
+    viewModel.deleteTask(onDeleted = { deleted = true })
     advanceUntilIdle()
 
     assertFalse(viewModel.uiState.value.isLoading)
@@ -246,7 +263,7 @@ class TaskDetailViewModelTest {
   }
 
   @Test
-  fun `rejected recurrence edit keeps task visible and exposes the server error`() = runTest {
+  fun `locked recurrence edit never sends a request`() = runTest {
     val original = task(isRecurring = true)
     val serverDetail =
       "A recurring series with occurrence state must be changed from an explicit occurrence"
@@ -259,7 +276,7 @@ class TaskDetailViewModelTest {
     advanceUntilIdle()
 
     assertEquals(original, viewModel.uiState.value.task)
-    assertEquals(serverDetail, viewModel.uiState.value.mutationError)
+    assertNull(viewModel.uiState.value.mutationError)
     assertNull(viewModel.uiState.value.error)
   }
 

@@ -266,19 +266,17 @@ export class TaskRowComponent {
 
   startEdit(e: Event): void {
     e.stopPropagation();
+    if (this.task().kind === 'RECURRING_OCCURRENCE') return;
     this.draft.set(this.task().content);
     this.editing.set(true);
   }
 
   commitEdit(): void {
+    if (this.task().kind === 'RECURRING_OCCURRENCE') return;
     const next = this.draft().trim();
     if (next && next !== this.task().content) {
       const task = this.task();
-      const occurrenceTarget =
-        task.kind === 'RECURRING_OCCURRENCE' && task.isDetached
-          ? { scope: 'THIS_ONLY' as const, occurrenceScheduledAt: task.occurrenceScheduledAt }
-          : {};
-      this.updated.emit({ id: task.id, patch: { content: next, ...occurrenceTarget } });
+      this.updated.emit({ id: task.id, patch: { content: next } });
     }
     this.editing.set(false);
   }

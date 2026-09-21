@@ -29,8 +29,6 @@ paths:
     "$ref": "./paths/tasks.yaml#/~1tasks~1{taskId}"
   "/tasks/{taskId}/occurrences/{occurrenceScheduledAt}":
     "$ref": "./paths/tasks.yaml#/~1tasks~1{taskId}~1occurrences~1{occurrenceScheduledAt}"
-  "/tasks/{taskId}/occurrences/{occurrenceScheduledAt}/following":
-    "$ref": "./paths/tasks.yaml#/~1tasks~1{taskId}~1occurrences~1{occurrenceScheduledAt}~1following"
   "/projects/{projectId}":
     "$ref": "./paths/projects.yaml#/~1projects~1{projectId}"
   "/planning-calendars/{planningCalendarId}":
@@ -72,8 +70,6 @@ components:
   schemas:
     TaskUpdateRequest:
       "$ref": "./schemas/task.yaml#/TaskUpdateRequest"
-    FollowingTaskUpdateRequest:
-      "$ref": "./schemas/task.yaml#/FollowingTaskUpdateRequest"
     TaskDto:
       "$ref": "./schemas/task.yaml#/TaskDto"
     TaskResourceDto:

@@ -72,7 +72,7 @@ public class TaskMcpTools {
   @McpTool(
       name = "update_task",
       description =
-          "Update fields on a Taska task. For recurring task occurrences, provide scope and occurrenceScheduledAt. Set clearPriority to true to remove a manual priority.",
+          "Update task fields. Existing series schedules and recurrence rules are immutable. To move one occurrence, provide scope THIS_ONLY, occurrenceScheduledAt and scheduledAt only. FROM_THIS edits are not supported. Set clearPriority to true for a base task's manual priority.",
       generateOutputSchema = true)
   public McpSchema.CallToolResult updateTask(
       @McpToolParam(description = "Task UUID.") UUID taskId,
@@ -249,7 +249,9 @@ public class TaskMcpTools {
       @McpToolParam(required = false, description = "Context captured from an @-mention.")
           String mentionContext,
       @McpToolParam(required = false, description = "Recurrence rule.") String recurrenceRule,
-      @McpToolParam(required = false, description = "Scope for a recurring occurrence update.")
+      @McpToolParam(
+              required = false,
+              description = "THIS_ONLY to move one occurrence; FROM_THIS edits are not supported.")
           RecurrenceScope scope,
       @McpToolParam(
               required = false,

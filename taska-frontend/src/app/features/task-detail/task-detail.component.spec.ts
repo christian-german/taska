@@ -125,17 +125,15 @@ describe('TaskDetailComponent schedule removal', () => {
     expect(component.task().scheduledAt).toBe('2026-08-24T09:00:00Z');
   });
 
-  it('retains recurrence targeting for complete removal', () => {
+  it('resets only the occurrence schedule without asking for a scope', () => {
     fixture.componentRef.setInput('task', occurrenceTask());
     fixture.detectChanges();
 
     component.clearDate(new Event('click'));
-    component.onModifyScope('FROM_THIS');
 
     expect(updateTask).toHaveBeenCalledWith('task-1', {
       scheduledAt: null,
-      allDay: false,
-      scope: 'FROM_THIS',
+      scope: 'THIS_ONLY',
       occurrenceScheduledAt: '2026-08-24T09:00:00Z',
     });
   });
@@ -147,10 +145,8 @@ describe('TaskDetailComponent schedule removal', () => {
     component.clearDate(new Event('click'));
 
     expect(fixture.nativeElement.textContent).toContain('Hors série');
-    expect(component.showModifyScopeDialog()).toBe(false);
     expect(updateTask).toHaveBeenCalledWith('task-1', {
       scheduledAt: null,
-      allDay: false,
       scope: 'THIS_ONLY',
       occurrenceScheduledAt: '2026-08-24T09:00:00Z',
     });
@@ -177,5 +173,26 @@ describe('TaskDetailComponent schedule removal', () => {
       fixture.nativeElement.querySelector('textarea[placeholder="Ajouter des notes…"]').readOnly,
     ).toBe(true);
     expect(fixture.nativeElement.querySelectorAll('button:disabled').length).toBeGreaterThan(0);
+  });
+  it('keeps occurrence title, priority and deadline read-only', () => {
+    fixture.componentRef.setInput('task', occurrenceTask());
+    fixture.detectChanges();
+    component.editedContent.set('Forbidden');
+    component.saveContent();
+    component.setPriority(1);
+    component.onDueDateChange('2026-09-10');
+    expect(updateTask).not.toHaveBeenCalled();
+    expect(fixture.nativeElement.querySelector('input').readOnly).toBe(true);
+  });
+
+  it('keeps series common properties editable but locks the starting date', () => {
+    fixture.componentRef.setInput('task', recurringSeries());
+    fixture.detectChanges();
+    component.clearDate(new Event('click'));
+    component.selectRecurrence('weekly', new Event('click'));
+    expect(updateTask).not.toHaveBeenCalled();
+    component.editedContent.set('New series title');
+    component.saveContent();
+    expect(updateTask).toHaveBeenCalledWith('task-1', { content: 'New series title' });
   });
 });

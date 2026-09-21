@@ -269,6 +269,12 @@ public class TaskDefinitionService {
             ? taskPatchParameters.scheduledAt()
             : task.getScheduledAt();
     TaskDefinitionRules.assertScheduledAtRequired(recurring, patchedScheduledAt);
+    TaskDefinitionRules.assertGeneratorUnchanged(
+        task,
+        recurring,
+        patchedScheduledAt,
+        patchedRecurrenceRule,
+        taskPatchParameters.allDay() != null ? taskPatchParameters.allDay() : task.isAllDay());
     if (taskPatchParameters.content() != null) {
       task.setContent(taskPatchParameters.content());
     }
@@ -333,13 +339,16 @@ public class TaskDefinitionService {
   /**
    * Applies the authoritative complete-replacement mapping to a task definition.
    *
-   * <p>The recurring-series service uses this operation to preserve exactly the same field and
-   * planning-calendar rules as base task replacement.
-   *
    * @param task task definition to mutate
    * @param taskUpdateParameters complete replacement values
    */
-  public void replaceMutableFields(Task task, TaskUpdateParameters taskUpdateParameters) {
+  private void replaceMutableFields(Task task, TaskUpdateParameters taskUpdateParameters) {
+    TaskDefinitionRules.assertGeneratorUnchanged(
+        task,
+        taskUpdateParameters.recurring(),
+        taskUpdateParameters.scheduledAt(),
+        taskUpdateParameters.recurrenceRule(),
+        taskUpdateParameters.allDay());
     TaskDefinitionRules.assertDueAtAllowed(
         taskUpdateParameters.recurring(), taskUpdateParameters.dueAt());
     String replacementRecurrenceRule =

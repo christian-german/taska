@@ -201,7 +201,7 @@ fun TaskDetailScreen(
         }
       }
 
-      if (task != null) {
+      if (task != null && task.kind != TaskRepresentationKind.RECURRING_SERIES) {
         BottomBar(
           onReporter = {
             focusManager.clearFocus()
@@ -225,9 +225,18 @@ fun TaskDetailScreen(
     ActivePicker.DATE ->
       DateShortcutsDialog(
         hasDue = task?.scheduledAt != null,
+        clearLabel =
+          if (task?.kind == TaskRepresentationKind.RECURRING_OCCURRENCE)
+            "Revenir à la date d’origine"
+          else "Supprimer la planification",
         onSelect = { millis ->
-          pendingDateMillis = millis
-          activePicker = ActivePicker.TIME
+          if (task?.kind == TaskRepresentationKind.RECURRING_OCCURRENCE && task.allDay) {
+            viewModel.requestRescheduleAllDay(millis)
+            activePicker = null
+          } else {
+            pendingDateMillis = millis
+            activePicker = ActivePicker.TIME
+          }
         },
         onOpenCalendar = { activePicker = ActivePicker.CALENDAR },
         onClear = {
@@ -255,8 +264,15 @@ fun TaskDetailScreen(
         confirmButton = {
           TextButton(
             onClick = {
-              datePickerState.selectedDateMillis?.let { pendingDateMillis = it }
-              activePicker = ActivePicker.TIME
+              datePickerState.selectedDateMillis?.let { millis ->
+                if (task?.kind == TaskRepresentationKind.RECURRING_OCCURRENCE && task.allDay) {
+                  viewModel.requestRescheduleAllDay(millis)
+                  activePicker = null
+                } else {
+                  pendingDateMillis = millis
+                  activePicker = ActivePicker.TIME
+                }
+              }
             }
           ) {
             Text("OK")
@@ -307,6 +323,7 @@ fun TaskDetailScreen(
         )
       val dateMillis = pendingDateMillis ?: viewModel.scheduledAtToMillis()
       TimePickerDialog(
+        allowAllDay = task?.kind != TaskRepresentationKind.RECURRING_OCCURRENCE,
         onConfirm = {
           viewModel.requestRescheduleWithTime(dateMillis, timeState.hour, timeState.minute)
           activePicker = null
@@ -371,22 +388,20 @@ fun TaskDetailScreen(
   }
 
   if (showDeleteConfirm) {
-    DeleteConfirmDialog(
-      onConfirm = { viewModel.deleteTask(onClose) },
-      onDismiss = { showDeleteConfirm = false },
-    )
-  }
-
-  state.pendingReschedule
-    ?.takeUnless { task?.isDetached == true }
-    ?.let {
+    if (task?.kind == TaskRepresentationKind.RECURRING_OCCURRENCE && !task.isDetached) {
       RecurrenceScopeDialog(
-        title = "Modifier la planification",
-        onThisOnly = { viewModel.confirmReschedule(RecurrenceScope.THIS_ONLY) },
-        onFromThis = { viewModel.confirmReschedule(RecurrenceScope.FROM_THIS) },
-        onDismiss = { viewModel.dismissRescheduleScope() },
+        title = "Supprimer l’occurrence ou arrêter la série",
+        onThisOnly = { viewModel.deleteTask(onClose, RecurrenceScope.THIS_ONLY) },
+        onFromThis = { viewModel.deleteTask(onClose, RecurrenceScope.FROM_THIS) },
+        onDismiss = { showDeleteConfirm = false },
+      )
+    } else {
+      DeleteConfirmDialog(
+        onConfirm = { viewModel.deleteTask(onClose) },
+        onDismiss = { showDeleteConfirm = false },
       )
     }
+  }
 }
 
 @Composable
@@ -473,6 +488,7 @@ private fun TaskContent(
         Spacer(Modifier.width(14.dp))
         BasicTextField(
           value = titleEdit,
+          readOnly = task.kind == TaskRepresentationKind.RECURRING_OCCURRENCE,
           onValueChange = onTitleChange,
           modifier =
             Modifier.weight(1f).testTag("task-detail-title").onFocusChanged {
@@ -503,7 +519,7 @@ private fun TaskContent(
       BasicTextField(
         value = descEdit,
         onValueChange = onDescChange,
-        enabled = !task.isDetached,
+        enabled = task.kind != TaskRepresentationKind.RECURRING_OCCURRENCE,
         modifier =
           Modifier.fillMaxWidth()
             .padding(start = 62.dp, end = 20.dp, bottom = 12.dp)
@@ -537,7 +553,7 @@ private fun TaskContent(
         label = "TYPE",
         value = if (task.type == "APPOINTMENT") "Rendez-vous" else "À faire",
         valueColor = TextPrimary,
-        enabled = !task.isDetached,
+        enabled = task.kind != TaskRepresentationKind.RECURRING_OCCURRENCE,
         onClick = onTaskTypeToggle,
       )
       HorizontalDivider(color = DividerColor)
@@ -548,6 +564,7 @@ private fun TaskContent(
       PropertyRow(
         icon = Icons.Outlined.Schedule,
         label = "PLANIFIÉ",
+        enabled = task.kind != TaskRepresentationKind.RECURRING_SERIES,
         value = formatScheduledTaskDetailDate(task.scheduledAt, task.allDay),
         valueColor = if (isOverdue(task.scheduledAt, task.allDay)) OverdueColor else TextPrimary,
         onClick = { onPropertyClick(ActivePicker.DATE) },
@@ -560,6 +577,7 @@ private fun TaskContent(
         PropertyRow(
           icon = Icons.Outlined.Event,
           label = "ÉCHÉANCE",
+          enabled = task.kind != TaskRepresentationKind.RECURRING_OCCURRENCE,
           value = task.dueAt?.let { formatTaskDetailDate(it, includeTime = false) },
           valueColor =
             task.dueAt?.let { isOverdue(it, false) }?.let { if (it) OverdueColor else TextPrimary }
@@ -576,7 +594,7 @@ private fun TaskContent(
         icon = Icons.Outlined.Repeat,
         label = "RÉPÉTITION",
         value = recurrenceLabel(task.recurrenceRule),
-        enabled = !task.isDetached,
+        enabled = task.kind == TaskRepresentationKind.NON_RECURRING,
         onClick = { onPropertyClick(ActivePicker.RECURRENCE) },
       )
       HorizontalDivider(color = DividerColor)
@@ -587,7 +605,7 @@ private fun TaskContent(
       PropertyRow(
         icon = Icons.Outlined.FolderOpen,
         label = "PROJET",
-        enabled = !task.isDetached,
+        enabled = task.kind != TaskRepresentationKind.RECURRING_OCCURRENCE,
         onClick = { onPropertyClick(ActivePicker.PROJECT) },
         customValue = {
           if (project != null) {
@@ -611,7 +629,7 @@ private fun TaskContent(
         icon = Icons.Outlined.Timer,
         label = "DURÉE",
         value = task.estimateMinutes?.let { "${formatDuration(it)} estimées" },
-        enabled = !task.isDetached,
+        enabled = task.kind != TaskRepresentationKind.RECURRING_OCCURRENCE,
         onClick = { onPropertyClick(ActivePicker.DURATION) },
       )
       HorizontalDivider(color = DividerColor)
@@ -635,7 +653,7 @@ private fun TaskContent(
         icon = Icons.AutoMirrored.Outlined.Label,
         label = "TAGS",
         value = if (taskLabels.isNotEmpty()) taskLabels.joinToString(" · ") else null,
-        enabled = !task.isDetached,
+        enabled = task.kind != TaskRepresentationKind.RECURRING_OCCURRENCE,
         onClick = { onPropertyClick(ActivePicker.LABELS) },
       )
       HorizontalDivider(color = DividerColor)
@@ -646,6 +664,7 @@ private fun TaskContent(
       PropertyRow(
         icon = Icons.Outlined.Flag,
         label = "PRIORITÉ",
+        enabled = task.kind != TaskRepresentationKind.RECURRING_OCCURRENCE,
         value = priorityLabel(task.priority),
         valueColor = priorityColor(task.priority),
         onClick = { onPropertyClick(ActivePicker.PRIORITY) },
@@ -913,6 +932,7 @@ private fun BottomBar(onReporter: () -> Unit) {
 @Composable
 private fun DateShortcutsDialog(
   hasDue: Boolean,
+  clearLabel: String = "Supprimer la planification",
   onSelect: (Long) -> Unit,
   onOpenCalendar: () -> Unit,
   onClear: () -> Unit,
@@ -979,7 +999,7 @@ private fun DateShortcutsDialog(
         ) {
           Icon(Icons.Filled.Close, null, tint = OverdueColor, modifier = Modifier.size(20.dp))
           Spacer(Modifier.width(14.dp))
-          Text("Supprimer l'échéance", color = OverdueColor)
+          Text(clearLabel, color = OverdueColor)
         }
       }
     }
@@ -988,6 +1008,7 @@ private fun DateShortcutsDialog(
 
 @Composable
 private fun TimePickerDialog(
+  allowAllDay: Boolean,
   onConfirm: () -> Unit,
   onAllDay: () -> Unit,
   onDismiss: () -> Unit,
@@ -1013,7 +1034,7 @@ private fun TimePickerDialog(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween,
       ) {
-        TextButton(onClick = onAllDay) { Text("Journée entière") }
+        TextButton(onClick = onAllDay, enabled = allowAllDay) { Text("Journée entière") }
         Row {
           TextButton(onClick = onDismiss) { Text("Annuler") }
           TextButton(onClick = onConfirm) { Text("OK") }

@@ -36,12 +36,6 @@ class TaskRepository(private val api: TaskaApi) {
   suspend fun updateTask(id: String, request: TaskUpdateRequest): TaskDto =
     api.updateTask(id, request).also { refreshWidgets() }
 
-  suspend fun updateFollowingTask(
-    id: String,
-    occurrenceScheduledAt: String,
-    request: TaskUpdateRequest,
-  ): TaskDto = api.updateFollowingTask(id, occurrenceScheduledAt, request).also { refreshWidgets() }
-
   suspend fun updateOccurrence(
     id: String,
     occurrenceScheduledAt: String,

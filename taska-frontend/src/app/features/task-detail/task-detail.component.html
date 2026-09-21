@@ -37,6 +37,7 @@
         <input
           class="inline-edit script"
           style="font-size: 26px; line-height: 1.1"
+          [readOnly]="isOccurrence()"
           [ngModel]="editedContent()"
           (ngModelChange)="editedContent.set($event)"
           (blur)="saveContent()"
@@ -74,7 +75,7 @@
               class="btn btn-ghost"
               style="padding: 4px 8px"
               [attr.aria-pressed]="task().type === option.value"
-              [disabled]="isDetached()"
+              [disabled]="isOccurrence()"
               [style.background]="task().type === option.value ? 'var(--bg-3)' : ''"
               (click)="setTaskType(option.value)"
             >
@@ -86,7 +87,7 @@
           class="btn btn-ghost"
           (click)="toggleProjectMenu($event)"
           style="padding: 4px 8px"
-          [disabled]="isDetached()"
+          [disabled]="isOccurrence()"
         >
           @if (currentProject(); as p) {
             <span style="display: inline-flex; align-items: center; gap: 5px; font-size: 13px">
@@ -135,6 +136,7 @@
         <div style="position: relative">
           <button
             class="btn btn-ghost"
+            [disabled]="isOccurrence()"
             (click)="togglePriorityMenu($event)"
             style="padding: 4px 8px"
           >
@@ -196,6 +198,7 @@
               border-radius: 6px;
               text-align: left;
             "
+            [disabled]="isSeries()"
             (click)="openPicker('date', $event)"
           >
             <app-icon
@@ -210,11 +213,13 @@
             >
               {{ dateRowLabel() }}
             </span>
-            @if (scheduledDate()) {
+            @if (scheduledDate() && !isSeries()) {
               <span
                 role="button"
                 tabindex="0"
-                aria-label="Supprimer la date planifiée"
+                [attr.aria-label]="
+                  isOccurrence() ? 'Revenir à la date d’origine' : 'Supprimer la date planifiée'
+                "
                 style="
                   display: flex;
                   align-items: center;
@@ -248,7 +253,8 @@
             >
               <app-datetime-picker
                 [value]="datePickerValue()"
-                [withTime]="true"
+                [withTime]="!isOccurrence() || !task().allDay"
+                [timeRequired]="isOccurrence() && !task().allDay"
                 (valueChange)="onDatetimeChange($event)"
               />
             </div>
@@ -269,6 +275,7 @@
                 border-radius: 6px;
                 text-align: left;
               "
+              [disabled]="isOccurrence()"
               (click)="openPicker('due', $event)"
             >
               <app-icon
@@ -326,7 +333,7 @@
               text-align: left;
             "
             (click)="openPicker('tags', $event)"
-            [disabled]="isDetached()"
+            [disabled]="isOccurrence()"
           >
             <app-icon name="tag" [size]="14" color="var(--mute)" />
             @if (task().labels.length) {
@@ -341,7 +348,7 @@
               >
             }
           </button>
-          @if (activeDetailPicker() === 'tags' && !isDetached()) {
+          @if (activeDetailPicker() === 'tags' && !isOccurrence()) {
             <div
               (click)="$event.stopPropagation()"
               style="
@@ -423,7 +430,7 @@
               text-align: left;
             "
             (click)="openPicker('estimate', $event)"
-            [disabled]="isDetached()"
+            [disabled]="isOccurrence()"
           >
             <app-icon
               name="clock"
@@ -452,7 +459,7 @@
               </span>
             }
           </button>
-          @if (activeDetailPicker() === 'estimate' && !isDetached()) {
+          @if (activeDetailPicker() === 'estimate' && !isOccurrence()) {
             <div
               (click)="$event.stopPropagation()"
               style="
@@ -513,7 +520,7 @@
               text-align: left;
             "
             (click)="openPicker('recurrence', $event)"
-            [disabled]="isDetached()"
+            [disabled]="isOccurrence() || isSeries()"
           >
             <app-icon
               name="repeat"
@@ -528,7 +535,7 @@
               {{ recurrenceRowLabel() }}
             </span>
           </button>
-          @if (activeDetailPicker() === 'recurrence' && !isDetached()) {
+          @if (activeDetailPicker() === 'recurrence' && !isOccurrence() && !isSeries()) {
             <div
               (click)="$event.stopPropagation()"
               style="
@@ -593,7 +600,7 @@
           placeholder="Ajouter des notes…"
           style="width: 100%; min-height: 60px; resize: vertical; font-size: 13px; line-height: 1.5"
           [ngModel]="editedDescription()"
-          [readOnly]="isDetached()"
+          [readOnly]="isOccurrence()"
           (ngModelChange)="editedDescription.set($event)"
           (blur)="saveDescription()"
         ></textarea>
@@ -733,16 +740,8 @@
 
 @if (showDeleteScopeDialog()) {
   <app-recurrence-scope-dialog
-    title="Supprimer la récurrence"
+    title="Supprimer l’occurrence ou arrêter la série"
     (selected)="onDeleteScope($event)"
     (cancelled)="showDeleteScopeDialog.set(false)"
-  />
-}
-
-@if (showModifyScopeDialog()) {
-  <app-recurrence-scope-dialog
-    title="Modifier la récurrence"
-    (selected)="onModifyScope($event)"
-    (cancelled)="showModifyScopeDialog.set(false)"
   />
 }

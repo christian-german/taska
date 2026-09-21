@@ -9,9 +9,6 @@ public enum TaskOccurrenceStatus {
   /** The occurrence has been deleted/skipped; it is excluded from occurrence expansion. */
   SKIPPED,
 
-  /**
-   * The occurrence has been edited via a {@code THIS_ONLY} update. Its persisted state holds
-   * override values for {@code title}, {@code priority}, and/or {@code scheduledAt}.
-   */
+  /** Open occurrence with a schedule override, historical customizations, or detached state. */
   MODIFIED
 }

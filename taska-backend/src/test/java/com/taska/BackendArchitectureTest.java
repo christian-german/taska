@@ -1,220 +1,210 @@
 package com.taska;
 
+import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
+import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.fields;
+import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.tngtech.archunit.base.DescribedPredicate;
+import com.tngtech.archunit.core.domain.JavaClass;
+import com.tngtech.archunit.core.domain.JavaClasses;
+import com.tngtech.archunit.core.importer.ClassFileImporter;
+import com.tngtech.archunit.core.importer.ImportOption;
+import jakarta.persistence.Entity;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.List;
 import org.junit.jupiter.api.Test;
+import org.springframework.stereotype.Component;
 
+/**
+ * Invariants of the in-module layout, which module verification does not reach.
+ *
+ * <p>
+ * {@link ModularityTest} owns everything about who may depend on whom <em>across</em> modules. What is left here is where a type belongs inside its
+ * own module, the direction between the task module's sub-domains, and two Spring conventions.
+ *
+ * <p>
+ * These rules read bytecode. An earlier version matched file paths and import strings, which could tell where a file sat but never what it actually
+ * referenced, and broke on any rename.
+ */
 class BackendArchitectureTest {
 
-  private static final Path DOMAIN_SOURCE = Path.of("src/main/java/com/taska/domain");
+    private static final JavaClasses PRODUCTION_CLASSES = new ClassFileImporter().withImportOption(ImportOption.Predefined.DO_NOT_INCLUDE_TESTS)
+            .importPackages("com.taska");
 
-  @Test
-  void transportTypesLiveInAdapterPackages() throws IOException {
-    List<Path> misplacedTypes;
-    try (var paths = Files.walk(DOMAIN_SOURCE)) {
-      misplacedTypes =
-          paths
-              .filter(path -> path.toString().endsWith(".java"))
-              .filter(path -> isTransportType(path.getFileName().toString()))
-              .filter(path -> !isAdapterPackage(path))
-              .toList();
+    /**
+     * Feature modules, as opposed to the flat application-wide infrastructure modules.
+     */
+    private static final String[] FEATURE_MODULES = {"com.taska.comment..", "com.taska.label..", "com.taska.notification..",
+            "com.taska.planningcalendar..", "com.taska.priority..", "com.taska.project..", "com.taska.task..", "com.taska.version.."};
+
+    /**
+     * Types that exist to carry data in or out over a transport. Combined as one predicate rather than chained with {@code or()}, which ArchUnit
+     * evaluates left to right and which would therefore escape the feature-module restriction.
+     */
+    private static final DescribedPredicate<JavaClass> TRANSPORT_TYPE = JavaClass.Predicates.simpleNameEndingWith("Controller")
+            .or(JavaClass.Predicates.simpleNameEndingWith("Dto"))
+            .or(JavaClass.Predicates.simpleNameEndingWith("Request"))
+            .or(JavaClass.Predicates.simpleNameEndingWith("Response"))
+            .or(JavaClass.Predicates.simpleNameEndingWith("Mapper"))
+            .or(JavaClass.Predicates.simpleNameEndingWith("ExceptionHandler"))
+            .as("a transport type");
+
+    private static final String DEFINITION = "com.taska.task.application.definition..";
+    private static final String OCCURRENCE = "com.taska.task.application.occurrence..";
+    private static final String RECURRENCE = "com.taska.task.application.recurrence..";
+
+    @Test
+    void theRootPackageHoldsTheFeaturesAndThePlatform() {
+        classes().that()
+                .resideOutsideOfPackages(FEATURE_MODULES)
+                .and()
+                .resideOutsideOfPackage("com.taska.platform..")
+                .should()
+                .resideInAPackage("com.taska")
+                .as("the root package lists the features and the platform; nothing else lives beside them")
+                .check(PRODUCTION_CLASSES);
     }
 
-    assertThat(misplacedTypes).isEmpty();
-  }
-
-  @Test
-  void theHttpAdapterDoesNotDependOnOtherTransportAdapters() throws IOException {
-    List<Path> invalidDependencies;
-    try (var paths = Files.walk(DOMAIN_SOURCE)) {
-      invalidDependencies =
-          paths
-              .filter(path -> path.toString().endsWith(".java"))
-              .filter(path -> path.toString().contains("/controller/"))
-              .filter(path -> fileContains(path, ".mcp."))
-              .toList();
+    @Test
+    void aFeatureModulesSecondLevelIsTheLayerAxis() {
+        classes().that()
+                .resideInAnyPackage(FEATURE_MODULES)
+                .and()
+                .haveSimpleNameNotContaining("package-info")
+                .should()
+                .resideInAnyPackage("com.taska..model..", "com.taska..persistence..", "com.taska..application..", "com.taska..adapter..")
+                .as("a feature module's second level is the layer, and no type sits in its root")
+                .check(PRODUCTION_CLASSES);
     }
 
-    assertThat(invalidDependencies).isEmpty();
-  }
-
-  @Test
-  void serviceAndRepositoryPackagesDoNotDependOnTransportTypes() throws IOException {
-    List<Path> invalidDependencies;
-    try (var paths = Files.walk(DOMAIN_SOURCE)) {
-      invalidDependencies =
-          paths
-              .filter(path -> path.toString().endsWith(".java"))
-              .filter(
-                  path ->
-                      path.toString().contains("/service/")
-                          || path.toString().contains("/repository/"))
-              .filter(this::importsAnAdapterPackage)
-              .toList();
+    @Test
+    void theTechnicalAxisIsNotAlsoAPackageName() {
+        noClasses().should()
+                .resideInAnyPackage("com.taska..controller..", "com.taska..service..", "com.taska..repository..")
+                .as("the technical axis is expressed by adapter / application / persistence")
+                .check(PRODUCTION_CLASSES);
     }
 
-    assertThat(invalidDependencies).isEmpty();
-  }
-
-  @Test
-  void repositoriesDoNotDependOnServices() throws IOException {
-    List<Path> invalidDependencies;
-    try (var paths = Files.walk(DOMAIN_SOURCE)) {
-      invalidDependencies =
-          paths
-              .filter(path -> path.toString().endsWith(".java"))
-              .filter(path -> path.toString().contains("/repository/"))
-              .filter(this::importsServicePackage)
-              .toList();
+    @Test
+    void jpaEntitiesLiveInModelPackages() {
+        classes().that().areAnnotatedWith(Entity.class).should().resideInAPackage("com.taska..model..").check(PRODUCTION_CLASSES);
     }
 
-    assertThat(invalidDependencies).isEmpty();
-  }
-
-  @Test
-  void jpaEntitiesLiveInRepositoryPackages() throws IOException {
-    List<Path> misplacedEntities;
-    try (var paths = Files.walk(DOMAIN_SOURCE)) {
-      misplacedEntities =
-          paths
-              .filter(path -> path.toString().endsWith(".java"))
-              .filter(path -> fileContains(path, "@Entity"))
-              .filter(path -> !path.toString().contains("/repository/"))
-              .toList();
+    @Test
+    void repositoriesLiveInPersistencePackages() {
+        classes().that()
+                .haveSimpleNameEndingWith("Repository")
+                .and()
+                .resideInAnyPackage(FEATURE_MODULES)
+                .should()
+                .resideInAPackage("com.taska..persistence..")
+                .check(PRODUCTION_CLASSES);
     }
 
-    assertThat(misplacedEntities).isEmpty();
-  }
-
-  @Test
-  void taskTypesLiveInTheirOwningSubfeatures() {
-    assertThat(DOMAIN_SOURCE.resolve("task/definition/TaskType.java")).exists();
-    assertThat(DOMAIN_SOURCE.resolve("task/definition/TaskDefinitionRules.java")).exists();
-    assertThat(DOMAIN_SOURCE.resolve("task/definition/repository/Task.java")).exists();
-    assertThat(DOMAIN_SOURCE.resolve("task/definition/repository/TaskRepository.java")).exists();
-    assertThat(DOMAIN_SOURCE.resolve("task/definition/service/TaskDefinitionService.java"))
-        .exists();
-    assertThat(DOMAIN_SOURCE.resolve("task/occurrence/repository/TaskOccurrenceState.java"))
-        .exists();
-    assertThat(DOMAIN_SOURCE.resolve("task/occurrence/service/TaskOccurrenceService.java"))
-        .exists();
-    assertThat(DOMAIN_SOURCE.resolve("task/occurrence/service/TaskRecurrenceService.java"))
-        .exists();
-    assertThat(DOMAIN_SOURCE.resolve("task/series/service/RecurringTaskSeriesService.java"))
-        .exists();
-    assertThat(DOMAIN_SOURCE.resolve("task/service/TaskMutationService.java")).exists();
-  }
-
-  @Test
-  void taskSubfeatureDependenciesFollowOwnershipDirection() throws IOException {
-    assertThat(filesImporting(DOMAIN_SOURCE.resolve("task/definition"), ".domain.task.occurrence."))
-        .isEmpty();
-    assertThat(filesImporting(DOMAIN_SOURCE.resolve("task/definition"), ".domain.task.series."))
-        .isEmpty();
-    assertThat(filesImporting(DOMAIN_SOURCE.resolve("task/occurrence"), ".domain.task.series."))
-        .isEmpty();
-  }
-
-  @Test
-  void taskDefinitionServiceDoesNotOwnOccurrencePersistenceOrExpansion() {
-    String taskDefinitionService =
-        readSource(DOMAIN_SOURCE.resolve("task/definition/service/TaskDefinitionService.java"));
-
-    assertThat(taskDefinitionService)
-        .doesNotContain("TaskOccurrenceStateRepository")
-        .doesNotContain("TaskRecurrenceService");
-  }
-
-  @Test
-  void springComponentsUseFinalDependencyFields() throws IOException {
-    List<String> mutableFields;
-    try (var paths = Files.walk(DOMAIN_SOURCE)) {
-      mutableFields =
-          paths
-              .filter(path -> path.toString().endsWith(".java"))
-              .filter(this::isSpringComponent)
-              .flatMap(path -> dependencyFieldViolations(path).stream())
-              .toList();
+    @Test
+    void transportTypesLiveInAdapterPackages() {
+        classes().that()
+                .resideInAnyPackage(FEATURE_MODULES)
+                .and(TRANSPORT_TYPE)
+                .should()
+                .resideInAPackage("com.taska..adapter..")
+                .check(PRODUCTION_CLASSES);
     }
 
-    assertThat(mutableFields).isEmpty();
-  }
-
-  @Test
-  void httpJsonRejectsPropertiesOutsideRequestContracts() throws IOException {
-    String applicationProperties =
-        Files.readString(Path.of("src/main/resources/application.properties"));
-
-    assertThat(applicationProperties)
-        .contains("spring.jackson.deserialization.fail-on-unknown-properties=true");
-  }
-
-  private boolean isTransportType(String fileName) {
-    if (fileName.equals("PriorityEvaluationBatchRequest.java")) {
-      return false;
+    @Test
+    void onlyAdaptersDependOnAdapters() {
+        noClasses().that()
+                .resideInAnyPackage(FEATURE_MODULES)
+                .and()
+                .resideOutsideOfPackage("com.taska..adapter..")
+                .should()
+                .dependOnClassesThat()
+                .resideInAPackage("com.taska..adapter..")
+                .as("a service needing an outbound call declares a port; the adapter implements it")
+                .check(PRODUCTION_CLASSES);
     }
-    return fileName.endsWith("Controller.java")
-        || fileName.endsWith("Dto.java")
-        || fileName.endsWith("Request.java")
-        || fileName.endsWith("Mapper.java")
-        || fileName.endsWith("ExceptionHandler.java");
-  }
 
-  private boolean isAdapterPackage(Path path) {
-    String location = path.toString();
-    return location.contains("/controller/") || location.contains("/mcp/");
-  }
-
-  private boolean importsAnAdapterPackage(Path path) {
-    return fileContains(path, ".controller.") || fileContains(path, ".mcp.");
-  }
-
-  private boolean importsServicePackage(Path path) {
-    return fileContains(path, ".service.");
-  }
-
-  private List<Path> filesImporting(Path sourceRoot, String packageFragment) throws IOException {
-    try (var paths = Files.walk(sourceRoot)) {
-      return paths
-          .filter(path -> path.toString().endsWith(".java"))
-          .filter(path -> fileContains(path, packageFragment))
-          .toList();
+    @Test
+    void theHttpAdapterDoesNotDependOnOtherTransportAdapters() {
+        noClasses().that()
+                .resideInAPackage("com.taska..adapter.http..")
+                .should()
+                .dependOnClassesThat()
+                .resideInAnyPackage(
+                        "com.taska..adapter.mcp..",
+                        "com.taska..adapter.openai..",
+                        "com.taska..adapter.firebase..",
+                        "com.taska..adapter.scheduler..",
+                        "com.taska..adapter.events..")
+                .check(PRODUCTION_CLASSES);
     }
-  }
 
-  private boolean isSpringComponent(Path path) {
-    String source = readSource(path);
-    return source.contains("@Service")
-        || source.contains("@Component")
-        || source.contains("@RestController")
-        || source.contains("@ControllerAdvice");
-  }
+    @Test
+    void theInnerLayersDoNotDependOnTheOuterOnes() {
+        noClasses().that()
+                .resideInAPackage("com.taska..model..")
+                .should()
+                .dependOnClassesThat()
+                .resideInAnyPackage("com.taska..persistence..", "com.taska..application..", "com.taska..adapter..")
+                .as("a model depends on no layer of its own module, so the module graph stays a tree")
+                .check(PRODUCTION_CLASSES);
 
-  private List<String> dependencyFieldViolations(Path path) {
-    return readSource(path)
-        .lines()
-        .map(String::trim)
-        .filter(line -> line.startsWith("private "))
-        .filter(line -> line.endsWith(";"))
-        .filter(line -> !line.startsWith("private static "))
-        .filter(line -> !line.startsWith("private final "))
-        .map(line -> path + ": " + line)
-        .toList();
-  }
-
-  private boolean fileContains(Path path, String value) {
-    return readSource(path).contains(value);
-  }
-
-  private String readSource(Path path) {
-    try {
-      return Files.readString(path);
-    } catch (IOException exception) {
-      throw new IllegalStateException("Unable to inspect " + path, exception);
+        noClasses().that()
+                .resideInAPackage("com.taska..persistence..")
+                .should()
+                .dependOnClassesThat()
+                .resideInAnyPackage("com.taska..application..", "com.taska..adapter..")
+                .check(PRODUCTION_CLASSES);
     }
-  }
+
+    @Test
+    void taskSubDomainDependenciesFollowOwnershipDirection() {
+        noClasses().that()
+                .resideInAPackage(DEFINITION)
+                .should()
+                .dependOnClassesThat()
+                .resideInAnyPackage(OCCURRENCE, RECURRENCE)
+                .as("the definition sub-domain owns neither occurrence behaviour nor recurrence expansion")
+                .check(PRODUCTION_CLASSES);
+
+        noClasses().that()
+                .resideInAPackage(RECURRENCE)
+                .should()
+                .dependOnClassesThat()
+                .resideInAnyPackage(DEFINITION, OCCURRENCE)
+                .as("RRULE expansion is a pure function of a series and a period")
+                .check(PRODUCTION_CLASSES);
+    }
+
+    @Test
+    void theDefinitionSubDomainDoesNotOwnOccurrencePersistence() {
+        noClasses().that()
+                .resideInAPackage(DEFINITION)
+                .should()
+                .dependOnClassesThat()
+                .haveSimpleName("TaskOccurrenceStateRepository")
+                .check(PRODUCTION_CLASSES);
+    }
+
+    @Test
+    void springComponentsUseFinalDependencyFields() {
+        fields().that()
+                .areDeclaredInClassesThat()
+                .areMetaAnnotatedWith(Component.class)
+                .and()
+                .areNotStatic()
+                .should()
+                .beFinal()
+                .as("dependencies are constructor-injected and never reassigned")
+                .check(PRODUCTION_CLASSES);
+    }
+
+    @Test
+    void httpJsonRejectsPropertiesOutsideRequestContracts() throws IOException {
+        String applicationProperties = Files.readString(Path.of("src/main/resources/application.properties"));
+
+        assertThat(applicationProperties).contains("spring.jackson.deserialization.fail-on-unknown-properties=true");
+    }
 }

@@ -139,71 +139,117 @@ public interface TaskMapper {
 
 ## Package organization
 
-- Organize application code by feature first, then by technical layer within each feature.
-- Each feature owns its `controller`, `service`, and `repository` subpackages. Create these subpackages when corresponding classes exist.
-- Do not create application-wide `controller`, `service`, or `repository` packages that group unrelated features.
-- Place classes according to their responsibility:
-  - `controller`: HTTP controllers, API DTOs, request types, HTTP exception handlers, and API boundary mappers.
-  - `service`: application services and their input parameter types.
-  - `repository`: repository interfaces and persistence access implementations.
-  - Feature root: domain entities, value objects, and domain exceptions.
-- Services must not depend on classes in `controller` packages.
-- Repositories must not depend on classes in `controller` or `service` packages.
-- Keep feature-specific classes inside their feature package. Do not move them into generic `common`, `util`, or `shared` packages merely because they have similar technical roles.
-- Keep genuinely application-wide infrastructure, such as configuration, outside feature packages.
+Application code is organised into Spring Modulith application modules, all rooted directly under the application package: one per feature, plus exactly one `platform` module holding the application's own base layer.
+
+**Each level of nesting uses one axis only.** Getting this wrong is the common failure: a module's direct subpackages must not be a mix of technical layers and functional areas.
+
+- **Level 0** — the application package. It holds the application class, the feature modules, and `platform`. Nothing else: a technical concern sitting beside the features is the same axis mix as a functional package sitting beside the layers, one level up.
+- **Level 1** — the module.
+- **Level 2** — the layer, always these four, and nothing else:
+  - `model` — entities, enumerations, value objects, application results, `XxxParameters`, published events, and the invariants over those types, including constraint annotations and their validators. It MUST NOT depend on any other package of its own module; that is what keeps a module's internal graph a tree rather than a cycle between services and the types they exchange.
+  - `persistence` — repository interfaces and persistence access implementations.
+  - `application` — the application services, and any port they declare for an outbound call.
+  - `adapter` — everything entering or leaving the application.
+- **Level 3** — one axis per parent, and only where there is more than one value:
+  - under `application`, the functional sub-domain. Add one only when a module has enough services to group; do not create a package for a single class.
+  - under `adapter`, the transport: `http`, `mcp`, `scheduler`, `events`, and outbound clients such as `firebase` or `openai`.
+
+The module root holds only `package-info.java`. What another module may use is designated by `@NamedInterface`, not by sitting at the root.
+
+Rules:
+
+- Do not create a package named `controller`, `service`, or `repository`. That is the technical axis, and it is already expressed by `adapter` / `application` / `persistence`.
+- Do not create a functional package at level 2. A functional area is a subdivision of the application layer, never a sibling of the layers.
+- Do not create application-wide packages that group unrelated features.
+- Nothing outside `adapter` may depend on an `adapter` package — including a module's own outbound adapter. A service that needs an outbound call declares a port in `application` and lets the adapter implement it.
+- `model` and `persistence` MUST NOT depend on `application` or `adapter`.
+- Keep feature-specific classes inside their module. Do not move them into generic `common`, `util`, or `shared` packages merely because they have similar technical roles.
+- Application-wide infrastructure — configuration, the shared error vocabulary, shared transport helpers, security — belongs to the `platform` module. It is the one module divided by **concern** rather than by layer, because it has no domain and no use cases, so there are no layers to separate. Each concern is a `@NamedInterface`, so a feature declares the parts of the base layer it actually uses.
+- Nothing in `platform` may depend on a feature module. It is the bottom of the dependency graph.
 
 Example structure:
 
 ```text
 com.example.application
-├── config
-└── domain
-    ├── label
-    │   ├── Label
-    │   ├── LabelNotFoundException
-    │   ├── controller
-    │   │   ├── LabelController
-    │   │   ├── LabelDto
-    │   │   ├── LabelCreateRequest
-    │   │   ├── LabelUpdateRequest
-    │   │   ├── LabelMapper
-    │   │   └── LabelExceptionHandler
-    │   ├── service
-    │   │   ├── LabelService
-    │   │   ├── LabelCreateParameters
-    │   │   └── LabelUpdateParameters
-    │   └── repository
-    │       └── LabelRepository
-    └── project
-        ├── controller
-        ├── service
-        └── repository
+├── Application                     @SpringBootApplication @Modulithic
+├── platform                        the base layer: one module, divided by concern
+│   ├── package-info                @ApplicationModule
+│   ├── config                      @NamedInterface("config")
+│   ├── exception                   @NamedInterface("exception")
+│   └── security                    @NamedInterface("security")
+├── label                           a small module: no functional sub-domain
+│   ├── package-info                @ApplicationModule(allowedDependencies = …)
+│   ├── model
+│   │   ├── Label
+│   │   ├── LabelCreateParameters
+│   │   └── LabelUpdateParameters
+│   ├── persistence
+│   │   └── LabelRepository
+│   ├── application
+│   │   └── LabelService
+│   └── adapter
+│       └── http
+│           ├── LabelController, LabelDto, LabelCreateRequest,
+│           └── LabelUpdateRequest, LabelMapper, LabelExceptionHandler
+└── task                            a large module: same four layers, one of them subdivided
+    ├── package-info
+    ├── model                       @NamedInterface — the published vocabulary
+    ├── persistence                 @NamedInterface — queried in bulk by two modules
+    ├── application
+    │   ├── TaskMutationService     the module's boundary
+    │   ├── definition              TaskDefinitionService, TaskDefinitionRules
+    │   ├── occurrence              TaskOccurrenceService, RecurringTaskSeriesService
+    │   └── recurrence              @NamedInterface — RRULE expansion
+    └── adapter
+        ├── http
+        ├── mcp
+        └── events
 ```
+
+## Module boundaries
+
+Each module declares what it may use, and what others may use of it. `ApplicationModules.verify()` enforces both; it is the architecture test, not a hand-written path check. Rules *inside* a module — which layer a type belongs to, the direction between sub-domains — are out of its reach and are written with ArchUnit, which the Modulith test starter already brings in. Neither is ever expressed by matching file paths or import strings.
+
+Nested application modules (`@ApplicationModule` on a sub-package) are the framework's answer for governing a module's internals, but they only fit a sub-part the parent calls into one way. A sub-domain that reads its parent's `model` while the parent's adapters call it forms a cycle that verification rejects, whatever the documented parent-access allowance. Reach for nesting only when the sub-part owns its own types and persistence.
+
+Nesting is also easy to trigger by accident. Grouping several modules under one package makes that package a module, and its children become *nested* modules — unreachable from the rest of the application, which then fails with `Invalid sub-module reference`. To group modules without nesting them, make the group a single module and publish each part as a `@NamedInterface`.
+
+A class named in `application.properties` is not covered by any of this. Renaming or moving such a class is a silent break until something boots — keep an integration test that starts the real persistence configuration.
+
+- Every module carries a `package-info.java` with `@ApplicationModule(allowedDependencies = …)` naming each module or named interface it depends on.
+- A package other modules are allowed to use carries `@NamedInterface`. Everything else is internal. Expose the smallest surface that works, and say in the package's Javadoc why it is exposed.
+- **The module graph MUST be acyclic.** Two modules must never depend on each other.
+- When a module must trigger behaviour in a module that already reads it, it publishes a domain event from its own `model` package instead of calling into it. The reader listens; the writer stays unaware.
+  - Use a plain `@EventListener` to keep the previous semantics of a direct call: synchronous, inside the publishing transaction, and able to fail the whole operation.
+  - Use `@TransactionalEventListener` only when the effect must survive independently of the publishing transaction, and say so.
+- An endpoint belongs to the module that owns what it returns, not to the module its URL names. `GET /projects/{projectId}/tasks` returns tasks, so the task module serves it. Relocating an endpoint MUST NOT change its path, payload, or status codes.
 
 ## Transport adapters beyond HTTP
 
 An entry point that is not an HTTP controller — MCP tools, scheduled jobs, message listeners, imports, batch runners — is another transport adapter of the feature it exposes, and follows the same rules as `controller`.
 
-- Place the adapter in its own subpackage of the feature it exposes, named after the transport. Do not create an application-wide package outside the feature tree to hold it.
+- Place the adapter in `adapter/<transport>` inside the module it exposes, named after the transport. Do not create an application-wide package outside the module tree to hold it.
 - The adapter calls the same application services with the same `XxxParameters`, and never reaches into a repository.
-- Response types are shared by default. An adapter SHOULD depend on the feature's `controller` package to reuse its `XxxDto` and the mapper method that produces it, rather than declaring a parallel output record.
+- Response types are shared by default. An adapter SHOULD depend on the module's `adapter/http` package to reuse its `XxxDto` and the mapper method that produces it, rather than declaring a parallel output record.
   One projection means one place to change, and the mapper's `unmappedTargetPolicy = ERROR` then covers every transport at once.
   Accept the consequence deliberately: a change to the shared `XxxDto` changes every transport exposing it. That is the point. An adapter that must evolve its response independently declares its own record — and still derives it from the shared mapper.
-- The dependency is one-directional: `controller` MUST NOT depend on another adapter's package, and two non-HTTP adapters MUST NOT depend on each other.
+- The dependency is one-directional: `adapter/http` MUST NOT depend on another adapter's package, and two non-HTTP adapters MUST NOT depend on each other.
 - Input types stay per-adapter. Transport's input carries that transport's annotations and semantics — Jakarta constraints and full-replacement rules for HTTP, tool-parameter descriptions and partial-patch rules for MCP — and forcing one record to serve both breaks one of the two contracts.
 - Whatever is not shared, the logic deriving exposed values from an application result MUST have a single implementation. Hand-copying a projection from one adapter into another is the failure mode to avoid: the copies drift silently, and the drift surfaces as a field that exists on one transport and not the other.
 - When a property is added to an entity, an application result, or a `XxxParameters`, update every adapter of that feature in the same change, or state explicitly why a transport does not expose it.
 
 ```text
-domain
-└── task
-    ├── Task
-    ├── controller        HTTP adapter, and owner of the shared response contract:
-    │                     TaskController, TaskDto, TaskCreateRequest, TaskMapper
-    ├── mcp               MCP adapter: TaskMcpTools, TaskCreateInput, TaskUpdateInput.
-    │                     Depends on controller for TaskDto and TaskMapper. Never the reverse.
-    ├── service           TaskService, TaskCreateParameters, TaskResult
-    └── repository        TaskRepository
+task
+├── model                       Task, TaskResult, TaskCreateParameters, TaskChangedEvent
+├── persistence                 TaskRepository
+├── application                 TaskMutationService, definition/, occurrence/, recurrence/
+└── adapter
+    ├── http                    HTTP adapter, and owner of the shared response contract:
+    │                           TaskController, TaskDto, TaskCreateRequest, TaskMapper
+    ├── mcp                     MCP adapter: TaskMcpTools, TaskCreateInput, TaskUpdateInput.
+    │                           Depends on adapter/http for TaskDto and TaskMapper.
+    │                           Never the reverse.
+    └── events                  listeners on other modules' published events
 ```
 
 ## Validation at Application Boundaries

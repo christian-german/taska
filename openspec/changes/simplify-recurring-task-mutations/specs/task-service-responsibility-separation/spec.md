@@ -1,7 +1,7 @@
 ## MODIFIED Requirements
 
 ### Requirement: Recurring-series restructuring has a dedicated owner
-`RecurringTaskSeriesService` in `com.taska.domain.task.series.service` SHALL own stopping a series at a valid generated occurrence. It SHALL validate the cut, persist the series end and preserve detached occurrence history. It SHALL NOT split a series or create a successor.
+`RecurringTaskSeriesService` in `com.taska.task.occurrence` SHALL own stopping a series at a valid generated occurrence. It SHALL validate the cut, persist the series end and preserve detached occurrence history. It SHALL NOT split a series or create a successor.
 
 #### Scenario: Stop the following portion of a series
 - **WHEN** the mutation boundary receives a FROM_THIS deletion

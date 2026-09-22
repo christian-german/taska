@@ -128,8 +128,7 @@ export interface Label {
 
 export interface Comment {
   id: string;
-  taskId?: string | null;
-  projectId?: string | null;
+  taskId: string;
   content: string;
   createdAt: string;
 }

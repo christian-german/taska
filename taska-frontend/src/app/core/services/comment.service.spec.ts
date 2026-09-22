@@ -18,12 +18,11 @@ describe('CommentService', () => {
   afterEach(() => http.verify());
 
   it('uses the camelCase comment query contract', () => {
-    service.getComments('task-1', 'project-1').subscribe();
+    service.getComments('task-1').subscribe();
 
     const request = http.expectOne((candidate) => candidate.url.endsWith('/comments'));
-    expect(request.request.params.keys().sort()).toEqual(['projectId', 'taskId']);
+    expect(request.request.params.keys()).toEqual(['taskId']);
     expect(request.request.params.get('taskId')).toBe('task-1');
-    expect(request.request.params.get('projectId')).toBe('project-1');
     request.flush([]);
   });
 });

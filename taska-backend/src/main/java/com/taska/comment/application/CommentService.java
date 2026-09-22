@@ -19,27 +19,22 @@ public class CommentService {
     private final CommentRepository commentRepository;
 
     /**
-     * Returns comments scoped by the provided filter. When {@code taskId} is given, only comments on that task are returned. When {@code projectId}
-     * is given, only project-level comments are returned. If neither is provided, all comments are returned. Results are ordered by creation time
-     * ascending.
+     * Returns comments scoped by the provided filter. When {@code taskId} is given, only comments on that task are returned. If it is {@code null},
+     * all comments are returned. Results are ordered by creation time ascending.
      *
      * @param taskId optional task UUID to filter by
-     * @param projectId optional project UUID to filter by
      * @return list of matching comment entities
      */
     @Transactional(readOnly = true)
-    public List<Comment> findAll(UUID taskId, UUID projectId) {
+    public List<Comment> findAll(UUID taskId) {
         if (taskId != null) {
             return commentRepository.findByTaskIdOrderByCreatedAtAsc(taskId);
-        }
-        if (projectId != null) {
-            return commentRepository.findByProjectIdOrderByCreatedAtAsc(projectId);
         }
         return commentRepository.findAll();
     }
 
     /**
-     * Creates and persists a new comment associated with a task or a project.
+     * Creates and persists a new comment associated with a task.
      *
      * @param commentCreateParameters application parameters for the new comment
      * @return the persisted comment entity
@@ -47,7 +42,6 @@ public class CommentService {
     public Comment create(CommentCreateParameters commentCreateParameters) {
         Comment comment = new Comment();
         comment.setTaskId(commentCreateParameters.taskId());
-        comment.setProjectId(commentCreateParameters.projectId());
         comment.setContent(commentCreateParameters.content());
         return commentRepository.save(comment);
     }

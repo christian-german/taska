@@ -83,13 +83,6 @@
           type: "string"
           format: "uuid"
         description: "Restrict results to this task identifier."
-      - name: "projectId"
-        in: "query"
-        required: false
-        schema:
-          type: "string"
-          format: "uuid"
-        description: "Restrict results to this project identifier."
     responses:
       "200":
         description: "Successful response."

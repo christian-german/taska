@@ -145,7 +145,7 @@ describe('Angular outgoing OpenAPI contract', () => {
 
   describe('CommentService', () => {
     it('GET /comments', () =>
-      exercise(TestBed.inject(CommentService).getComments(TASK_ID, PROJECT_ID)));
+      exercise(TestBed.inject(CommentService).getComments(TASK_ID)));
     it('POST /comments', () =>
       exercise(TestBed.inject(CommentService).createComment({ taskId: TASK_ID, content: 'Note' })));
     it('PUT /comments/{commentId}', () =>

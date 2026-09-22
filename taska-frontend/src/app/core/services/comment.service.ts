@@ -5,8 +5,7 @@ import { environment } from '../../../environments/environment';
 import { Comment } from '../models';
 
 interface CommentCreateRequest {
-  taskId?: string | null;
-  projectId?: string | null;
+  taskId: string;
   content: string;
 }
 
@@ -19,10 +18,9 @@ export class CommentService {
   private readonly http = inject(HttpClient);
   private readonly base = `${environment.apiUrl}/comments`;
 
-  getComments(taskId?: string, projectId?: string): Observable<Comment[]> {
+  getComments(taskId?: string): Observable<Comment[]> {
     let params = new HttpParams();
     if (taskId) params = params.set('taskId', taskId);
-    if (projectId) params = params.set('projectId', projectId);
     return this.http.get<Comment[]>(this.base, { params });
   }
 

@@ -34,9 +34,9 @@ class ApiNamingContractTest {
 
     @Test
     void commentQueriesUseCamelCaseContractNames() throws NoSuchMethodException {
-        Method getAll = CommentController.class.getDeclaredMethod("getAll", UUID.class, UUID.class);
+        Method getAll = CommentController.class.getDeclaredMethod("getAll", UUID.class);
 
-        assertEquals(List.of("taskId", "projectId"), requestParameterNames(getAll));
+        assertEquals(List.of("taskId"), requestParameterNames(getAll));
     }
 
     @Test

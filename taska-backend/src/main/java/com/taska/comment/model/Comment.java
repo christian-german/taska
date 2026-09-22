@@ -8,9 +8,7 @@ import java.util.UUID;
  * JPA entity representing a comment in the {@code comments} table.
  *
  * <p>
- * A comment is scoped to either a task or a project — exactly one of {@link #taskId} or {@link #projectId} should be set. Task-level comments are
- * retrieved via {@link CommentRepository#findByTaskIdOrderByCreatedAtAsc}; project-level comments via
- * {@link CommentRepository#findByProjectIdOrderByCreatedAtAsc}.
+ * A comment is scoped to a task, retrieved via {@link CommentRepository#findByTaskIdOrderByCreatedAtAsc}.
  */
 @Entity
 @Table(name = "comments")
@@ -21,16 +19,10 @@ public class Comment {
     private UUID id;
 
     /**
-     * UUID of the task this comment belongs to; {@code null} for project-level comments. Mutually exclusive with {@link #projectId}.
+     * UUID of the task this comment belongs to.
      */
-    @Column(name = "task_id")
+    @Column(name = "task_id", nullable = false)
     private UUID taskId;
-
-    /**
-     * UUID of the project this comment belongs to; {@code null} for task-level comments. Mutually exclusive with {@link #taskId}.
-     */
-    @Column(name = "project_id")
-    private UUID projectId;
 
     /**
      * Body text of the comment; stored as {@code TEXT} to allow arbitrarily long content.
@@ -58,10 +50,6 @@ public class Comment {
         return this.taskId;
     }
 
-    public UUID getProjectId() {
-        return this.projectId;
-    }
-
     public String getContent() {
         return this.content;
     }
@@ -76,10 +64,6 @@ public class Comment {
 
     public void setTaskId(final UUID taskId) {
         this.taskId = taskId;
-    }
-
-    public void setProjectId(final UUID projectId) {
-        this.projectId = projectId;
     }
 
     public void setContent(final String content) {

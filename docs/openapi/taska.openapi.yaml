@@ -19,7 +19,7 @@ tags:
   - name: "Labels"
     description: "Labels used to classify tasks."
   - name: "Comments"
-    description: "Comments attached to tasks or projects."
+    description: "Comments attached to tasks."
   - name: "Devices"
     description: "Device registration for push notifications."
   - name: "Version"

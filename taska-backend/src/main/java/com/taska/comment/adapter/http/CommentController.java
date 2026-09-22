@@ -28,21 +28,18 @@ public class CommentController {
     private final CommentMapper commentMapper;
 
     /**
-     * Returns comments filtered by a task or project. At most one filter should be provided.
+     * Returns comments filtered by a task.
      *
      * @param taskId optional task UUID to scope the result
-     * @param projectId optional project UUID to scope the result
      * @return list of comment DTOs ordered by creation time
      */
     @GetMapping
-    public List<CommentDto> getAll(
-            @RequestParam(name = "taskId", required = false) UUID taskId,
-            @RequestParam(name = "projectId", required = false) UUID projectId) {
-        return commentService.findAll(taskId, projectId).stream().map(commentMapper::toDto).toList();
+    public List<CommentDto> getAll(@RequestParam(name = "taskId", required = false) UUID taskId) {
+        return commentService.findAll(taskId).stream().map(commentMapper::toDto).toList();
     }
 
     /**
-     * Creates a new comment on a task or project. Returns HTTP 201 with the created comment DTO.
+     * Creates a new comment on a task. Returns HTTP 201 with the created comment DTO.
      *
      * @param commentCreateRequest validated comment creation payload
      * @return the created comment DTO

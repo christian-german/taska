@@ -4,18 +4,15 @@ CommentCreateRequest:
   additionalProperties: false
   properties:
     taskId:
-      description: "UUID of the task to attach this comment to; absent for a project-level comment."
-      type: ["string", "null"]
-      format: "uuid"
-    projectId:
-      description: "UUID of the project to attach this comment to; absent for a task-level comment."
-      type: ["string", "null"]
+      description: "UUID of the task to attach this comment to."
+      type: "string"
       format: "uuid"
     content:
       description: "Required text content of the comment; must not be blank."
       type: "string"
       minLength: 1
   required:
+    - "taskId"
     - "content"
 CommentUpdateRequest:
   description: "Complete replacement of a comment's mutable properties."
@@ -37,12 +34,8 @@ CommentDto:
       type: "string"
       format: "uuid"
     taskId:
-      description: "UUID of the task this comment belongs to; absent for project-level comments."
-      type: ["string", "null"]
-      format: "uuid"
-    projectId:
-      description: "UUID of the project this comment belongs to; absent for task-level comments."
-      type: ["string", "null"]
+      description: "UUID of the task this comment belongs to."
+      type: "string"
       format: "uuid"
     content:
       description: "Text content of the comment."

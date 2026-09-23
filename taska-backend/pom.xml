@@ -22,6 +22,9 @@
         <spring-ai.version>2.0.0</spring-ai.version>
         <spring-modulith.version>2.1.1</spring-modulith.version>
         <testcontainers.version>1.21.4</testcontainers.version>
+        <sonar.projectKey>taska-backend</sonar.projectKey>
+        <sonar.projectName>Taska Backend</sonar.projectName>
+        <sonar.host.url>https://sonar.christiangerman.com</sonar.host.url>
     </properties>
 
     <dependencyManagement>
@@ -216,6 +219,11 @@
                         </eclipse>
                     </java>
                 </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.sonarsource.scanner.maven</groupId>
+                <artifactId>sonar-maven-plugin</artifactId>
+                <version>5.8.0.7211</version>
             </plugin>
         </plugins>
     </build>

@@ -113,7 +113,7 @@ public class Project {
         return this.viewStyle;
     }
 
-    public Boolean getIsInboxProject() {
+    public Boolean isInboxProject() {
         return this.isInboxProject;
     }
 

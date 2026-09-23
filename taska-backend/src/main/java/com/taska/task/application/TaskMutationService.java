@@ -147,9 +147,12 @@ public class TaskMutationService {
     @Transactional
     public TaskResult close(UUID taskId, TaskCloseReopenParameters parameters, String accountSubject) {
         Task task = taskService.findById(taskId);
-        TaskResult taskResult = Boolean.TRUE.equals(task.getIsRecurring())
-                ? taskOccurrenceService.closeOccurrence(taskId, parameters != null ? parameters.occurrenceScheduledAt() : null)
-                : taskService.closeTask(taskId);
+        TaskResult taskResult;
+        if (Boolean.TRUE.equals(task.getIsRecurring())) {
+            taskResult = taskOccurrenceService.closeOccurrence(taskId, parameters != null ? parameters.occurrenceScheduledAt() : null);
+        } else {
+            taskResult = taskService.closeTask(taskId);
+        }
         publishChange(accountSubject);
         return taskResult;
     }
@@ -165,9 +168,12 @@ public class TaskMutationService {
     @Transactional
     public TaskResult reopen(UUID taskId, TaskCloseReopenParameters parameters, String accountSubject) {
         Task task = taskService.findById(taskId);
-        TaskResult taskResult = Boolean.TRUE.equals(task.getIsRecurring())
-                ? taskOccurrenceService.reopenOccurrence(taskId, parameters != null ? parameters.occurrenceScheduledAt() : null)
-                : taskService.reopenTask(taskId);
+        TaskResult taskResult;
+        if (Boolean.TRUE.equals(task.getIsRecurring())) {
+            taskResult = taskOccurrenceService.reopenOccurrence(taskId, parameters != null ? parameters.occurrenceScheduledAt() : null);
+        } else {
+            taskResult = taskService.reopenTask(taskId);
+        }
         publishChange(accountSubject);
         return taskResult;
     }

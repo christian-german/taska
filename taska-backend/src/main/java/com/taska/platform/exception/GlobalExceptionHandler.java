@@ -18,17 +18,18 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 public class GlobalExceptionHandler {
 
     private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
+    public static final String ABOUT_BLANK = "about:blank";
 
     /**
      * Handles {@link ResourceNotFoundException} and returns a 404 Problem Detail response.
      *
      * @param exception the exception containing the not-found message
-     * @return a 404 Problem Detail with the exception message as detail
+     * @return a 404-Problem Detail with the exception message as detail
      */
     @ExceptionHandler(ResourceNotFoundException.class)
     public ProblemDetail handleNotFound(ResourceNotFoundException exception) {
         ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, exception.getMessage());
-        problemDetail.setType(URI.create("about:blank"));
+        problemDetail.setType(URI.create(ABOUT_BLANK));
         return problemDetail;
     }
 
@@ -49,20 +50,19 @@ public class GlobalExceptionHandler {
                                 fieldError -> fieldError.getDefaultMessage() != null ? fieldError.getDefaultMessage() : "invalid"));
         ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, "Validation failed");
         problemDetail.setProperty("errors", errors);
-        problemDetail.setType(URI.create("about:blank"));
+        problemDetail.setType(URI.create(ABOUT_BLANK));
         return problemDetail;
     }
 
     /**
      * Returns a client error when JSON cannot be deserialized, such as an Instant without an ISO-8601 timezone offset.
      *
-     * @param exception the request-body deserialization failure
      * @return a 400 Problem Detail without exposing parser internals
      */
     @ExceptionHandler(HttpMessageNotReadableException.class)
-    public ProblemDetail handleUnreadableMessage(HttpMessageNotReadableException exception) {
+    public ProblemDetail handleUnreadableMessage() {
         ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, "Invalid request body");
-        problemDetail.setType(URI.create("about:blank"));
+        problemDetail.setType(URI.create(ABOUT_BLANK));
         return problemDetail;
     }
 
@@ -70,16 +70,16 @@ public class GlobalExceptionHandler {
      * Returns a client error when a path or query parameter cannot be converted.
      */
     @ExceptionHandler(TypeMismatchException.class)
-    public ProblemDetail handleTypeMismatch(TypeMismatchException exception) {
+    public ProblemDetail handleTypeMismatch() {
         ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, "Invalid request parameter");
-        problemDetail.setType(URI.create("about:blank"));
+        problemDetail.setType(URI.create(ABOUT_BLANK));
         return problemDetail;
     }
 
     @ExceptionHandler(IllegalArgumentException.class)
     public ProblemDetail handleIllegalArgument(IllegalArgumentException exception) {
         ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, exception.getMessage());
-        problemDetail.setType(URI.create("about:blank"));
+        problemDetail.setType(URI.create(ABOUT_BLANK));
         return problemDetail;
     }
 
@@ -94,7 +94,7 @@ public class GlobalExceptionHandler {
     public ProblemDetail handleGeneric(Exception exception) {
         log.error("Unexpected error", exception);
         ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.INTERNAL_SERVER_ERROR, "Internal error");
-        problemDetail.setType(URI.create("about:blank"));
+        problemDetail.setType(URI.create(ABOUT_BLANK));
         return problemDetail;
     }
 }

@@ -118,7 +118,7 @@ public class ProjectService {
     @Transactional
     public void delete(UUID projectId) {
         Project project = getOrThrow(projectId);
-        if (project.getIsInboxProject()) {
+        if (project.isInboxProject()) {
             throw new IllegalStateException("Cannot delete inbox project");
         }
         projectRepository.delete(project);

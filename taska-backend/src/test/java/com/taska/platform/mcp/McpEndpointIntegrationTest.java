@@ -2,6 +2,7 @@ package com.taska.platform.mcp;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import com.taska.project.adapter.http.ProjectMapperImpl;
 import com.taska.project.adapter.mcp.ProjectMcpMapperImpl;
@@ -115,14 +116,14 @@ class McpEndpointIntegrationTest {
         @Bean
         ProjectMcpTools projectMcpTools() {
             ProjectService projectService = mock(ProjectService.class);
-            org.mockito.Mockito.when(projectService.findAll()).thenReturn(List.of());
+            when(projectService.findAll()).thenReturn(List.of());
             return new ProjectMcpTools(projectService, new ProjectMapperImpl(), new ProjectMcpMapperImpl());
         }
 
         @Bean
         TaskMcpTools taskMcpTools() {
             TaskDefinitionService taskService = mock(TaskDefinitionService.class);
-            org.mockito.Mockito.when(taskService.findAll(null, null, false)).thenReturn(List.of());
+            when(taskService.findAll(null, null, false)).thenReturn(List.of());
             return new TaskMcpTools(taskService, mock(TaskMutationService.class), new TaskMcpMapperImpl());
         }
     }

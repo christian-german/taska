@@ -49,8 +49,8 @@ public interface TaskMcpMapper {
 
     default TaskMcpOutput toOutput(TaskResult taskResult) {
         return switch (taskResult) {
-            case NonRecurringTaskResult result -> toOutput(result.task());
-            case RecurringTaskSeriesResult result -> toOutput(result.task());
+            case NonRecurringTaskResult(Task task) -> toOutput(task);
+            case RecurringTaskSeriesResult(Task task) -> toOutput(task);
             case RecurringTaskOccurrenceResult result -> toOccurrenceOutput(result);
         };
     }

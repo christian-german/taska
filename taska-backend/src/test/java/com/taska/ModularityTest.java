@@ -8,7 +8,7 @@ import org.springframework.modulith.core.ApplicationModules;
  *
  * <p>
  * {@link ApplicationModules#verify()} rejects a cycle between modules, a dependency a module did not declare in its {@code package-info}, and any
- * reference to a package another module kept internal. It replaces the hand-written path matching this project used before, which could only check
+ * reference to a package another module kept internal. It replaces the handwritten path matching this project used before, which could only check
  * where a file sat, not who was allowed to reach it.
  */
 class ModularityTest {
@@ -22,8 +22,7 @@ class ModularityTest {
 
     @Test
     void moduleStructureIsPrintable() {
-        // Fails loudly if a module cannot be resolved at all, and documents the layout
-        // in the log.
+        // Fails loudly if a module cannot be resolved at all and documents the layout in the log.
         MODULES.forEach(module -> System.out.println(module.getIdentifier() + "  <-  " + module.getBasePackage()));
     }
 }

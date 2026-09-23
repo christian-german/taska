@@ -26,9 +26,7 @@ public final class McpToolResponses {
     public static McpSchema.CallToolResult execute(Supplier<Object> operation) {
         try {
             return success(operation.get());
-        } catch (ResourceNotFoundException exception) {
-            return error(exception.getMessage());
-        } catch (IllegalArgumentException exception) {
+        } catch (ResourceNotFoundException | IllegalArgumentException exception) {
             return error(exception.getMessage());
         } catch (Exception exception) {
             log.error("Unexpected MCP tool failure", exception);

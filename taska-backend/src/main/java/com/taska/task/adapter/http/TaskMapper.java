@@ -32,8 +32,8 @@ public interface TaskMapper {
 
     default TaskDto toDto(TaskResult taskResult) {
         return switch (taskResult) {
-            case NonRecurringTaskResult result -> toNonRecurringDto(result.task());
-            case RecurringTaskSeriesResult result -> toRecurringSeriesDto(result.task());
+            case NonRecurringTaskResult(Task task) -> toNonRecurringDto(task);
+            case RecurringTaskSeriesResult(Task task) -> toRecurringSeriesDto(task);
             case RecurringTaskOccurrenceResult result -> toOccurrenceDto(result);
         };
     }

@@ -128,10 +128,10 @@ class TaskOccurrenceServiceQueryTest {
 
         List<TaskResult> result = taskOccurrenceService.findOccurrencesForDateRange(DATE, DATE, false);
 
-        // A recurring task reaches a date range as expanded occurrences, never as its
-        // definition.
-        assertThat(result).noneMatch(RecurringTaskSeriesResult.class::isInstance);
-        assertThat(result).hasSize(2).anyMatch(NonRecurringTaskResult.class::isInstance).anyMatch(RecurringTaskOccurrenceResult.class::isInstance);
+        // A recurring task reaches a date range as expanded occurrences, never as its definition.
+        assertThat(result)
+                .noneMatch(RecurringTaskSeriesResult.class::isInstance)
+                .hasSize(2).anyMatch(NonRecurringTaskResult.class::isInstance).anyMatch(RecurringTaskOccurrenceResult.class::isInstance);
     }
 
     @Test
@@ -205,7 +205,7 @@ class TaskOccurrenceServiceQueryTest {
 
         when(taskRepository.findNonRecurringTasksInPeriod(START, END)).thenReturn(List.of());
         when(taskRepository.findActiveRecurringTasksForPeriod(START, END)).thenReturn(List.of(task));
-        when(taskOccurrenceStateRepository.findBySeriesIdInAndOccurrenceScheduledAtBetween(eq(List.of(task.getId())), eq(START), eq(END)))
+        when(taskOccurrenceStateRepository.findBySeriesIdInAndOccurrenceScheduledAtBetween(List.of(task.getId()), eq(START), eq(END)))
                 .thenReturn(List.of());
         when(taskRecurrenceService.getOccurrencesInRange(task, START, END)).thenReturn(List.of(occurrenceScheduledAt));
 
@@ -224,7 +224,7 @@ class TaskOccurrenceServiceQueryTest {
 
         when(taskRepository.findNonRecurringTasksInPeriod(START, END)).thenReturn(List.of());
         when(taskRepository.findActiveRecurringTasksForPeriod(START, END)).thenReturn(List.of(task));
-        when(taskOccurrenceStateRepository.findBySeriesIdInAndOccurrenceScheduledAtBetween(eq(List.of(task.getId())), eq(START), eq(END)))
+        when(taskOccurrenceStateRepository.findBySeriesIdInAndOccurrenceScheduledAtBetween(List.of(task.getId()), eq(START), eq(END)))
                 .thenReturn(List.of(doneInstance));
         when(taskRecurrenceService.getOccurrencesInRange(task, START, END)).thenReturn(List.of(occurrenceScheduledAt));
 
@@ -243,7 +243,7 @@ class TaskOccurrenceServiceQueryTest {
 
         when(taskRepository.findNonRecurringTasksInPeriod(START, END)).thenReturn(List.of());
         when(taskRepository.findActiveRecurringTasksForPeriod(START, END)).thenReturn(List.of(task));
-        when(taskOccurrenceStateRepository.findBySeriesIdInAndOccurrenceScheduledAtBetween(eq(List.of(task.getId())), eq(START), eq(END)))
+        when(taskOccurrenceStateRepository.findBySeriesIdInAndOccurrenceScheduledAtBetween(List.of(task.getId()), eq(START), eq(END)))
                 .thenReturn(List.of(skipped));
         when(taskRecurrenceService.getOccurrencesInRange(task, START, END)).thenReturn(List.of(occurrenceScheduledAt));
 
@@ -311,7 +311,7 @@ class TaskOccurrenceServiceQueryTest {
         when(taskRepository.findActiveRecurringTasksForPeriod(originalStart, originalEnd)).thenReturn(List.of(task));
         when(
                 taskOccurrenceStateRepository
-                        .findBySeriesIdInAndOccurrenceScheduledAtBetween(eq(List.of(task.getId())), eq(originalStart), eq(originalEnd)))
+                        .findBySeriesIdInAndOccurrenceScheduledAtBetween(List.of(task.getId()), originalStart, originalEnd))
                 .thenReturn(List.of(modified));
         // movedScheduledAt (May 23) is outside the May-21 window → no moved-in
         // instances.
@@ -347,7 +347,7 @@ class TaskOccurrenceServiceQueryTest {
         when(taskRepository.findActiveRecurringTasksForPeriod(newStart, newEnd)).thenReturn(List.of(task));
         // occurrenceScheduledAt=May21 is outside the May-23 window → not returned by
         // occurrenceScheduledAt query.
-        when(taskOccurrenceStateRepository.findBySeriesIdInAndOccurrenceScheduledAtBetween(eq(List.of(task.getId())), eq(newStart), eq(newEnd)))
+        when(taskOccurrenceStateRepository.findBySeriesIdInAndOccurrenceScheduledAtBetween(List.of(task.getId()), newStart, newEnd))
                 .thenReturn(List.of());
         // scheduledAt=May23 is inside the May-23 window → returned by scheduledAt
         // query.
@@ -380,7 +380,7 @@ class TaskOccurrenceServiceQueryTest {
 
         when(taskRepository.findNonRecurringTasksInPeriod(start, end)).thenReturn(List.of());
         when(taskRepository.findActiveRecurringTasksForPeriod(start, end)).thenReturn(List.of(task));
-        when(taskOccurrenceStateRepository.findBySeriesIdInAndOccurrenceScheduledAtBetween(eq(List.of(task.getId())), eq(start), eq(end)))
+        when(taskOccurrenceStateRepository.findBySeriesIdInAndOccurrenceScheduledAtBetween(List.of(task.getId()), start, end))
                 .thenReturn(List.of(skipped, done));
         when(taskRecurrenceService.getOccurrencesInRange(task, start, end)).thenReturn(List.of(atSkipped, atDone, atVirtual));
 
@@ -402,7 +402,7 @@ class TaskOccurrenceServiceQueryTest {
 
         when(taskRepository.findNonRecurringTasksInPeriod(START, END)).thenReturn(List.of());
         when(taskRepository.findActiveRecurringTasksForPeriod(START, END)).thenReturn(List.of(series));
-        when(taskOccurrenceStateRepository.findBySeriesIdInAndOccurrenceScheduledAtBetween(eq(List.of(series.getId())), eq(START), eq(END)))
+        when(taskOccurrenceStateRepository.findBySeriesIdInAndOccurrenceScheduledAtBetween(List.of(series.getId()), START, END))
                 .thenReturn(List.of());
         when(taskOccurrenceStateRepository.findMovedInPeriod(START, END)).thenReturn(List.of(moved));
         when(taskRecurrenceService.getOccurrencesInRange(series, START, END)).thenReturn(List.of());

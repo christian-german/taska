@@ -16,18 +16,14 @@ class GlobalExceptionHandlerTest {
 
     @Test
     void unreadableRequestBodyReturnsBadRequest() {
-        ProblemDetail problemDetail = globalExceptionHandler
-                .handleUnreadableMessage(new HttpMessageNotReadableException("Invalid Instant", new MockHttpInputMessage(new byte[0])));
-
+        ProblemDetail problemDetail = globalExceptionHandler.handleUnreadableMessage();
         assertThat(problemDetail.getStatus()).isEqualTo(HttpStatus.BAD_REQUEST.value());
         assertThat(problemDetail.getDetail()).isEqualTo("Invalid request body");
     }
 
     @Test
     void invalidPathParameterReturnsBadRequest() {
-        ProblemDetail problemDetail = globalExceptionHandler
-                .handleTypeMismatch(new TypeMismatchException("7541-09-08T07:46:56-19:07", Instant.class));
-
+        ProblemDetail problemDetail = globalExceptionHandler.handleTypeMismatch();
         assertThat(problemDetail.getStatus()).isEqualTo(HttpStatus.BAD_REQUEST.value());
         assertThat(problemDetail.getDetail()).isEqualTo("Invalid request parameter");
     }

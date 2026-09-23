@@ -45,7 +45,7 @@ public class TaskChangePublisher {
     private void removeInvalidToken(DeviceToken device, java.util.concurrent.Future<?> send) {
         try {
             send.get();
-        } catch (InterruptedException exception) {
+        } catch (InterruptedException _) {
             Thread.currentThread().interrupt();
         } catch (ExecutionException exception) {
             Throwable cause = exception.getCause();

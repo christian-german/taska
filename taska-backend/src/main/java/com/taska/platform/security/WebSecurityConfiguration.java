@@ -68,7 +68,11 @@ public class WebSecurityConfiguration {
         return new WebMvcConfigurer() {
             @Override
             public void addCorsMappings(@NonNull CorsRegistry registry) {
-                registry.addMapping("/**").allowedOrigins("*").allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH").allowedHeaders("*");
+                registry
+                        .addMapping("/**")
+                        .allowedOrigins("*")
+                        .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH")
+                        .allowedHeaders("*");
             }
         };
     }
@@ -96,11 +100,14 @@ public class WebSecurityConfiguration {
 
             RestTemplate restTemplate = new RestTemplate(factory);
 
-            nimbusJwtDecoder = NimbusJwtDecoder.withIssuerLocation(oAuth2ResourceServerProperties.getJwt().getIssuerUri())
+            nimbusJwtDecoder = NimbusJwtDecoder
+                    .withIssuerLocation(oAuth2ResourceServerProperties.getJwt().getIssuerUri())
                     .restOperations(restTemplate)
                     .build();
         } else {
-            nimbusJwtDecoder = NimbusJwtDecoder.withIssuerLocation(oAuth2ResourceServerProperties.getJwt().getIssuerUri()).build();
+            nimbusJwtDecoder = NimbusJwtDecoder
+                    .withIssuerLocation(oAuth2ResourceServerProperties.getJwt().getIssuerUri())
+                    .build();
         }
 
         // Customize JWT validation logic if required

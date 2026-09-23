@@ -69,6 +69,10 @@ export class TaskService {
     return this.http.get<Task[]>(this.base, { params });
   }
 
+  getOverdueTasks(): Observable<Task[]> {
+    return this.http.get<Task[]>(`${this.base}/overdue`);
+  }
+
   getTask(taskId: string): Observable<Task> {
     return this.http.get<Task>(`${this.base}/${taskId}`);
   }

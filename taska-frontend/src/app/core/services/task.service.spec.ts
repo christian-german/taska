@@ -67,6 +67,16 @@ describe('TaskService task creation feedback', () => {
     request.flush([]);
   });
 
+  it('retrieves the complete overdue task backlog', () => {
+    service.getOverdueTasks().subscribe();
+
+    const request = http.expectOne(
+      (candidate) => candidate.method === 'GET' && candidate.url.endsWith('/tasks/overdue'),
+    );
+    expect(request.request.params.keys()).toEqual([]);
+    request.flush([]);
+  });
+
   it('builds a complete replacement payload and preserves an explicit schedule clear', () => {
     const task = taskFixture();
     service.updateTask(task.id, { scheduledAt: null }).subscribe();

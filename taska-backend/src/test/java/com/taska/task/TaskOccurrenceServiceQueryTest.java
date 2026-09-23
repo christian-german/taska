@@ -135,6 +135,55 @@ class TaskOccurrenceServiceQueryTest {
     }
 
     @Test
+    void findOverdueOccurrences_returnsEveryOpenHistoricalOccurrenceByEffectiveSchedule() {
+        LocalDate today = LocalDate.now(ZoneOffset.UTC);
+        Instant periodEnd = today.atStartOfDay(ZoneOffset.UTC).toInstant();
+        Task series = buildRecurringTask();
+        Instant oldestOccurrence = periodEnd.minus(3, java.time.temporal.ChronoUnit.DAYS);
+        Instant movedOutOccurrence = periodEnd.minus(2, java.time.temporal.ChronoUnit.DAYS);
+        Instant latestOccurrence = periodEnd.minus(1, java.time.temporal.ChronoUnit.DAYS);
+        TaskOccurrenceState movedToToday = buildOccurrenceState(series.getId(), movedOutOccurrence, TaskOccurrenceStatus.MODIFIED);
+        movedToToday.setScheduledAt(periodEnd.plusSeconds(3600));
+
+        when(taskRepository.findNonRecurringTasksBefore(periodEnd)).thenReturn(List.of());
+        when(taskRepository.findRecurringTasksBefore(periodEnd)).thenReturn(List.of(series));
+        when(taskOccurrenceStateRepository.findBySeriesIdInAndOccurrenceScheduledAtBefore(List.of(series.getId()), periodEnd))
+                .thenReturn(List.of(movedToToday));
+        when(taskRecurrenceService.getOccurrencesInRange(series, series.getScheduledAt(), periodEnd))
+                .thenReturn(List.of(oldestOccurrence, movedOutOccurrence, latestOccurrence));
+
+        List<TaskResult> results = taskOccurrenceService.findOverdueOccurrences();
+
+        assertThat(results).extracting(result -> ((RecurringTaskOccurrenceResult) result).occurrenceScheduledAt())
+                .containsExactly(oldestOccurrence, latestOccurrence);
+    }
+
+    @Test
+    void findOverdueOccurrences_includesMovedOccurrenceWhoseAnchorIsAfterToday() {
+        LocalDate today = LocalDate.now(ZoneOffset.UTC);
+        Instant periodEnd = today.atStartOfDay(ZoneOffset.UTC).toInstant();
+        Task series = buildRecurringTask();
+        Instant occurrenceScheduledAt = periodEnd.plus(1, java.time.temporal.ChronoUnit.DAYS);
+        TaskOccurrenceState movedOccurrence = buildOccurrenceState(series.getId(), occurrenceScheduledAt, TaskOccurrenceStatus.MODIFIED);
+        movedOccurrence.setScheduledAt(periodEnd.minusSeconds(3600));
+
+        when(taskRepository.findNonRecurringTasksBefore(periodEnd)).thenReturn(List.of());
+        when(taskRepository.findRecurringTasksBefore(periodEnd)).thenReturn(List.of(series));
+        when(taskOccurrenceStateRepository.findBySeriesIdInAndOccurrenceScheduledAtBefore(List.of(series.getId()), periodEnd))
+                .thenReturn(List.of());
+        when(taskRecurrenceService.getOccurrencesInRange(series, series.getScheduledAt(), periodEnd)).thenReturn(List.of());
+        when(taskOccurrenceStateRepository.findOpenMovedBefore(periodEnd)).thenReturn(List.of(movedOccurrence));
+        when(taskRepository.findAllById(List.of(series.getId()))).thenReturn(List.of(series));
+
+        List<TaskResult> results = taskOccurrenceService.findOverdueOccurrences();
+
+        assertThat(results).singleElement().isInstanceOfSatisfying(RecurringTaskOccurrenceResult.class, occurrence -> {
+            assertThat(occurrence.occurrenceScheduledAt()).isEqualTo(occurrenceScheduledAt);
+            assertThat(occurrence.resolvedScheduledAt()).isEqualTo(periodEnd.minusSeconds(3600));
+        });
+    }
+
+    @Test
     void findOccurrencesForDateRange_usesConfiguredLocalDateBoundaries() {
         ZoneId paris = ZoneId.of("Europe/Paris");
         useCalendarZone(paris);

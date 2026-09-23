@@ -69,6 +69,12 @@ public class TaskController {
         return taskService.findAll(projectId, label, showCompleted).stream().map(taskMapper::toDto).toList();
     }
 
+    /** Returns every incomplete scheduled task or expanded occurrence before the current configured calendar date. */
+    @GetMapping("/overdue")
+    public List<TaskDto> getOverdue() {
+        return taskOccurrenceService.findOverdueOccurrences().stream().map(taskMapper::toDto).toList();
+    }
+
     /**
      * Creates a new task. Returns HTTP 201 with the created task DTO.
      *

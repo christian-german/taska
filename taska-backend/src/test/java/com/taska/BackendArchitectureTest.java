@@ -22,7 +22,7 @@ import org.springframework.stereotype.Component;
  *
  * <p>
  * {@link ModularityTest} owns everything about who may depend on whom <em>across</em> modules. What is left here is where a type belongs inside its
- * own module, the direction between the task module's sub-domains, and two Spring conventions.
+ * own module, the direction between the task module's subdomains, and two Spring conventions.
  *
  * <p>
  * These rules read bytecode. An earlier version matched file paths and import strings, which could tell where a file sat but never what it actually

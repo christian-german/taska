@@ -51,6 +51,17 @@ class TaskControllerRepresentationTest {
     }
 
     @Test
+    void overdueListingReturnsNonRecurringTasksAndOccurrencesButNeverASeriesDefinition() {
+        when(taskOccurrenceService.findOverdueOccurrences()).thenReturn(List.of(TaskResult.base(nonRecurringTask()), occurrenceResult(null)));
+
+        List<TaskDto> tasks = taskController.getOverdue();
+
+        assertThat(tasks).extracting(TaskDto::kind)
+                .containsExactly(TaskRepresentationKind.NON_RECURRING, TaskRepresentationKind.RECURRING_OCCURRENCE);
+        assertThat(tasks).extracting(TaskDto::kind).doesNotContain(TaskRepresentationKind.RECURRING_SERIES);
+    }
+
+    @Test
     void openEndedDateRangeListingFollowsTheSameContractAsASingleDay() {
         when(taskOccurrenceService.findOccurrencesForDateRange(DATE, DATE.plusDays(6), false)).thenReturn(List.of(occurrenceResult(null)));
 

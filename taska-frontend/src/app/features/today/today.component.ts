@@ -8,15 +8,8 @@ import {
   ChangeDetectionStrategy,
 } from '@angular/core';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
-import {
-  Project,
-  Task,
-  TaskPatch,
-  fmtDateLong,
-  fmtEstimate,
-  isOverdue,
-  sameDay,
-} from '../../core/models';
+import { forkJoin } from 'rxjs';
+import { Project, Task, TaskPatch, fmtDateLong, fmtEstimate, sameDay } from '../../core/models';
 import { TaskService } from '../../core/services/task.service';
 import { ProjectService } from '../../core/services/project.service';
 import { UiStateService } from '../../core/services/ui-state.service';
@@ -64,6 +57,7 @@ export class TodayComponent implements OnInit {
   private destroyRef = inject(DestroyRef);
 
   tasks = signal<Task[]>([]);
+  overdueTasks = signal<Task[]>([]);
   projects = toSignal(this.projectService.projects$, { initialValue: [] as Project[] });
 
   selectedId = computed(() => this.ui.selectedTask()?.id ?? null);
@@ -73,12 +67,13 @@ export class TodayComponent implements OnInit {
     const tomorrow = new Date(today);
     tomorrow.setDate(tomorrow.getDate() + 1);
 
-    const tasks = this.tasks();
-    const overdue = tasks.filter((t) => isOverdue(t));
-    const todayDue = tasks.filter((t) => t.scheduledAt && sameDay(new Date(t.scheduledAt), today));
-    const tomorrowDue = tasks.filter(
+    const todayDue = this.tasks().filter(
+      (t) => t.scheduledAt && sameDay(new Date(t.scheduledAt), today),
+    );
+    const tomorrowDue = this.tasks().filter(
       (t) => !t.isCompleted && t.scheduledAt && sameDay(new Date(t.scheduledAt), tomorrow),
     );
+    const overdue = this.overdueTasks();
 
     const groups: TaskGroup[] = [];
     if (overdue.length) {
@@ -110,7 +105,7 @@ export class TodayComponent implements OnInit {
     const todayDue = this.tasks().filter(
       (t) => t.scheduledAt && sameDay(new Date(t.scheduledAt), today),
     );
-    const overdue = this.tasks().filter((t) => isOverdue(t));
+    const overdue = this.overdueTasks();
     const totalEst = todayDue
       .filter((t) => !t.isCompleted)
       .reduce((a, b) => a + (b.estimateMinutes || 0), 0);
@@ -124,20 +119,10 @@ export class TodayComponent implements OnInit {
 
   ngOnInit(): void {
     this.refresh();
-    this.ui.taskCreated$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((task) => {
-      const today = new Date();
-      const tomorrow = new Date(today);
-      tomorrow.setDate(tomorrow.getDate() + 1);
-      const qualifies =
-        !task.isCompleted &&
-        !!task.scheduledAt &&
-        (isOverdue(task) ||
-          sameDay(new Date(task.scheduledAt), today) ||
-          sameDay(new Date(task.scheduledAt), tomorrow));
-      if (qualifies) this.tasks.update((list) => [...list, task]);
-    });
+    this.ui.taskCreated$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => this.refresh());
     this.ui.taskDeleted$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((id) => {
       this.tasks.update((list) => list.filter((t) => t.id !== id));
+      this.overdueTasks.update((list) => list.filter((t) => t.id !== id));
     });
     this.ui.taskUpdated$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => this.refresh());
   }
@@ -148,7 +133,13 @@ export class TodayComponent implements OnInit {
     tomorrow.setDate(tomorrow.getDate() + 1);
     const from = todayISO();
     const to = tomorrow.toISOString().slice(0, 10);
-    this.taskService.getTasks({ from, to }).subscribe((tasks) => this.tasks.set(tasks));
+    forkJoin({
+      overdue: this.taskService.getOverdueTasks(),
+      planned: this.taskService.getTasks({ from, to }),
+    }).subscribe(({ overdue, planned }) => {
+      this.overdueTasks.set(overdue);
+      this.tasks.set(planned);
+    });
   }
 
   onToggle(t: Task): void {

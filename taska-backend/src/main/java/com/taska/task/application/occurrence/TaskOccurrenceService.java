@@ -148,6 +148,78 @@ public class TaskOccurrenceService {
     }
 
     /**
+     * Returns every open scheduled task and recurring occurrence before the current configured calendar date.
+     *
+     * <p>
+     * Recurring series are expanded from their own start, so clients do not have to choose an arbitrary historical range. Persisted moves and
+     * detached occurrence state are considered by their effective schedule.
+     *
+     * @return displayable overdue task results ordered by effective schedule
+     */
+    public List<TaskResult> findOverdueOccurrences() {
+        ZoneId calendarZone = taskaProperties.getCalendar().getTimeZone();
+        Instant periodEnd = LocalDate.now(calendarZone).atStartOfDay(calendarZone).toInstant();
+        Map<UUID, Map<Instant, TaskResult>> recurringResults = new java.util.HashMap<>();
+        List<TaskResult> taskResults = new ArrayList<>(taskRepository.findNonRecurringTasksBefore(periodEnd).stream().map(TaskResult::base).toList());
+
+        List<Task> recurringSeries = taskRepository.findRecurringTasksBefore(periodEnd);
+        if (!recurringSeries.isEmpty()) {
+            List<UUID> seriesIds = recurringSeries.stream().map(Task::getId).toList();
+            Map<UUID, Map<Instant, TaskOccurrenceState>> statesBySeries = taskOccurrenceStateRepository
+                    .findBySeriesIdInAndOccurrenceScheduledAtBefore(seriesIds, periodEnd)
+                    .stream()
+                    .collect(Collectors.groupingBy(TaskOccurrenceState::getSeriesId, Collectors.toMap(
+                            TaskOccurrenceState::getOccurrenceScheduledAt, occurrenceState -> occurrenceState, (existingState, _) -> existingState)));
+
+            for (Task series : recurringSeries) {
+                Map<Instant, TaskOccurrenceState> occurrenceStates = statesBySeries.getOrDefault(series.getId(), Map.of());
+                for (Instant occurrenceScheduledAt : taskRecurrenceService.getOccurrencesInRange(series, series.getScheduledAt(), periodEnd)) {
+                    TaskOccurrenceState occurrenceState = occurrenceStates.get(occurrenceScheduledAt);
+                    if (occurrenceState != null && occurrenceState.getStatus() != TaskOccurrenceStatus.MODIFIED) {
+                        continue;
+                    }
+                    TaskResult occurrence = TaskResult.occurrence(series, occurrenceState, occurrenceScheduledAt);
+                    if (((com.taska.task.model.RecurringTaskOccurrenceResult) occurrence).resolvedScheduledAt().isBefore(periodEnd)) {
+                        addRecurringResult(recurringResults, occurrence);
+                    }
+                }
+            }
+        }
+
+        List<TaskOccurrenceState> movedOrDetachedStates = new ArrayList<>(taskOccurrenceStateRepository.findOpenMovedBefore(periodEnd));
+        movedOrDetachedStates.addAll(taskOccurrenceStateRepository.findOpenDetachedBefore(periodEnd));
+        if (!movedOrDetachedStates.isEmpty()) {
+            Map<UUID, Task> stateSeriesById = taskRepository.findAllById(
+                            movedOrDetachedStates.stream().map(TaskOccurrenceState::getSeriesId).distinct().toList())
+                    .stream()
+                    .filter(series -> Boolean.TRUE.equals(series.getIsRecurring()))
+                    .collect(Collectors.toMap(Task::getId, series -> series));
+            for (TaskOccurrenceState occurrenceState : movedOrDetachedStates) {
+                Task series = stateSeriesById.get(occurrenceState.getSeriesId());
+                if (series != null && withinSeriesSpan(series, occurrenceState.getOccurrenceScheduledAt())) {
+                    addRecurringResult(recurringResults, TaskResult.occurrence(series, occurrenceState, occurrenceState.getOccurrenceScheduledAt()));
+                }
+            }
+        }
+
+        recurringResults.values().forEach(resultsByOccurrence -> taskResults.addAll(resultsByOccurrence.values()));
+        return taskResults.stream().sorted(java.util.Comparator.comparing(this::resolvedScheduledAt)).toList();
+    }
+
+    private void addRecurringResult(Map<UUID, Map<Instant, TaskResult>> recurringResults, TaskResult occurrence) {
+        com.taska.task.model.RecurringTaskOccurrenceResult occurrenceResult = (com.taska.task.model.RecurringTaskOccurrenceResult) occurrence;
+        recurringResults.computeIfAbsent(occurrenceResult.task().getId(), _ -> new java.util.HashMap<>())
+                .put(occurrenceResult.occurrenceScheduledAt(), occurrence);
+    }
+
+    private Instant resolvedScheduledAt(TaskResult taskResult) {
+        if (taskResult instanceof com.taska.task.model.RecurringTaskOccurrenceResult occurrenceResult) {
+            return occurrenceResult.resolvedScheduledAt();
+        }
+        return taskResult.task().getScheduledAt();
+    }
+
+    /**
      * Returns one recurring occurrence by its stable series and schedule identity.
      *
      * <p>

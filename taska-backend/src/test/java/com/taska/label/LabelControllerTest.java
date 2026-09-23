@@ -72,7 +72,7 @@ class LabelControllerTest {
         UUID labelId = UUID.randomUUID();
         LabelUpdateParameters expectedParameters = new LabelUpdateParameters("Personal", "green", 2, true);
         Label updatedLabel = label("Personal", "green", 2, true);
-        when(labelService.update(labelId, expectedParameters)).thenReturn(updatedLabel);
+        when(labelService.replace(labelId, expectedParameters)).thenReturn(updatedLabel);
 
         mockMvc.perform(put("/labels/{labelId}", labelId).contentType(MediaType.APPLICATION_JSON).content("""
                 {
@@ -88,7 +88,7 @@ class LabelControllerTest {
                 .andExpect(jsonPath("$.order").value(2))
                 .andExpect(jsonPath("$.isFavorite").value(true));
 
-        verify(labelService).update(labelId, expectedParameters);
+        verify(labelService).replace(labelId, expectedParameters);
     }
 
     @ParameterizedTest

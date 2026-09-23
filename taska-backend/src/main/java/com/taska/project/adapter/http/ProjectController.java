@@ -63,7 +63,7 @@ public class ProjectController {
     @PutMapping("/{projectId}")
     public ProjectDto update(@PathVariable UUID projectId, @Valid @RequestBody ProjectUpdateRequest projectUpdateRequest) {
         ProjectUpdateParameters projectUpdateParameters = projectMapper.toParameters(projectUpdateRequest);
-        return projectMapper.toDto(projectService.update(projectId, projectUpdateParameters));
+        return projectMapper.toDto(projectService.replace(projectId, projectUpdateParameters));
     }
 
     /**

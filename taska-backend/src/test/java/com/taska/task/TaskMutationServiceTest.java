@@ -103,7 +103,7 @@ class TaskMutationServiceTest {
         UUID id = UUID.randomUUID();
         var parameters = patch(null, null);
         var result = TaskResult.base(task(false));
-        when(taskService.updateTask(id, parameters, false)).thenReturn(result);
+        when(taskService.update(id, parameters, false)).thenReturn(result);
         assertThat(taskMutationService.update(id, parameters, false, "account")).isSameAs(result);
         verify(events).publishEvent(new TaskChangedEvent("account"));
     }
@@ -133,7 +133,7 @@ class TaskMutationServiceTest {
         UUID id = UUID.randomUUID();
         var parameters = patch(null, null);
         var result = TaskResult.base(task(true));
-        when(taskService.updateTask(id, parameters, false)).thenReturn(result);
+        when(taskService.update(id, parameters, false)).thenReturn(result);
         assertThat(taskMutationService.update(id, parameters, false, "account")).isSameAs(result);
         verify(events).publishEvent(new TaskChangedEvent("account"));
     }
@@ -142,7 +142,7 @@ class TaskMutationServiceTest {
     void rejectedPartialUpdateDoesNotPublish() {
         UUID id = UUID.randomUUID();
         var parameters = patch(null, null);
-        when(taskService.updateTask(id, parameters, false)).thenThrow(new IllegalArgumentException("fixed generator"));
+        when(taskService.update(id, parameters, false)).thenThrow(new IllegalArgumentException("fixed generator"));
         assertThatThrownBy(() -> taskMutationService.update(id, parameters, false, "account")).isInstanceOf(IllegalArgumentException.class);
         verify(events, never()).publishEvent(any(TaskChangedEvent.class));
     }
@@ -170,7 +170,7 @@ class TaskMutationServiceTest {
         taskMutationService.delete(seriesId, skipParameters, "skip-account");
         taskMutationService.delete(seriesId, truncateParameters, "truncate-account");
 
-        verify(taskService).deleteTask(taskId);
+        verify(taskService).delete(taskId);
         verify(taskOccurrenceService).skipOccurrence(seriesId, occurrenceScheduledAt);
         verify(recurringTaskSeriesService).truncateSeriesFrom(seriesId, occurrenceScheduledAt);
         verify(events).publishEvent(new TaskChangedEvent("task-account"));

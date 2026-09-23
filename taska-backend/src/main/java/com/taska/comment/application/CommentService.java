@@ -47,14 +47,14 @@ public class CommentService {
     }
 
     /**
-     * Updates the content of an existing comment.
+     * Replaces the content of an existing comment.
      *
-     * @param commentId the comment UUID to update
+     * @param commentId the comment UUID to replace
      * @param commentUpdateParameters application parameters containing the replacement content
      * @return the updated comment entity
      */
     @Transactional
-    public Comment update(UUID commentId, CommentUpdateParameters commentUpdateParameters) {
+    public Comment replace(UUID commentId, CommentUpdateParameters commentUpdateParameters) {
         Comment comment = getOrThrow(commentId);
         comment.setContent(commentUpdateParameters.content());
         return commentRepository.save(comment);

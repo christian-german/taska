@@ -51,7 +51,7 @@ public class ProjectMcpTools {
             Project existingProject = projectService.findById(projectId);
             ProjectUpdateParameters projectUpdateParameters = projectMcpMapper.toParameters(projectUpdateInput, existingProject);
             requireName(projectUpdateParameters.name());
-            return projectMapper.toDto(projectService.update(projectId, projectUpdateParameters));
+            return projectMapper.toDto(projectService.replace(projectId, projectUpdateParameters));
         });
     }
 

@@ -76,7 +76,7 @@ public class ProjectService {
      * @return the updated project entity
      */
     @Transactional
-    public Project update(UUID projectId, ProjectUpdateParameters projectUpdateParameters) {
+    public Project replace(UUID projectId, ProjectUpdateParameters projectUpdateParameters) {
         Project project = getOrThrow(projectId);
         project.setName(projectUpdateParameters.name());
         project.setColor(projectUpdateParameters.color());

@@ -75,7 +75,7 @@ public class TaskMutationService {
         }
         TaskResult taskResult = parameters.scope() == RecurrenceScope.THIS_ONLY
                 ? taskOccurrenceService.updateOccurrence(taskId, parameters.occurrenceScheduledAt(), parameters, priorityProvided)
-                : taskService.updateTask(taskId, parameters, priorityProvided);
+                : taskService.update(taskId, parameters, priorityProvided);
         publishChange(accountSubject);
         return taskResult;
     }
@@ -126,7 +126,7 @@ public class TaskMutationService {
     public void delete(UUID taskId, TaskDeleteParameters parameters, String accountSubject) {
         Task task = taskService.findById(taskId);
         if (parameters == null || parameters.scope() == null || !Boolean.TRUE.equals(task.getIsRecurring())) {
-            taskService.deleteTask(taskId);
+            taskService.delete(taskId);
         } else {
             switch (parameters.scope()) {
                 case THIS_ONLY -> taskOccurrenceService.skipOccurrence(taskId, parameters.occurrenceScheduledAt());

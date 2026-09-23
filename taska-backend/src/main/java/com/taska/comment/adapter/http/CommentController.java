@@ -61,7 +61,7 @@ public class CommentController {
     @PutMapping("/{commentId}")
     public CommentDto update(@PathVariable UUID commentId, @Valid @RequestBody CommentUpdateRequest commentUpdateRequest) {
         CommentUpdateParameters commentUpdateParameters = commentMapper.toParameters(commentUpdateRequest);
-        return commentMapper.toDto(commentService.update(commentId, commentUpdateParameters));
+        return commentMapper.toDto(commentService.replace(commentId, commentUpdateParameters));
     }
 
     /**

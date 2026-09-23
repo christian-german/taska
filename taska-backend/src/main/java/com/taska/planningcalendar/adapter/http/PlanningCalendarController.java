@@ -32,7 +32,7 @@ public class PlanningCalendarController {
 
     @GetMapping("/{planningCalendarId}")
     public PlanningCalendarDto getById(@PathVariable UUID planningCalendarId) {
-        return planningCalendarMapper.toDto(planningCalendarService.get(planningCalendarId));
+        return planningCalendarMapper.toDto(planningCalendarService.findById(planningCalendarId));
     }
 
     @PostMapping
@@ -47,6 +47,6 @@ public class PlanningCalendarController {
             @PathVariable UUID planningCalendarId,
             @Valid @RequestBody PlanningCalendarUpdateRequest planningCalendarUpdateRequest) {
         PlanningCalendarUpdateParameters planningCalendarUpdateParameters = planningCalendarMapper.toParameters(planningCalendarUpdateRequest);
-        return planningCalendarMapper.toDto(planningCalendarService.update(planningCalendarId, planningCalendarUpdateParameters));
+        return planningCalendarMapper.toDto(planningCalendarService.replace(planningCalendarId, planningCalendarUpdateParameters));
     }
 }

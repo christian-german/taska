@@ -38,6 +38,31 @@ For APIs under our control:
 
 Do not introduce Jackson naming overrides or aliases unless required by an external contract.
 
+## Method naming conventions
+
+Controller and service method names follow one fixed vocabulary. Do not introduce synonyms (`get`, `find`, `fetch`, `retrieve`, `save`, `add`, `remove`, `edit`, `patch`) for the operations below.
+
+**Controllers** — the HTTP-facing name, one per route:
+- `getById` — `GET /{id}`
+- `getAll` — `GET`
+- `create` — `POST`
+- `update` — `PUT /{id}`, full replacement
+- `delete` — `DELETE /{id}`
+
+**Services** — transport-independent, aligned with the `findBy…`/`findAll` idiom Spring Data already imposes on repositories:
+- `findById` — returns the entity, or throws `ResourceNotFoundException`
+- `findAll` — returns the collection, including a filtered variant of "all" (`findAll(UUID taskId)`, `findByProject`)
+- `create` — persists a new entity
+- `replace` — full replacement of every mutable field; the service-layer counterpart of a controller `update`
+- `update` — partial update (PATCH semantics): only the fields the caller explicitly supplied change. Reserve this name for genuine partial updates — a method that replaces every field is `replace`, never `update`
+- `delete` — permanently removes the entity
+
+A controller method keeps the name `update` for its `PUT` endpoint even when it delegates to a service `replace` method: the controller name describes the HTTP contract, the service name describes what the method does to the entity.
+
+**Existence checks**:
+- `exists` returns a `boolean`.
+- `requireExists` throws `ResourceNotFoundException` when absent, for a caller that only needs to assert a related resource is present before proceeding.
+
 ## API Contracts and Mutation Rules
 
 ### Resource contracts

@@ -64,11 +64,11 @@ class TaskDefinitionServiceMutationTest {
         Task series = buildRecurringTask(randomId());
         when(taskRepository.findById(series.getId())).thenReturn(Optional.of(series));
 
-        assertThatThrownBy(() -> taskService.updateTask(series.getId(), reqWithRRule(null, "FREQ=WEEKLY", null, null), false))
+        assertThatThrownBy(() -> taskService.update(series.getId(), reqWithRRule(null, "FREQ=WEEKLY", null, null), false))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("cannot be changed");
         assertThatThrownBy(
-                () -> taskService.updateTask(series.getId(), reqWithScheduledAt(series.getScheduledAt().plusSeconds(3600), null, null), false))
+                () -> taskService.update(series.getId(), reqWithScheduledAt(series.getScheduledAt().plusSeconds(3600), null, null), false))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("cannot be changed");
 
@@ -206,7 +206,7 @@ class TaskDefinitionServiceMutationTest {
         Task task = buildNonRecurringTask(taskId);
         when(taskRepository.findById(taskId)).thenReturn(Optional.of(task));
 
-        assertThatThrownBy(() -> taskService.updateTask(taskId, recurringPatch(null), false)).isInstanceOf(IllegalArgumentException.class)
+        assertThatThrownBy(() -> taskService.update(taskId, recurringPatch(null), false)).isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("requires a scheduledAt");
         assertThat(task.getIsRecurring()).isFalse();
         verify(taskRepository, never()).save(any());
@@ -262,7 +262,7 @@ class TaskDefinitionServiceMutationTest {
         when(taskRepository.findById(taskId)).thenReturn(Optional.of(task));
         when(taskRepository.save(task)).thenReturn(task);
 
-        taskService.updateTask(taskId, taskRequest(null, null, null), true);
+        taskService.update(taskId, taskRequest(null, null, null), true);
 
         assertThat(task.getPriority()).isNull();
     }
@@ -277,7 +277,7 @@ class TaskDefinitionServiceMutationTest {
         when(taskRepository.findById(taskId)).thenReturn(Optional.of(task));
         when(taskRepository.save(task)).thenReturn(task);
 
-        taskService.updateTask(
+        taskService.update(
                 taskId,
                 new TaskPatchParameters(null, null, null, null, null, null, null, null, dueAt, null, null, null, null, null, null, null, null),
                 false);
@@ -295,7 +295,7 @@ class TaskDefinitionServiceMutationTest {
         when(taskRepository.findById(taskId)).thenReturn(Optional.of(task));
         when(taskRepository.save(task)).thenReturn(task);
 
-        taskService.updateTask(taskId, recurringPatch(null), false);
+        taskService.update(taskId, recurringPatch(null), false);
 
         assertThat(task.getIsRecurring()).isTrue();
         assertThat(task.getDueAt()).isNull();
@@ -307,7 +307,7 @@ class TaskDefinitionServiceMutationTest {
         Task task = buildRecurringTask(taskId);
         when(taskRepository.findById(taskId)).thenReturn(Optional.of(task));
 
-        assertThatThrownBy(() -> taskService.updateTask(taskId, recurringPatch(Instant.parse("2026-05-21T17:00:00Z")), false))
+        assertThatThrownBy(() -> taskService.update(taskId, recurringPatch(Instant.parse("2026-05-21T17:00:00Z")), false))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("Recurring series");
         verify(taskRepository, never()).save(any());
@@ -443,7 +443,7 @@ class TaskDefinitionServiceMutationTest {
         when(taskRepository.findById(taskId)).thenReturn(Optional.of(task));
         when(taskRepository.save(task)).thenReturn(task);
 
-        taskService.updateTask(taskId, request, request.priority() != null);
+        taskService.update(taskId, request, request.priority() != null);
 
         assertThat(task.getContent()).isEqualTo("Updated content");
         verify(taskRepository).save(task);
@@ -456,7 +456,7 @@ class TaskDefinitionServiceMutationTest {
         Task task = buildNonRecurringTask(taskId);
         when(taskRepository.findById(taskId)).thenReturn(Optional.of(task));
 
-        taskService.deleteTask(taskId);
+        taskService.delete(taskId);
 
         verify(taskRepository).delete(task);
         verify(taskOccurrenceStateRepository, never()).save(any());
@@ -468,7 +468,7 @@ class TaskDefinitionServiceMutationTest {
         Task task = buildRecurringTask(taskId);
         when(taskRepository.findById(taskId)).thenReturn(Optional.of(task));
 
-        taskService.deleteTask(taskId);
+        taskService.delete(taskId);
 
         verify(taskRepository).delete(task);
         verify(taskOccurrenceStateRepository, never()).save(any());
@@ -480,7 +480,7 @@ class TaskDefinitionServiceMutationTest {
         Task task = buildRecurringTask(taskId);
         when(taskRepository.findById(taskId)).thenReturn(Optional.of(task));
 
-        taskService.deleteTask(taskId);
+        taskService.delete(taskId);
 
         verify(taskRepository).delete(task);
         verify(taskOccurrenceStateRepository, never()).deleteBySeriesIdAndOccurrenceScheduledAt(any(), any());
@@ -499,7 +499,7 @@ class TaskDefinitionServiceMutationTest {
         UUID taskId = randomId();
         when(taskRepository.findById(taskId)).thenReturn(Optional.empty());
 
-        assertThrows(ResourceNotFoundException.class, () -> taskService.deleteTask(taskId));
+        assertThrows(ResourceNotFoundException.class, () -> taskService.delete(taskId));
     }
 
     @Test
@@ -524,7 +524,7 @@ class TaskDefinitionServiceMutationTest {
         when(taskRepository.findById(taskId)).thenReturn(Optional.of(task));
         when(taskRepository.save(task)).thenReturn(task);
 
-        taskService.updateTask(
+        taskService.update(
                 taskId,
                 new TaskPatchParameters(
                         null,
@@ -598,7 +598,7 @@ class TaskDefinitionServiceMutationTest {
                 null,
                 null);
 
-        assertThatThrownBy(() -> taskService.updateTask(taskId, patch, false)).isInstanceOf(IllegalArgumentException.class)
+        assertThatThrownBy(() -> taskService.update(taskId, patch, false)).isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("requires a recurrence rule");
         assertThat(task.getIsRecurring()).isFalse();
         verify(taskRepository, never()).save(any());

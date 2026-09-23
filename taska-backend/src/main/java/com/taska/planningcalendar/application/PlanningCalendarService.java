@@ -38,7 +38,7 @@ public class PlanningCalendarService {
         return planningCalendarRepository.findAll().stream().map(this::toDetails).toList();
     }
 
-    public PlanningCalendarDetails get(@NotNull UUID planningCalendarId) {
+    public PlanningCalendarDetails findById(@NotNull UUID planningCalendarId) {
         return toDetails(
                 planningCalendarRepository.findById(planningCalendarId)
                         .orElseThrow(() -> new ResourceNotFoundException("Planning calendar not found: " + planningCalendarId)));
@@ -50,11 +50,11 @@ public class PlanningCalendarService {
         planningCalendar.setName(planningCalendarCreateParameters.name());
         PlanningCalendar savedPlanningCalendar = planningCalendarRepository.save(planningCalendar);
         replaceRules(savedPlanningCalendar.getId(), planningCalendarCreateParameters.rules());
-        return get(savedPlanningCalendar.getId());
+        return findById(savedPlanningCalendar.getId());
     }
 
     @Transactional
-    public PlanningCalendarDetails update(
+    public PlanningCalendarDetails replace(
             @NotNull UUID planningCalendarId,
             @NotNull @Valid PlanningCalendarUpdateParameters planningCalendarUpdateParameters) {
         PlanningCalendar planningCalendar = planningCalendarRepository.findById(planningCalendarId)
@@ -62,7 +62,7 @@ public class PlanningCalendarService {
         planningCalendar.setName(planningCalendarUpdateParameters.name());
         planningCalendarRepository.save(planningCalendar);
         replaceRules(planningCalendarId, planningCalendarUpdateParameters.rules());
-        return get(planningCalendarId);
+        return findById(planningCalendarId);
     }
 
     public boolean allows(@NotNull UUID planningCalendarId, @NotNull Instant scheduledAt, boolean allDay) {

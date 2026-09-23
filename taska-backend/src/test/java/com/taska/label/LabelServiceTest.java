@@ -41,14 +41,14 @@ class LabelServiceTest {
     }
 
     @Test
-    void update_replacesEveryMutableProperty() {
+    void replace_replacesEveryMutableProperty() {
         UUID labelId = UUID.randomUUID();
         Label existingLabel = label("Old", "charcoal", 1, false);
         LabelUpdateParameters labelUpdateParameters = new LabelUpdateParameters("Updated", "green", 4, true);
         when(labelRepository.findById(labelId)).thenReturn(Optional.of(existingLabel));
         when(labelRepository.save(existingLabel)).thenReturn(existingLabel);
 
-        Label updatedLabel = labelService.update(labelId, labelUpdateParameters);
+        Label updatedLabel = labelService.replace(labelId, labelUpdateParameters);
 
         assertThat(updatedLabel.getName()).isEqualTo("Updated");
         assertThat(updatedLabel.getColor()).isEqualTo("green");

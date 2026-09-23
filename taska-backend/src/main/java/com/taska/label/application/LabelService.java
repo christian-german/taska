@@ -61,7 +61,7 @@ public class LabelService {
      * @return the updated label entity
      */
     @Transactional
-    public Label update(UUID labelId, LabelUpdateParameters labelUpdateParameters) {
+    public Label replace(UUID labelId, LabelUpdateParameters labelUpdateParameters) {
         Label label = getOrThrow(labelId);
         label.setName(labelUpdateParameters.name());
         label.setColor(labelUpdateParameters.color());

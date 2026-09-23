@@ -62,7 +62,7 @@ public class LabelController {
     @PutMapping("/{labelId}")
     public LabelDto update(@PathVariable UUID labelId, @Valid @RequestBody LabelUpdateRequest labelUpdateRequest) {
         LabelUpdateParameters labelUpdateParameters = labelMapper.toParameters(labelUpdateRequest);
-        return labelMapper.toDto(labelService.update(labelId, labelUpdateParameters));
+        return labelMapper.toDto(labelService.replace(labelId, labelUpdateParameters));
     }
 
     /**

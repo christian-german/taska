@@ -125,7 +125,7 @@ public class TaskDefinitionService {
      * @throws ResourceNotFoundException if the task does not exist
      */
     @Transactional
-    public TaskResult updateTask(UUID taskId, TaskPatchParameters taskPatchParameters, boolean priorityProvided) {
+    public TaskResult update(UUID taskId, TaskPatchParameters taskPatchParameters, boolean priorityProvided) {
         Task task = getOrThrow(taskId);
         applyPatch(task, taskPatchParameters, priorityProvided);
         Task saved = taskRepository.save(task);
@@ -158,7 +158,7 @@ public class TaskDefinitionService {
      * @throws ResourceNotFoundException if the task does not exist
      */
     @Transactional
-    public void deleteTask(UUID taskId) {
+    public void delete(UUID taskId) {
         Task task = getOrThrow(taskId);
         events.publishEvent(new TaskMutatedEvent(taskId));
         taskRepository.delete(task);

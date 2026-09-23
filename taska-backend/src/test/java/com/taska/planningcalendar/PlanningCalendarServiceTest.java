@@ -74,7 +74,7 @@ class PlanningCalendarServiceTest {
     }
 
     @Test
-    void updateWithAnEmptyRuleListClearsExistingRules() {
+    void replaceWithAnEmptyRuleListClearsExistingRules() {
         UUID id = UUID.randomUUID();
         PlanningCalendar calendar = new PlanningCalendar();
         calendar.setId(id);
@@ -83,7 +83,7 @@ class PlanningCalendarServiceTest {
         when(calendars.save(calendar)).thenReturn(calendar);
         when(rules.findByCalendarIdOrderByDayOfWeekAscStartMinuteAsc(id)).thenReturn(List.of());
 
-        var details = planningCalendarService.update(id, new PlanningCalendarUpdateParameters("Always", List.of()));
+        var details = planningCalendarService.replace(id, new PlanningCalendarUpdateParameters("Always", List.of()));
 
         assertThat(details.name()).isEqualTo("Always");
         assertThat(details.rules()).isEmpty();

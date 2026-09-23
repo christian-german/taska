@@ -8,7 +8,7 @@ import java.util.UUID;
  * JPA entity representing a comment in the {@code comments} table.
  *
  * <p>
- * A comment is scoped to a task, retrieved via {@link CommentRepository#findByTaskIdOrderByCreatedAtAsc}.
+ * A comment is scoped to a task, retrieved via {@link com.taska.comment.persistence.CommentRepository#findByTaskIdOrderByCreatedAtAsc}.
  */
 @Entity
 @Table(name = "comments")

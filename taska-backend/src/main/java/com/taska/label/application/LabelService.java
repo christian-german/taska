@@ -12,7 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
-@Transactional
+@Transactional(readOnly = true)
 @RequiredArgsConstructor
 public class LabelService {
 
@@ -23,7 +23,6 @@ public class LabelService {
      *
      * @return list of all label entities
      */
-    @Transactional(readOnly = true)
     public List<Label> findAll() {
         return labelRepository.findAllByOrderByPositionAsc();
     }
@@ -34,7 +33,6 @@ public class LabelService {
      * @param labelId the label UUID
      * @return the matching label entity
      */
-    @Transactional(readOnly = true)
     public Label findById(UUID labelId) {
         return getOrThrow(labelId);
     }
@@ -45,6 +43,7 @@ public class LabelService {
      * @param labelCreateParameters application parameters for the new label
      * @return the persisted label entity
      */
+    @Transactional
     public Label create(LabelCreateParameters labelCreateParameters) {
         Label label = new Label();
         label.setName(labelCreateParameters.name());
@@ -61,6 +60,7 @@ public class LabelService {
      * @param labelUpdateParameters application parameters for the replacement
      * @return the updated label entity
      */
+    @Transactional
     public Label update(UUID labelId, LabelUpdateParameters labelUpdateParameters) {
         Label label = getOrThrow(labelId);
         label.setName(labelUpdateParameters.name());
@@ -75,6 +75,7 @@ public class LabelService {
      *
      * @param labelId the label UUID to delete
      */
+    @Transactional
     public void delete(UUID labelId) {
         labelRepository.delete(getOrThrow(labelId));
     }

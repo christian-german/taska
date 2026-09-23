@@ -12,7 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
-@Transactional
+@Transactional(readOnly = true)
 @RequiredArgsConstructor
 public class CommentService {
 
@@ -25,7 +25,6 @@ public class CommentService {
      * @param taskId optional task UUID to filter by
      * @return list of matching comment entities
      */
-    @Transactional(readOnly = true)
     public List<Comment> findAll(UUID taskId) {
         if (taskId != null) {
             return commentRepository.findByTaskIdOrderByCreatedAtAsc(taskId);
@@ -39,6 +38,7 @@ public class CommentService {
      * @param commentCreateParameters application parameters for the new comment
      * @return the persisted comment entity
      */
+    @Transactional
     public Comment create(CommentCreateParameters commentCreateParameters) {
         Comment comment = new Comment();
         comment.setTaskId(commentCreateParameters.taskId());
@@ -53,6 +53,7 @@ public class CommentService {
      * @param commentUpdateParameters application parameters containing the replacement content
      * @return the updated comment entity
      */
+    @Transactional
     public Comment update(UUID commentId, CommentUpdateParameters commentUpdateParameters) {
         Comment comment = getOrThrow(commentId);
         comment.setContent(commentUpdateParameters.content());
@@ -64,6 +65,7 @@ public class CommentService {
      *
      * @param commentId the comment UUID to delete
      */
+    @Transactional
     public void delete(UUID commentId) {
         commentRepository.delete(getOrThrow(commentId));
     }

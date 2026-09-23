@@ -190,7 +190,7 @@ com.example.application
 │   └── adapter
 │       └── http
 │           ├── LabelController, LabelDto, LabelCreateRequest,
-│           └── LabelUpdateRequest, LabelMapper, LabelExceptionHandler
+│           └── LabelUpdateRequest, LabelMapper
 └── task                            a large module: same four layers, one of them subdivided
     ├── package-info
     ├── model                       @NamedInterface — the published vocabulary

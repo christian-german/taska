@@ -5,7 +5,7 @@
 
 3. Le package mcp/ duplique toute la couche de présentation de task, et la duplication a déjà divergé. TaskOutput.from() (mcp/TaskMcpTools.java:378) réimplémente à la main la même logique que TaskMapper.toOccurrenceDto() (controller/TaskMapper.java:66) — et TaskOutput n'a pas le champ type que TaskDto a gagné. La feature task est donc éclatée sur deux packages racine. Soit mcp descend en domain/task/mcp/ (cohérent avec « feature d'abord »), soit controller remonte à côté de mcp comme deux adaptateurs frères.
 
-4. Gestion d'erreur à deux vitesses. LabelExceptionHandler traduit DataIntegrityViolationException en 409 pour le seul LabelController. Project.name ou DeviceToken.token en conflit → 500 via le catch-all. Ce handler devrait être global.
+4. ~~Gestion d'erreur à deux vitesses~~ Résolu : LabelExceptionHandler supprimé (usage mono-utilisateur, race condition sur le nom de label non pertinente ; DataIntegrityViolationException tombe désormais sur le catch-all comme pour Project.name / DeviceToken.token, comportement homogène entre domaines).
 
 5. @JsonAnySetter rejectUnknownProperty n'existe que sur les 2 records de Label. C'est une règle de contrat qui devrait être une config Jackson globale (FAIL_ON_UNKNOWN_PROPERTIES), pas 10 lignes copiées par record.
 
@@ -28,7 +28,7 @@ Fuites entre features au niveau adaptateur. ProjectController injecte TaskMapper
 Si je devais prioriser
 
 1. Réparer l'import DeviceToken (le code ne compile pas en l'état) et fixer une règle unique pour l'emplacement des entités.
-2. Remonter LabelExceptionHandler et le rejet des propriétés inconnues au niveau global.
+2. Remonter le rejet des propriétés inconnues au niveau global.
 3. Choisir un seul idiome de mapping et aligner PlanningCalendarMapper + TaskPriorityEvaluationMapper.
 4. Faire partager à mcp et controller le même mapping de sortie (ou au minimum resynchroniser TaskOutput avec TaskDto).
 5. Supprimer les constructeurs de compatibilité.

@@ -16,7 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
-@Transactional
+@Transactional(readOnly = true)
 @RequiredArgsConstructor
 public class ProjectService {
 
@@ -29,7 +29,6 @@ public class ProjectService {
      *
      * @return list of all project entities
      */
-    @Transactional(readOnly = true)
     public List<Project> findAll() {
         return projectRepository.findAllByOrderByPositionAsc();
     }
@@ -40,7 +39,6 @@ public class ProjectService {
      * @param projectId the project UUID
      * @return the matching project entity
      */
-    @Transactional(readOnly = true)
     public Project findById(UUID projectId) {
         return getOrThrow(projectId);
     }
@@ -51,6 +49,7 @@ public class ProjectService {
      * @param projectCreateParameters application parameters for the new project
      * @return the persisted project entity
      */
+    @Transactional
     public Project create(ProjectCreateParameters projectCreateParameters) {
         Project project = new Project();
         project.setName(projectCreateParameters.name());
@@ -76,6 +75,7 @@ public class ProjectService {
      * @param projectUpdateParameters application parameters for the replacement
      * @return the updated project entity
      */
+    @Transactional
     public Project update(UUID projectId, ProjectUpdateParameters projectUpdateParameters) {
         Project project = getOrThrow(projectId);
         project.setName(projectUpdateParameters.name());
@@ -101,6 +101,7 @@ public class ProjectService {
      *
      * @param reorderParameters list of id/position pairs defining the new positions
      */
+    @Transactional
     public void reorder(List<ProjectReorderParameters> reorderParameters) {
         reorderParameters.forEach(reorderParameter -> projectRepository.findById(reorderParameter.projectId()).ifPresent(project -> {
             project.setPosition(reorderParameter.position());
@@ -114,6 +115,7 @@ public class ProjectService {
      *
      * @param projectId the project UUID to delete
      */
+    @Transactional
     public void delete(UUID projectId) {
         Project project = getOrThrow(projectId);
         if (project.getIsInboxProject()) {
@@ -128,7 +130,6 @@ public class ProjectService {
      * @param projectId the project UUID
      * @throws ResourceNotFoundException when the project does not exist
      */
-    @Transactional(readOnly = true)
     public void requireExists(UUID projectId) {
         getOrThrow(projectId);
     }
@@ -139,7 +140,6 @@ public class ProjectService {
      * @return the inbox project identifier
      * @throws ResourceNotFoundException when no inbox project is stored
      */
-    @Transactional(readOnly = true)
     public UUID inboxProjectId() {
         return projectRepository.findByIsInboxProjectTrue().orElseThrow(() -> new ResourceNotFoundException("Inbox project not found")).getId();
     }
@@ -151,7 +151,6 @@ public class ProjectService {
      * @return the project's planning calendar identifier
      * @throws ResourceNotFoundException when the project does not exist
      */
-    @Transactional(readOnly = true)
     public UUID planningCalendarIdOf(UUID projectId) {
         return getOrThrow(projectId).getPlanningCalendarId();
     }

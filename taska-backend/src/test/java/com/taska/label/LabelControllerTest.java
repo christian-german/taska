@@ -10,7 +10,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.taska.label.adapter.http.LabelController;
-import com.taska.label.adapter.http.LabelExceptionHandler;
 import com.taska.label.adapter.http.LabelMapper;
 import com.taska.label.adapter.http.LabelMapperImpl;
 import com.taska.label.application.LabelService;
@@ -22,7 +21,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.json.JacksonJsonHttpMessageConverter;
 import org.springframework.test.web.servlet.MockMvc;
@@ -40,7 +38,6 @@ class LabelControllerTest {
         labelService = mock(LabelService.class);
         LabelMapper labelMapper = new LabelMapperImpl();
         mockMvc = MockMvcBuilders.standaloneSetup(new LabelController(labelService, labelMapper))
-                .setControllerAdvice(new LabelExceptionHandler())
                 .setMessageConverters(new JacksonJsonHttpMessageConverter(applicationJsonMapper()))
                 .build();
     }
@@ -151,30 +148,6 @@ class LabelControllerTest {
         mockMvc.perform(request.contentType(MediaType.APPLICATION_JSON).content(requestBody)).andExpect(status().isBadRequest());
 
         verifyNoInteractions(labelService);
-    }
-
-    @ParameterizedTest
-    @ValueSource(strings = {"post", "put"})
-    void mutations_reportPersistenceConflictsAsConflict(String method) throws Exception {
-        UUID labelId = UUID.randomUUID();
-        LabelCreateParameters createParameters = new LabelCreateParameters("Work", "blue", 1, false);
-        LabelUpdateParameters updateParameters = new LabelUpdateParameters("Work", "blue", 1, false);
-        if (method.equals("post")) {
-            when(labelService.create(createParameters)).thenThrow(new DataIntegrityViolationException("duplicate label name"));
-        } else {
-            when(labelService.update(labelId, updateParameters)).thenThrow(new DataIntegrityViolationException("duplicate label name"));
-        }
-
-        var request = method.equals("post") ? post("/labels") : put("/labels/{labelId}", labelId);
-
-        mockMvc.perform(request.contentType(MediaType.APPLICATION_JSON).content("""
-                {
-                  "name":"Work",
-                  "color":"blue",
-                  "order":1,
-                  "isFavorite":false
-                }
-                """)).andExpect(status().isConflict()).andExpect(jsonPath("$.detail").value("Label operation conflicts with existing data"));
     }
 
     private Label label(String name, String color, int position, boolean favorite) {

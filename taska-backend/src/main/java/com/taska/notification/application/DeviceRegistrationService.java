@@ -10,6 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 /** Registers account-scoped notification devices. */
 @Service
+@Transactional(readOnly = true)
 @RequiredArgsConstructor
 public class DeviceRegistrationService {
 

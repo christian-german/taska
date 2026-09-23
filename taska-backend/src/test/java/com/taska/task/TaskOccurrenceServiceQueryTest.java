@@ -254,7 +254,7 @@ class TaskOccurrenceServiceQueryTest {
 
         when(taskRepository.findNonRecurringTasksInPeriod(START, END)).thenReturn(List.of());
         when(taskRepository.findActiveRecurringTasksForPeriod(START, END)).thenReturn(List.of(task));
-        when(taskOccurrenceStateRepository.findBySeriesIdInAndOccurrenceScheduledAtBetween(List.of(task.getId()), eq(START), eq(END)))
+        when(taskOccurrenceStateRepository.findBySeriesIdInAndOccurrenceScheduledAtBetween(eq(List.of(task.getId())), eq(START), eq(END)))
                 .thenReturn(List.of());
         when(taskRecurrenceService.getOccurrencesInRange(task, START, END)).thenReturn(List.of(occurrenceScheduledAt));
 
@@ -273,7 +273,7 @@ class TaskOccurrenceServiceQueryTest {
 
         when(taskRepository.findNonRecurringTasksInPeriod(START, END)).thenReturn(List.of());
         when(taskRepository.findActiveRecurringTasksForPeriod(START, END)).thenReturn(List.of(task));
-        when(taskOccurrenceStateRepository.findBySeriesIdInAndOccurrenceScheduledAtBetween(List.of(task.getId()), eq(START), eq(END)))
+        when(taskOccurrenceStateRepository.findBySeriesIdInAndOccurrenceScheduledAtBetween(eq(List.of(task.getId())), eq(START), eq(END)))
                 .thenReturn(List.of(doneInstance));
         when(taskRecurrenceService.getOccurrencesInRange(task, START, END)).thenReturn(List.of(occurrenceScheduledAt));
 
@@ -292,7 +292,7 @@ class TaskOccurrenceServiceQueryTest {
 
         when(taskRepository.findNonRecurringTasksInPeriod(START, END)).thenReturn(List.of());
         when(taskRepository.findActiveRecurringTasksForPeriod(START, END)).thenReturn(List.of(task));
-        when(taskOccurrenceStateRepository.findBySeriesIdInAndOccurrenceScheduledAtBetween(List.of(task.getId()), eq(START), eq(END)))
+        when(taskOccurrenceStateRepository.findBySeriesIdInAndOccurrenceScheduledAtBetween(eq(List.of(task.getId())), eq(START), eq(END)))
                 .thenReturn(List.of(skipped));
         when(taskRecurrenceService.getOccurrencesInRange(task, START, END)).thenReturn(List.of(occurrenceScheduledAt));
 

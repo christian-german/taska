@@ -11,6 +11,7 @@ import org.mapstruct.Mapping;
 @Mapper(config = ApiMapperConfig.class)
 public interface ProjectMapper {
     @Mapping(target = "order", source = "position")
+    @Mapping(target = "isInboxProject", source = "inboxProject")
     ProjectDto toDto(Project project);
 
     @Mapping(target = "color", defaultValue = "#808080")
